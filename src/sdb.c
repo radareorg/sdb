@@ -14,10 +14,14 @@ int sdb_add (struct cdb_make *c, const char *key, const char *data) {
 	return cdb_make_add (c, key, strlen (key), data, strlen (data));
 }
 
-sdb* sdb_new (const char *dir) {
-	sdb* s = malloc (sizeof (sdb));
+sdb* sdb_new (const char *dir, int lock) {
+	sdb* s;
+	if (lock && !sdb_lock (sdb_lockfile (dir)))
+		return NULL;
+	s = malloc (sizeof (sdb));
 	s->dir = strdup (dir);
 	s->ht = r_ht_new ();
+	s->lock = lock;
 	//s->ht->list->free = (RListFree)sdb_kv_free;
 	s->fd = open (dir, O_RDONLY);
 	// if open fails ignore
@@ -27,9 +31,11 @@ sdb* sdb_new (const char *dir) {
 }
 
 void sdb_free (sdb* s) {
+	cdb_free (&s->db);
+	if (s->lock)
+		sdb_unlock (sdb_lockfile (s->dir));
 	r_ht_free (s->ht);
 	free (s->dir);
-	cdb_free (&s->db);
 	free (s);
 }
 

@@ -14,3 +14,15 @@ Changes:
 --------
 the cdb format is now 10% smaller
 TODO: does not honors endianness (faster)
+
+Backups:
+--------
+To make a backup of a database to move it between different boxes use the textual format:
+ $ sdb my.db > my.txt
+ $ gzip my.txt
+ $ du -hs my.*
+ my.db        3.9M
+ my.txt.gz    500K
+
+To import the database:
+  $ zcat my.txt.gz | sdb my.db =

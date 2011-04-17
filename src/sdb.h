@@ -9,6 +9,7 @@
 typedef struct sdb_t {
 	char *dir;
 	int fd;
+	int lock;
 	struct cdb db;
 	struct cdb_make m;
 	RHashTable *ht;
@@ -22,7 +23,7 @@ typedef struct sdb_kv {
 	char value[SDB_VALUESIZE];
 } SdbKv;
 
-sdb *sdb_new (const char *dir);
+sdb *sdb_new (const char *dir, int lock);
 int sdb_exists (sdb*, const char *key);
 char *sdb_get (sdb*, const char *key);
 int sdb_set (sdb*, const char *key, const char *data);
@@ -38,6 +39,10 @@ ut64 sdb_getn (sdb *s, const char *key);
 void sdb_setn (sdb *s, const char *key, ut64 v);
 ut64 sdb_inc (sdb *s, const char *key);
 ut64 sdb_dec (sdb *s, const char *key);
+
+int sdb_lock(const char *s);
+const char *sdb_lockfile(const char *f);
+void sdb_unlock(const char *s);
 
 void sdb_set_timeout (sdb *s, const char *key, ut64 secs);
 

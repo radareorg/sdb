@@ -9,8 +9,14 @@ void main () {
 	s.set ("user.name", "owned");
 	print ("Your name is: "+s.get ("user.name")+"\n");
 	s.sync ();
+	s = null;
 
-	var s = new Sdb.with_lock ("uuid.sdb");
-	s.inc ("uuid");
-	s.close ()
+	// open database with lock
+	var s2 = new Sdb ("uuid.sdb", true);
+	if (s2 != null) {
+		var uuid = s2.inc ("uuid");
+		print (@"UUID: $uuid\n");
+		s2.sync ();
+		s2 = null;
+	} else print ("Cannot open 'uuid.sdb'\n");
 }

@@ -4,6 +4,7 @@
 ut64 sdb_getn(sdb *s, const char *key) {
 	ut64 n;
 	char *v = sdb_get (s, key);
+	if (!v) return 0LL;
 	sscanf (v, "%lld", &n); // XXX: support other %ll formats and 0x?
 	sdb_setn (s, key, n);
 	free (v);

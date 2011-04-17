@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	if (argc == 2) {
-		s = sdb_new (argv[1]);
+		s = sdb_new (argv[1], 0);
 		sdb_dump (s);
 		sdb_free (s);
 		return 0;
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 		//exit (0);
 	} else
 	if (!strcmp (argv[2], "-")) {
-		s = sdb_new (argv[1]);
+		s = sdb_new (argv[1], 0);
 		// read from stdin to write db?
 		for (;;) {
 			fgets (line, sizeof (line), stdin);
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 			runline (s, line);
 		}
 	} else {
-		s = sdb_new (argv[1]);
+		s = sdb_new (argv[1], 0);
 		for (i=2; i<argc; i++)
 			runline (s, argv[i]);
 	}
