@@ -1,0 +1,9 @@
+PROTOCOL
+========
+!pancake
+returns hash
+!!hashedpasswordwithgivenhash
+1|0
+!
+1
+

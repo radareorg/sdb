@@ -1,0 +1,16 @@
+SDB (simple database)
+=====================
+sdb is a simple key/value database with disk storage
+
+author: pancake
+
+Rips
+----
+disk storage based on cdb code
+in memory hashtable based on wayland
+linked lists from r2 api
+
+Changes:
+--------
+the cdb format is now 10% smaller
+TODO: does not honors endianness (faster)

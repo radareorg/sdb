@@ -1,0 +1,10 @@
+SDB :: Simple DataBase
+======================
+* Add api to create db without caching it before
+* Remove endian conversions
+* KeyValue must be 4 bytes (smaller footprint, faster write)
+  1 byte for key length
+  3 bytes for value length
+* remove buffer
+* TODO: count items in list?
+  - use kernel's linked list?

@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/sdb
+
+Name: sdb
+Description: Simple DataBase
+Version: 0.1
+Requires:
+Libs: ${libdir}/libsdb.a
+Cflags: -I${includedir}

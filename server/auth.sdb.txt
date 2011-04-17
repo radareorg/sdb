@@ -1,0 +1,6 @@
+# Users
+# this is printf 123 | md5
+auth.pancake=202cb962ac59075b964b07152d234b70
+read.pancake=test msg
+write.pancake=test
+cookie.pancake=
