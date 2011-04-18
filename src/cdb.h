@@ -6,12 +6,7 @@
 #include <string.h>
 #include "types.h"
 
-// XXX: must be removed once working
-#if OLDFMT
-#define HSZ 8
-#else
-#define HSZ 4
-#endif
+#define KVLSZ 4
 
 // GTFO!
 int getkvlen(int fd, ut32 *klen, ut32 *vlen);

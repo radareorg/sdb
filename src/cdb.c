@@ -106,30 +106,20 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key,unsigned int len) {
 		ut32_unpack (buf + 4, &pos);
 		if (!pos) return 0;
 		c->loop++;
-		//c->kpos += HSZ;
 		c->kpos += 8;
 		if (c->kpos == c->hpos + (c->hslots << 3))
 			c->kpos = c->hpos;
 		ut32_unpack (buf, &u);
 		if (u == c->khash) {
-#if OLDFMT
-			if (cdb_read (c, buf, 8, pos) == -1)
-				return -1;
-			ut32_unpack (buf, &u);
-#else
 			seek_set (c->fd, pos);
 			if (!getkvlen (c->fd, &u, &c->dlen))
 				return -1;
-#endif
 			if (u == len) {
-				int m = match (c, key, len, pos + HSZ);
+				int m = match (c, key, len, pos + KVLSZ);
 				if (m == -1)
 					return -1;
 				if (m == 1) {
-#if OLDFMT
-					ut32_unpack (buf + 4, &c->dlen);
-#endif
-					c->dpos = pos + HSZ + len;
+					c->dpos = pos + KVLSZ + len;
 					return 1;
 				}
 			}

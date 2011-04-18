@@ -38,7 +38,7 @@ int cdb_make_addend(struct cdb_make *c, ut32 keylen, ut32 datalen, ut32 h) {
 	head->hp[head->num].p = c->pos;
 	++head->num;
 	++c->numentries;
-	if (posplus (c, HSZ+keylen+datalen) == -1)
+	if (posplus (c, KVLSZ+keylen+datalen) == -1)
 		return -1;
 	return 0;
 }
@@ -51,18 +51,9 @@ static void pack_kvlen(ut8 *buf, ut32 klen, ut32 vlen) {
 }
 
 int cdb_make_addbegin(struct cdb_make *c,unsigned int keylen,unsigned int datalen) {
-	ut8 buf[HSZ];
-#if OLDFMT
-	if (keylen > 0xffffffff) { return -1; }
-	if (datalen > 0xffffffff) { return -1; }
-	ut32_pack (buf, keylen);
-	ut32_pack (buf + 4, datalen);
-#else
+	ut8 buf[KVLSZ];
 	pack_kvlen (buf, keylen, datalen);
-//printf ("PUT %d %d\n", keylen, datalen);
-//printf ("PUT %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-#endif
-	if (buffer_putalign (&c->b, (const char *)buf, HSZ) == -1) return -1;
+	if (buffer_putalign (&c->b, (const char *)buf, KVLSZ) == -1) return -1;
 	return 0;
 }
 

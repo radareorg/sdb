@@ -9,11 +9,6 @@
 // must be deprecated
 static ut32 eod, pos; // what about lseek?
 
-// TODO: refactoring hard
-int sdb_add (struct cdb_make *c, const char *key, const char *data) {
-	return cdb_make_add (c, key, strlen (key), data, strlen (data));
-}
-
 sdb* sdb_new (const char *dir, int lock) {
 	sdb* s;
 	if (lock && !sdb_lock (sdb_lockfile (dir)))
@@ -91,6 +86,11 @@ int sdb_set (sdb* s, const char *key, const char *val) {
 	return 1;
 }
 
+// TODO: refactoring hard
+int sdb_add (struct cdb_make *c, const char *key, const char *data) {
+	return cdb_make_add (c, key, strlen (key), data, strlen (data));
+}
+
 int sdb_sync (sdb* s) {
 	int fd;
 	SdbKv *kv;
@@ -166,18 +166,9 @@ int sdb_dump_next (sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
 	if (s->fd == -1)
 		return 0;
-#if OLDFMT
-	klen = getnum (s->fd);
-	dlen = getnum (s->fd);
-	if (klen<1 || dlen<1)
-		return 0;
-	if (klen>255 || dlen>1024)
-		return 0;
-#else
 	if (!getkvlen (s->fd, &klen, &dlen))
 		return 0;
 	pos += 4;
-#endif
 	if (key && getbytes (s->fd, key, klen)<1)
 		return 0;
 	if (value && getbytes (s->fd, value, dlen)<1)
