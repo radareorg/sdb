@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 		}
 		cdb_make_start (&c, fd);
 		for (;;) {
-			fgets (line, sizeof (line), stdin);
+			fgets (line, sizeof line, stdin);
 			if (feof (stdin))
 				break;
 			line[strlen (line)-1] = 0;
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 		s = sdb_new (argv[1], 0);
 		// read from stdin to write db?
 		for (;;) {
-			fgets (line, sizeof (line), stdin);
+			fgets (line, sizeof line, stdin);
 			if (feof (stdin))
 				break;
 			line[strlen (line)-1] = 0;

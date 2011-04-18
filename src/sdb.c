@@ -35,7 +35,6 @@ void sdb_free (sdb* s) {
 }
 
 char *sdb_get (sdb* s, const char *key) {
-	int p;
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
@@ -47,8 +46,8 @@ char *sdb_get (sdb* s, const char *key) {
 	if (s->fd == -1)
 		return NULL;
 	cdb_findstart (&s->db);
-	p = cdb_findnext (&s->db, hash, key, strlen (key));
-	if (p != 1)
+
+	if (!cdb_findnext (&s->db, hash, key, strlen (key)))
 		return NULL;
 	pos = cdb_datapos (&s->db);
 	len = cdb_datalen (&s->db);
@@ -155,7 +154,7 @@ static int getbytes(int fd, char *b, int len) {
 
 void sdb_dump_begin (sdb* s) {
 	if (s->fd != -1) {
-		seek_set(s->fd, 0);
+		seek_set (s->fd, 0);
 		eod = getnum (s->fd);
 		pos = 2048;
 		seek_set (s->fd, 2048);

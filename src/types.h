@@ -13,13 +13,15 @@ typedef unsigned long seek_pos;
 #define R_TRUE 1
 #define R_FALSE 0
 #define R_NEW(x) (x*)malloc(sizeof(x))
+#define R_ANEW(x) (x*)alloc(sizeof(x))
+#define UT32_MAX ((ut32)0xffffffff)
 
 #define SET 0 /* sigh */
 #define CUR 1 /* sigh */
-#define seek_cur(fd) (lseek((fd),0,CUR))
-#define seek_begin(fd) (seek_set((fd),(seek_pos) 0))
-static inline int seek_set(int fd,seek_pos pos) {
-	return (lseek(fd,(off_t) pos,SET) == -1)?-1:0;
+#define seek_cur(fd) (lseek((fd), 0, CUR))
+#define seek_begin(fd) (seek_set ((fd), (seek_pos) 0))
+static inline int seek_set(int fd, seek_pos pos) {
+	return (lseek (fd, (off_t) pos, SET) == -1)? 0:1;
 }
 
 #define byte_equal(s,n,t) (!byte_diff((s),(n),(t)))

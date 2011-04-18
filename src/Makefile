@@ -9,6 +9,13 @@ libsdb.a: ${OBJ}
 	ar -r libsdb.a ${OBJ}
 	ranlib libsdb.a
 
+t:
+	rm -f foo
+	./sdb foo a=3 b=200
+	hexdump -C foo
+	./sdb foo
+	./sdb foo a
+
 test:
 	rm -f foo
 	./sdb foo a=3

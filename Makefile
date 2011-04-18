@@ -14,7 +14,7 @@ clean:
 	cd vala && ${MAKE} clean
 
 dist: clean
-	cd .. && tar czvf sdb.tar.gz sdb
+	cd .. && tar czvf sdb.tar.gz `find sdb| grep -v \.hg`
 	cd .. && pub sdb.tar.gz
 
 install:

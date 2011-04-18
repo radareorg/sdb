@@ -41,7 +41,7 @@ void cdb_init(struct cdb *c, int fd) {
 	c->map = NULL;
 	cdb_findstart (c);
 	c->fd = fd;
-	if (!fstat (fd, &st) && st.st_size <= 0xffffffff) {
+	if (!fstat (fd, &st) && st.st_size != UT32_MAX) {
 		char *x = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 		if (x + 1) {
 			c->size = st.st_size;
@@ -50,22 +50,22 @@ void cdb_init(struct cdb *c, int fd) {
 	}
 }
 
-int cdb_read(struct cdb *c,char *buf, ut32 len, ut32 pos) {
+int cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
 	if (c->map) {
-		if ((pos > c->size) || (c->size - pos < len)) return -1;
+		if ((pos > c->size) || (c->size - pos < len))
+			return 0;
 		byte_copy (buf, len, c->map + pos);
-		return 0;
+		return 1;
 	}
-	if (seek_set (c->fd, pos) == -1)
-		return -1;
+	if (!seek_set (c->fd, pos))
+		return 0;
 	while (len > 0) {
-		int r;
-		do r = read (c->fd, buf, len); while (r == -1); // WTF
-		if (r<1) return -1;
+		int r = read (c->fd, buf, len);
+		if (r!=len) return 0;
 		buf += r;
 		len -= r;
 	}
-	return 0;
+	return 1;
 }
 
 static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
@@ -73,7 +73,7 @@ static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
 	const int szb = sizeof buf;
 	while (len > 0) {
 		int n = (szb>len)? len: szb;
-		if (cdb_read (c, buf, n, pos) == -1)
+		if (!cdb_read (c, buf, n, pos))
 			return -1;
 		if (byte_diff (buf, n, key))
 			return 0;
@@ -89,9 +89,12 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key,unsigned int len) {
 	ut32 pos;
 
 	if (!c->loop) {
-		if (cdb_read (c, buf, 8, (u << 3) & 2047) == -1) return -1;
+		if (!cdb_read (c, buf, 8, (u << 3) & 2047))
+			return -1;
 		ut32_unpack (buf + 4, &c->hslots);
-		if (!c->hslots) return 0;
+		if (!c->hslots) {
+			return 0;
+		}
 		ut32_unpack (buf, &c->hpos);
 		c->khash = u;
 		u >>= 8;
@@ -101,8 +104,8 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key,unsigned int len) {
 	}
 
 	while (c->loop < c->hslots) {
-		if (cdb_read (c, buf, 8, c->kpos) == -1)
-			return -1;
+		if (!cdb_read (c, buf, 8, c->kpos))
+			return 0;
 		ut32_unpack (buf + 4, &pos);
 		if (!pos) return 0;
 		c->loop++;
@@ -111,13 +114,14 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key,unsigned int len) {
 			c->kpos = c->hpos;
 		ut32_unpack (buf, &u);
 		if (u == c->khash) {
-			seek_set (c->fd, pos);
+			if (!seek_set (c->fd, pos))
+				return -1;
 			if (!getkvlen (c->fd, &u, &c->dlen))
 				return -1;
 			if (u == len) {
 				int m = match (c, key, len, pos + KVLSZ);
 				if (m == -1)
-					return -1;
+					return 0;
 				if (m == 1) {
 					c->dpos = pos + KVLSZ + len;
 					return 1;
