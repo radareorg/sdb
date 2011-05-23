@@ -18,7 +18,8 @@ dist: clean
 	cd .. && pub sdb.tar.gz
 
 install:
-	mkdir -p ${PFX}/lib ${PFX}/bin ${PFX}/include/sdb
+	mkdir -p ${PFX}/lib/pkgconfig ${PFX}/bin 
+	mkdir -p ${PFX}/share/vala/vapi ${PFX}/include/sdb
 	cp -f src/libsdb.a ${PFX}/lib
 	cp -f src/sdb.h ${PFX}/include/sdb
 	cp -f src/cdb.h ${PFX}/include/sdb
