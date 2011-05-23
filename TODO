@@ -15,3 +15,8 @@ Syncronization
  - sdb_diff() must check both databases and look for removed entries
  - sincronization between hosts - realtime storage
  - server can be running with sync every N secs
+
+Timeouts
+--------
+sdb_set ("food", "apple");
+sdb_set_timeout ("food", 10);

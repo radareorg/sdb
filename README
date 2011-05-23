@@ -12,8 +12,8 @@ linked lists from r2 api
 
 Changes:
 --------
-the cdb format is now 10% smaller
-TODO: does not honors endianness (faster)
+the cdb format is now 10% smaller (4.3MB vs 3.9MB)
+TODO: do not honor endianness (faster)
 
 Backups:
 --------

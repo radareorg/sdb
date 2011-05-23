@@ -23,10 +23,11 @@ install:
 	cp -f src/sdb.h ${PFX}/include/sdb
 	cp -f src/cdb.h ${PFX}/include/sdb
 	cp -f src/ht.h ${PFX}/include/sdb
-	cp -f src/ut32.h ${PFX}/include/sdb
+	cp -f src/types.h ${PFX}/include/sdb
 	cp -f src/list.h ${PFX}/include/sdb
 	cp -f src/cdb_make.h ${PFX}/include/sdb
 	cp -f src/buffer.h ${PFX}/include/sdb
+	cp -f src/config.h ${PFX}/include/sdb
 	cp -f src/sdb ${PFX}/bin
 	cp -f vala/sdb.pc ${PFX}/lib/pkgconfig
 	cp -f vala/sdb.vapi ${PFX}/share/vala/vapi

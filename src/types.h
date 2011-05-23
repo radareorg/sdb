@@ -16,6 +16,8 @@ typedef unsigned long seek_pos;
 #define R_ANEW(x) (x*)alloc(sizeof(x))
 #define UT32_MAX ((ut32)0xffffffff)
 
+#include "config.h"
+
 #define SET 0 /* sigh */
 #define CUR 1 /* sigh */
 #define seek_cur(fd) (lseek((fd), 0, CUR))
@@ -28,7 +30,7 @@ static inline int seek_set(int fd, seek_pos pos) {
 #define byte_copy(d,l,s) memcpy(d,s,l)
 #define byte_diff(d,l,s) memcmp(d,s,l)
 
-static inline void ut32_pack(char s[4],ut32 u) {
+static inline void ut32_pack(char s[4], ut32 u) {
 	s[0] = u & 255;
 	u >>= 8;
 	s[1] = u & 255;
@@ -37,7 +39,7 @@ static inline void ut32_pack(char s[4],ut32 u) {
 	s[3] = u >> 8;
 }
 
-static inline void ut32_pack_big(char s[4],ut32 u) {
+static inline void ut32_pack_big(char s[4], ut32 u) {
 	s[3] = u & 255;
 	u >>= 8;
 	s[2] = u & 255;
@@ -46,7 +48,7 @@ static inline void ut32_pack_big(char s[4],ut32 u) {
 	s[0] = u >> 8;
 }
 
-static inline void ut32_unpack(char s[4],ut32 *u) {
+static inline void ut32_unpack(char s[4], ut32 *u) {
 	ut32 result;
 	result = (ut8) s[3];
 	result <<= 8;

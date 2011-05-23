@@ -161,11 +161,10 @@ void sdb_dump_begin (sdb* s) {
 	} else eod = pos = 0;
 }
 
+// XXX: possible overflow
 int sdb_dump_next (sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
-	if (s->fd == -1)
-		return 0;
-	if (!getkvlen (s->fd, &klen, &dlen))
+	if (s->fd==-1 || !getkvlen (s->fd, &klen, &dlen))
 		return 0;
 	pos += 4;
 	if (key && getbytes (s->fd, key, klen)<1)

@@ -10,109 +10,119 @@
 static int save = 0;
 static sdb *s = NULL;
 
-static void sigint(int sig) {
+static void terminate(int sig) {
 	if (!s) return;
 	if (save) sdb_sync (s);
 	sdb_free (s);
+	exit (0);
 }
 
-static void sdb_dump (sdb* s) {
+static void syncronize(int sig) {
+	// TODO: must be in sdb_sync() or wat?
+	sdb *n;
+	sdb_sync (s);
+	n = sdb_new (s->dir, s->lock);
+	sdb_free (s);
+	s = n;
+}
+
+static int sdb_dump (const char *db) {
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
+	sdb *s = sdb_new (db, 0);
+	if (!s) return 1;
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v))
 		printf ("%s=%s\n", k, v);
+	sdb_free (s);
+	return 0;
+}
+
+static void createdb(const char *f) {
+	char line[1024];
+	struct cdb_make c;
+	char *eq, *ftmp = malloc (strlen (f)+5);
+	sprintf (ftmp, "%s.tmp", f);
+	int fd = open (ftmp, O_RDWR|O_CREAT|O_TRUNC, 0644);
+	if (fd == -1) {
+		printf ("cannot create %s\n", ftmp);
+		exit (1);
+	}
+	cdb_make_start (&c, fd);
+	for (;;) {
+		fgets (line, sizeof line, stdin);
+		if (feof (stdin))
+			break;
+		line[strlen (line)-1] = 0;
+		if ((eq = strchr (line, '='))) {
+			*eq = 0;
+			sdb_add (&c, line, eq+1);
+		}
+	}
+	cdb_make_finish (&c);
+	//fsync (fd);
+	close (fd);
+	rename (ftmp, f);
+	free (ftmp);
 }
 
 static void runline (sdb *s, const char *cmd) {
 	ut64 n;
-	char *p, *eq = strchr (cmd, '=');
-	if (eq) {
+	char *p, *eq;
+	if ((eq = strchr (cmd, '='))) {
 		save = 1;
 		*eq = 0;
 		sdb_set (s, cmd, eq+1);
-	} else {
-		switch (*cmd) {
-		case '+': // inc
-			n = sdb_inc (s, cmd+1);
-			save = 1;
-			printf ("%lld\n", n);
-			break;
-		case '-': // dec
-			n = sdb_dec (s, cmd+1);
-			save = 1;
-			printf ("%lld\n", n);
-			break;
-		default:
-			p = sdb_get (s, cmd);
-			if (p) {
-				printf ("%s\n", p);
-				free (p);
-			}
+	} else
+	switch (*cmd) {
+	case '+': // inc
+		n = sdb_inc (s, cmd+1);
+		save = 1;
+		printf ("%lld\n", n);
+		break;
+	case '-': // dec
+		n = sdb_dec (s, cmd+1);
+		save = 1;
+		printf ("%lld\n", n);
+		break;
+	default:
+		if ((p = sdb_get (s, cmd))) {
+			printf ("%s\n", p);
+			free (p);
 		}
 	}
 }
 
 int main(int argc, char **argv) {
-	char line[1024];
 	int i;
 	if (argc<2) {
-		printf ("usage: sdb [db] [-=]|[key[=value] ..]\n");
+		printf ("usage: sdb [db[.lock]] [-=]|[key[=value] ..]\n");
 		return 1;
 	}
-	if (argc == 2) {
-		s = sdb_new (argv[1], 0);
-		sdb_dump (s);
-		sdb_free (s);
-		return 0;
-	}
-	signal (SIGINT, sigint);
-	signal (SIGHUP, sigint);
+	if (argc == 2)
+		return sdb_dump (argv[1]);
+
+	signal (SIGINT, terminate);
+	signal (SIGHUP, syncronize);
 
 	if (!strcmp (argv[2], "=")) {
-		struct cdb_make c;
-		const char *f = argv[1];
-		char *eq, *ftmp = malloc (strlen (f)+5);
-		sprintf (ftmp, "%s.tmp", f);
-		int fd = open (ftmp, O_RDWR|O_CREAT|O_TRUNC, 0644);
-		if (fd == -1) {
-			printf ("cannot create %s\n", ftmp);
-			exit (1);
-		}
-		cdb_make_start (&c, fd);
-		for (;;) {
-			fgets (line, sizeof line, stdin);
-			if (feof (stdin))
-				break;
-			line[strlen (line)-1] = 0;
-			eq = strchr (line, '=');
-			if (eq) {
-				*eq = 0;
-				sdb_add (&c, line, eq+1);
-			}
-		}
-		cdb_make_finish (&c);
-		fsync (fd);
-		close (fd);
-		rename (ftmp, f);
-		free (ftmp);
-		//exit (0);
+		createdb (argv[1]);
 	} else
 	if (!strcmp (argv[2], "-")) {
-		s = sdb_new (argv[1], 0);
-		// read from stdin to write db?
-		for (;;) {
-			fgets (line, sizeof line, stdin);
-			if (feof (stdin))
-				break;
-			line[strlen (line)-1] = 0;
-			runline (s, line);
-		}
+		char line[1024];
+		if ((s = sdb_new (argv[1], 0)))
+			for (;;) {
+				fgets (line, sizeof line, stdin);
+				if (feof (stdin))
+					break;
+				line[strlen (line)-1] = 0;
+				runline (s, line);
+			}
 	} else {
-		s = sdb_new (argv[1], 0);
-		for (i=2; i<argc; i++)
-			runline (s, argv[i]);
+		if ((s = sdb_new (argv[1], 0)))
+			for (i=2; i<argc; i++)
+				runline (s, argv[i]);
 	}
-	sigint (0);
+	terminate (0);
 	return 0;
 }
