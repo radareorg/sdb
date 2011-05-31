@@ -25,6 +25,7 @@ typedef struct sdb_kv {
 
 sdb *sdb_new (const char *dir, int lock);
 int sdb_exists (sdb*, const char *key);
+int sdb_delete (sdb*, const char *key);
 char *sdb_get (sdb*, const char *key);
 int sdb_set (sdb*, const char *key, const char *data);
 void sdb_list(sdb*);

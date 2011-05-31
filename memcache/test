@@ -1,0 +1,6 @@
+set foo 0 0 5
+hello
+set bar 0 0 5
+barra
+get foo bar
+quit

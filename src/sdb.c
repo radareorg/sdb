@@ -41,7 +41,11 @@ char *sdb_get (sdb* s, const char *key) {
 
 	hash = cdb_hashstr (key);
 	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
-	if (kv) return strdup (kv->value);
+	if (kv) {
+		if (*kv->value)
+			return strdup (kv->value);
+		return NULL;
+	}
 
 	if (s->fd == -1)
 		return NULL;
@@ -56,6 +60,24 @@ char *sdb_get (sdb* s, const char *key) {
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
 	return buf;
+}
+
+int sdb_delete (sdb *s, const char *key) {
+	return sdb_set (s, key, "");
+}
+
+int sdb_exists (sdb *s, const char *key) {
+	SdbKv *kv;
+	ut32 hash = cdb_hashstr (key);
+	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	if (kv) return 1;
+	if (s->fd == -1)
+		return 0;
+	cdb_findstart (&s->db);
+	if (cdb_findnext (&s->db, hash, key, strlen (key)))
+		return 1;
+	return 0;
+	
 }
 
 struct sdb_kv* sdb_kv_new (const char *k, const char *v) {

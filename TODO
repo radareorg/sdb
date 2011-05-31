@@ -16,6 +16,12 @@ Syncronization
  - sincronization between hosts - realtime storage
  - server can be running with sync every N secs
 
+Optimization
+------------
+* use slices instead of mallocs
+* implement udp protocol for memcache
+* use 16 bit key and 16 bit value
+
 Timeouts
 --------
 sdb_set ("food", "apple");
