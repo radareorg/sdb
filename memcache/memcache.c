@@ -42,7 +42,11 @@ char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime) {
 	return s;
 }
 void memcache_gets ();
-void memcache_delete();
+
+int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime) {
+	//TODO if (exptime)
+	return sdb_delete (ms->sdb, key);
+}
 
 /* other */
 void memcache_stats();

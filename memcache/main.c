@@ -18,7 +18,7 @@ static int whileread (int fd, char *b, int len) {
 }
 
 static void sigint() {
-	fprintf (stderr, "SIGINT: shutting down\n");
+	fprintf (stderr, "SIGINT handled.\n");
 	memcache_free (ms);
 	exit (0);
 }
@@ -32,7 +32,7 @@ static void main_version() {
 }
 
 static void main_help(const char *arg) {
-	printf ("mcsdbd [-hv] [-p port]\n");
+	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
 static void handle_get(MemcacheSdb *ms, char *key, int smode) {
@@ -89,11 +89,9 @@ static int handle (char *buf) {
 		*p = 0;
 		exptime = 0LL;
 		sscanf (p+1, "%lld", &exptime);
-		if (exptime != 0LL) {
-			// TODO: sdb_set_expire (ms->sdb, key);
-		} else {
-			sdb_delete (ms->sdb, key);
-		}
+		if (memcache_delete (ms, key, exptime))
+			printf ("DELETED\r\n");
+		else printf ("NOT_FOUND\r\n");
 	} else
 	if (!strcmp (cmd, "set")) {
 		char *b;
@@ -144,6 +142,7 @@ static void main_loop() {
 }
 
 int main(int argc, char **argv) {
+	const char *file = MEMCACHE_FILE;
 	int port = MEMCACHE_PORT;
 	char c;
 
@@ -158,9 +157,10 @@ int main(int argc, char **argv) {
 		fprintf (stderr, "Invalid port %d\n", port);
 		return 1;
 	}
-
+	if (optind < argc)
+		file = argv[optind];
 	setup_signals ();
-	ms = memcache_sdb_new (MEMCACHE_FILE);
+	ms = memcache_sdb_new (file);
 	main_loop ();
 	memcache_free (ms);
 	return 0;

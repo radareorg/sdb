@@ -13,5 +13,8 @@ namespace SimpleDB {
 		public uint64 dec (string key);
 		public uint64 getn (string key);
 		public void setn (string key, uint64 num);
+		/* delete */
+		public bool exists (string key);
+		public bool @delete (string key);
 	}
 }

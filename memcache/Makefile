@@ -18,6 +18,6 @@ loc:
 	wc -l *.c
 
 test:
-	./mcsdbd < test
+	time ./mcsdbd < test
 
 .PHONY: clean test all
