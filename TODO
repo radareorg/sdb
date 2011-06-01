@@ -19,12 +19,7 @@ Optimization
 * implement udp protocol for memcache
 * use 16 bit key and 16 bit value
 
-Timeouts
---------
-sdb_set ("food", "apple");
-sdb_set_timeout ("food", 10);
-sdb_expire ("food", 10);
-
 BUGS
 ----
-expire time entries are deleted when sync
+* hashtable is not cleaned up when sync
+  - must honor expire time entries
