@@ -14,4 +14,13 @@ incr foo 99999999999999999
 incr foo 999999999999999999999999999
 incr foo 999999999999999999999999999999999
 incr foo 99999999999999999
+
+set foo 0 0 5
+hello
+append foo 0 0 6
+ world
+get foo
+prepend foo 0 0 4
+Oh! 
+get foo
 quit

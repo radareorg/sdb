@@ -48,9 +48,10 @@ void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
 	if (a) {
-		b = malloc (1 + len + a?strlen (a):0);
-		strcpy (b, body);
-		strcpy (b+len, a);
+		int alen = strlen (a);
+		b = malloc (1 + len + alen);
+		memcpy (b, a, alen);
+		strcpy (b+alen, body);
 		sdb_set (ms->sdb, key, b);
 		free (b);
 		free (a);
@@ -62,9 +63,10 @@ void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
 	if (a) {
-		b = malloc (1 + len + strlen (a));
-		strcpy (b, a);
-		strcpy (b+len, body);
+		int alen = strlen (a);
+		b = malloc (1 + len + alen);
+		strcpy (b, body);
+		strcpy (b+len, a);
 		sdb_set (ms->sdb, key, b);
 		free (b);
 		free (a);
