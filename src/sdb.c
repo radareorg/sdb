@@ -250,3 +250,13 @@ int sdb_expire(sdb *s, const char *key, ut64 expire) {
 	free (buf);
 	return sdb_expire (s, key, expire); // recursive
 }
+
+ut64 sdb_get_expire(sdb *s, const char *key) {
+	ut32 hash;
+	SdbKv *kv;
+	hash = cdb_hashstr (key);
+	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	if (kv && *kv->value)
+		return kv->expire;
+	return 0LL;
+}
