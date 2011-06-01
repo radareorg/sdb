@@ -202,9 +202,8 @@ int r_ht_insert(RHashTable *ht, ut32 hash, void *data, RListIter *iter) {
 				ht->deleted_entries--;
 			entry->hash = hash;
 			entry->data = data;
-			if (!rehash) {
-				entry->iter = r_list_append (ht->list, data);
-			} else entry->iter = iter;
+			if (!rehash) entry->iter = r_list_append (ht->list, data);
+			else entry->iter = iter;
 			ht->entries++;
 			return 1;
 		}

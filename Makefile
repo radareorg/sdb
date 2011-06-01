@@ -32,6 +32,7 @@ install:
 	cp -f src/buffer.h ${PFX}/include/sdb
 	cp -f src/config.h ${PFX}/include/sdb
 	cp -f src/sdb ${PFX}/bin
+	cp -f memcache/mcsdbd ${PFX}/bin
 	cp -f vala/sdb.pc ${PFX}/lib/pkgconfig
 	cp -f vala/sdb.vapi ${PFX}/share/vala/vapi
 

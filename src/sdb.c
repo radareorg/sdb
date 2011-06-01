@@ -125,7 +125,7 @@ int sdb_add (struct cdb_make *c, const char *key, const char *data) {
 int sdb_sync (sdb* s) {
 	int fd;
 	SdbKv *kv;
-	RListIter *iter;
+	RListIter it, *iter;
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
 	struct cdb_make c;
@@ -157,8 +157,14 @@ int sdb_sync (sdb* s) {
 	/* append new keyvalues */
 	r_list_foreach (s->ht->list, iter, kv) {
 	//	printf ("%s=%s\n", kv->key, kv->value);
-		if (*kv->value)
+		if (*kv->value && kv->expire == 0LL) {
 			sdb_add (&c, kv->key, kv->value);
+		}
+		if (kv->expire == 0LL) {
+			it.n = iter->n;
+			sdb_delete (s, kv->key);
+			iter = &it;
+		}
 	}
 //	printf ("db '%s' created\n", f);
 	cdb_make_finish (&c);
