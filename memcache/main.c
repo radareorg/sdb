@@ -1,3 +1,4 @@
+/* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "memcache.h"
 #include <signal.h>
 
@@ -40,14 +41,17 @@ static void handle_get(MemcacheSdb *ms, char *key, int smode) {
 	ut64 exptime = 0LL;
 	int n = 0;
 	char *k, *K = key;
+	if (!key) {
+		printf ("ERROR\r\n");
+		return;
+	}
 	for (;;) {
 		k = strchr (K, ' ');
 		if (k) *k=0;
 		// TODO: split key with spaces
 		char *s = memcache_get (ms, K, &exptime);
 		if (s) {
-			if (smode)
-				printf ("VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
+			if (smode) printf ("VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
 			else printf ("VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
 			printf ("%s\r\nEND\r\n", s);
 			n++;
@@ -97,7 +101,26 @@ static int handle (char *buf) {
 		free (ret);
 	} else
 	if (!strcmp (cmd, "stats")) {
+		struct rusage ru;
+		getrusage (0, &ru);
 		printf ("STAT pid %d\r\n", getpid ());
+		printf ("STAT uptime %llu\r\n", sdb_now ()-ms->time);
+		printf ("STAT time %llu\r\n", sdb_now ());
+		printf ("STAT version "MEMCACHE_VERSION"\r\n");
+		printf ("STAT pointer_size %u\r\n", (int)sizeof (void*)*8);
+		printf ("STAT rusage_user %u.%u\r\n",
+			(ut32)ru.ru_utime.tv_sec, (ut32)ru.ru_utime.tv_usec);
+		printf ("STAT rusage_system %u.%u\r\n",
+			(ut32)ru.ru_stime.tv_sec, (ut32)ru.ru_stime.tv_usec);
+		printf ("STAT cmd_get %llu\r\n", ms->gets);
+		printf ("STAT cmd_set %llu\r\n", ms->sets);
+		printf ("STAT get_hits %llu\r\n", ms->hits);
+		printf ("STAT get_misses %llu\r\n", ms->misses);
+		printf ("STAT evictions %llu\r\n", ms->evictions);
+		printf ("STAT bytes_read %llu\r\n", ms->bread);
+		printf ("STAT bytes_written %llu\r\n", ms->bwrite);
+		// ?? printf ("STAT limit_maxbytes 0\r\n");
+		printf ("STAT threads 1\r\n");
 		printf ("END\r\n");
 	} else
 	if (!strcmp (cmd, "version")) {
@@ -108,15 +131,14 @@ static int handle (char *buf) {
 	} else
 	if (!strcmp (cmd, "delete")) {
 		p = strchr (key, ' ');
-		if (!p) {
-			return 0;
-		}
-		*p = 0;
-		exptime = 0LL;
-		sscanf (p+1, "%llu", &exptime);
-		if (memcache_delete (ms, key, exptime))
-			printf ("DELETED\r\n");
-		else printf ("NOT_FOUND\r\n");
+		if (p) {
+			*p = 0;
+			exptime = 0LL;
+			sscanf (p+1, "%llu", &exptime);
+			if (memcache_delete (ms, key, exptime))
+				printf ("DELETED\r\n");
+			else printf ("NOT_FOUND\r\n");
+		} else return 0;
 	} else
 	if (	!strcmp (cmd, "add") ||
 		!strcmp (cmd, "set") ||
@@ -124,14 +146,18 @@ static int handle (char *buf) {
 		!strcmp (cmd, "prepend") ||
 		!strcmp (cmd, "replace")
 			) {
-		int stored = 1;
+		int ret, stored = 1;
 		char *b;
-		p = strchr (key, ' ');
-		if (!p) {
+		if (!key || !((p=strchr(key, ' ')))) {
+			printf ("ERROR\r\n");
 			return 0;
 		}
 		*p = 0;
-		sscanf (p+1, "%d %llu %d", &flags, &exptime, &bytes);
+		ret = sscanf (p+1, "%d %llu %d", &flags, &exptime, &bytes);
+		if (ret != 3) {
+			printf ("ERROR\r\n");
+			return 0;
+		}
 		if (bytes<1) {
 			printf ("CLIENT_ERROR invalid length\r\n");
 			printf ("ERROR\r\n");

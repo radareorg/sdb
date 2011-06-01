@@ -1,3 +1,4 @@
+/* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "memcache.h"
 
 MemcacheSdb *memcache_sdb_new (const char *file) {
@@ -10,6 +11,10 @@ MemcacheSdb *memcache_sdb_new (const char *file) {
 		return NULL;
 	}
 	ms->sdb = s;
+	ms->time = sdb_now ();
+	ms->gets = ms->sets = 0LL;
+	ms->evictions = ms->hits = ms->misses = 0LL;
+	ms->bread = ms->bwrite = 0LL;
 	return ms;
 }
 
@@ -23,25 +28,31 @@ void memcache_free (MemcacheSdb *ms) {
 char *memcache_incr(MemcacheSdb *ms, const char *key, ut64 val) {
 	if (sdb_inc (ms->sdb, key, val) == UT64_MAX)
 		return NULL;
+	ms->sets++;
 	return sdb_get (ms->sdb, key);
 }
 
 char *memcache_decr(MemcacheSdb *ms, const char *key, ut64 val) {
 	sdb_dec (ms->sdb, key, val); // ignore return value, as long as 0 is the floor
+	ms->sets++;
 	return sdb_get (ms->sdb, key);
 }
 
 void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
 	sdb_set (ms->sdb, key, body);
 	sdb_expire (ms->sdb, key, exptime);
+	ms->sets++;
 }
 
 int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
 	if (!sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body);
 		sdb_expire (ms->sdb, key, exptime);
+		ms->sets++;
+		ms->hits++;
 		return 1;
 	}
+	ms->misses++;
 	return 0;
 }
 
@@ -59,6 +70,7 @@ void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *
 		free (a);
 	} else sdb_set (ms->sdb, key, body);
 	sdb_expire (ms->sdb, key, exptime);
+	ms->sets++;
 }
 
 void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
@@ -75,14 +87,18 @@ void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 
 		free (a);
 	} else sdb_set (ms->sdb, key, body);
 	sdb_expire (ms->sdb, key, exptime);
+	ms->sets++;
 }
 
 int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
 	if (sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body);
 		sdb_expire (ms->sdb, key, exptime);
+		ms->sets++;
+		ms->hits++;
 		return 1;
 	}
+	ms->misses++;
 	return 0;
 }
 
@@ -99,6 +115,9 @@ void memcache_cas(MemcacheSdb *ms, const char *key, ut64 exptime, const char *bo
 /* retrieval */
 char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime) {
 	char *s = sdb_get (ms->sdb, key);
+	if (s) ms->hits++;
+	else ms->misses++;
+	ms->gets++;
 	*exptime = sdb_get_expire (ms->sdb, key);
 	return s;
 }
@@ -109,6 +128,8 @@ int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime) {
 		sdb_expire (ms->sdb, key, exptime);
 		return 0;
 	}
+	if (sdb_get_expire (ms->sdb, key)>0)
+		ms->evictions++;
 	return sdb_delete (ms->sdb, key);
 }
 

@@ -15,7 +15,7 @@ sdb* sdb_new (const char *dir, int lock) {
 	if (lock && !sdb_lock (sdb_lockfile (dir)))
 		return NULL;
 	s = malloc (sizeof (sdb));
-	s->dir = strdup (dir);
+	s->dir = dir? strdup (dir): NULL;
 	s->ht = r_ht_new ();
 	s->lock = lock;
 	//s->ht->list->free = (RListFree)sdb_kv_free;
@@ -129,8 +129,9 @@ int sdb_sync (sdb* s) {
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
 	struct cdb_make c;
-	char *f = s->dir;
-	char *ftmp = malloc (strlen (f)+5);
+	char *ftmp, *f = s->dir;
+	if (!f) return 0;
+	ftmp = malloc (strlen (f)+5);
 	sprintf (ftmp, "%s.tmp", f);
 	fd = open (ftmp, O_RDWR|O_CREAT|O_TRUNC, 0644);
 	if (fd == -1) {

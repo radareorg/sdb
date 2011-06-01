@@ -1,12 +1,22 @@
 #include "sdb.h"
 
-#define MEMCACHE_FILE "mcsdb.sdb"
+#define MEMCACHE_FILE NULL
+//"mcsdb.sdb"
 #define MEMCACHE_PORT 11211
 #define MEMCACHE_VERSION "0.1"
 
 typedef struct {
 	sdb *sdb;
 	int fd;
+	/* stats */
+	ut64 time;
+	ut64 gets;
+	ut64 sets;
+	ut64 hits;
+	ut64 misses;
+	ut64 evictions;
+	ut64 bread;
+	ut64 bwrite;
 } MemcacheSdb;
 
 typedef struct {
