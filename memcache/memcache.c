@@ -105,7 +105,10 @@ char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime) {
 void memcache_gets ();
 
 int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime) {
-	//TODO if (exptime)
+	if (exptime>0) {
+		sdb_expire (ms->sdb, key, exptime);
+		return 0;
+	}
 	return sdb_delete (ms->sdb, key);
 }
 

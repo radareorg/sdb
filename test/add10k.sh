@@ -4,7 +4,7 @@
 # 10000 = 0.3s
 
 sdb=../src/sdb
-SIZE=1000
+SIZE=10000
 #SIZE=1000
 
 makekeys() {

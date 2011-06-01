@@ -95,6 +95,13 @@ static int handle (char *buf) {
 		else printf ("SERVER_ERROR numeric overflow\r\n");
 		free (ret);
 	} else
+	if (!strcmp (cmd, "stats")) {
+		printf ("STAT pid %d\r\n", getpid ());
+		printf ("END\r\n");
+	} else
+	if (!strcmp (cmd, "version")) {
+		printf ("VERSION 0.1\r\n");
+	} else
 	if (!strcmp (cmd, "get")) {
 		handle_get (ms, key, 0);
 	} else
