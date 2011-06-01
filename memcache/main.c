@@ -46,8 +46,8 @@ static void handle_get(MemcacheSdb *ms, char *key, int smode) {
 		char *s = memcache_get (ms, K, &exptime);
 		if (s) {
 			if (smode)
-				printf ("VALUE %s %lld 0 %d\r\n", K, exptime, (int)strlen (s));
-			else printf ("VALUE %s %lld %d\r\n", K, exptime, (int)strlen (s));
+				printf ("VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
+			else printf ("VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
 			printf ("%s\r\nEND\r\n", s);
 			n++;
 			free (s);
@@ -78,6 +78,23 @@ static int handle (char *buf) {
 	if (!strncmp (buf, "gets ", 5)) {
 		handle_get (ms, key, 1);
 	} else
+	if (	!strcmp (cmd, "incr") ||
+		!strcmp (cmd, "decr")
+			) {
+		char *ret;
+		ut64 n = 0;
+		p = strchr (key, ' ');
+		if (!p) {
+			return 0;
+		}
+		*p++ = 0;
+		sscanf (p, "%llu", &n);
+		if (*cmd=='i') ret = memcache_incr (ms, key, n);
+		else ret = memcache_decr (ms, key, n);
+		if (ret) printf ("%s\r\n", ret);
+		else printf ("SERVER_ERROR numeric overflow\r\n");
+		free (ret);
+	} else
 	if (!strcmp (cmd, "get")) {
 		handle_get (ms, key, 0);
 	} else
@@ -88,19 +105,23 @@ static int handle (char *buf) {
 		}
 		*p = 0;
 		exptime = 0LL;
-		sscanf (p+1, "%lld", &exptime);
+		sscanf (p+1, "%llu", &exptime);
 		if (memcache_delete (ms, key, exptime))
 			printf ("DELETED\r\n");
 		else printf ("NOT_FOUND\r\n");
 	} else
-	if (!strcmp (cmd, "set")) {
+	if (	!strcmp (cmd, "add") ||
+		!strcmp (cmd, "set") ||
+		!strcmp (cmd, "replace")
+			) {
+		int stored = 1;
 		char *b;
 		p = strchr (key, ' ');
 		if (!p) {
 			return 0;
 		}
 		*p = 0;
-		sscanf (p+1, "%d %lld %d", &flags, &exptime, &bytes);
+		sscanf (p+1, "%d %llu %d", &flags, &exptime, &bytes);
 		if (bytes<1) {
 			printf ("CLIENT_ERROR invalid length\r\n");
 			printf ("ERROR\r\n");
@@ -123,8 +144,13 @@ static int handle (char *buf) {
 		if (feof (stdin))
 			return -1;
 		b[--bytes] = 0;
-		memcache_set (ms, key, exptime, b);
-		printf ("STORED\r\n");
+		switch (*cmd) {
+		case 's': memcache_set (ms, key, exptime, b); break;
+		case 'a': stored = memcache_add (ms, key, exptime, b); break;
+		case 'r': stored = memcache_replace (ms, key, exptime, b); break;
+		}
+		if (stored) printf ("STORED\r\n");
+		else printf ("NOT_STORED\r\n");
 		return 1;
 	} else printf ("ERROR\r\n");
 	return 0;

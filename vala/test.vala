@@ -14,7 +14,7 @@ void main () {
 	// open database with lock
 	var s2 = new Sdb ("uuid.sdb", true);
 	if (s2 != null) {
-		var uuid = s2.inc ("uuid");
+		var uuid = s2.inc ("uuid", 1);
 		print (@"UUID: $uuid\n");
 		s2.sync ();
 		s2 = null;

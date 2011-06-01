@@ -4,12 +4,14 @@ PFX=${DESTDIR}${PREFIX}
 
 all:
 	cd src && ${MAKE}
+	cd memcache && ${MAKE}
 
 vala: all
 	cd vala && ${MAKE}
 
 clean:
 	cd src && ${MAKE} clean
+	cd memcache && ${MAKE} clean
 	cd test && ${MAKE} clean
 	cd vala && ${MAKE} clean
 

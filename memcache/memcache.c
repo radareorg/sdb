@@ -27,7 +27,8 @@ char *memcache_incr(MemcacheSdb *ms, const char *key, ut64 val) {
 }
 
 char *memcache_decr(MemcacheSdb *ms, const char *key, ut64 val) {
-	return memcache_incr (ms, key, -val);
+	sdb_dec (ms->sdb, key, val); // ignore return value, as long as 0 is the floor
+	return sdb_get (ms->sdb, key);
 }
 
 void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {

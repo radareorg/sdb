@@ -39,6 +39,7 @@ void sdb_free (sdb* s);
 ut64 sdb_getn (sdb *s, const char *key);
 void sdb_setn (sdb *s, const char *key, ut64 v);
 ut64 sdb_inc (sdb *s, const char *key, ut64 n);
+ut64 sdb_dec (sdb *s, const char *key, ut64 n);
 
 int sdb_lock(const char *s);
 const char *sdb_lockfile(const char *f);
