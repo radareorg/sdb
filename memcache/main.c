@@ -123,7 +123,7 @@ static int handle (char *buf) {
 		if (feof (stdin))
 			return -1;
 		b[--bytes] = 0;
-		memcache_set (ms, key, exptime, b, bytes);
+		memcache_set (ms, key, exptime, b);
 		printf ("STORED\r\n");
 		return 1;
 	} else printf ("ERROR\r\n");

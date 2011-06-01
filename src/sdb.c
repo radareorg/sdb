@@ -77,7 +77,6 @@ int sdb_exists (sdb *s, const char *key) {
 	if (cdb_findnext (&s->db, hash, key, strlen (key)))
 		return 1;
 	return 0;
-	
 }
 
 struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
@@ -99,8 +98,12 @@ int sdb_set (sdb* s, const char *key, const char *val) {
 	cdb_findstart (&s->db);
 	e = r_ht_search (s->ht, hash);
 	if (e) {
-		kv = e->data;
-		strcpy (kv->value, val);
+		if (cdb_findnext (&s->db, hash, key, strlen (key))) {
+			kv = e->data;
+			strcpy (kv->value, val);
+		} else {
+			r_ht_remove_entry (s->ht, e);
+		}
 		return 0;
 	}
 	r_ht_insert (s->ht, hash, sdb_kv_new (key, val), NULL);
@@ -133,7 +136,7 @@ int sdb_sync (sdb* s) {
 		ut32 hash = cdb_hashstr (k);
 		RHashTableEntry *hte = r_ht_search (s->ht, hash);
 		if (hte) {
-			SdbKv *kv = (SdbKv*)hte->data;
+			kv = (SdbKv*)hte->data;
 			if (*kv->value) 
 				sdb_add (&c, kv->key, kv->value);
 			// XXX: This fails if key is dupped
@@ -141,12 +144,14 @@ int sdb_sync (sdb* s) {
 			r_list_delete (s->ht->list, hte->iter);
 			hte->iter = NULL;
 			r_ht_remove_entry (s->ht, hte);
-		} else sdb_add (&c, k, v);
+		} else if (*v)
+			sdb_add (&c, k, v);
 	}
 	/* append new keyvalues */
 	r_list_foreach (s->ht->list, iter, kv) {
 	//	printf ("%s=%s\n", kv->key, kv->value);
-		sdb_add (&c, kv->key, kv->value);
+		if (*kv->value)
+			sdb_add (&c, kv->key, kv->value);
 	}
 //	printf ("db '%s' created\n", f);
 	cdb_make_finish (&c);

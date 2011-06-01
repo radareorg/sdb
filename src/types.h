@@ -9,6 +9,7 @@ typedef unsigned long seek_pos;
 #define ut8 unsigned char
 #define ut32 unsigned int
 #define ut64 unsigned long long
+#define UT64_MAX ((ut64)(0xffffffffffffffff))
 #define boolt int
 #define R_TRUE 1
 #define R_FALSE 0

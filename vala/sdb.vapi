@@ -9,8 +9,7 @@ namespace SimpleDB {
 		public string @get (string key);
 		public bool @set (string key, string @value);
 		/* numeric */
-		public uint64 inc (string key);
-		public uint64 dec (string key);
+		public uint64 inc (string key, int n);
 		public uint64 getn (string key);
 		public void setn (string key, uint64 num);
 		/* delete */

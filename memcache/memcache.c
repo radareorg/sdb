@@ -20,20 +20,73 @@ void memcache_free (MemcacheSdb *ms) {
 }
 
 /* storage */
-void memcache_incr();
-void memcache_decr();
-void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body, int len) {
+char *memcache_incr(MemcacheSdb *ms, const char *key, ut64 val) {
+	if (sdb_inc (ms->sdb, key, val) == UT64_MAX)
+		return NULL;
+	return sdb_get (ms->sdb, key);
+}
+
+char *memcache_decr(MemcacheSdb *ms, const char *key, ut64 val) {
+	return memcache_incr (ms, key, -val);
+}
+
+void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
 	sdb_set (ms->sdb, key, body);
 }
-void memcache_add();
-void memcache_replace();
-void memcache_append();
-void memcache_prepend();
+
+int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+	if (!sdb_exists (ms->sdb, key)) {
+		sdb_set (ms->sdb, key, body);
+		return 1;
+	}
+	return 0;
+}
+
+void memcache_append(MemcacheSdb *ms, const char *key, const ut8 *body) {
+	int len = strlen (body);
+	char *a, *b;
+	a = sdb_get (ms->sdb, key);
+	if (a) {
+		b = malloc (1 + len + a?strlen (a):0);
+		strcpy (b, body);
+		strcpy (b+len, a);
+		sdb_set (ms->sdb, key, b);
+		free (b);
+		free (a);
+	} else sdb_set (ms->sdb, key, body);
+}
+
+void memcache_prepend(MemcacheSdb *ms, const char *key, const ut8 *body) {
+	int len = strlen (body);
+	char *a, *b;
+	a = sdb_get (ms->sdb, key);
+	if (a) {
+		b = malloc (1 + len + strlen (a));
+		strcpy (b, a);
+		strcpy (b+len, body);
+		sdb_set (ms->sdb, key, b);
+		free (b);
+		free (a);
+	} else sdb_set (ms->sdb, key, body);
+}
+
+int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+	if (sdb_exists (ms->sdb, key)) {
+		sdb_set (ms->sdb, key, body);
+		return 1;
+	}
+	return 0;
+}
+
 /*
+  NOT IMPLEMENTED
   "cas" is a check and set operation which means "store this data but
   only if no one else has updated since I last fetched it."
 */
-void memcache_cas();
+void memcache_cas(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
+#warning memcache_cas not implemented
+	memcache_set (ms, key, exptime, body);
+}
 
 /* retrieval */
 char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime) {

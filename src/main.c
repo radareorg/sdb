@@ -76,12 +76,12 @@ static void runline (sdb *s, const char *cmd) {
 	} else
 	switch (*cmd) {
 	case '+': // inc
-		n = sdb_inc (s, cmd+1);
+		n = sdb_inc (s, cmd, 1);
 		save = 1;
 		printf ("%lld\n", n);
 		break;
 	case '-': // dec
-		n = sdb_dec (s, cmd+1);
+		n = sdb_inc (s, cmd, -1);
 		save = 1;
 		printf ("%lld\n", n);
 		break;

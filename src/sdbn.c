@@ -17,14 +17,12 @@ void sdb_setn(sdb *s, const char *key, ut64 v) {
 	sdb_set (s, key, b);
 }
 
-ut64 sdb_inc(sdb *s, const char *key) {
+ut64 sdb_inc(sdb *s, const char *key, ut64 n2) {
 	ut64 n = sdb_getn (s, key);
-	sdb_setn (s, key, ++n);
-	return n;
-}
-
-ut64 sdb_dec(sdb *s, const char *key) {
-	ut64 n = sdb_getn (s, key);
-	sdb_setn (s, key, --n);
+	if ((UT64_MAX-n)>n2) {
+		/* overflow */
+		return UT64_MAX;
+	}
+	sdb_setn (s, key, n+n2);
 	return n;
 }
