@@ -2,6 +2,8 @@ SDB (simple database)
 =====================
 sdb is a simple key/value database with disk storage
 
+mcsdbd is a memcache server with disk storage based on sdb
+
 author: pancake
 
 Rips
@@ -12,8 +14,7 @@ linked lists from r2 api
 
 Changes:
 --------
-the cdb format is now 10% smaller (4.3MB vs 3.9MB)
-TODO: do not honor endianness (faster)
+the cdb format is now 10% smaller (4.3MB vs 3.9MB) (uses 4 bytes to pack keylen+valuelen)
 
 Backups:
 --------

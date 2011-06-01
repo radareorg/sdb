@@ -2,7 +2,7 @@ FLAGS=`PKG_CONFIG_PATH=. pkg-config --cflags --libs sdb --define-variable=libdir
 GFLAGS=`pkg-config gobject-2.0 --libs --cflags`
 
 all:
-	valac -C --vapidir=. --pkg sdb test.vala
+	valac -C --vapidir=. --pkg sdb --pkg posix test.vala
 	${CC} -o test test.c ${FLAGS} ${GFLAGS}
 
 clean:

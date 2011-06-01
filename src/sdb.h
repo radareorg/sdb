@@ -21,6 +21,7 @@ typedef struct sdb_t {
 typedef struct sdb_kv {
 	char key[SDB_KEYSIZE];
 	char value[SDB_VALUESIZE];
+	ut64 expire;
 } SdbKv;
 
 sdb *sdb_new (const char *dir, int lock);
@@ -44,7 +45,7 @@ ut64 sdb_dec (sdb *s, const char *key, ut64 n);
 int sdb_lock(const char *s);
 const char *sdb_lockfile(const char *f);
 void sdb_unlock(const char *s);
-
-void sdb_set_timeout (sdb *s, const char *key, ut64 secs);
+int sdb_expire(sdb *s, const char *key, ut64 expire);
+ut64 sdb_now ();
 
 #endif

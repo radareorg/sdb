@@ -226,7 +226,7 @@ void r_ht_remove_entry(RHashTable *ht, RHashTableEntry *entry) {
 		return;
 	if (!rehash && entry->iter) {
 		r_list_delete (ht->list, entry->iter);
-		free (entry->iter);
+		//free (entry->iter);
 		entry->iter = NULL;
 	}
 	entry->data = (void *) &deleted_data;

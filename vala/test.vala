@@ -1,4 +1,5 @@
 using SimpleDB;
+using Posix;
 
 void main () {
 	var s = new Sdb ("test.sdb");
@@ -16,6 +17,23 @@ void main () {
 	if (s2 != null) {
 		var uuid = s2.inc ("uuid", 1);
 		print (@"UUID: $uuid\n");
+
+		s2.expire ("uuid", 20);
+
+		Posix.sleep (1);
+		string? suuid = s2.get ("uuid");
+		print (@"UUID = $uuid\n");
+
+		Posix.sleep (2);
+		//s2.expire ("uuid", 10);
+		suuid = s2.get ("uuid");
+		if (suuid != null) {
+		print (@"!!! UUID = $uuid\n");
+			print ("EXPIRE TEST FAILED\n");
+		} else {
+			print ("EXPIRE TEST SUCCESS\n");
+		}
+		
 		s2.sync ();
 		s2 = null;
 	} else print ("Cannot open 'uuid.sdb'\n");

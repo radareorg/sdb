@@ -1,6 +1,7 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -42,8 +43,13 @@ char *sdb_get (sdb* s, const char *key) {
 	hash = cdb_hashstr (key);
 	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
 	if (kv) {
-		if (*kv->value)
+		if (*kv->value) {
+			if (kv->expire && sdb_now () > kv->expire) {
+				sdb_delete (s, key);
+				return NULL;
+			}
 			return strdup (kv->value);
+		}
 		return NULL;
 	}
 
@@ -83,6 +89,7 @@ struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
 	struct sdb_kv *kv = R_NEW (struct sdb_kv);
 	strcpy (kv->key, k);
 	strcpy (kv->value, v);
+	kv->expire = 0LL;
 	return kv;
 }
 
@@ -200,4 +207,46 @@ int sdb_dump_next (sdb* s, char *key, char *value) {
 		return 0;
 	key[klen] = value[dlen] = 0;
 	return 1;
+}
+
+// XXX: fix 64 bit issue
+ut64 sdb_now () {
+        struct timeval now;
+        gettimeofday (&now, NULL);
+        return (ut64)(now.tv_sec);
+}
+
+static ut64 expire_adapt (ut64 e) {
+	const ut64 month = 30 * 24 * 60 * 60;
+	if (e<month) e += sdb_now ();
+	return e;
+}
+
+int sdb_expire(sdb *s, const char *key, ut64 expire) {
+	char *buf;
+	ut32 hash, pos, len;
+	SdbKv *kv;
+	hash = cdb_hashstr (key);
+	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	if (kv) {
+		if (*kv->value) {
+			kv->expire = expire_adapt (expire);
+			return 1;
+		}
+		return 0;
+	}
+	if (s->fd == -1)
+		return 0;
+	cdb_findstart (&s->db);
+	if (!cdb_findnext (&s->db, hash, key, strlen (key)))
+		return 0;
+	pos = cdb_datapos (&s->db);
+	len = cdb_datalen (&s->db);
+	if (!(buf = malloc (len+1)))
+		return 0;
+	cdb_read (&s->db, buf, len, pos);
+	buf[len] = 0;
+	sdb_set (s, key, buf);
+	free (buf);
+	return sdb_expire (s, key, expire); // recursive
 }
