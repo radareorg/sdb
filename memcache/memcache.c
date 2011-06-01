@@ -43,7 +43,7 @@ int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body
 	return 0;
 }
 
-void memcache_append(MemcacheSdb *ms, const char *key, const ut8 *body) {
+void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
 	int len = strlen (body);
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
@@ -57,7 +57,7 @@ void memcache_append(MemcacheSdb *ms, const char *key, const ut8 *body) {
 	} else sdb_set (ms->sdb, key, body);
 }
 
-void memcache_prepend(MemcacheSdb *ms, const char *key, const ut8 *body) {
+void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
 	int len = strlen (body);
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);

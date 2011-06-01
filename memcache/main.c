@@ -112,6 +112,8 @@ static int handle (char *buf) {
 	} else
 	if (	!strcmp (cmd, "add") ||
 		!strcmp (cmd, "set") ||
+		!strcmp (cmd, "append") ||
+		!strcmp (cmd, "prepend") ||
 		!strcmp (cmd, "replace")
 			) {
 		int stored = 1;
@@ -146,7 +148,9 @@ static int handle (char *buf) {
 		b[--bytes] = 0;
 		switch (*cmd) {
 		case 's': memcache_set (ms, key, exptime, b); break;
-		case 'a': stored = memcache_add (ms, key, exptime, b); break;
+		case 'a': if (cmd[1]=='p') memcache_append (ms, key, exptime, b);
+			else stored = memcache_add (ms, key, exptime, b); break;
+		case 'p': memcache_prepend (ms, key, exptime, b); break;
 		case 'r': stored = memcache_replace (ms, key, exptime, b); break;
 		}
 		if (stored) printf ("STORED\r\n");
