@@ -1,4 +1,5 @@
 #include "memcache.h"
+#include <signal.h>
 
 static MemcacheSdb *ms = NULL;
 
