@@ -1,7 +1,10 @@
+#ifndef _INCLUDE_SDB_MEMCACHE_H_
+#define _INCLUDE_SDB_MEMCACHE_H_
+
 #include "sdb.h"
 
+/* "mcsdb.sdb" */
 #define MEMCACHE_FILE NULL
-//"mcsdb.sdb"
 #define MEMCACHE_PORT 11211
 #define MEMCACHE_VERSION "0.1"
 
@@ -20,9 +23,11 @@ typedef struct {
 } MemcacheSdb;
 
 typedef struct {
+	int fd;
 	MemcacheSdb *ms;
 } MemcacheSdbClient;
 
+extern MemcacheSdb *ms;
 
 MemcacheSdb *memcache_sdb_new (const char *file);
 void memcache_free (MemcacheSdb *ms);
@@ -35,3 +40,5 @@ int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime);
 int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body);
 void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body);
 void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body);
+
+#endif
