@@ -48,5 +48,6 @@ void sdb_unlock(const char *s);
 int sdb_expire(sdb *s, const char *key, ut64 expire);
 ut64 sdb_get_expire(sdb *s, const char *key);
 ut64 sdb_now ();
+ut32 sdb_hash ();
 
 #endif

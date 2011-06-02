@@ -7,6 +7,30 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+static char netbuf[1024];
+static int netbuflen = 0;
+
+void net_flush(int fd) {
+	if (netbuflen<1) return;
+	if (fd==-1) fd = 1; //stdout
+	write (fd, netbuf, netbuflen);
+	netbuflen = 0;
+}
+
+int net_printf (int fd, char *fmt, ...) {
+	int n;
+	char buf[1024];
+	va_list ap;
+	va_start (ap, fmt);
+	n = vsnprintf (buf, sizeof (buf)-1, fmt, ap);
+	if (netbuflen+n>sizeof (netbuf))
+		net_flush (fd);
+	strcpy (netbuf+netbuflen, buf);
+	va_end (ap);
+	netbuflen += n;
+	return n;
+}
+
 int net_listen (int port) {
 	int fd;
         struct sockaddr_in sa;
@@ -38,17 +62,4 @@ int net_listen (int port) {
 int net_close (int s) {
 	shutdown (s, SHUT_RDWR);
 	return close (s);
-}
-
-int net_printf (int fd, char *fmt, ...) {
-	int n;
-	char buf[1024];
-	va_list ap;
-	va_start (ap, fmt);
-	if (fd != -1) {
-		n = vsnprintf (buf, sizeof (buf)-1, fmt, ap);
-		write (fd, buf, n);
-	} else n = vprintf (fmt, ap);
-	va_end (ap);
-	return n;
 }

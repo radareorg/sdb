@@ -8,7 +8,21 @@
 #define MEMCACHE_FILE NULL
 #define MEMCACHE_PORT 11211
 #define MEMCACHE_VERSION "0.1"
-#define MEMCACHE_MAX_CLIENTS 10
+#define MEMCACHE_MAX_CLIENTS 1
+#define MEMCACHE_MAX_BUFFER 1024
+
+#include "cmds.h"
+
+typedef struct {
+	int fd;
+	int mode;
+	int len; // bytes to read
+	int idx; // bytes readed
+	ut32 cmdhash;
+	char buf[MEMCACHE_MAX_BUFFER]; // buffer
+	ut64 exptime;
+	char key[100];
+} MemcacheSdbClient;
 
 typedef struct {
 	sdb *sdb;
@@ -26,12 +40,8 @@ typedef struct {
 	struct pollfd fds[MEMCACHE_MAX_CLIENTS+1];
 	int nfds;
 	int tfds; // total number of clients
+	MemcacheSdbClient *msc[MEMCACHE_MAX_CLIENTS+1];
 } MemcacheSdb;
-
-typedef struct {
-	int fd;
-	MemcacheSdb *ms;
-} MemcacheSdbClient;
 
 extern MemcacheSdb *ms;
 
@@ -49,5 +59,7 @@ void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const char
 
 int net_listen (int port);
 int net_close (int s);
+void net_flush(int fd);
+int net_printf(int fd, char *fmt, ...);
 
 #endif

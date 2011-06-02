@@ -266,3 +266,7 @@ ut64 sdb_get_expire(sdb *s, const char *key) {
 		return kv->expire;
 	return 0LL;
 }
+
+ut32 sdb_hash(const char *s) {
+	return cdb_hashstr (s);
+}

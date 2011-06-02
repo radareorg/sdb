@@ -8,11 +8,15 @@ LDFLAGS+=-ggdb
 
 all: ${BIN}
 
-${BIN}: ${OBJS}
+${BIN}: cmds.h ${OBJS}
 	${CC} -o ${BIN} ${OBJS} ${LDFLAGS} ${LIBS}
 
+cmds.h: cmds.o
+	${CC} -o cmds cmds.o ${CFLAGS} ${LDFLAGS} ${LIBS}
+	./cmds > cmds.h
+
 clean:
-	rm -f ${OBJS} ${BIN}
+	rm -f ${OBJS} ${BIN} cmds.h cmds cmds.o
 
 loc:
 	wc -l *.c
@@ -20,4 +24,4 @@ loc:
 test:
 	time ./mcsdbd < test
 
-.PHONY: clean test all
+.PHONY: clean test all loc

@@ -2,22 +2,6 @@
 #include "memcache.h"
 #include <sys/resource.h>
 
-int net_printf (int fd, char *fmt, ...);
-static int whileread (int fd, char *b, int len) {
-	int all = 0;
-	int ret;
-	for (;len>0;) {
-		ret = fread (b, 1, len, stdin);
-		if (ret==-1) return -1;
-		if (ret>0) {
-			b += ret;
-			all += ret;
-			len -= ret;
-		}
-	}
-	return all;
-}
-
 static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
 	ut64 exptime = 0LL;
 	int n = 0;
@@ -29,14 +13,15 @@ static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
 	for (;;) {
 		k = strchr (K, ' ');
 		if (k) *k=0;
-		// TODO: split key with spaces
 		char *s = memcache_get (ms, K, &exptime);
 		if (s) {
-			if (smode) net_printf (fd, "VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
-			else net_printf (fd, "VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
+			if (smode) net_printf (fd, 
+				"VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
+			else net_printf (fd,
+				"VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
 			net_printf (fd, "%s\r\nEND\r\n", s);
-			n++;
 			free (s);
+			n++;
 		}
 		if (k) K = k+1;
 		else break;
@@ -44,51 +29,72 @@ static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
 	if (!n) net_printf (fd, "END\r\n");
 }
 
-int protocol_handle (int fd, char *buf) {
-	char *p, *cmd = buf, *key = NULL;
+int protocol_handle (MemcacheSdbClient *c, char *buf) {
+	struct rusage ru;
+	int ret, stored = 1;
+	char *b, *p, *cmd = buf, *key = NULL;
 	int flags = 0, bytes = 0;
-	ut64 exptime = 0LL;
+	ut64 n = 0;
+	int fd = c?c->fd:-1;
+	ut32 cmdhash;
 
 	if (!*buf) {
-		net_printf (fd, "ERROR\r\n");
+		//net_printf (fd, "ERROR\r\n");
 		return 0;
+	}
+	if (c->mode == 1) {
+		b = buf;
+		b[c->len-1] = 0;
+		switch (c->cmdhash) {
+		case MCSDB_CMD_SET: memcache_set (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_APPEND: memcache_append (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_ADD: stored = memcache_add (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_PREPEND: memcache_prepend (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_REPLACE: stored = memcache_replace (ms, c->key, c->exptime, b); break;
+		}
+		if (stored) net_printf (fd, "STORED\r\n");
+		else net_printf (fd, "NOT_STORED\r\n");
+		c->mode = 0;
+		c->idx = 0;
+		return 1;
 	}
 	p = strchr (buf, ' ');
 	if (p) {
 		*p = 0;
 		key = p + 1;
+		if ((p=strchr (key, ' ')))
+			*p++ = 0;
+		strncpy (c->key, key, sizeof (c->key)-1); // XXX overflow
 	}
-	if (!strcmp (cmd, "quit")) {
+	cmdhash = sdb_hash (cmd);
+	switch (cmdhash) {
+	case MCSDB_CMD_QUIT:
 		return -1;
-	} else
-	if (!strncmp (buf, "gets ", 5)) {
+	case MCSDB_CMD_GETS:
 		handle_get (ms, fd, key, 1);
-	} else
-	if (	!strcmp (cmd, "incr") ||
-		!strcmp (cmd, "decr")
-			) {
-		char *ret;
-		ut64 n = 0;
-		if (!key || !((p=strchr(key, ' ')))) {
+		break;
+	case MCSDB_CMD_INCR:
+	case MCSDB_CMD_DECR:
+		if (!key || !p) {// || !((p=strchr (key, ' ')))) {
 			net_printf (fd, "ERROR\r\n");
 			return 0;
 		}
-		*p++ = 0;
 		sscanf (p, "%llu", &n);
-		if (*cmd=='i') ret = memcache_incr (ms, key, n);
-		else ret = memcache_decr (ms, key, n);
-		if (ret) net_printf (fd, "%s\r\n", ret);
-		else net_printf (fd, "SERVER_ERROR numeric overflow\r\n");
-		free (ret);
-	} else
-	if (!strcmp (cmd, "stats")) {
-		struct rusage ru;
+		if (cmdhash==MCSDB_CMD_INCR)
+			p = memcache_incr (ms, key, n);
+		else p = memcache_decr (ms, key, n);
+		if (p) {
+			net_printf (fd, "%s\r\n", p);
+			free (p);
+		} else net_printf (fd, "SERVER_ERROR numeric overflow\r\n");
+		break;
+	case MCSDB_CMD_STATS:
 		getrusage (0, &ru);
 		net_printf (fd, "STAT pid %d\r\n", getpid ());
-		net_printf (fd, "STAT uptime %llu\r\n", sdb_now ()-ms->time);
-		net_printf (fd, "STAT time %llu\r\n", sdb_now ());
 		net_printf (fd, "STAT version "MEMCACHE_VERSION"\r\n");
 		net_printf (fd, "STAT pointer_size %u\r\n", (int)sizeof (void*)*8);
+		net_printf (fd, "STAT time %llu\r\n", sdb_now ());
+		net_printf (fd, "STAT uptime %llu\r\n", sdb_now ()-ms->time);
 		net_printf (fd, "STAT rusage_user %u.%u\r\n",
 			(ut32)ru.ru_utime.tv_sec, (ut32)ru.ru_utime.tv_usec);
 		net_printf (fd, "STAT rusage_system %u.%u\r\n",
@@ -105,40 +111,36 @@ int protocol_handle (int fd, char *buf) {
 		// ?? net_printf (fd, "STAT limit_maxbytes 0\r\n");
 		net_printf (fd, "STAT threads 1\r\n");
 		net_printf (fd, "END\r\n");
-	} else
-	if (!strcmp (cmd, "version")) {
+		break;
+	case MCSDB_CMD_VERSION:
 		net_printf (fd, "VERSION 0.1\r\n");
-	} else
-	if (!strcmp (cmd, "get")) {
+		break;
+	case MCSDB_CMD_GET:
 		handle_get (ms, fd, key, 0);
-	} else
-	if (!strcmp (cmd, "delete")) {
+		break;
+	case MCSDB_CMD_DELETE:
 		p = strchr (key, ' ');
 		if (p) {
 			*p = 0;
-			exptime = 0LL;
-			sscanf (p+1, "%llu", &exptime);
-			if (memcache_delete (ms, key, exptime))
+			c->exptime = 0LL;
+			sscanf (p+1, "%llu", &c->exptime);
+			if (memcache_delete (ms, key, c->exptime))
 				printf ("DELETED\r\n");
 			else printf ("NOT_FOUND\r\n");
 		} else return 0;
-	} else
-	if (	!strcmp (cmd, "add") ||
-		!strcmp (cmd, "set") ||
-		!strcmp (cmd, "append") ||
-		!strcmp (cmd, "prepend") ||
-		!strcmp (cmd, "replace")
-			) {
-		int ret, stored = 1;
-		char *b;
-		if (!key || !((p=strchr(key, ' ')))) {
+		break;
+	case MCSDB_CMD_ADD:
+	case MCSDB_CMD_SET:
+	case MCSDB_CMD_APPEND:
+	case MCSDB_CMD_PREPEND:
+	case MCSDB_CMD_REPLACE:
+		if (!key || !p) {// || !((p=strchr (key, ' ')))) {
 			net_printf (fd, "ERROR\r\n");
 			return 0;
 		}
-		*p = 0;
-		ret = sscanf (p+1, "%d %llu %d", &flags, &exptime, &bytes);
+		ret = sscanf (p, "%d %llu %d", &flags, &c->exptime, &bytes);
 		if (ret != 3) {
-			net_printf (fd, "ERROR\r\n");
+			net_printf (fd, "ERROR parsing (%s)\r\n", p+1);
 			return 0;
 		}
 		if (bytes<1) {
@@ -146,33 +148,14 @@ int protocol_handle (int fd, char *buf) {
 			net_printf (fd, "ERROR\r\n");
 			return 0;
 		}
-		bytes++; // '\n'
-		b = malloc (bytes+1);
-		if (b) {
-			int ret = whileread (0, b, bytes); // XXX
-			if (ret != bytes) {
-				net_printf (fd, "CLIENT_ERROR bad data chunk\r\n");
-				net_printf (fd, "ERROR\r\n");
-				return 0;
-			}
-		} else {
-			net_printf (fd, "CLIENT_ERROR invalid\r\n");
-			net_printf (fd, "ERROR\r\n");
-			return 0;
-		}
-		if (feof (stdin))
-			return -1;
-		b[--bytes] = 0;
-		switch (*cmd) {
-		case 's': memcache_set (ms, key, exptime, b); break;
-		case 'a': if (cmd[1]=='p') memcache_append (ms, key, exptime, b);
-			else stored = memcache_add (ms, key, exptime, b); break;
-		case 'p': memcache_prepend (ms, key, exptime, b); break;
-		case 'r': stored = memcache_replace (ms, key, exptime, b); break;
-		}
-		if (stored) net_printf (fd, "STORED\r\n");
-		else net_printf (fd, "NOT_STORED\r\n");
+		c->mode = 1; // read N bytes
+		c->idx = 0;
+		c->len = bytes+1;
+		c->cmdhash = cmdhash;
+		// continue on mode 1
 		return 1;
-	} else net_printf (fd, "ERROR\r\n");
+	default:
+		net_printf (fd, "ERROR\r\n");
+	}
 	return 0;
 }

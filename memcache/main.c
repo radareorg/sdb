@@ -1,11 +1,13 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "memcache.h"
 #include <signal.h>
+#include <sys/socket.h>
 
 MemcacheSdb *ms = NULL;
-int protocol_handle (int fd, char *buf);
+int protocol_handle (MemcacheSdbClient *c, char *buf);
 
 static void sigint() {
+	signal (SIGINT, SIG_IGN);
 	fprintf (stderr, "SIGINT handled.\n");
 	mcsdb_free (ms);
 	exit (0);
@@ -23,15 +25,56 @@ static void main_help(const char *arg) {
 	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
-static void main_loop() {
-	char buf[256];
-	for (;;) {
-		fgets (buf, sizeof (buf)-1, stdin);
-		if (feof (stdin)) break;
-		buf[ strlen (buf)-1 ] = 0;
-		if (protocol_handle (-1, buf)==-1) break;
-		fflush (stdout);
+static MemcacheSdbClient *mcsdb_client_new (int fd) {
+	MemcacheSdbClient *c = R_NEW (MemcacheSdbClient);
+	c->fd = fd;
+	c->mode = 0;
+	return c;
+}
+
+static int mcsdb_client_state(MemcacheSdbClient *c) {
+	char *p;
+	int r;
+	switch (c->mode) {
+	case 0: // read until newline
+		if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
+			*c->buf = 0;
+			c->idx = 1; // invalid read, so just chop it
+		}
+		r = read (c->fd, c->buf+c->idx, MEMCACHE_MAX_BUFFER-c->idx);
+		if (r>0) {
+			ms->bread += r;
+			c->idx += r;
+			if ((p = strchr (c->buf, '\n'))) {
+				*p--=0;
+				if (p>c->buf && *p=='\r')
+					*p = 0;
+				return 1;
+			}
+			return 0;
+		}
+		break;
+	case 1: // read N bytes
+		if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
+			*c->buf = 0;
+			c->idx = 1; // invalid read, so just chop it
+		}
+		r = read (c->fd, c->buf+c->idx, c->len-c->idx);
+		if (r<1) return 0;
+		c->idx += r;
+		if (c->idx >= c->len) {
+			return 1;
+		}
+		break;
+	case 2: // write
+		write (c->fd, c->buf+c->idx, c->len-c->idx);
+		break;
 	}
+	return 0;
+}
+
+static void mcsdb_client_free (MemcacheSdbClient *c) {
+	free (c);
 }
 
 static void fds_server (int fd) {
@@ -42,11 +85,12 @@ static void fds_server (int fd) {
 
 static int fds_add (int fd) {
 	int n = ms->nfds;
-	if (n+1>=MEMCACHE_MAX_CLIENTS)
+	if (n>MEMCACHE_MAX_CLIENTS)
 		return 0;
 	ms->fds[n].fd = fd;
 	ms->fds[n].events = POLLIN | POLLHUP | POLLERR;
 	ms->fds[n].revents = 0;
+	ms->msc[n] = mcsdb_client_new (fd);
 	ms->nfds++;
 	ms->tfds++;
 	return 1;
@@ -56,8 +100,11 @@ static int fds_del (int fd) {
 	int i;
 	for (i=0; i<ms->nfds; i++) {
 		if (ms->fds[i].fd == fd) {
-			for (++i; i<ms->nfds; i++)
+			mcsdb_client_free (ms->msc[i]);
+			for (++i; i<ms->nfds; i++) {
 				ms->fds[i-1] = ms->fds[i];
+				ms->msc[i-1] = ms->msc[i];
+			}
 			ms->nfds--;
 			close (fd);
 			return 0;
@@ -87,8 +134,10 @@ static int net_loop(int port) {
 			if (ms->fds[0].revents) {
 				int cfd = accept (fd, NULL, NULL);
 				if (cfd != -1) {
-					fds_add (cfd);
-					printf ("new client %d\n", cfd);
+					if (!fds_add (cfd)) {
+						printf ("cannot accept more clients\n");
+						net_close (cfd);
+					} else printf ("new client %d\n", cfd);
 				} else printf ("ACCEPT FAIL\n");
 				ms->fds[0].revents = 0;
 				continue;
@@ -101,15 +150,21 @@ static int net_loop(int port) {
 					fds_del (ms->fds[i].fd);
 					goto respawn;
 				}
-				ms->fds[i].revents = 0;
-				r = read (ms->fds[i].fd, buf, sizeof (buf)-1);
-				if (r>2) {
+// XXX: write op is not handled here
+				if (mcsdb_client_state (ms->msc[i])) {
 					strchop (buf, r);
-					if (protocol_handle (ms->fds[i].fd, buf)==-1) {
+					ms->msc[i]->idx = 0;
+					if (protocol_handle (ms->msc[i], ms->msc[i]->buf)==-1) {
 						fds_del (ms->fds[i].fd);
 						goto respawn;
 					}
+				} else {
+					printf ("no newline wtf\n");
+					ms->msc[i]->idx = 0;
+					net_printf (ms->fds[i].fd, "ERROR\n");
 				}
+				net_flush (ms->fds[i].fd);
+				ms->fds[i].revents = 0;
 			}
 		}
 	}
