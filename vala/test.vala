@@ -18,7 +18,7 @@ void main () {
 		var uuid = s2.inc ("uuid", 1);
 		print (@"UUID: $uuid\n");
 
-		s2.expire ("uuid", 20);
+		s2.expire ("uuid", 2);
 
 		Posix.sleep (1);
 		string? suuid = s2.get ("uuid");
