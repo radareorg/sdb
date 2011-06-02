@@ -1,5 +1,6 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "types.h"
+#include "memcache.h"
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -10,10 +11,12 @@
 static char netbuf[1024];
 static int netbuflen = 0;
 
-void net_flush(int fd) {
+int net_flush(int fd) {
+	int n;
 	if (netbuflen<1) return;
 	if (fd==-1) fd = 1; //stdout
-	write (fd, netbuf, netbuflen);
+	n = write (fd, netbuf, netbuflen);
+	if (n>0) ms->bwrite += n;
 	netbuflen = 0;
 }
 

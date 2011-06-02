@@ -8,7 +8,7 @@
 #define MEMCACHE_FILE NULL
 #define MEMCACHE_PORT 11211
 #define MEMCACHE_VERSION "0.1"
-#define MEMCACHE_MAX_CLIENTS 1
+#define MEMCACHE_MAX_CLIENTS 16
 #define MEMCACHE_MAX_BUFFER 1024
 
 #include "cmds.h"
@@ -59,7 +59,7 @@ void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const char
 
 int net_listen (int port);
 int net_close (int s);
-void net_flush(int fd);
+int net_flush(int fd);
 int net_printf(int fd, char *fmt, ...);
 
 #endif

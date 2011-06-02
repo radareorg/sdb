@@ -10,7 +10,7 @@ static void cmdhash(const char *s) {
 	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s));
 }
 
-void main() {
+int main() {
 	cmdhash ("version");
 	cmdhash ("append");
 	cmdhash ("prepend");
@@ -24,4 +24,5 @@ void main() {
 	cmdhash ("add");
 	cmdhash ("stats");
 	cmdhash ("quit");
+	return 0;
 }
