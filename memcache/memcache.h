@@ -2,11 +2,13 @@
 #define _INCLUDE_SDB_MEMCACHE_H_
 
 #include "sdb.h"
+#include <poll.h>
 
 /* "mcsdb.sdb" */
 #define MEMCACHE_FILE NULL
 #define MEMCACHE_PORT 11211
 #define MEMCACHE_VERSION "0.1"
+#define MEMCACHE_MAX_CLIENTS 10
 
 typedef struct {
 	sdb *sdb;
@@ -20,6 +22,10 @@ typedef struct {
 	ut64 evictions;
 	ut64 bread;
 	ut64 bwrite;
+	/* network */
+	struct pollfd fds[MEMCACHE_MAX_CLIENTS+1];
+	int nfds;
+	int tfds; // total number of clients
 } MemcacheSdb;
 
 typedef struct {
@@ -29,8 +35,8 @@ typedef struct {
 
 extern MemcacheSdb *ms;
 
-MemcacheSdb *memcache_sdb_new (const char *file);
-void memcache_free (MemcacheSdb *ms);
+MemcacheSdb *mcsdb_new (const char *file);
+void mcsdb_free (MemcacheSdb *ms);
 void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body);
 char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime);
 char *memcache_incr(MemcacheSdb *ms, const char *key, ut64 val);

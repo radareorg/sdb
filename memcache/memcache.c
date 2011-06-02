@@ -1,7 +1,7 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "memcache.h"
 
-MemcacheSdb *memcache_sdb_new (const char *file) {
+MemcacheSdb *mcsdb_new (const char *file) {
 	MemcacheSdb *ms;
 	sdb *s = sdb_new (file, R_FALSE);
 	if (!s) return NULL;
@@ -15,10 +15,14 @@ MemcacheSdb *memcache_sdb_new (const char *file) {
 	ms->gets = ms->sets = 0LL;
 	ms->evictions = ms->hits = ms->misses = 0LL;
 	ms->bread = ms->bwrite = 0LL;
+	ms->nfds = ms->tfds = 0;
 	return ms;
 }
 
-void memcache_free (MemcacheSdb *ms) {
+void mcsdb_free (MemcacheSdb *ms) {
+	int i;
+	for (i=0; i<ms->nfds; i++)
+		net_close (ms->fds[i].fd);
 	sdb_sync (ms->sdb);
 	sdb_free (ms->sdb);
 	free (ms);
