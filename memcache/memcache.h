@@ -22,7 +22,7 @@ typedef struct {
 	char buf[MEMCACHE_MAX_BUFFER]; // buffer
 	ut64 exptime;
 	char key[100];
-} MemcacheSdbClient;
+} McSdbClient;
 
 typedef struct {
 	sdb *sdb;
@@ -40,22 +40,22 @@ typedef struct {
 	struct pollfd fds[MEMCACHE_MAX_CLIENTS+1];
 	int nfds;
 	int tfds; // total number of clients
-	MemcacheSdbClient *msc[MEMCACHE_MAX_CLIENTS+1];
-} MemcacheSdb;
+	McSdbClient *msc[MEMCACHE_MAX_CLIENTS+1];
+} McSdb;
 
-extern MemcacheSdb *ms;
+extern McSdb *ms;
 
-MemcacheSdb *mcsdb_new (const char *file);
-void mcsdb_free (MemcacheSdb *ms);
-void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body);
-char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime);
-char *memcache_incr(MemcacheSdb *ms, const char *key, ut64 val);
-char *memcache_decr(MemcacheSdb *ms, const char *key, ut64 val);
-int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body);
-int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime);
-int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body);
-void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body);
-void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body);
+McSdb *mcsdb_new (const char *file);
+void mcsdb_free (McSdb *ms);
+void mcsdb_set(McSdb *ms, const char *key, ut64 exptime, const char *body);
+char *mcsdb_get (McSdb *ms, const char *key, ut64 *exptime);
+char *mcsdb_incr(McSdb *ms, const char *key, ut64 val);
+char *mcsdb_decr(McSdb *ms, const char *key, ut64 val);
+int mcsdb_replace(McSdb *ms, const char *key, ut64 exptime, const char *body);
+int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime);
+int mcsdb_add(McSdb *ms, const char *key, ut64 exptime, const char *body);
+void mcsdb_append(McSdb *ms, const char *key, ut64 exptime, const char *body);
+void mcsdb_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body);
 
 int net_listen (int port);
 int net_close (int s);

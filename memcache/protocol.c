@@ -2,7 +2,7 @@
 #include "memcache.h"
 #include <sys/resource.h>
 
-static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
+static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	ut64 exptime = 0LL;
 	int n = 0;
 	char *k, *K = key;
@@ -13,7 +13,7 @@ static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
 	for (;;) {
 		k = strchr (K, ' ');
 		if (k) *k=0;
-		char *s = memcache_get (ms, K, &exptime);
+		char *s = mcsdb_get (ms, K, &exptime);
 		if (s) {
 			if (smode) net_printf (fd, 
 				"VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
@@ -29,7 +29,7 @@ static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
 	if (!n) net_printf (fd, "END\r\n");
 }
 
-int protocol_handle (MemcacheSdbClient *c, char *buf) {
+int protocol_handle (McSdbClient *c, char *buf) {
 	struct rusage ru;
 	int ret, stored = 1;
 	char *b, *p, *cmd = buf, *key = NULL;
@@ -46,11 +46,11 @@ int protocol_handle (MemcacheSdbClient *c, char *buf) {
 		b = buf;
 		b[c->len-1] = 0;
 		switch (c->cmdhash) {
-		case MCSDB_CMD_SET: memcache_set (ms, c->key, c->exptime, b); break;
-		case MCSDB_CMD_APPEND: memcache_append (ms, c->key, c->exptime, b); break;
-		case MCSDB_CMD_ADD: stored = memcache_add (ms, c->key, c->exptime, b); break;
-		case MCSDB_CMD_PREPEND: memcache_prepend (ms, c->key, c->exptime, b); break;
-		case MCSDB_CMD_REPLACE: stored = memcache_replace (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_SET: mcsdb_set (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_APPEND: mcsdb_append (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_ADD: stored = mcsdb_add (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_PREPEND: mcsdb_prepend (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_REPLACE: stored = mcsdb_replace (ms, c->key, c->exptime, b); break;
 		}
 		if (stored) net_printf (fd, "STORED\r\n");
 		else net_printf (fd, "NOT_STORED\r\n");
@@ -81,8 +81,8 @@ int protocol_handle (MemcacheSdbClient *c, char *buf) {
 		}
 		sscanf (p, "%llu", &n);
 		if (cmdhash==MCSDB_CMD_INCR)
-			p = memcache_incr (ms, key, n);
-		else p = memcache_decr (ms, key, n);
+			p = mcsdb_incr (ms, key, n);
+		else p = mcsdb_decr (ms, key, n);
 		if (p) {
 			net_printf (fd, "%s\r\n", p);
 			free (p);
@@ -124,7 +124,7 @@ int protocol_handle (MemcacheSdbClient *c, char *buf) {
 			*p = 0;
 			c->exptime = 0LL;
 			sscanf (p+1, "%llu", &c->exptime);
-			if (memcache_delete (ms, key, c->exptime))
+			if (mcsdb_delete (ms, key, c->exptime))
 				printf ("DELETED\r\n");
 			else printf ("NOT_FOUND\r\n");
 		} else return 0;

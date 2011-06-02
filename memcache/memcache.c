@@ -1,11 +1,11 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "memcache.h"
 
-MemcacheSdb *mcsdb_new (const char *file) {
-	MemcacheSdb *ms;
+McSdb *mcsdb_new (const char *file) {
+	McSdb *ms;
 	sdb *s = sdb_new (file, R_FALSE);
 	if (!s) return NULL;
-	ms = R_NEW (MemcacheSdb);
+	ms = R_NEW (McSdb);
 	if (!ms) {
 		sdb_free (s);
 		return NULL;
@@ -19,7 +19,7 @@ MemcacheSdb *mcsdb_new (const char *file) {
 	return ms;
 }
 
-void mcsdb_free (MemcacheSdb *ms) {
+void mcsdb_free (McSdb *ms) {
 	int i;
 	for (i=0; i<ms->nfds; i++)
 		net_close (ms->fds[i].fd);
@@ -29,26 +29,26 @@ void mcsdb_free (MemcacheSdb *ms) {
 }
 
 /* storage */
-char *memcache_incr(MemcacheSdb *ms, const char *key, ut64 val) {
+char *mcsdb_incr(McSdb *ms, const char *key, ut64 val) {
 	if (sdb_inc (ms->sdb, key, val) == UT64_MAX)
 		return NULL;
 	ms->sets++;
 	return sdb_get (ms->sdb, key);
 }
 
-char *memcache_decr(MemcacheSdb *ms, const char *key, ut64 val) {
+char *mcsdb_decr(McSdb *ms, const char *key, ut64 val) {
 	sdb_dec (ms->sdb, key, val); // ignore return value, as long as 0 is the floor
 	ms->sets++;
 	return sdb_get (ms->sdb, key);
 }
 
-void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
+void mcsdb_set(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	sdb_set (ms->sdb, key, body);
 	sdb_expire (ms->sdb, key, exptime);
 	ms->sets++;
 }
 
-int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
+int mcsdb_add(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	if (!sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body);
 		sdb_expire (ms->sdb, key, exptime);
@@ -60,7 +60,7 @@ int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const char *bod
 	return 0;
 }
 
-void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
+void mcsdb_append(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	int len = strlen (body);
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
@@ -77,7 +77,7 @@ void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const char 
 	ms->sets++;
 }
 
-void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
+void mcsdb_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	int len = strlen (body);
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
@@ -94,7 +94,7 @@ void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const char
 	ms->sets++;
 }
 
-int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
+int mcsdb_replace(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	if (sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body);
 		sdb_expire (ms->sdb, key, exptime);
@@ -111,13 +111,13 @@ int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const char 
   "cas" is a check and set operation which means "store this data but
   only if no one else has updated since I last fetched it."
 */
-void memcache_cas(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
-#warning memcache_cas not implemented
-	memcache_set (ms, key, exptime, body);
+void mcsdb_cas(McSdb *ms, const char *key, ut64 exptime, const char *body) {
+#warning mcsdb_cas not implemented
+	mcsdb_set (ms, key, exptime, body);
 }
 
 /* retrieval */
-char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime) {
+char *mcsdb_get (McSdb *ms, const char *key, ut64 *exptime) {
 	char *s = sdb_get (ms->sdb, key);
 	if (s) ms->hits++;
 	else ms->misses++;
@@ -125,9 +125,9 @@ char *memcache_get (MemcacheSdb *ms, const char *key, ut64 *exptime) {
 	*exptime = sdb_get_expire (ms->sdb, key);
 	return s;
 }
-void memcache_gets ();
+void mcsdb_gets ();
 
-int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime) {
+int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime) {
 	if (exptime>0) {
 		sdb_expire (ms->sdb, key, exptime);
 		return 0;
@@ -138,6 +138,6 @@ int memcache_delete(MemcacheSdb *ms, const char *key, ut64 exptime) {
 }
 
 /* other */
-void memcache_stats();
-void memcache_version();
-void memcache_quit ();
+void mcsdb_stats();
+void mcsdb_version();
+void mcsdb_quit ();

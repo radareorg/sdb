@@ -13,11 +13,12 @@ static int netbuflen = 0;
 
 int net_flush(int fd) {
 	int n;
-	if (netbuflen<1) return;
+	if (netbuflen<1) return 0;
 	if (fd==-1) fd = 1; //stdout
 	n = write (fd, netbuf, netbuflen);
 	if (n>0) ms->bwrite += n;
 	netbuflen = 0;
+	return n;
 }
 
 int net_printf (int fd, char *fmt, ...) {

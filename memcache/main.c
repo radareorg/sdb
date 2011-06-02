@@ -3,8 +3,8 @@
 #include <signal.h>
 #include <sys/socket.h>
 
-MemcacheSdb *ms = NULL;
-int protocol_handle (MemcacheSdbClient *c, char *buf);
+McSdb *ms = NULL;
+int protocol_handle (McSdbClient *c, char *buf);
 
 static void sigint() {
 	signal (SIGINT, SIG_IGN);
@@ -25,14 +25,14 @@ static void main_help(const char *arg) {
 	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
-static MemcacheSdbClient *mcsdb_client_new (int fd) {
-	MemcacheSdbClient *c = R_NEW (MemcacheSdbClient);
+static McSdbClient *mcsdb_client_new (int fd) {
+	McSdbClient *c = R_NEW (McSdbClient);
 	c->fd = fd;
 	c->mode = 0;
 	return c;
 }
 
-static int mcsdb_client_state(MemcacheSdbClient *c) {
+static int mcsdb_client_state(McSdbClient *c) {
 	char *p;
 	int r;
 	switch (c->mode) {
@@ -73,7 +73,7 @@ static int mcsdb_client_state(MemcacheSdbClient *c) {
 	return 0;
 }
 
-static void mcsdb_client_free (MemcacheSdbClient *c) {
+static void mcsdb_client_free (McSdbClient *c) {
 	free (c);
 }
 
