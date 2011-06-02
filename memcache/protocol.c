@@ -1,5 +1,6 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 #include "memcache.h"
+#include <sys/resource.h>
 
 int net_printf (int fd, char *fmt, ...);
 static int whileread (int fd, char *b, int len) {
@@ -44,7 +45,7 @@ static void handle_get(MemcacheSdb *ms, int fd, char *key, int smode) {
 }
 
 int protocol_handle (int fd, char *buf) {
-	char *p, *cmd = buf, *key, tmp[256], tmp2[256];
+	char *p, *cmd = buf, *key = NULL;
 	int flags = 0, bytes = 0;
 	ut64 exptime = 0LL;
 
@@ -68,8 +69,7 @@ int protocol_handle (int fd, char *buf) {
 			) {
 		char *ret;
 		ut64 n = 0;
-		p = strchr (key, ' ');
-		if (!p) {
+		if (!key || !((p=strchr(key, ' ')))) {
 			net_printf (fd, "ERROR\r\n");
 			return 0;
 		}

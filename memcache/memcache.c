@@ -42,13 +42,13 @@ char *memcache_decr(MemcacheSdb *ms, const char *key, ut64 val) {
 	return sdb_get (ms->sdb, key);
 }
 
-void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+void memcache_set(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
 	sdb_set (ms->sdb, key, body);
 	sdb_expire (ms->sdb, key, exptime);
 	ms->sets++;
 }
 
-int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
 	if (!sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body);
 		sdb_expire (ms->sdb, key, exptime);
@@ -60,7 +60,7 @@ int memcache_add(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body
 	return 0;
 }
 
-void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
 	int len = strlen (body);
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
@@ -77,7 +77,7 @@ void memcache_append(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *
 	ms->sets++;
 }
 
-void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
 	int len = strlen (body);
 	char *a, *b;
 	a = sdb_get (ms->sdb, key);
@@ -94,7 +94,7 @@ void memcache_prepend(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 
 	ms->sets++;
 }
 
-int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const ut8 *body) {
+int memcache_replace(MemcacheSdb *ms, const char *key, ut64 exptime, const char *body) {
 	if (sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body);
 		sdb_expire (ms->sdb, key, exptime);

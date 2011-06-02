@@ -3,7 +3,7 @@ OBJS=main.o memcache.o net.o protocol.o
 LIBS=../src/libsdb.a
 CFLAGS+=-I../src
 
-CFLAGS+=-ggdb -O3
+CFLAGS+=-ggdb -O3 -Wall
 LDFLAGS+=-ggdb
 
 all: ${BIN}
