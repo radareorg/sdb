@@ -5,7 +5,7 @@
 static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	ut64 exptime = 0LL;
 	int n = 0;
-	char *k, *K = key;
+	char *s, *k, *K = key;
 	if (!key) {
 		net_printf (fd, "ERROR\r\n");
 		return;
@@ -13,7 +13,7 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	for (;;) {
 		k = strchr (K, ' ');
 		if (k) *k=0;
-		char *s = mcsdb_get (ms, K, &exptime);
+		s = mcsdb_get (ms, K, &exptime);
 		if (s) {
 			if (smode) net_printf (fd, 
 				"VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
@@ -42,9 +42,11 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		//net_printf (fd, "ERROR\r\n");
 		return 0;
 	}
+printf ("----> (%s)\n", buf);
 	if (c->mode == 1) {
 		b = buf;
 		b[c->len-1] = 0;
+printf ("mode one is cool (%s)\n", b);
 		switch (c->cmdhash) {
 		case MCSDB_CMD_SET: mcsdb_set (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_APPEND: mcsdb_append (ms, c->key, c->exptime, b); break;
@@ -55,7 +57,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		if (stored) net_printf (fd, "STORED\r\n");
 		else net_printf (fd, "NOT_STORED\r\n");
 		c->mode = 0;
-		c->idx = 0;
+		c->idx = c->next;
 		return 1;
 	}
 	p = strchr (buf, ' ');
@@ -86,7 +88,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		if (p) {
 			net_printf (fd, "%s\r\n", p);
 			free (p);
-		} else net_printf (fd, "SERVER_ERROR numeric overflow\r\n");
+		} else net_printf (fd, "NOT_FOUND\r\n");
 		break;
 	case MCSDB_CMD_STATS:
 		getrusage (0, &ru);
@@ -149,7 +151,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 			return 0;
 		}
 		c->mode = 1; // read N bytes
-		c->idx = 0;
+		c->idx = c->next;
 		c->len = bytes+1;
 		c->cmdhash = cmdhash;
 		// continue on mode 1

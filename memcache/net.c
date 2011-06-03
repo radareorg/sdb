@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <netdb.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -35,16 +36,20 @@ int net_printf (int fd, char *fmt, ...) {
 	return n;
 }
 
+void net_sockopt (int fd) {
+	struct linger ling = {0, 0};
+	int flags = 1;
+        setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, (void *)&flags, sizeof (flags));
+	setsockopt (fd, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof (ling));
+}
+
 int net_listen (int port) {
 	int fd;
         struct sockaddr_in sa;
-        struct linger linger = { 0 };
 
         if ((fd = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP))<0)
                 return -1;
-        linger.l_onoff = 1;
-        linger.l_linger = 1;
-        setsockopt (fd, SOL_SOCKET, SO_LINGER, (const char *)&linger, sizeof (linger));
+	net_sockopt (fd);
         memset (&sa, 0, sizeof (sa));
         sa.sin_family = AF_INET;
         sa.sin_addr.s_addr = htonl (INADDR_ANY);
@@ -66,4 +71,31 @@ int net_listen (int port) {
 int net_close (int s) {
 	shutdown (s, SHUT_RDWR);
 	return close (s);
+}
+
+int net_connect(const char *host, const char *port) {
+        struct addrinfo hints, *res, *rp;
+        int s = -1, gai;
+	memset (&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;            /* Allow IPv4 or IPv6 */
+	hints.ai_protocol = IPPROTO_TCP;
+	gai = getaddrinfo (host, port, &hints, &res);
+	if (gai != 0) {
+		printf ("Error in getaddrinfo: %s\n", gai_strerror (gai));
+		return -1;
+	}
+	if (res == NULL) {
+		printf ("Could not connect\n");
+		return -1;
+	}
+	for (rp = res; rp != NULL; rp = rp->ai_next) {
+		s = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (s == -1)
+			continue;
+		if (connect (s, rp->ai_addr, rp->ai_addrlen) != -1)
+			break;
+		close (s);
+	}
+	freeaddrinfo (res);
+	return s;
 }

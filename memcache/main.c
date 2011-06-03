@@ -27,14 +27,22 @@ static void main_help(const char *arg) {
 
 static McSdbClient *mcsdb_client_new (int fd) {
 	McSdbClient *c = R_NEW (McSdbClient);
+	memset (c, 0, sizeof (McSdbClient));
 	c->fd = fd;
-	c->mode = 0;
 	return c;
 }
 
 static int mcsdb_client_state(McSdbClient *c) {
 	char *p;
 	int r;
+/*
+	if (c->next>0) {
+		memcpy (c->buf, c->buf+c->next, c->idx-c->next);
+		printf ("next walk (next=%d) len=%d\n", c->next, c->idx-c->next);
+		c->idx = c->next;
+		c->next = 0;
+	}
+*/
 	switch (c->mode) {
 	case 0: // read until newline
 		if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
@@ -42,26 +50,41 @@ static int mcsdb_client_state(McSdbClient *c) {
 			c->idx = 1; // invalid read, so just chop it
 		}
 		r = read (c->fd, c->buf+c->idx, MEMCACHE_MAX_BUFFER-c->idx);
-		if (r>0) {
+printf ("READ %d %d\n", r, c->idx);
+//		if (r>0 || c->idx>0) {
+		if (1) { //c->idx>0) {
+if (r>0) {
 			ms->bread += r;
 			c->idx += r;
+}
 			if ((p = strchr (c->buf, '\n'))) {
+				char *rest = p+1;
 				*p--=0;
 				if (p>c->buf && *p=='\r')
 					*p = 0;
+printf ("PAD %d = (%s)\n" , r, c->buf);
+printf ("REST %d = (%s)\n" , (int)(rest-c->buf), rest);
+				c->next = (c->idx-(int)(rest-c->buf));
+printf ("REST IS (%s)\n", c->buf+c->next);
 				return 1;
 			}
 			return 0;
 		}
 		break;
 	case 1: // read N bytes
+printf ("GO READ N BYTES %d\n", c->len);
 		if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
 			*c->buf = 0;
 			c->idx = 1; // invalid read, so just chop it
 		}
+printf ("rest %d\n", c->next);
 		r = read (c->fd, c->buf+c->idx, c->len-c->idx);
-		if (r<1) return 0;
-		c->idx += r;
+//c->mode = 0; // fuck yeah
+		//if (r<1) return 0;
+		if (r!=-1)
+			c->idx += r;
+		c->buf[c->idx] = 0;
+printf ("BODY IS (%s)\n",c->buf);
 		if (c->idx >= c->len) {
 			return 1;
 		}
@@ -150,7 +173,8 @@ static int net_loop(int port) {
 					fds_del (ms->fds[i].fd);
 					goto respawn;
 				}
-// XXX: write op is not handled here
+			rework:
+				// XXX: write op is not handled here
 				if (mcsdb_client_state (ms->msc[i])) {
 					strchop (buf, r);
 					ms->msc[i]->idx = 0;
@@ -160,11 +184,37 @@ static int net_loop(int port) {
 					}
 				} else {
 					printf ("no newline wtf\n");
-					ms->msc[i]->idx = 0;
-					net_printf (ms->fds[i].fd, "ERROR\n");
+					if (ms->msc[i]->next) {
+					//	ms->msc[i]->idx = ms->msc[i]->next;
+					} else {
+						net_printf (ms->fds[i].fd, "ERROR\n");
+						ms->msc[i]->idx = 0;
+					}
 				}
 				net_flush (ms->fds[i].fd);
-				ms->fds[i].revents = 0;
+				if (ms->msc[i]->next==0) {
+					ms->fds[i].revents = 0;
+				} else {
+McSdbClient *c = ms->msc[i];
+					printf ("MUST READ AGAIN HOHO --> %d\n", c->next);
+printf ("---> (%s)\n", c->buf+c->next+2);
+int len;
+if (c->idx>=c->next)
+	len = c->idx-c->next;
+else {
+	fprintf (stderr, "GTFO %d %d\n", c->idx, c->next+1);
+// XXX: THIS CONDITION IS WRONG :(
+						fds_del (ms->fds[i].fd);
+						goto respawn;
+//goto rework;
+continue;
+}
+memcpy (c->buf, c->buf+c->next, len);
+printf ("NEWBUF IS %s\n", c->buf);
+c->idx = c->next;
+c->next = 0;
+					goto rework;
+				}
 			}
 		}
 	}
@@ -192,7 +242,6 @@ int main(int argc, char **argv) {
 		file = argv[optind];
 	setup_signals ();
 	ms = mcsdb_new (file);
-	//main_loop ();
 	ret = net_loop (port);
 	mcsdb_free (ms);
 	return ret;

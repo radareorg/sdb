@@ -4,6 +4,7 @@
 #include "sdb.h"
 #include <poll.h>
 
+//#define printf // 
 /* "mcsdb.sdb" */
 #define MEMCACHE_FILE NULL
 #define MEMCACHE_PORT 11211
@@ -18,6 +19,7 @@ typedef struct {
 	int mode;
 	int len; // bytes to read
 	int idx; // bytes readed
+	int next;
 	ut32 cmdhash;
 	char buf[MEMCACHE_MAX_BUFFER]; // buffer
 	ut64 exptime;
@@ -61,5 +63,16 @@ int net_listen (int port);
 int net_close (int s);
 int net_flush(int fd);
 int net_printf(int fd, char *fmt, ...);
+
+/* client */
+char *mcsdb_client_incr(McSdb *ms, const char *key, ut64 val);
+char *mcsdb_client_decr(McSdb *ms, const char *key, ut64 val);
+void mcsdb_client_set(McSdb *ms, const char *key, ut64 exptime, const char *body);
+int mcsdb_client_add(McSdb *ms, const char *key, ut64 exptime, const char *body);
+void mcsdb_client_append(McSdb *ms, const char *key, ut64 exptime, const char *body);
+void mcsdb_client_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body);
+int mcsdb_client_replace(McSdb *ms, const char *key, ut64 exptime, const char *body);
+char *mcsdb_client_get (McSdb *ms, const char *key, ut64 *exptime);
+int mcsdb_client_delete(McSdb *ms, const char *key, ut64 exptime);
 
 #endif

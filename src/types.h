@@ -13,7 +13,6 @@ typedef unsigned long seek_pos;
 #define R_TRUE 1
 #define R_FALSE 0
 #define R_NEW(x) (x*)malloc(sizeof(x))
-#define R_ANEW(x) (x*)alloc(sizeof(x))
 #define UT32_MAX ((ut32)0xffffffff)
 #define UT64_MAX ((ut64)(0xffffffffffffffff))
 

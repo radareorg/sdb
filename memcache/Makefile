@@ -1,5 +1,5 @@
 BIN=mcsdbd
-OBJS=main.o memcache.o net.o protocol.o
+OBJS=main.o memcache.o net.o protocol.o client.o
 LIBS=../src/libsdb.a
 CFLAGS+=-I../src
 
