@@ -142,8 +142,3 @@ int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime) {
 		ms->evictions++;
 	return sdb_delete (ms->sdb, key);
 }
-
-/* other */
-void mcsdb_stats();
-void mcsdb_version();
-void mcsdb_quit ();

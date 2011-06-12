@@ -15,11 +15,16 @@ sdb* sdb_new (const char *dir, int lock) {
 	if (lock && !sdb_lock (sdb_lockfile (dir)))
 		return NULL;
 	s = malloc (sizeof (sdb));
-	s->dir = dir? strdup (dir): NULL;
+	if (dir) {
+		s->dir = strdup (dir);
+		s->fd = open (dir, O_RDONLY);
+	} else {
+		s->dir = NULL;
+		s->fd = -1;
+	}
 	s->ht = r_ht_new ();
 	s->lock = lock;
 	//s->ht->list->free = (RListFree)sdb_kv_free;
-	s->fd = open (dir, O_RDONLY);
 	// if open fails ignore
 	cdb_init (&s->db, s->fd);
 	cdb_findstart (&s->db);

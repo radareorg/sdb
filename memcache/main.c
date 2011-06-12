@@ -6,6 +6,26 @@
 McSdb *ms = NULL;
 int protocol_handle (McSdbClient *c, char *buf);
 
+static McSdbClient *mcsdb_client_new (int fd) {
+	McSdbClient *c = R_NEW (McSdbClient);
+	memset (c, 0, sizeof (McSdbClient));
+	c->fd = fd;
+	return c;
+}
+
+
+static int fds_add (int fd) {
+	int n = ms->nfds;
+	if (n>MEMCACHE_MAX_CLIENTS)
+		return 0;
+	ms->fds[n].fd = fd;
+	ms->fds[n].events = POLLIN | POLLHUP | POLLERR;
+	ms->msc[n] = mcsdb_client_new (fd);
+	ms->nfds++;
+	ms->tfds++;
+	return 1;
+}
+
 static void sigint() {
 	signal (SIGINT, SIG_IGN);
 	fprintf (stderr, "SIGINT handled.\n");
@@ -25,71 +45,75 @@ static void main_help(const char *arg) {
 	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
-static McSdbClient *mcsdb_client_new (int fd) {
-	McSdbClient *c = R_NEW (McSdbClient);
-	memset (c, 0, sizeof (McSdbClient));
-	c->fd = fd;
-	return c;
+static int mcsdb_client_accept(int fd) {
+	int cfd = accept (fd, NULL, NULL);
+	if (cfd != -1) {
+		if (!fds_add (cfd)) {
+			printf ("cannot accept more clients\n");
+			net_close (cfd);
+			return 0;
+		} else printf ("new client %d\n", cfd);
+	} else return 0;
+	ms->fds[0].revents = 0;
+	return 1;
 }
 
+// XXX: write op is not handled here
 static int mcsdb_client_state(McSdbClient *c) {
 	char *p;
-	int r;
-/*
+	int r, rlen;
 	if (c->next>0) {
-		memcpy (c->buf, c->buf+c->next, c->idx-c->next);
-		printf ("next walk (next=%d) len=%d\n", c->next, c->idx-c->next);
-		c->idx = c->next;
+		int clen = c->next; // - c->idx; ///idx - c->next;
+		memcpy (c->buf, c->buf+c->next, clen);
+		//printf ("next walk (next=%d) len=%d\n", c->next, clen);
+		c->idx += clen;
 		c->next = 0;
 	}
-*/
+	//printf ("--mode=%d mcsdb_client_state: c->next=%d\n", c->mode, c->next);
+	if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
+		*c->buf = 0;
+		c->idx = 0; // invalid read, so just chop it
+	}
 	switch (c->mode) {
 	case 0: // read until newline
-		if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
-			*c->buf = 0;
-			c->idx = 1; // invalid read, so just chop it
-		}
-		r = read (c->fd, c->buf+c->idx, MEMCACHE_MAX_BUFFER-c->idx);
-printf ("READ %d %d\n", r, c->idx);
-//		if (r>0 || c->idx>0) {
-		if (1) { //c->idx>0) {
-if (r>0) {
-			ms->bread += r;
-			c->idx += r;
-}
-			if ((p = strchr (c->buf, '\n'))) {
-				char *rest = p+1;
-				*p--=0;
-				if (p>c->buf && *p=='\r')
-					*p = 0;
-printf ("PAD %d = (%s)\n" , r, c->buf);
-printf ("REST %d = (%s)\n" , (int)(rest-c->buf), rest);
-				c->next = (c->idx-(int)(rest-c->buf));
-printf ("REST IS (%s)\n", c->buf+c->next);
-				return 1;
-			}
+		rlen = MEMCACHE_MAX_BUFFER - c->idx;
+		r = read (c->fd, c->buf+c->idx, 1); //rlen);
+		//printf ("READ %d = %d (idx=%d)\n", rlen, r, c->idx);
+		if (r<1)
 			return 0;
+		c->buf[c->idx+r]=0;
+//printf ("---- (%s)\n", c->buf);
+		ms->bread += r;
+		c->idx += r;
+		if ((p = strchr (c->buf, '\n'))) {
+			char *rest = p+1;
+			*p--=0;
+			if (p>c->buf && *p=='\r')
+				*p = 0;
+			int restlen = (int)r-(rest-c->buf);
+			c->next = (c->idx-restlen);
+			return 1;
 		}
-		break;
+		return 0;
 	case 1: // read N bytes
-printf ("GO READ N BYTES %d\n", c->len);
-		if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
-			*c->buf = 0;
-			c->idx = 1; // invalid read, so just chop it
+		if (c->idx>c->len)c->idx = 0;
+		r = 0;
+		if (c->len>0) {
+			r = read (c->fd, c->buf+c->idx, 1);
+			if (r<1) {
+				c->idx = 0;
+			//	printf ("FAIL FAIL %d %d\n", r, c->len-c->idx);
+				return 0;
+			}
 		}
-printf ("rest %d\n", c->next);
-		r = read (c->fd, c->buf+c->idx, c->len-c->idx);
-//c->mode = 0; // fuck yeah
-		//if (r<1) return 0;
-		if (r!=-1)
-			c->idx += r;
-		c->buf[c->idx] = 0;
-printf ("BODY IS (%s)\n",c->buf);
+		c->idx += r;
+		c->buf[c->idx+1] = 0;
 		if (c->idx >= c->len) {
+			//printf ("END OF MODE 1 ***/*/*///*/* ((%s))\n", c->buf);
 			return 1;
 		}
 		break;
-	case 2: // write
+	case 2: // write : not yet used
 		write (c->fd, c->buf+c->idx, c->len-c->idx);
 		break;
 	}
@@ -106,24 +130,12 @@ static void fds_server (int fd) {
 	ms->nfds = 1;
 }
 
-static int fds_add (int fd) {
-	int n = ms->nfds;
-	if (n>MEMCACHE_MAX_CLIENTS)
-		return 0;
-	ms->fds[n].fd = fd;
-	ms->fds[n].events = POLLIN | POLLHUP | POLLERR;
-	ms->fds[n].revents = 0;
-	ms->msc[n] = mcsdb_client_new (fd);
-	ms->nfds++;
-	ms->tfds++;
-	return 1;
-}
 
-static int fds_del (int fd) {
-	int i;
+static int fds_del (McSdbClient *c) {
+	int i, fd = c->fd;
 	for (i=0; i<ms->nfds; i++) {
 		if (ms->fds[i].fd == fd) {
-			mcsdb_client_free (ms->msc[i]);
+			mcsdb_client_free (c);
 			for (++i; i<ms->nfds; i++) {
 				ms->fds[i-1] = ms->fds[i];
 				ms->msc[i-1] = ms->msc[i];
@@ -155,66 +167,38 @@ static int net_loop(int port) {
 		r = poll (ms->fds, ms->nfds, -1);
 		if (r>0) {
 			if (ms->fds[0].revents) {
-				int cfd = accept (fd, NULL, NULL);
-				if (cfd != -1) {
-					if (!fds_add (cfd)) {
-						printf ("cannot accept more clients\n");
-						net_close (cfd);
-					} else printf ("new client %d\n", cfd);
-				} else printf ("ACCEPT FAIL\n");
-				ms->fds[0].revents = 0;
+				mcsdb_client_accept (fd);
 				continue;
 			}
 		respawn:
 			for (i=1; i<ms->nfds; i++) {
+				McSdbClient *c = ms->msc[i];
+				/* no events for this fd */
 				if (!ms->fds[i].revents)
 					continue;
+				/* client closed the connection */
 				if (ms->fds[i].revents & POLLHUP) {
-					fds_del (ms->fds[i].fd);
+					fds_del (c);
 					goto respawn;
 				}
-			rework:
-				// XXX: write op is not handled here
-				if (mcsdb_client_state (ms->msc[i])) {
+			//rework:
+				if (mcsdb_client_state (c)) {
 					strchop (buf, r);
-					ms->msc[i]->idx = 0;
-					if (protocol_handle (ms->msc[i], ms->msc[i]->buf)==-1) {
-						fds_del (ms->fds[i].fd);
+					int phret = protocol_handle (c, c->buf);
+					switch (phret) {
+					case 1:
+						break;
+					case 0:
+						c->idx = 0;//c->next;
+						c->next = 0;
+						//printf ("command executed %d\n", c->idx);
+						break;
+					case -1:
+						fds_del (c);
 						goto respawn;
-					}
-				} else {
-					printf ("no newline wtf\n");
-					if (ms->msc[i]->next) {
-					//	ms->msc[i]->idx = ms->msc[i]->next;
-					} else {
-						net_printf (ms->fds[i].fd, "ERROR\n");
-						ms->msc[i]->idx = 0;
 					}
 				}
 				net_flush (ms->fds[i].fd);
-				if (ms->msc[i]->next==0) {
-					ms->fds[i].revents = 0;
-				} else {
-McSdbClient *c = ms->msc[i];
-					printf ("MUST READ AGAIN HOHO --> %d\n", c->next);
-printf ("---> (%s)\n", c->buf+c->next+2);
-int len;
-if (c->idx>=c->next)
-	len = c->idx-c->next;
-else {
-	fprintf (stderr, "GTFO %d %d\n", c->idx, c->next+1);
-// XXX: THIS CONDITION IS WRONG :(
-						fds_del (ms->fds[i].fd);
-						goto respawn;
-//goto rework;
-continue;
-}
-memcpy (c->buf, c->buf+c->next, len);
-printf ("NEWBUF IS %s\n", c->buf);
-c->idx = c->next;
-c->next = 0;
-					goto rework;
-				}
 			}
 		}
 	}

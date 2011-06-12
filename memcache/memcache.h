@@ -14,12 +14,17 @@
 
 #include "cmds.h"
 
+#if 0
+ buf                       idx
+  |_____.______|______._____|
+#endif
+
 typedef struct {
 	int fd;
 	int mode;
-	int len; // bytes to read
-	int idx; // bytes readed
-	int next;
+	int len; // bytes to read (must be removed?)
+	int idx; // number of bytes writte in buf
+	int next; // use this length for next read
 	ut32 cmdhash;
 	char buf[MEMCACHE_MAX_BUFFER]; // buffer
 	ut64 exptime;

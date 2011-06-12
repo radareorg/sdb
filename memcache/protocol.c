@@ -10,7 +10,7 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 		net_printf (fd, "ERROR\r\n");
 		return;
 	}
-	for (;;) {
+	do {
 		k = strchr (K, ' ');
 		if (k) *k=0;
 		s = mcsdb_get (ms, K, &exptime);
@@ -19,14 +19,13 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 				"VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
 			else net_printf (fd,
 				"VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
-			net_printf (fd, "%s\r\nEND\r\n", s);
+			net_printf (fd, "%s\r\n", s);
 			free (s);
 			n++;
 		}
 		if (k) K = k+1;
-		else break;
-	}
-	if (!n) net_printf (fd, "END\r\n");
+	} while (k);
+	net_printf (fd, "END\r\n"); // no elements found
 }
 
 int protocol_handle (McSdbClient *c, char *buf) {
@@ -42,12 +41,13 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		//net_printf (fd, "ERROR\r\n");
 		return 0;
 	}
-printf ("----> (%s)\n", buf);
+//printf ("----> mode=%d buf=(%s)\n", c->mode, buf);
 	if (c->mode == 1) {
 		b = buf;
 		b[c->len-1] = 0;
-printf ("mode one is cool (%s)\n", b);
+
 		switch (c->cmdhash) {
+default:
 		case MCSDB_CMD_SET: mcsdb_set (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_APPEND: mcsdb_append (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_ADD: stored = mcsdb_add (ms, c->key, c->exptime, b); break;
@@ -58,6 +58,7 @@ printf ("mode one is cool (%s)\n", b);
 		else net_printf (fd, "NOT_STORED\r\n");
 		c->mode = 0;
 		c->idx = c->next;
+		c->cmdhash = 0;
 		return 1;
 	}
 	p = strchr (buf, ' ');
@@ -65,8 +66,12 @@ printf ("mode one is cool (%s)\n", b);
 		*p = 0;
 		key = p + 1;
 		if ((p=strchr (key, ' ')))
-			*p++ = 0;
+			*p = 0;
 		strncpy (c->key, key, sizeof (c->key)-1); // XXX overflow
+		if (p) {*p= ' ';
+		p++;
+}
+
 	}
 	cmdhash = sdb_hash (cmd);
 	switch (cmdhash) {
