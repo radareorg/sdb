@@ -1,4 +1,4 @@
-CFLAGS+=-g -Wall -O3
+include ../config.mk
 #CFLAGS+=-DOLDFMT=1
 OBJ=alloc.o cdb.o buffer.o cdb_make.o ht.o sdb.o list.o sdbn.o lock.o
 

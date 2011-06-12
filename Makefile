@@ -1,5 +1,4 @@
-DESTDIR?=
-PREFIX?=/usr
+include config.mk
 PFX=${DESTDIR}${PREFIX}
 
 all:

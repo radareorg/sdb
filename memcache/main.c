@@ -149,14 +149,7 @@ static int fds_del (McSdbClient *c) {
 	return 1;
 }
 
-static void strchop(char *buf, int len) {
-	while (buf[len-1] == '\r' || buf[len-1] == '\n')
-		len--;
-	buf[len] = 0; // XXX: fix chop
-}
-
 static int net_loop(int port) {
-	char buf[1024];
 	int i, r, fd = net_listen (port);
 	if (fd==-1) {
 		printf ("cannot listen on %d\n", port);
@@ -182,27 +175,22 @@ static int net_loop(int port) {
 					fds_del (c);
 					goto respawn;
 				}
-			//rework:
 				if (mcsdb_client_state (c)) {
-					strchop (buf, r);
 					int phret = protocol_handle (c, c->buf);
 					switch (phret) {
 					case 1:
 						break;
 					case 0:
-						c->idx = 0;//c->next;
+						c->idx = 0;
 						c->next = 0;
-						//printf ("command executed %d\n", c->idx);
 						break;
 					case -1:
 						fds_del (c);
 						goto respawn;
 					}
 				}
-				{
-				int n = net_flush (ms->fds[i].fd);
-				if (n>0) ms->bwrite += n;
-				}
+				r = net_flush (ms->fds[i].fd);
+				if (r>0) ms->bwrite += r;
 				
 			}
 		}

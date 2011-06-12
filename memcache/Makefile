@@ -1,10 +1,9 @@
+include ../config.mk
+
 BIN=mcsdbd
 OBJS=main.o memcache.o net.o protocol.o
 LIBS=../src/libsdb.a
 CFLAGS+=-I../src
-
-CFLAGS+=-ggdb -g -O0 -Wall
-LDFLAGS+=-ggdb -g
 
 all: ${BIN} client
 
@@ -23,10 +22,9 @@ cmds.h: cmds.o
 clean:
 	rm -f ${OBJS} ${BIN} cmds.h cmds cmds.o
 
-loc:
-	wc -l *.c
-
 test:
-	time ./mcsdbd < test
+	./mcsdbd &
+	./client < test
+	killall mcsdbd
 
 .PHONY: clean test all loc
