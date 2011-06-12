@@ -98,8 +98,8 @@ int sdb_exists (sdb *s, const char *key) {
 
 struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
 	struct sdb_kv *kv = R_NEW (struct sdb_kv);
-	strcpy (kv->key, k);
-	strcpy (kv->value, v);
+	strncpy (kv->key, k, sizeof (kv->key)-1);
+	strncpy (kv->value, v, sizeof (kv->value)-1);
 	kv->expire = 0LL;
 	return kv;
 }

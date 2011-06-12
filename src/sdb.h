@@ -17,7 +17,7 @@ typedef struct sdb_t {
 } sdb;
 
 #define SDB_KEYSIZE 32
-#define SDB_VALUESIZE (1024-sizeof(RListIter*)-SDB_KEYSIZE)
+#define SDB_VALUESIZE (4096-sizeof(RListIter*)-SDB_KEYSIZE)
 typedef struct sdb_kv {
 	char key[SDB_KEYSIZE];
 	char value[SDB_VALUESIZE];
