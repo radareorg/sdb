@@ -82,7 +82,7 @@ int mcsdb_client_delete(McSdb *ms, const char *key, ut64 exptime) {
 
 int main(int argc, char **argv) {
 	McSdb *ms;
-	char *p, buf[1024];
+	char *p, buf[MCSDB_MAX_BUFFER];
 	const char *host = argc>1? argv[1]: "localhost";
 	const char *port = argc>2? argv[2]: "11211";
 	if (argc>1 && !strcmp (argv[1], "-h")) {
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	for (;;) {
-		fgets (buf, 1024, stdin);
+		fgets (buf, sizeof (buf), stdin);
 		if (feof (stdin))
 			break;
 		buf[strlen (buf)-1] = 0;
@@ -109,5 +109,6 @@ int main(int argc, char **argv) {
 		}
 	}
 	net_close (fd);
+	mcsdb_free (ms);
 	return 0;
 }

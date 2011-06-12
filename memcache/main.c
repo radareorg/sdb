@@ -16,7 +16,7 @@ static McSdbClient *mcsdb_client_new (int fd) {
 
 static int fds_add (int fd) {
 	int n = ms->nfds;
-	if (n>MEMCACHE_MAX_CLIENTS)
+	if (n>MCSDB_MAX_CLIENTS)
 		return 0;
 	ms->fds[n].fd = fd;
 	ms->fds[n].events = POLLIN | POLLHUP | POLLERR;
@@ -38,7 +38,7 @@ static void setup_signals() {
 }
 
 static void main_version() {
-	printf ("mcsdbd v"MEMCACHE_VERSION"\n");
+	printf ("mcsdbd v"MCSDB_VERSION"\n");
 }
 
 static void main_help(const char *arg) {
@@ -70,13 +70,14 @@ static int mcsdb_client_state(McSdbClient *c) {
 		c->next = 0;
 	}
 	//printf ("--mode=%d mcsdb_client_state: c->next=%d\n", c->mode, c->next);
-	if (c->len+c->idx >= MEMCACHE_MAX_BUFFER) {
+	if (c->len+c->idx >= MCSDB_MAX_BUFFER) {
 		*c->buf = 0;
 		c->idx = 0; // invalid read, so just chop it
 	}
 	switch (c->mode) {
 	case 0: // read until newline
-		rlen = MEMCACHE_MAX_BUFFER - c->idx;
+		rlen = MCSDB_MAX_BUFFER - c->idx;
+		rlen = rlen; //
 		r = read (c->fd, c->buf+c->idx, 1); //rlen);
 		//printf ("READ %d = %d (idx=%d)\n", rlen, r, c->idx);
 		if (r<1)
@@ -108,7 +109,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 		}
 		c->idx += r;
 		c->buf[c->idx+1] = 0;
-		if (c->idx >= c->len) {
+		if (c->idx == c->len) {
 			//printf ("END OF MODE 1 ***/*/*///*/* ((%s))\n", c->buf);
 			return 1;
 		}
@@ -211,8 +212,8 @@ static int net_loop(int port) {
 }
 
 int main(int argc, char **argv) {
-	const char *file = MEMCACHE_FILE;
-	int port = MEMCACHE_PORT;
+	const char *file = MCSDB_FILE;
+	int port = MCSDB_PORT;
 	char c, ret = 0;
 
 	while ((c = getopt (argc, argv, "hvp:")) != -1) {

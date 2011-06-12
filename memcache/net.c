@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-static char netbuf[1024];
+static char netbuf[MCSDB_MAX_BUFFER];
 static int netbuflen = 0;
 
 char *net_readnl(int fd) {
 	int i = -1;
-	char buf[1024];
+	char buf[MCSDB_MAX_BUFFER];
 	do {
 		i++;
 		if (i==sizeof (buf))
@@ -37,7 +37,7 @@ int net_flush(int fd) {
 
 int net_printf (int fd, char *fmt, ...) {
 	int n;
-	char buf[1024];
+	char buf[MCSDB_MAX_BUFFER];
 	va_list ap;
 	va_start (ap, fmt);
 	n = vsnprintf (buf, sizeof (buf)-1, fmt, ap);

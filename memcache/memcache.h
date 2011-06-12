@@ -1,16 +1,16 @@
-#ifndef _INCLUDE_SDB_MEMCACHE_H_
-#define _INCLUDE_SDB_MEMCACHE_H_
+#ifndef _INCLUDE_SDB_MCSDB_H_
+#define _INCLUDE_SDB_MCSDB_H_
 
 #include "sdb.h"
 #include <poll.h>
 
 //#define printf // 
 /* "mcsdb.sdb" */
-#define MEMCACHE_FILE NULL
-#define MEMCACHE_PORT 11211
-#define MEMCACHE_VERSION "0.1"
-#define MEMCACHE_MAX_CLIENTS 16
-#define MEMCACHE_MAX_BUFFER 1024
+#define MCSDB_FILE NULL
+#define MCSDB_PORT 11211
+#define MCSDB_VERSION "0.1"
+#define MCSDB_MAX_CLIENTS 16
+#define MCSDB_MAX_BUFFER 4096
 
 #include "cmds.h"
 
@@ -26,7 +26,7 @@ typedef struct {
 	int idx; // number of bytes writte in buf
 	int next; // use this length for next read
 	ut32 cmdhash;
-	char buf[MEMCACHE_MAX_BUFFER]; // buffer
+	char buf[MCSDB_MAX_BUFFER]; // buffer
 	ut64 exptime;
 	char key[100];
 } McSdbClient;
@@ -44,10 +44,10 @@ typedef struct {
 	ut64 bread;
 	ut64 bwrite;
 	/* network */
-	struct pollfd fds[MEMCACHE_MAX_CLIENTS+1];
+	struct pollfd fds[MCSDB_MAX_CLIENTS+1];
 	int nfds;
 	int tfds; // total number of clients
-	McSdbClient *msc[MEMCACHE_MAX_CLIENTS+1];
+	McSdbClient *msc[MCSDB_MAX_CLIENTS+1];
 } McSdb;
 
 extern McSdb *ms;

@@ -98,7 +98,7 @@ default:
 	case MCSDB_CMD_STATS:
 		getrusage (0, &ru);
 		net_printf (fd, "STAT pid %d\r\n", getpid ());
-		net_printf (fd, "STAT version "MEMCACHE_VERSION"\r\n");
+		net_printf (fd, "STAT version "MCSDB_VERSION"\r\n");
 		net_printf (fd, "STAT pointer_size %u\r\n", (int)sizeof (void*)*8);
 		net_printf (fd, "STAT time %llu\r\n", sdb_now ());
 		net_printf (fd, "STAT uptime %llu\r\n", sdb_now ()-ms->time);
@@ -164,6 +164,7 @@ default:
 			return 0;
 		}
 		c->mode = 1; // read N bytes
+		c->next = 0;
 		c->idx = c->next;
 		c->len = bytes+1;
 		c->cmdhash = cmdhash;
