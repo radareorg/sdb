@@ -12,12 +12,25 @@
 static char netbuf[1024];
 static int netbuflen = 0;
 
+char *net_readnl(int fd) {
+	int i = -1;
+	char buf[1024];
+	do {
+		i++;
+		if (i==sizeof (buf))
+			return NULL;
+		if (read (fd, buf+i, 1) != 1)
+			return NULL;
+	} while (buf[i]!='\n');
+	buf[i-1] = 0;// chop \r
+	return strdup (buf);
+}
+
 int net_flush(int fd) {
 	int n;
 	if (netbuflen<1) return 0;
 	if (fd==-1) fd = 1; //stdout
 	n = write (fd, netbuf, netbuflen);
-	if (n>0) ms->bwrite += n;
 	netbuflen = 0;
 	return n;
 }
@@ -76,8 +89,8 @@ int net_close (int s) {
 int net_connect(const char *host, const char *port) {
         struct addrinfo hints, *res, *rp;
         int s = -1, gai;
-	memset (&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;            /* Allow IPv4 or IPv6 */
+	memset (&hints, 0, sizeof (struct addrinfo));
+	hints.ai_family = AF_INET; //UNSPEC;            /* Allow IPv4 or IPv6 */
 	hints.ai_protocol = IPPROTO_TCP;
 	gai = getaddrinfo (host, port, &hints, &res);
 	if (gai != 0) {
@@ -95,7 +108,9 @@ int net_connect(const char *host, const char *port) {
 		if (connect (s, rp->ai_addr, rp->ai_addrlen) != -1)
 			break;
 		close (s);
+		s = -1;
 	}
+        //fcntl (s, F_SETFL, O_NONBLOCK, 0); // //!block);
 	freeaddrinfo (res);
 	return s;
 }

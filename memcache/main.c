@@ -198,7 +198,11 @@ static int net_loop(int port) {
 						goto respawn;
 					}
 				}
-				net_flush (ms->fds[i].fd);
+				{
+				int n = net_flush (ms->fds[i].fd);
+				if (n>0) ms->bwrite += n;
+				}
+				
 			}
 		}
 	}

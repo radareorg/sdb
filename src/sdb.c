@@ -81,12 +81,18 @@ int sdb_exists (sdb *s, const char *key) {
 	SdbKv *kv;
 	ut32 hash = cdb_hashstr (key);
 	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
-	if (kv) return 1;
+	if (kv)
+		return 1;
 	if (s->fd == -1)
 		return 0;
 	cdb_findstart (&s->db);
-	if (cdb_findnext (&s->db, hash, key, strlen (key)))
-		return 1;
+	if (cdb_findnext (&s->db, hash, key, strlen (key))) {
+		ut32 pos;
+		char ch;
+		pos = cdb_datapos (&s->db);
+		cdb_read (&s->db, &ch, 1, pos);
+		return ch != 0;
+	}
 	return 0;
 }
 

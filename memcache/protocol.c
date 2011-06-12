@@ -126,15 +126,23 @@ default:
 		handle_get (ms, fd, key, 0);
 		break;
 	case MCSDB_CMD_DELETE:
-		p = strchr (key, ' ');
-		if (p) {
-			*p = 0;
+		{
+			int reply = 1;
+			p = strchr (key, ' ');
+			if (p) {
+				*p = 0;
+				if (!memcmp (p+1, "noreply", 7))
+					reply = 0;
+			}
 			c->exptime = 0LL;
-			sscanf (p+1, "%llu", &c->exptime);
-			if (mcsdb_delete (ms, key, c->exptime))
-				printf ("DELETED\r\n");
-			else printf ("NOT_FOUND\r\n");
-		} else return 0;
+			sscanf (key, "%llu", &c->exptime);
+			int ret = mcsdb_delete (ms, key, c->exptime);
+			if (reply) {
+				if (ret) net_printf (fd, "DELETED\r\n");
+				else net_printf (fd, "NOT_FOUND\r\n");
+			}
+		}
+//		} else return 0;
 		break;
 	case MCSDB_CMD_ADD:
 	case MCSDB_CMD_SET:

@@ -64,10 +64,12 @@ int mcsdb_add(McSdb *ms, const char *key, ut64 exptime, const char *body);
 void mcsdb_append(McSdb *ms, const char *key, ut64 exptime, const char *body);
 void mcsdb_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body);
 
+int net_connect(const char *host, const char *port);
 int net_listen (int port);
 int net_close (int s);
 int net_flush(int fd);
 int net_printf(int fd, char *fmt, ...);
+char *net_readnl(int fd);
 
 /* client */
 char *mcsdb_client_incr(McSdb *ms, const char *key, ut64 val);
