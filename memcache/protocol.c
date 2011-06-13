@@ -1,5 +1,5 @@
-/* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
-#include "memcache.h"
+/* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+#include "mcsdb.h"
 #include <sys/resource.h>
 
 static void handle_get(McSdb *ms, int fd, char *key, int smode) {

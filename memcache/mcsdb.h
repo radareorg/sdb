@@ -52,10 +52,10 @@ typedef struct {
 
 extern McSdb *ms;
 
-McSdb *mcsdb_new (const char *file);
-void mcsdb_free (McSdb *ms);
+McSdb *mcsdb_new(const char *file);
+void mcsdb_free(McSdb *ms);
 void mcsdb_set(McSdb *ms, const char *key, ut64 exptime, const char *body);
-char *mcsdb_get (McSdb *ms, const char *key, ut64 *exptime);
+char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime);
 char *mcsdb_incr(McSdb *ms, const char *key, ut64 val);
 char *mcsdb_decr(McSdb *ms, const char *key, ut64 val);
 int mcsdb_replace(McSdb *ms, const char *key, ut64 exptime, const char *body);
@@ -65,21 +65,23 @@ void mcsdb_append(McSdb *ms, const char *key, ut64 exptime, const char *body);
 void mcsdb_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body);
 
 int net_connect(const char *host, const char *port);
-int net_listen (int port);
-int net_close (int s);
+int net_listen(int port);
+int net_close(int s);
 int net_flush(int fd);
 int net_printf(int fd, char *fmt, ...);
 char *net_readnl(int fd);
 
 /* client */
-char *mcsdb_client_incr(McSdb *ms, const char *key, ut64 val);
-char *mcsdb_client_decr(McSdb *ms, const char *key, ut64 val);
-void mcsdb_client_set(McSdb *ms, const char *key, const char *body, ut64 exptime);
-int mcsdb_client_add(McSdb *ms, const char *key, const char *body, ut64 exptime);
-int mcsdb_client_append(McSdb *ms, const char *key, const char *body, ut64 exptime);
-int mcsdb_client_prepend(McSdb *ms, const char *key, const char *body, ut64 exptime);
-int mcsdb_client_replace(McSdb *ms, const char *key, const char *body, ut64 exptime);
-char *mcsdb_client_get (McSdb *ms, const char *key, ut64 *exptime);
-int mcsdb_client_delete(McSdb *ms, const char *key, ut64 exptime);
+McSdbClient *mcsdb_client_new(const char *host, const char *port);
+void mcsdb_client_free(McSdbClient *);
+char *mcsdb_client_incr(McSdbClient *ms, const char *key, ut64 val);
+char *mcsdb_client_decr(McSdbClient *ms, const char *key, ut64 val);
+void mcsdb_client_set(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
+int mcsdb_client_add(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
+int mcsdb_client_append(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
+int mcsdb_client_prepend(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
+int mcsdb_client_replace(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
+char *mcsdb_client_get (McSdbClient *ms, const char *key, ut64 *exptime);
+int mcsdb_client_delete(McSdbClient *ms, const char *key, ut64 exptime);
 
 #endif

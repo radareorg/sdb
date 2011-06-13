@@ -1,14 +1,20 @@
 include ../config.mk
 
 BIN=mcsdbd
-OBJS=main.o memcache.o net.o protocol.o
+CBIN=mcsdbc
+OBJS=main.o memcache.o net.o protocol.o client.o
+COBJS=client.o net.o memcache.o mainclient.o
 LIBS=../src/libsdb.a
 CFLAGS+=-I../src
 
-all: ${BIN} client
+all: ${BIN} ${CBIN} libmcsdb.a
 
-client: client.o net.o memcache.o
-	${CC} client.o memcache.o net.o ${LIBS} -o client
+libmcsdb.a: ${COBJS}
+	ar -r libmcsdb.a ${COBJS}
+	ranlib libmcsdb.a
+
+${CBIN}: ${COBJS}
+	${CC} ${COBJS} ${LIBS} -o ${CBIN}
 
 ${OBJS}: cmds.h
 
@@ -20,11 +26,14 @@ cmds.h: cmds.o
 	./cmds > cmds.h
 
 clean:
-	rm -f ${OBJS} ${BIN} cmds.h cmds cmds.o
+	rm -f libmcsdb.a
+	rm -f ${COBJS} ${CBIN}
+	rm -f ${OBJS} ${BIN}
+	rm -f cmds.h cmds cmds.o
 
 test:
 	./mcsdbd &
-	./client < test
+	./mcsdbc < test
 	killall mcsdbd
 
 .PHONY: clean test all loc

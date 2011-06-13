@@ -1,6 +1,6 @@
-/* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
 #include "types.h"
-#include "memcache.h"
+#include "mcsdb.h"
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <poll.h>

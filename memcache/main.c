@@ -1,12 +1,12 @@
-/* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
-#include "memcache.h"
+/* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
 #include <signal.h>
 #include <sys/socket.h>
+#include "mcsdb.h"
 
 McSdb *ms = NULL;
 int protocol_handle (McSdbClient *c, char *buf);
 
-static McSdbClient *mcsdb_client_new (int fd) {
+static McSdbClient *mcsdb_client_new_fd (int fd) {
 	McSdbClient *c = R_NEW (McSdbClient);
 	memset (c, 0, sizeof (McSdbClient));
 	c->fd = fd;
@@ -19,7 +19,7 @@ static int fds_add (int fd) {
 		return 0;
 	ms->fds[n].fd = fd;
 	ms->fds[n].events = POLLIN | POLLHUP | POLLERR;
-	ms->msc[n] = mcsdb_client_new (fd);
+	ms->msc[n] = mcsdb_client_new_fd (fd);
 	ms->nfds++;
 	ms->tfds++;
 	return 1;
@@ -120,10 +120,6 @@ static int mcsdb_client_state(McSdbClient *c) {
 	return 0;
 }
 
-static void mcsdb_client_free (McSdbClient *c) {
-	free (c);
-}
-
 static void fds_server (int fd) {
 	ms->fds[0].fd = fd;
 	ms->fds[0].events = POLLIN;
@@ -141,7 +137,6 @@ static int fds_del (McSdbClient *c) {
 				ms->msc[i-1] = ms->msc[i];
 			}
 			ms->nfds--;
-			close (fd);
 			return 0;
 		}
 	}

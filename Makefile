@@ -31,9 +31,14 @@ install:
 	cp -f src/buffer.h ${PFX}/include/sdb
 	cp -f src/config.h ${PFX}/include/sdb
 	cp -f src/sdb ${PFX}/bin
+	cp -f memcache/libmcsdb.a ${PFX}/lib
+	cp -f memcache/mcsdb.h ${PFX}/include/sdb
 	cp -f memcache/mcsdbd ${PFX}/bin
+	cp -f memcache/mcsdbc ${PFX}/bin
 	cp -f vala/sdb.pc ${PFX}/lib/pkgconfig
 	cp -f vala/sdb.vapi ${PFX}/share/vala/vapi
+	cp -f vala/mcsdb.pc ${PFX}/lib/pkgconfig
+	cp -f vala/mcsdb.vapi ${PFX}/share/vala/vapi
 
 deinstall uninstall:
 	rm -f ${PFX}/include/sdb.h
