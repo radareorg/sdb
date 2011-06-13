@@ -74,11 +74,10 @@ int net_listen (int port) {
         }
         fcntl (fd, F_SETFL, O_NONBLOCK, 0); // //!block);
         signal (SIGPIPE, SIG_IGN);
-        if (listen (fd, 1) < 0) {
-                close (fd);
-                return -1;
-        }
-	return fd;
+        if (listen (fd, 1) != -1)
+		return fd;
+	close (fd);
+	return -1;
 }
 
 int net_close (int s) {

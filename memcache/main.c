@@ -13,7 +13,6 @@ static McSdbClient *mcsdb_client_new (int fd) {
 	return c;
 }
 
-
 static int fds_add (int fd) {
 	int n = ms->nfds;
 	if (n>MCSDB_MAX_CLIENTS)
@@ -52,7 +51,7 @@ static int mcsdb_client_accept(int fd) {
 			printf ("cannot accept more clients\n");
 			net_close (cfd);
 			return 0;
-		} else printf ("new client %d\n", cfd);
+		}
 	} else return 0;
 	ms->fds[0].revents = 0;
 	return 1;

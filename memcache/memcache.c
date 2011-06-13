@@ -3,7 +3,7 @@
 
 McSdb *mcsdb_new (const char *file) {
 	McSdb *ms;
-	sdb *s = sdb_new (file, R_FALSE);
+	sdb *s = sdb_new (file, 0);
 	if (!s) return NULL;
 	ms = R_NEW (McSdb);
 	if (!ms) {
@@ -138,6 +138,5 @@ int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime) {
 	}
 	if (sdb_get_expire (ms->sdb, key)>0)
 		ms->evictions++;
-	sdb_delete (ms->sdb, key);
-	return 1;
+	return sdb_delete (ms->sdb, key);
 }

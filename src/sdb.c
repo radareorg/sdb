@@ -82,8 +82,7 @@ int sdb_exists (sdb *s, const char *key) {
 	SdbKv *kv;
 	ut32 pos, hash = cdb_hashstr (key);
 	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
-	if (kv)
-		return 1;
+	if (kv) return (*kv->value)? 1: 0;
 	if (s->fd == -1)
 		return 0;
 	cdb_findstart (&s->db);
@@ -118,13 +117,11 @@ int sdb_set (sdb* s, const char *key, const char *val) {
 		if (cdb_findnext (&s->db, hash, key, strlen (key))) {
 			kv = e->data;
 			strcpy (kv->value, val);
-		} else {
-			r_ht_remove_entry (s->ht, e);
-		}
-		return 0;
+		} else r_ht_remove_entry (s->ht, e);
+		return 1;
 	}
 	r_ht_insert (s->ht, hash, sdb_kv_new (key, val), NULL);
-	return 1;
+	return *val? 1: 0;
 }
 
 // TODO: refactoring hard
