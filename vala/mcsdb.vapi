@@ -15,7 +15,7 @@ namespace McSdb {
 		public uint64 incr (string key, uint64 n);
 		public uint64 decr (string key, uint64 n);
 		/* delete */
-		public bool @delete (string key);
+		public bool @delete (string key, uint64 exptime=0);
 		/* time 
 		public bool exists (string key);
 		public bool nexists (string key);

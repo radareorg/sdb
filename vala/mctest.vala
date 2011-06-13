@@ -6,8 +6,13 @@ int main() {
 		stderr.printf ("Cannot connect\n");
 		return 1;
 	}
-	c.set ("foo", "Hello");
-	c.set ("bar", "World");
-	print ("%s %s\n", c.get ("foo"), c.get ("bar"));
+	c.set ("count", "0");
+	for(int i =0 ; i<2000; i++) {
+		c.add ("foo", "Hello");
+		c.set ("bar", "World");
+		print ("%s %s\n", c.get ("foo"), c.get ("bar"));
+		c.delete ("foo");
+		c.incr ("count", 1);
+	}
 	return 0;
 }
