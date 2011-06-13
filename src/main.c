@@ -39,7 +39,7 @@ static int sdb_dump (const char *db) {
 }
 
 static void createdb(const char *f) {
-	char line[1024];
+	char line[SDB_VALUESIZE];
 	struct cdb_make c;
 	char *eq, *ftmp = malloc (strlen (f)+5);
 	sprintf (ftmp, "%s.tmp", f);
@@ -69,11 +69,6 @@ static void createdb(const char *f) {
 static void runline (sdb *s, const char *cmd) {
 	ut64 n;
 	char *p, *eq;
-	if ((eq = strchr (cmd, '='))) {
-		save = 1;
-		*eq = 0;
-		sdb_set (s, cmd, eq+1);
-	} else
 	switch (*cmd) {
 	case '+': // inc
 		n = sdb_inc (s, cmd, 1);
@@ -86,6 +81,11 @@ static void runline (sdb *s, const char *cmd) {
 		printf ("%lld\n", n);
 		break;
 	default:
+		if ((eq = strchr (cmd, '='))) {
+			save = 1;
+			*eq = 0;
+			sdb_set (s, cmd, eq+1);
+		} else
 		if ((p = sdb_get (s, cmd))) {
 			printf ("%s\n", p);
 			free (p);
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 		createdb (argv[1]);
 	} else
 	if (!strcmp (argv[2], "-")) {
-		char line[1024];
+		char line[SDB_VALUESIZE];
 		if ((s = sdb_new (argv[1], 0)))
 			for (;;) {
 				fgets (line, sizeof line, stdin);
@@ -118,11 +118,10 @@ int main(int argc, char **argv) {
 				line[strlen (line)-1] = 0;
 				runline (s, line);
 			}
-	} else {
-		if ((s = sdb_new (argv[1], 0)))
-			for (i=2; i<argc; i++)
-				runline (s, argv[i]);
-	}
+	} else
+	if ((s = sdb_new (argv[1], 0)))
+		for (i=2; i<argc; i++)
+			runline (s, argv[i]);
 	terminate (0);
 	return 0;
 }

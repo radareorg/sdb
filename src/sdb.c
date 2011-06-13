@@ -78,8 +78,9 @@ int sdb_delete (sdb *s, const char *key) {
 }
 
 int sdb_exists (sdb *s, const char *key) {
+	char ch;
 	SdbKv *kv;
-	ut32 hash = cdb_hashstr (key);
+	ut32 pos, hash = cdb_hashstr (key);
 	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
 	if (kv)
 		return 1;
@@ -87,8 +88,6 @@ int sdb_exists (sdb *s, const char *key) {
 		return 0;
 	cdb_findstart (&s->db);
 	if (cdb_findnext (&s->db, hash, key, strlen (key))) {
-		ut32 pos;
-		char ch;
 		pos = cdb_datapos (&s->db);
 		cdb_read (&s->db, &ch, 1, pos);
 		return ch != 0;

@@ -16,8 +16,10 @@ typedef struct sdb_t {
 	ut32 eod;
 } sdb;
 
+#define SDB_BLOCK 4096
 #define SDB_KEYSIZE 32
-#define SDB_VALUESIZE (4096-sizeof(RListIter*)-SDB_KEYSIZE)
+#define SDB_VALUESIZE (SDB_BLOCK-sizeof(ut64)-SDB_KEYSIZE)
+
 typedef struct sdb_kv {
 	char key[SDB_KEYSIZE];
 	char value[SDB_VALUESIZE];
@@ -26,6 +28,7 @@ typedef struct sdb_kv {
 
 sdb *sdb_new (const char *dir, int lock);
 int sdb_exists (sdb*, const char *key);
+int sdb_nexists (sdb*, const char *key);
 int sdb_delete (sdb*, const char *key);
 char *sdb_get (sdb*, const char *key);
 int sdb_set (sdb*, const char *key, const char *data);

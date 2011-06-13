@@ -13,11 +13,15 @@ McSdb *mcsdb_client_connect (const char *host, const char *port) {
 }
 
 char *mcsdb_client_incr(McSdb *ms, const char *key, ut64 val) {
-	return NULL;
+	net_printf (ms->fd, "incr %s %lld\r\n", key, val);
+	net_flush (ms->fd);
+	return net_readnl (ms->fd);
 }
 
 char *mcsdb_client_decr(McSdb *ms, const char *key, ut64 val) {
-	return NULL;
+	net_printf (ms->fd, "decr %s %lld\r\n", key, val);
+	net_flush (ms->fd);
+	return net_readnl (ms->fd);
 }
 
 void mcsdb_client_set(McSdb *ms, const char *key, ut64 exptime, const char *body) {
@@ -99,13 +103,20 @@ int main(int argc, char **argv) {
 		if (feof (stdin))
 			break;
 		buf[strlen (buf)-1] = 0;
-		p = strchr (buf, '=');
-		if (p) {
-			*p = 0;
-			mcsdb_client_set (ms, buf, 0, p+1);
+		if (buf[0]=='+') {
+			mcsdb_client_incr (ms, buf+1, 1);
+		} else
+		if (buf[0]=='-') {
+			mcsdb_client_decr (ms, buf+1, 1);
 		} else {
-			char *v = mcsdb_client_get (ms, buf, NULL);
-			printf ("%s\n", v?v:"");
+			p = strchr (buf, '=');
+			if (p) {
+				*p = 0;
+				mcsdb_client_set (ms, buf, 0, p+1);
+			} else {
+				char *v = mcsdb_client_get (ms, buf, NULL);
+				printf ("%s\n", v?v:"");
+			}
 		}
 	}
 	net_close (fd);

@@ -28,22 +28,19 @@ void mcsdb_free (McSdb *ms) {
 	free (ms);
 }
 
-/* storage */
 char *mcsdb_incr(McSdb *ms, const char *key, ut64 val) {
-	if (!sdb_exists (ms->sdb, key))
+	if (!sdb_nexists (ms->sdb, key))
 		return NULL;
-	//TODO: check if numeric
-	if (sdb_inc (ms->sdb, key, val) == UT64_MAX)
+	if (sdb_inc (ms->sdb, key, val) == 0LL)
 		return NULL;
 	ms->sets++;
 	return sdb_get (ms->sdb, key);
 }
 
 char *mcsdb_decr(McSdb *ms, const char *key, ut64 val) {
-	if (!sdb_exists (ms->sdb, key))
+	if (!sdb_nexists (ms->sdb, key))
 		return NULL;
-	//TODO: check if numeric
-	sdb_dec (ms->sdb, key, val); // ignore return value, as long as 0 is the floor
+	sdb_dec (ms->sdb, key, val);
 	ms->sets++;
 	return sdb_get (ms->sdb, key);
 }

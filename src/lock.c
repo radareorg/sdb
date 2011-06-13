@@ -18,11 +18,10 @@ int sdb_lock(const char *s) {
 	int ret;
 	if (!s) return 0;
 	ret = open (s, O_CREAT | O_TRUNC | O_WRONLY | O_EXCL, 0644);
-	if (ret!=-1) {
-		close (ret);
-		return 1;
-	}
-	return 0;
+	if (ret==-1)
+		return 0;
+	close (ret);
+	return 1;
 }
 
 void sdb_unlock(const char *s) {

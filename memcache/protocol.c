@@ -82,11 +82,12 @@ default:
 		break;
 	case MCSDB_CMD_INCR:
 	case MCSDB_CMD_DECR:
-		if (!key || !p) {// || !((p=strchr (key, ' ')))) {
+		if (!key || !p) {
 			net_printf (fd, "ERROR\r\n");
 			return 0;
 		}
 		sscanf (p, "%llu", &n);
+		p--; *p=0;
 		if (cmdhash==MCSDB_CMD_INCR)
 			p = mcsdb_incr (ms, key, n);
 		else p = mcsdb_decr (ms, key, n);
