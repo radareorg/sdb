@@ -79,13 +79,10 @@ static int mcsdb_client_state(McSdbClient *c) {
 		rlen = rlen; //
 		r = read (c->fd, c->buf+c->idx, 1); //rlen);
 		//printf ("READ %d = %d (idx=%d)\n", rlen, r, c->idx);
-		if (r<1)
-			return 0;
-		c->buf[c->idx+r]=0;
+		if (r<1) return 0;
+		c->buf[c->idx+r] = 0;
 //printf ("---- (%s)\n", c->buf);
-		ms->bread += r;
-		c->idx += r;
-		if ((p = strchr (c->buf, '\n'))) {
+		if ((p = strchr (c->buf+c->idx, '\n'))) {
 			char *rest = p+1;
 			*p--=0;
 			if (p>c->buf && *p=='\r')
@@ -94,6 +91,8 @@ static int mcsdb_client_state(McSdbClient *c) {
 			c->next = (c->idx-restlen);
 			return 1;
 		}
+		ms->bread += r;
+		c->idx += r;
 		return 0;
 	case 1: // read N bytes
 		if (c->idx>c->len)c->idx = 0;
