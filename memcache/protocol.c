@@ -68,12 +68,17 @@ int protocol_handle (McSdbClient *c, char *buf) {
 			*p = 0;
 		strncpy (c->key, key, sizeof (c->key)-1); // XXX overflow
 		if (p) {
-			*p= ' ';
+			*p = ' ';
 			p++;
 		}
 	}
 	cmdhash = sdb_hash (cmd);
 	switch (cmdhash) {
+	case MCSDB_CMD_FLUSH_ALL:
+	case MCSDB_CMD_VERBOSITY:
+		// ignored
+		net_printf (fd, "OK\r\n");
+		break;
 	case MCSDB_CMD_QUIT:
 		return -1;
 	case MCSDB_CMD_GETS:

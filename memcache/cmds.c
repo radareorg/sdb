@@ -13,6 +13,8 @@ static void cmdhash(const char *s) {
 
 int main() {
 	cmdhash ("version");
+	cmdhash ("verbosity");
+	cmdhash ("flush_all");
 	cmdhash ("append");
 	cmdhash ("prepend");
 	cmdhash ("get");
