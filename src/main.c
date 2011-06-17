@@ -35,6 +35,7 @@ static int sdb_dump (const char *db) {
 	while (sdb_dump_next (s, k, v))
 		printf ("%s=%s\n", k, v);
 	sdb_free (s);
+	s = NULL;
 	return 0;
 }
 

@@ -18,7 +18,7 @@ int cdb_make_start(struct cdb_make *c, int fd) {
 }
 
 // WTF?!?
-static int posplus(struct cdb_make *c, ut32 len) {
+static inline int posplus(struct cdb_make *c, ut32 len) {
 	ut32 newpos = c->pos + len;
 	if (newpos < len)
 		return 0;

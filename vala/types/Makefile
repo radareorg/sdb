@@ -7,6 +7,7 @@ VFILES+=main.vala
 OFILES=$(subst vala,vala.o,${VFILES})
 CFILES=$(subst vala,c,${VFILES})
 VFLAGS=--pkg sdb --vapidir=..
+VFLAGS+=-X -I../../src
 CFLAGS+=-I../../src
 LDFLAGS+=../../src/libsdb.a
 CFLAGS+=$(shell pkg-config --cflags gobject-2.0)

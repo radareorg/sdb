@@ -32,6 +32,7 @@ sdb* sdb_new (const char *dir, int lock) {
 }
 
 void sdb_free (sdb* s) {
+	if (!s) return;
 	cdb_free (&s->db);
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
@@ -209,10 +210,12 @@ void sdb_dump_begin (sdb* s) {
 	} else eod = pos = 0;
 }
 
-// XXX: possible overflow here
+// XXX: possible overflow if caller doesnt respects sizes
 int sdb_dump_next (sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
 	if (s->fd==-1 || !getkvlen (s->fd, &klen, &dlen))
+		return 0;
+	if (klen >= SDB_KEYSIZE || dlen >= SDB_VALUESIZE)
 		return 0;
 	pos += 4;
 	if (key && getbytes (s->fd, key, klen)<1)
