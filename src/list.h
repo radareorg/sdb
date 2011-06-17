@@ -43,7 +43,6 @@ R_API int r_list_length(RList *list);
 R_API void r_list_add_sorted(RList *list, void *data, RListComparator cmp);
 R_API void r_list_sort(RList *list, RListComparator cmp);
 
-R_API void r_list_init(RList *list);
 R_API void r_list_delete (RList *list, RListIter *iter);
 R_API boolt r_list_delete_data (RList *list, void *ptr);
 R_API void r_list_iter_init (RListIter *iter, RList *list);

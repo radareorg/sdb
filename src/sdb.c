@@ -209,7 +209,7 @@ void sdb_dump_begin (sdb* s) {
 	} else eod = pos = 0;
 }
 
-// XXX: possible overflow
+// XXX: possible overflow here
 int sdb_dump_next (sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
 	if (s->fd==-1 || !getkvlen (s->fd, &klen, &dlen))

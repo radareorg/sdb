@@ -14,7 +14,15 @@ linked lists from r2 api
 
 Changes:
 --------
-the cdb format is now 10% smaller (4.3MB vs 3.9MB) (uses 4 bytes to pack keylen+valuelen)
+I have slightly modified the cdb code to get smaller databases
+and be memory leak free.
+
+The sdb's cdb database format is 10% smaller than the original
+one. This is because keylen and valuelen are encoded in 4 bytes
+using two endian-safe unsigned short values.
+
+In a test case, a 4.3MB cdb database takes only 3.9MB after the
+file format change.
 
 Backups:
 --------

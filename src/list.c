@@ -3,12 +3,6 @@
 #include <string.h>
 #include "list.h"
 
-R_API void r_list_init(RList *list) {
-	list->head = NULL;
-	list->tail = NULL;
-	list->free = NULL;
-}
-
 R_API void r_list_delete (RList *list, RListIter *iter) {
 	if (iter==NULL) {
 		printf ("r_list_delete: null iter?\n");
@@ -25,7 +19,9 @@ list->free = free; // XXX HACK
 
 R_API RList *r_list_new() {
 	RList *list = R_NEW (RList);
-	r_list_init (list);
+	list->head = NULL;
+	list->tail = NULL;
+	list->free = NULL;
 	return list;
 }
 

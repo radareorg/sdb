@@ -3,7 +3,7 @@ namespace SimpleDB {
 	[CCode (cheader_filename="sdb.h", cname="struct sdb_t", cprefix="sdb_")]
 	public class Sdb {
 		/* lifecycle */
-		public Sdb (string name, bool locked=false);
+		public Sdb (string? name=null, bool locked=false);
 		public void sync ();
 		/* string */
 		public string @get (string key);
