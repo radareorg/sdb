@@ -22,12 +22,12 @@ void main () {
 	var h = si.get_hash ("h");
 	h.set ("foo", "hello");
 	h.set ("bar", "world");
-	print ("hash = %s %s\n", h.get ("foo"), h.get ("bar"));
-	print ("Sugar test: '"+h["foo"]+" "+h["bar"]+"'\n");
+	print ("  api: %s %s\n", h.get ("foo"), h.get ("bar"));
+	print ("  sugar: '"+h["foo"]+" "+h["bar"]+"'\n");
 
 	print ("KEYS\n");
 	foreach (var k in h.keys) {
-		print (" -- key : "+k+"\n");
+		print (" key : "+k+"\n");
 	}
 
 	var l = new SdbTypes.List (si, "l");

@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/sdbtypes
+
+Name: sdbtypes
+Description: Simple DataBase Types
+Version: 0.1
+Requires:
+Libs: ${libdir}/libsdbtypes.a ${libdir}/libsdb.a
+Cflags: -I${includedir}

@@ -7,6 +7,7 @@ all:
 
 vala: all
 	cd vala && ${MAKE}
+	cd vala/types && ${MAKE}
 
 clean:
 	cd src && ${MAKE} clean
@@ -36,9 +37,12 @@ install:
 	cp -f memcache/mcsdbd ${PFX}/bin
 	cp -f memcache/mcsdbc ${PFX}/bin
 	cp -f vala/sdb.pc ${PFX}/lib/pkgconfig
-	cp -f vala/sdb.vapi ${PFX}/share/vala/vapi
 	cp -f vala/mcsdb.pc ${PFX}/lib/pkgconfig
+
+install-vala:
+	cp -f vala/sdb.vapi ${PFX}/share/vala/vapi
 	cp -f vala/mcsdb.vapi ${PFX}/share/vala/vapi
+	cd vala/types && ${MAKE} install PFX=${PFX}
 
 deinstall uninstall:
 	rm -f ${PFX}/include/sdb.h
