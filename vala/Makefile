@@ -20,5 +20,6 @@ mctest: mctest.vala
 	
 clean:
 	rm -f test a.out test.sdb test.c uuid.sdb
+	cd types && ${MAKE} clean
 
 .PHONY: all clean
