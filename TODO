@@ -1,26 +1,27 @@
-SDB :: Simple DataBase
-======================
-* Add api to create db without caching it before
-* Remove endian conversions
+TODO
+----
+* implement flush_all() ITS A MUST
+  - close fd, so file will not be used and cleanup the hashtable+linkedlists
+* add api to create db without caching it before
 * remove buffer
-* TODO: count items in list?
-  - use kernel's linked list?
 
-* Implement flush_all()
 Syncronization
 --------------
  - each key/value have a timestamp of creation/modification
  - sdb_diff() must check both databases and look for removed entries
  - sincronization between hosts - realtime storage
- - server can be running with sync every N secs
+ - run sync every N seconds?
 
 Optimization
 ------------
+* remove endian conversions
 * use slices instead of mallocs
 * implement udp protocol for memcache
 * use 16 bit key and 16 bit value
+* use kernel's linked list? it should be faster..
 
 BUGS
 ----
 * hashtable is not cleaned up when sync
   - must honor expire time entries
+* key and value boundaries are probably not properly handled
