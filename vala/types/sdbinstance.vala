@@ -18,6 +18,10 @@ namespace SdbTypes {
 			}
 		}
 
+		~SdbInstance () {
+			s = null;
+		}
+
 		public SdbTypes.Array get_array (string name) {
 			return new SdbTypes.Array (this, name);
 		}
@@ -41,6 +45,7 @@ namespace SdbTypes {
 		public new string? @get(string key) {
 			return s.get (key);
 		}
+		// TODO: add getn/setn?
 
 		public void @delete(string key) {
 			s.delete (key);
