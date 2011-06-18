@@ -1,7 +1,8 @@
 using SimpleDB;
 
+// TODO: implement locking for files and for queries
 namespace SdbTypes {
-	public class SdbInstance {
+	public class SdbInstance : Object {
 		Sdb? s = null;
 
 		public SdbInstance (string? host=null, int port=-1) {
@@ -13,14 +14,31 @@ namespace SdbTypes {
 				s = new Sdb (host);
 			} else {
 				/* use host+port memcache */
+				stderr.printf ("memcache not yet supported\n");
 			}
 		}
 
-		public void @set(string key, string val) {
+		public SdbTypes.Array get_array (string name) {
+			return new SdbTypes.Array (this, name);
+		}
+
+		public SdbTypes.List get_list (string name) {
+			return new SdbTypes.List (this, name);
+		}
+
+		public SdbTypes.Hash get_hash (string name) {
+			return new SdbTypes.Hash (this, name);
+		}
+
+		public SdbTypes.Stack get_stack (string name) {
+			return new SdbTypes.Stack (this, name);
+		}
+
+		public new void @set(string key, string val) {
 			s.set (key, val);
 		}
 
-		public string @get(string key) {
+		public new string? @get(string key) {
 			return s.get (key);
 		}
 
