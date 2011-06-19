@@ -4,16 +4,19 @@ void main () {
 	print ("Hello types!\n");
 	var si = new SdbInstance ("food.sdb");
 
-	bool is_initialized = si.get ("is_initialized") == "true";
+	bool is_initialized = si.get_bool ("is_initialized");
 
 	if (is_initialized)
 		print ("** already initialized **\n");
-	else si.set ("is_initialized", "true");
+	else si.set_bool ("is_initialized", true);
 
 	var s = si.get_stack ("s");
-//	var s = new SdbTypes.Stack (si, "s");
 	s.push ("World");
 	s.push ("Hello");
+	foreach (var p in s) {
+		print ("STACK : "+p+"\n");
+	}
+
 	print ("stack = %s %s\n", s.pop (), s.pop ());
 	if (s.pop () == null)
 		print ("Cant pop moar.. which is ok\n");
@@ -30,7 +33,7 @@ void main () {
 		print (" key : "+k+"\n");
 	}
 
-	var l = new SdbTypes.List (si, "l");
+	var l = si.get_list ("l");
 	if (!is_initialized) {
 		l.append ("one");
 		l.append ("two");

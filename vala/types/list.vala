@@ -1,5 +1,5 @@
 namespace SdbTypes {
-	public class List {
+	public class List : Iterable {
 		SdbInstance si;
 		string name;
 
@@ -35,8 +35,8 @@ namespace SdbTypes {
 			return si.get ("list."+name+"."+node+".prev");
 		}
 
-		public ListIterator iterator () {
-			return new ListIterator (si, name, get_head ());
+		public override Iterator iterator () {
+			return (Iterator) new ListIterator (si, name, get_head ());
 		}
 
 		public void append(string val) {

@@ -18,14 +18,13 @@ namespace SdbTypes {
 			return si.get ("list."+name+"."+node+".next") ?? "";
 		}
 
-		public bool next() {
+		public override bool next() {
 			head = n;
 			n = get_next (head);
 			return head != "";
 		}
 
-		//      public G @free(G arg);
-		public string @get() {
+		public override string @get() {
 			return si.get ("list."+name+"."+head+".value");
 		}
 	}

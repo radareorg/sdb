@@ -1,5 +1,5 @@
 namespace SdbTypes {
-	public class Stack {
+	public class Stack : Iterable {
 		SdbInstance si;
 		string name;
 
@@ -30,6 +30,10 @@ namespace SdbTypes {
 			string ret = si.get (key);
 			si.delete (key);
 			return ret;
+		}
+
+		public override Iterator iterator () {
+			return (Iterator) new StackIterator (si, name, si.get (get_size ()));
 		}
 	}
 }

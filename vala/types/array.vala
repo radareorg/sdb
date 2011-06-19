@@ -1,4 +1,4 @@
-public class SdbTypes.Array {
+public class SdbTypes.Array : Iterable {
 	SdbInstance si;
 	string name;
 
@@ -17,7 +17,7 @@ public class SdbTypes.Array {
 		return "";
 	}
 
-	public void @set (int idx, string val) {
+	public new void @set (int idx, string val) {
 		if (idx<0)
 			return;
 		si.set ("array."+name+"."+idx.to_string (), val);
@@ -91,7 +91,8 @@ public class SdbTypes.Array {
 			si.set ("array."+name+".upper", idx.to_string ());
 	}
 
-	public ArrayIterator iterator () {
-		return new ArrayIterator (si, name, get_lower (), get_upper ());
+	//public new ArrayIterator iterator () {
+	public override Iterator iterator () {
+		return (Iterator)new ArrayIterator (si, name, get_lower (), get_upper ());
 	}
 }

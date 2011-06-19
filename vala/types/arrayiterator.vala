@@ -14,7 +14,7 @@ namespace SdbTypes {
 			this.upper = upper;
 		}
 		
-		public bool next() {
+		public override bool next() {
 			cur = idx++;
 			for (; idx<=upper; idx++) {
 				var c = si.get ("array."+name+"."+idx.to_string ());
@@ -24,7 +24,7 @@ namespace SdbTypes {
 			return get () != null;
 		}
 
-		public string @get() {
+		public override string @get() {
 			return si.get ("array."+name+"."+cur.to_string ());
 		}
 	}

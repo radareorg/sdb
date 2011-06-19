@@ -22,6 +22,13 @@ namespace SdbTypes {
 			s = null;
 		}
 
+		public bool set_bool(string name, bool val) {
+			return s.set (name, val.to_string ());
+		}
+		public bool get_bool(string name) {
+			return s.get (name) == "true";
+		}
+
 		public SdbTypes.Array get_array (string name) {
 			return new SdbTypes.Array (this, name);
 		}

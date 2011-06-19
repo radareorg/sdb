@@ -1,10 +1,10 @@
 PFX?=/usr
 
 VFILES+=hash.vala 
-VFILES+=stack.vala 
+VFILES+=stack.vala stackiterator.vala
 VFILES+=array.vala arrayiterator.vala
 VFILES+=list.vala listiterator.vala 
-VFILES+=iterator.vala sdbinstance.vala serializable.vala
+VFILES+=iterator.vala sdbinstance.vala serializable.vala iterable.vala
 OFILES=$(subst vala,o,${VFILES})
 CFILES=$(subst vala,c,${VFILES})
 VFLAGS=--pkg sdb --vapidir=..
