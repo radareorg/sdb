@@ -7,6 +7,13 @@ void main () {
 	s.set ("user.password", "food");
 	print ("Your name is: "+s.get ("user.name")+"\n");
 	s.sync ();
+
+#if TESTFLUSH
+	s.flush ();
+	print ("USERNAME %s\n", s.get ("user.name"));
+	return;
+#endif
+
 	s.set ("user.name", "owned");
 	print ("Your name is: "+s.get ("user.name")+"\n");
 	s.sync ();

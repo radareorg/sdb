@@ -14,11 +14,6 @@
 
 #include "cmds.h"
 
-#if 0
- buf                       idx
-  |_____.______|______._____|
-#endif
-
 typedef struct {
 	int fd;
 	int mode;
@@ -54,6 +49,7 @@ extern McSdb *ms;
 
 McSdb *mcsdb_new(const char *file);
 void mcsdb_free(McSdb *ms);
+void mcsdb_flush(McSdb *ms);
 void mcsdb_set(McSdb *ms, const char *key, ut64 exptime, const char *body);
 char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime);
 char *mcsdb_incr(McSdb *ms, const char *key, ut64 val);

@@ -37,6 +37,8 @@ void sdb_free (sdb* s) {
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
 	r_ht_free (s->ht);
+	if (s->fd != -1)
+		close (s->fd);
 	free (s->dir);
 	free (s);
 }
@@ -279,4 +281,11 @@ ut64 sdb_get_expire(sdb *s, const char *key) {
 
 ut32 sdb_hash(const char *s) {
 	return cdb_hashstr (s);
+}
+
+void sdb_flush(sdb* s) {
+	r_ht_free (s->ht);
+	s->ht = r_ht_new ();
+	close (s->fd);
+	s->fd = -1;
 }

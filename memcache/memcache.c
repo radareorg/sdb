@@ -19,6 +19,10 @@ McSdb *mcsdb_new (const char *file) {
 	return ms;
 }
 
+void mcsdb_flush (McSdb *ms) {
+	sdb_flush (ms->sdb);
+}
+
 void mcsdb_free (McSdb *ms) {
 	int i;
 	for (i=0; i<ms->nfds; i++)

@@ -75,8 +75,11 @@ int protocol_handle (McSdbClient *c, char *buf) {
 	cmdhash = sdb_hash (cmd);
 	switch (cmdhash) {
 	case MCSDB_CMD_FLUSH_ALL:
+		mcsdb_flush (ms);
+		net_printf (fd, "OK\r\n");
+		break;
 	case MCSDB_CMD_VERBOSITY:
-		// ignored
+		// not yet implemented
 		net_printf (fd, "OK\r\n");
 		break;
 	case MCSDB_CMD_QUIT:
