@@ -1,0 +1,5 @@
+mcsdb
+=====
+This is a memcache client and server implementation with
+bindings for Vala (and valaswig (perl, ruby, python.. )
+that is based on the Sdb api.

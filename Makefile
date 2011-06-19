@@ -1,5 +1,6 @@
 include config.mk
 PFX=${DESTDIR}${PREFIX}
+HGFILES=`find sdb-${VERSION} -type f | grep -v hg | grep -v swp`
 
 all:
 	cd src && ${MAKE}
@@ -17,7 +18,8 @@ clean:
 
 dist: clean
 	cd .. && mv sdb sdb-${VERSION} ; \
-	tar czvf sdb-${VERSION}.tar.gz `find sdb-${VERSION}| grep -v \.hg` ; \
+	rm -f sdb-${VERSION}.tar.gz ; \
+	tar czvf sdb-${VERSION}.tar.gz ${HGFILES} ; \
 	pub sdb-${VERSION}.tar.gz ; \
 	mv sdb-${VERSION} sdb
 

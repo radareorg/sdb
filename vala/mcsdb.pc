@@ -5,7 +5,7 @@ includedir=${prefix}/include/sdb
 
 Name: mcsdb
 Description: Memcache on Simple DataBase
-Version: 0.1
+Version: 0.2
 Requires:
 Libs: ${libdir}/libmcsdb.a
 Cflags: -I${includedir}

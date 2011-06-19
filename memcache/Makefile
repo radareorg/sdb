@@ -26,6 +26,7 @@ cmds.h: cmds.o
 	./cmds > cmds.h
 
 clean:
+	rm -f *.sdb
 	rm -f libmcsdb.a
 	rm -f ${COBJS} ${CBIN}
 	rm -f ${OBJS} ${BIN}
