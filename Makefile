@@ -16,8 +16,10 @@ clean:
 	cd vala && ${MAKE} clean
 
 dist: clean
-	cd .. && tar czvf sdb-${VERSION}.tar.gz `find sdb| grep -v \.hg`
-	cd .. && pub sdb-${VERSION}.tar.gz
+	cd .. && mv sdb sdb-${VERSION} ; \
+	tar czvf sdb-${VERSION}.tar.gz `find sdb-${VERSION}| grep -v \.hg` ; \
+	pub sdb-${VERSION}.tar.gz ; \
+	mv sdb-${VERSION} sdb
 
 install:
 	mkdir -p ${PFX}/lib/pkgconfig ${PFX}/bin 

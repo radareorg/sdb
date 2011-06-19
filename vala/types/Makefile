@@ -42,6 +42,7 @@ install:
 	cp -f sdbtypes.vapi ${PFX}/share/vala/vapi
 
 clean:
-	rm -f *.c *.o test food.sdb libsdbtypes.a
+	rm -f *.c *.o sdbtypes.vapi sdbtypes.h
+	rm -f test food.sdb libsdbtypes.a
 
 .PHONY: all run clean install
