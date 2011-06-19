@@ -1,6 +1,10 @@
 DESTDIR?=
 PREFIX?=/usr
 
+VERSION=0.2
+
+CFLAGS+=-DVERSION=\"${VERSION}\"
+
 CFLAGS+=-Wall
 #CFLAGS+=-O3
 CFLAGS+=-ggdb -g -Wall -O0

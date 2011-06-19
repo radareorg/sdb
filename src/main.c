@@ -94,12 +94,24 @@ static void runline (sdb *s, const char *cmd) {
 	}
 }
 
+static void showusage(int o) {
+	printf ("usage: sdb [-v|-h] [db[.lock]] [-=]|[key[=value] ..]\n");
+	exit (o);
+}
+
+static void showversion() {
+	printf ("sdb "VERSION"\n");
+	exit (0);
+}
+
 int main(int argc, char **argv) {
 	int i;
-	if (argc<2) {
-		printf ("usage: sdb [db[.lock]] [-=]|[key[=value] ..]\n");
-		return 1;
-	}
+	if (argc<2)
+		showusage (1);
+	if (!strcmp (argv[1], "-v"))
+		showversion ();
+	if (!strcmp (argv[1], "-h"))
+		showusage (0);
 	if (argc == 2)
 		return sdb_dump (argv[1]);
 

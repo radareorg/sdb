@@ -16,8 +16,8 @@ clean:
 	cd vala && ${MAKE} clean
 
 dist: clean
-	cd .. && tar czvf sdb.tar.gz `find sdb| grep -v \.hg`
-	cd .. && pub sdb.tar.gz
+	cd .. && tar czvf sdb-${VERSION}.tar.gz `find sdb| grep -v \.hg`
+	cd .. && pub sdb-${VERSION}.tar.gz
 
 install:
 	mkdir -p ${PFX}/lib/pkgconfig ${PFX}/bin 
