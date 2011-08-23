@@ -12,6 +12,7 @@
 static char netbuf[MCSDB_MAX_BUFFER];
 static int netbuflen = 0;
 
+
 char *net_readnl(int fd) {
 	int i = -1;
 	char buf[MCSDB_MAX_BUFFER];
@@ -25,6 +26,8 @@ char *net_readnl(int fd) {
 	buf[i-1] = 0;// chop \r
 	return strdup (buf);
 }
+
+//NetSocket *net_accept(NetSocket *s) { }
 
 int net_flush(int fd) {
 	int n;

@@ -1,6 +1,11 @@
 include ../config.mk
 #CFLAGS+=-DOLDFMT=1
 OBJ=alloc.o cdb.o buffer.o cdb_make.o ht.o sdb.o list.o sdbn.o lock.o
+# This is hacky
+SOEXT=dylib
+#SOEXT=so
+
+.PHONY: all libsdb.${SOEXT} clean wcl syms
 
 all: libsdb.a sdb
 
@@ -8,6 +13,10 @@ libsdb.a: ${OBJ}
 	@#ar qf libasb.a ${OBJ}
 	ar -r libsdb.a ${OBJ}
 	ranlib libsdb.a
+
+libsdb.${SOEXT}:
+	${CC} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared -arch i386
+	sudo cp libsdb.${SOEXT} ${PREFIX}/lib
 
 t:
 	rm -f foo

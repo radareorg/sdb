@@ -12,8 +12,8 @@ namespace McSdb {
 		public bool prepend (string key, string @value, uint64 exptime=0);
 		public bool replace (string key, string @value, uint64 exptime=0);
 		/* numeric */
-		public uint64 incr (string key, uint64 n);
-		public uint64 decr (string key, uint64 n);
+		public string incr (string key, uint64 n);
+		public string decr (string key, uint64 n);
 		/* delete */
 		public bool @delete (string key, uint64 exptime=0);
 		/* time 

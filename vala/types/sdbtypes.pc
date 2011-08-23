@@ -7,5 +7,5 @@ Name: sdbtypes
 Description: Simple DataBase Types
 Version: 0.2
 Requires:
-Libs: ${libdir}/libsdbtypes.a ${libdir}/libsdb.a
+Libs: ${libdir}/libsdbtypes.a ${libdir}/libsdb.a ${libdir}/libmcsdb.a
 Cflags: -I${includedir}

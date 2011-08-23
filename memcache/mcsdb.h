@@ -4,11 +4,10 @@
 #include "sdb.h"
 #include <poll.h>
 
-//#define printf // 
 /* "mcsdb.sdb" */
 #define MCSDB_FILE NULL
 #define MCSDB_PORT 11211
-#define MCSDB_VERSION "0.1"
+#define MCSDB_VERSION "0.2"
 #define MCSDB_MAX_CLIENTS 16
 #define MCSDB_MAX_BUFFER 4096
 
@@ -44,6 +43,13 @@ typedef struct {
 	int tfds; // total number of clients
 	McSdbClient *msc[MCSDB_MAX_CLIENTS+1];
 } McSdb;
+
+#define NETBUFSZ 1024
+typedef struct {
+	int fd;
+	int len;
+	ut8 buf[NETBUFSZ];
+} NetClient;
 
 extern McSdb *ms;
 

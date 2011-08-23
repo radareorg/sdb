@@ -40,4 +40,3 @@ int main(int argc, char **argv) {
 	mcsdb_client_free (ms);
 	return 0;
 }
-

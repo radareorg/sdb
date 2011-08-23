@@ -7,10 +7,12 @@ VFILES+=list.vala listiterator.vala
 VFILES+=iterator.vala sdbinstance.vala serializable.vala iterable.vala
 OFILES=$(subst vala,o,${VFILES})
 CFILES=$(subst vala,c,${VFILES})
-VFLAGS=--pkg sdb --vapidir=..
+VFLAGS=--pkg sdb --pkg mcsdb --vapidir=..
 VFLAGS+=-X -I../../src
+VFLAGS+=-X -I../../memcache
 CFLAGS+=-I../../src
 LDFLAGS+=../../src/libsdb.a
+LDFLAGS+=../../memcache/libmcsdb.a
 CFLAGS+=$(shell pkg-config --cflags gobject-2.0)
 LDFLAGS+=$(shell pkg-config --libs gobject-2.0)
 

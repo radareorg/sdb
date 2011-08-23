@@ -5,13 +5,14 @@ CBIN=mcsdbc
 OBJS=main.o memcache.o net.o protocol.o client.o
 COBJS=client.o net.o memcache.o mainclient.o
 LIBS=../src/libsdb.a
+LIBA=libmcsdb.a
 CFLAGS+=-I../src
 
 all: ${BIN} ${CBIN} libmcsdb.a
 
-libmcsdb.a: ${COBJS}
-	ar -r libmcsdb.a ${COBJS}
-	ranlib libmcsdb.a
+${LIBA}: ${COBJS}
+	ar -r ${LIBA} ${COBJS}
+	ranlib ${LIBA}
 
 ${CBIN}: ${COBJS}
 	${CC} ${COBJS} ${LIBS} -o ${CBIN}
@@ -27,7 +28,7 @@ cmds.h: cmds.o
 
 clean:
 	rm -f *.sdb
-	rm -f libmcsdb.a
+	rm -f ${LIBA}
 	rm -f ${COBJS} ${CBIN}
 	rm -f ${OBJS} ${BIN}
 	rm -f cmds.h cmds cmds.o

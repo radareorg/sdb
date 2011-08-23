@@ -171,7 +171,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 			return 0;
 		}
 		c->mode = 1; // read N bytes
-		c->next = 0;
+		//c->next = 0;
 		c->idx = c->next;
 		c->len = bytes+1;
 		c->cmdhash = cmdhash;

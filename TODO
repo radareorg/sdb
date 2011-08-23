@@ -1,7 +1,6 @@
 TODO
 ----
-* implement flush_all() ITS A MUST
-  - close fd, so file will not be used and cleanup the hashtable+linkedlists
+* incr returns char * in mcsdb and ut64 in sdb api? looks wrong!
 * add api to create db without caching it before
 * remove buffer
 

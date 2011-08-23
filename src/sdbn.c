@@ -45,7 +45,7 @@ void sdb_setn(sdb *s, const char *key, ut64 v) {
 
 ut64 sdb_inc(sdb *s, const char *key, ut64 n2) {
 	ut64 n = sdb_getn (s, key);
-	if ((UT64_MAX-n2)<n)
+	if (-n2<n)
 		return 0LL;
 	sdb_setn (s, key, n+n2);
 	return n;
