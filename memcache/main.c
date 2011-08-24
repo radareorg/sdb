@@ -153,6 +153,8 @@ static void fds_server (int fd) {
 
 static int fds_del (McSdbClient *c) {
 	int i, fd = c->fd;
+c->len = c->idx = 0;
+*c->buf = 0;
 	for (i=0; i<ms->nfds; i++) {
 		if (ms->fds[i].fd == fd) {
 			mcsdb_client_free (c);
@@ -209,14 +211,15 @@ printf ("rspwn\n");
 				}
 			} while (ret);
 printf ("GOOUT\n");
-			/* client closed the connection */
-			if (ms->fds[i].revents & POLLHUP) {
-				fds_del (c);
-				goto respawn;
-			}
 			r = net_flush (ms->fds[i].fd);
 			if (r>0)
 				ms->bwrite += r;
+			/* client closed the connection */
+			if (ms->fds[i].revents & POLLHUP) {
+				fds_del (c);
+printf ("POLLHUP\n");
+				goto respawn;
+			}
 		}
 	}
 	net_close (fd);

@@ -1,6 +1,13 @@
 /* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
 #include "mcsdb.h"
+#include <ctype.h>
 #include <sys/resource.h>
+
+static inline void strtolower (char *s) {
+	int i = 0;
+	for (i=0; s[i]; i++)
+		s[i] = tolower(s[i]);
+}
 
 static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	ut64 exptime = 0LL;
@@ -37,6 +44,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 	int fd = c?c->fd:-1;
 	ut32 cmdhash;
 
+printf ("HANDLE (%s)\n", buf);
 	if (!*buf) {
 		//net_printf (fd, "ERROR\r\n");
 		return 0;
@@ -72,7 +80,10 @@ int protocol_handle (McSdbClient *c, char *buf) {
 			p++;
 		}
 	}
+	strtolower (cmd);
+
 	cmdhash = sdb_hash (cmd);
+printf ("....CMD(%s)\n", cmd);
 	switch (cmdhash) {
 	case MCSDB_CMD_FLUSH_ALL:
 		mcsdb_flush (ms);
@@ -84,6 +95,10 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		break;
 	case MCSDB_CMD_QUIT:
 		return -1;
+	case MCSDB_CMD_GET:
+printf ("GET !!!\n");
+		handle_get (ms, fd, key, 0);
+		break;
 	case MCSDB_CMD_GETS:
 		handle_get (ms, fd, key, 1);
 		break;
@@ -131,9 +146,6 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		break;
 	case MCSDB_CMD_VERSION:
 		net_printf (fd, "VERSION 0.1\r\n");
-		break;
-	case MCSDB_CMD_GET:
-		handle_get (ms, fd, key, 0);
 		break;
 	case MCSDB_CMD_DELETE:
 		p = strchr (key, ' ');

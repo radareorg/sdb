@@ -16,19 +16,19 @@ void mcsdb_client_free (McSdbClient* ms) {
 	free (ms);
 }
 
-char *mcsdb_client_incr(McSdbClient *ms, const char *key, ut64 val) {
+char *mcsdb_client_incr (McSdbClient *ms, const char *key, ut64 val) {
 	net_printf (ms->fd, "incr %s %lld\r\n", key, val);
 	net_flush (ms->fd);
 	return net_readnl (ms->fd);
 }
 
-char *mcsdb_client_decr(McSdbClient *ms, const char *key, ut64 val) {
+char *mcsdb_client_decr (McSdbClient *ms, const char *key, ut64 val) {
 	net_printf (ms->fd, "decr %s %lld\r\n", key, val);
 	net_flush (ms->fd);
 	return net_readnl (ms->fd);
 }
 
-void mcsdb_client_set(McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
+void mcsdb_client_set (McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
 	net_printf (ms->fd, "set %s 0 0 %d\r\n", key, strlen (body));
 	net_flush (ms->fd);
 	net_printf (ms->fd, "%s\r\n", body);
@@ -49,19 +49,19 @@ static int sendcmd (int fd, const char *cmd, const char *key, const char *body, 
 	return ret;
 }
 
-int mcsdb_client_add(McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
+int mcsdb_client_add (McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
 	return sendcmd (ms->fd, "add", key, body, exptime);
 }
 
-int mcsdb_client_append(McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
+int mcsdb_client_append (McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
 	return sendcmd (ms->fd, "append", key, body, exptime);
 }
 
-int mcsdb_client_prepend(McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
+int mcsdb_client_prepend (McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
 	return sendcmd (ms->fd, "prepend", key, body, exptime);
 }
 
-int mcsdb_client_replace(McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
+int mcsdb_client_replace (McSdbClient *ms, const char *key, const char *body, ut64 exptime) {
 	return sendcmd (ms->fd, "replace", key, body, exptime);
 }
 
@@ -98,7 +98,7 @@ char *mcsdb_client_get (McSdbClient *ms, const char *key, ut64 *exptime) {
 	return buf;
 }
 
-int mcsdb_client_delete(McSdbClient *ms, const char *key, ut64 exptime) {
+int mcsdb_client_delete (McSdbClient *ms, const char *key, ut64 exptime) {
 	int ret;
 	char *res;
 	net_printf (ms->fd, "delete %s %lld 0\r\n", key, exptime);
