@@ -1,7 +1,7 @@
 /* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
 #include "mcsdb.h"
 
-McSdb *mcsdb_new (const char *file) {
+McSdb *mcsdb_new(const char *file) {
 	McSdb *ms;
 	sdb *s = sdb_new (file, 0);
 	if (!s) return NULL;
@@ -19,11 +19,11 @@ McSdb *mcsdb_new (const char *file) {
 	return ms;
 }
 
-void mcsdb_flush (McSdb *ms) {
+void mcsdb_flush(McSdb *ms) {
 	sdb_flush (ms->sdb);
 }
 
-void mcsdb_free (McSdb *ms) {
+void mcsdb_free(McSdb *ms) {
 	int i;
 	for (i=0; i<ms->nfds; i++)
 		net_close (ms->fds[i].fd);
@@ -124,7 +124,7 @@ void mcsdb_cas(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 }
 
 /* retrieval */
-char *mcsdb_get (McSdb *ms, const char *key, ut64 *exptime) {
+char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime) {
 	char *s = sdb_get (ms->sdb, key);
 	if (s) ms->hits++;
 	else ms->misses++;

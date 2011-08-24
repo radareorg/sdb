@@ -7,6 +7,7 @@ McSdbClient *mcsdb_client_new (const char *host, const char *port) {
 	if (fd == -1)
 		return NULL;
 	ms = R_NEW (McSdbClient);	
+	memset (ms, 0, sizeof (McSdbClient));
 	ms->fd = fd; 
 	return ms;
 }

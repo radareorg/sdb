@@ -4,16 +4,16 @@
 #include "mcsdb.h"
 
 McSdb *ms = NULL;
-int protocol_handle (McSdbClient *c, char *buf);
+int protocol_handle(McSdbClient *c, char *buf);
 
-static McSdbClient *mcsdb_client_new_fd (int fd) {
+static McSdbClient *mcsdb_client_new_fd(int fd) {
 	McSdbClient *c = R_NEW (McSdbClient);
 	memset (c, 0, sizeof (McSdbClient));
 	c->fd = fd;
 	return c;
 }
 
-static int fds_add (int fd) {
+static int fds_add(int fd) {
 	int n = ms->nfds;
 	if (n>MCSDB_MAX_CLIENTS)
 		return 0;
@@ -61,80 +61,75 @@ static int mcsdb_client_accept(int fd) {
 static int mcsdb_client_state(McSdbClient *c) {
 	char *p;
 	int r, rlen;
-printf ("mcsdb_client_state: enter -------> next = %d\n", c->next);
 
-#if 1
 	if (c->next>0) {
-		int clen = c->idx-c->next; // - c->idx; ///idx - c->next;
-printf ("copied IDX = %d\n", c->idx);
-clen = strlen (c->buf+c->next)+1;
+		int clen = c->idx-c->next;
+		clen = strlen (c->buf+c->next)+1;
 		memmove (c->buf, c->buf+c->next, clen);
-		//printf ("next walk (next=%d) len=%d\n", c->next, clen);
-		//c->idx -= c->next;
 		c->idx = clen-1;
-printf ("COPIED (%s) %d\n", c->buf, clen); //->next);
 		c->next = 0;
 	}
-#endif
-	//printf ("--mode=%d mcsdb_client_state: c->next=%d\n", c->mode, c->next);
 	if (c->len+c->idx >= MCSDB_MAX_BUFFER) {
 		*c->buf = 0;
 		c->idx = 0; // invalid read, so just chop it
 	}
-if (c->next) {
-	printf ("PLONK next(%d)\n", c->next);
-	printf ("PLONK idx(%d)\n", c->idx);
-}
 	switch (c->mode) {
 	case 0: // read until newline
 		rlen = MCSDB_MAX_BUFFER - c->idx;
-if (c->next) {
-	printf ("PLONK next(%d)\n", c->next);
-	printf ("PLONK idx(%d)\n", c->idx);
-} else {
-		r = read (c->fd, c->buf+c->idx, rlen);
-}
-//printf ("READ : %d (%d) next=%d\n", r, rlen, c->next);
-		//printf ("READ %d = %d (idx=%d)\n", rlen, r, c->idx);
-		if (r<1) return 0;
-		c->buf[c->idx+r] = 0;
-//printf ("---- (%s)\n", c->buf+c->idx);
-		if ((p = strchr (c->buf+c->idx, '\n'))) {
-			char *rest = p+1;
-			*p--=0;
-			if (p>c->buf && *p=='\r')
-				*p = 0;
-			int restlen = (int)(size_t)(p-c->buf); //(int)r-(rest-c->buf);
-			c->next = restlen+2; //(c->idx-restlen);
-printf ("MUST REREAD (%s) %d %d\n", c->buf, c->idx, c->next);
-printf (" - --- next (%s) %d (len=%d)\n", c->buf+c->next, c->idx, c->idx);
-c->idx += r;
-			return 1;
+		if (c->next) {
+			// never happens
+			r = 0;
+		} else {
+			r = read (c->fd, c->buf+c->idx, rlen);
 		}
-		ms->bread += r;
-		c->idx += r;
-		return 0;
+		if (r<0) {
+			printf ("ignored error\n");
+			r = 0;
+			return 1;
+			//return 0;
+		}
+//		if (r>0) {
+			c->buf[c->idx+r] = 0;
+			//printf ("---- (%s)\n", c->buf+c->idx);
+			if ((p = strchr (c->buf+c->idx, '\n'))) {
+				char *rest = p+1;
+				*p--=0;
+				if (p>c->buf && *p=='\r')
+					*p = 0;
+				int restlen = (int)(size_t)(p-c->buf); //(int)r-(rest-c->buf);
+				c->next = restlen+2; //(c->idx-restlen);
+				//printf ("MUST REREAD (%s) %d %d\n", c->buf, c->idx, c->next);
+				//printf (" - --- next (%s) %d (len=%d)\n", c->buf+c->next, c->idx, c->idx);
+				c->idx += r;
+				return 1;
+			}
+			ms->bread += r;
+			c->idx += r;
+//		}
+		return 1;
+		// IGNORED return 0;
 	case 1: // read N bytes
 		if (c->idx>c->len)
 			c->idx = 0;
 		r = 0;
-printf ("IDX = %d\n", c->idx);
-printf ("PWNI (%s) %d (must read %d..and we have %d)\n", c->buf, c->next, c->len, c->idx);
-		if (c->len>0) {
-			rlen = c->len-c->idx;
+		rlen = c->len-c->idx;
+		if (rlen>0 && c->len>0) {
 			r = read (c->fd, c->buf+c->idx, rlen);
-//			r = read (c->fd, c->buf+c->idx, rlen);
 			if (r<1) {
 				c->idx = 0;
-			//	printf ("FAIL FAIL %d %d\n", r, c->len-c->idx);
+				// shift internal buffer for bulk writes
+				if (0 == r) {
+					strcpy (c->buf, c->buf+c->len);
+					c->len = strlen (c->buf);
+					return 1;
+				}
 				return 0;
 			}
 		} 
 		c->idx += r;
 		c->buf[c->idx+1] = 0;
-printf ("POLLS (%s)\n", c->buf);
 		if (c->idx == c->len) {
-			printf ("END OF MODE 1 ***/*/*///*/* ((%s))\n", c->buf);
+		//	printf ("END OF MODE 1 ***/*/*///*/* ((%s))\n", c->buf);
 			return 1;
 		}
 		break;
@@ -153,8 +148,8 @@ static void fds_server (int fd) {
 
 static int fds_del (McSdbClient *c) {
 	int i, fd = c->fd;
-c->len = c->idx = 0;
-*c->buf = 0;
+	c->len = c->idx = 0;
+	*c->buf = 0;
 	for (i=0; i<ms->nfds; i++) {
 		if (ms->fds[i].fd == fd) {
 			mcsdb_client_free (c);
@@ -193,31 +188,28 @@ static int net_loop(int port) {
 				continue;
 			do {
 				ret = mcsdb_client_state (c);
-printf ("BOING next=%d idx=%d (%s)\n", c->next, c->idx, c->buf+c->idx);
+//printf ("BOING next=%d idx=%d (%s)\n", c->next, c->idx, c->buf+c->idx);
+//printf (".......................................... RET = %d\n", ret);
 				int ph = protocol_handle (c, c->buf); //+c->next);
 				switch (ph) {
 				case 1:
 					break;
 				case 0:
-printf ("CASE ZERO\n");
-ret = 0;
+					ret = 0;
 					c->idx = 0;
 					c->next = 0;
 					break;
 				case -1:
 					fds_del (c);
-printf ("rspwn\n");
 					goto respawn;
 				}
 			} while (ret);
-printf ("GOOUT\n");
 			r = net_flush (ms->fds[i].fd);
 			if (r>0)
 				ms->bwrite += r;
 			/* client closed the connection */
 			if (ms->fds[i].revents & POLLHUP) {
 				fds_del (c);
-printf ("POLLHUP\n");
 				goto respawn;
 			}
 		}

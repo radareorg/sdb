@@ -44,8 +44,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 	int fd = c?c->fd:-1;
 	ut32 cmdhash;
 
-printf ("HANDLE (%s)\n", buf);
-	if (!*buf) {
+	if (!*buf) { // never happenz
 		//net_printf (fd, "ERROR\r\n");
 		return 0;
 	}
@@ -54,15 +53,14 @@ printf ("HANDLE (%s)\n", buf);
 		b = buf;
 		b[c->len-1] = 0;
 		switch (c->cmdhash) {
-		default:
 		case MCSDB_CMD_SET: mcsdb_set (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_APPEND: mcsdb_append (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_ADD: stored = mcsdb_add (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_PREPEND: mcsdb_prepend (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_REPLACE: stored = mcsdb_replace (ms, c->key, c->exptime, b); break;
+		default: break;
 		}
-		if (stored) net_printf (fd, "STORED\r\n");
-		else net_printf (fd, "NOT_STORED\r\n");
+		net_printf (fd, stored? "STORED\r\n": "NOT_STORED\r\n");
 		c->mode = 0;
 		c->idx = c->next;
 		c->cmdhash = 0;
@@ -83,7 +81,6 @@ printf ("HANDLE (%s)\n", buf);
 	strtolower (cmd);
 
 	cmdhash = sdb_hash (cmd);
-printf ("....CMD(%s)\n", cmd);
 	switch (cmdhash) {
 	case MCSDB_CMD_FLUSH_ALL:
 		mcsdb_flush (ms);
@@ -96,8 +93,8 @@ printf ("....CMD(%s)\n", cmd);
 	case MCSDB_CMD_QUIT:
 		return -1;
 	case MCSDB_CMD_GET:
-printf ("GET !!!\n");
-		handle_get (ms, fd, key, 0);
+		if (key) // ignore error
+			handle_get (ms, fd, key, 0);
 		break;
 	case MCSDB_CMD_GETS:
 		handle_get (ms, fd, key, 1);
