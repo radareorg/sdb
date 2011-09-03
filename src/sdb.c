@@ -31,6 +31,15 @@ Sdb* sdb_new (const char *dir, int lock) {
 	return s;
 }
 
+void sdb_file (Sdb* s, const char *dir) {
+	if (s->lock)
+		sdb_unlock (sdb_lockfile (s->dir));
+	free (s->dir);
+	s->dir = strdup (dir);
+	if (s->lock)
+		sdb_lock (sdb_lockfile (s->dir));
+}
+
 void sdb_free (Sdb* s) {
 	if (!s) return;
 	cdb_free (&s->db);
