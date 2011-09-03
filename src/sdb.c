@@ -24,7 +24,7 @@ Sdb* sdb_new (const char *dir, int lock) {
 	}
 	s->ht = r_ht_new ();
 	s->lock = lock;
-	//s->ht->list->free = (RListFree)sdb_kv_free;
+	//s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
 	cdb_init (&s->db, s->fd);
 	cdb_findstart (&s->db);
@@ -112,7 +112,7 @@ void sdb_kv_free (struct sdb_kv *kv) {
 
 int sdb_set (Sdb* s, const char *key, const char *val) {
 	SdbKv *kv;
-	RHashEntry *e;
+	SdbHashEntry *e;
 	ut32 hash = cdb_hashstr (key);
 	cdb_findstart (&s->db);
 	e = r_ht_search (s->ht, hash);
@@ -135,7 +135,7 @@ int sdb_add (struct cdb_make *c, const char *key, const char *data) {
 int sdb_sync (Sdb* s) {
 	int fd;
 	SdbKv *kv;
-	RListIter it, *iter;
+	SdbListIter it, *iter;
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
 	struct cdb_make c;
@@ -152,7 +152,7 @@ int sdb_sync (Sdb* s) {
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v)) {
 		ut32 hash = cdb_hashstr (k);
-		RHashEntry *hte = r_ht_search (s->ht, hash);
+		SdbHashEntry *hte = r_ht_search (s->ht, hash);
 		if (hte) {
 			kv = (SdbKv*)hte->data;
 			if (*kv->value) 

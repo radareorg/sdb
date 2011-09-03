@@ -92,11 +92,11 @@ static const struct {
  * Returns NULL if no entry is found.  Note that the data pointer may be
  * modified by the user.
  */
-RHashEntry* r_ht_search(RHash *ht, ut32 hash) {
+SdbHashEntry* r_ht_search(SdbHash *ht, ut32 hash) {
 	ut32 double_hash, hash_address = hash % ht->size;
 	if (ht->entries)
 	do {
-		RHashEntry *entry = ht->table + hash_address;
+		SdbHashEntry *entry = ht->table + hash_address;
 		if (entry_is_free (entry))
 			return NULL;
 		if (entry_is_present (entry) && entry->hash == hash)
@@ -110,9 +110,9 @@ RHashEntry* r_ht_search(RHash *ht, ut32 hash) {
 }
 
 static int rehash = 0;
-static void r_ht_rehash(RHash *ht, int new_size_index) {
-	RHash old_ht = *ht;
-	RHashEntry *e;
+static void r_ht_rehash(SdbHash *ht, int new_size_index) {
+	SdbHash old_ht = *ht;
+	SdbHashEntry *e;
 	if (new_size_index >= ARRAY_SIZE (hash_sizes))
 		return;
 	// XXX: This code is redupped! fuck't
@@ -134,8 +134,8 @@ rehash = 1;
 rehash = 0;
 }
 
-RHash* r_ht_new(void) {
-	RHash *ht = R_NEW (RHash);
+SdbHash* r_ht_new(void) {
+	SdbHash *ht = R_NEW (SdbHash);
 	if (!ht) return NULL;
 	// TODO: use slices here
 	ht->list = r_list_new ();
@@ -153,7 +153,7 @@ RHash* r_ht_new(void) {
 	return ht;
 }
 
-void r_ht_free(RHash *ht) {
+void r_ht_free(SdbHash *ht) {
 	if (ht) {
 		free (ht->table);
 		r_list_free (ht->list);
@@ -161,14 +161,14 @@ void r_ht_free(RHash *ht) {
 	}
 }
 
-void *r_ht_lookup(RHash *ht, ut32 hash) {
-	RHashEntry *entry = r_ht_search (ht, hash);
+void *r_ht_lookup(SdbHash *ht, ut32 hash) {
+	SdbHashEntry *entry = r_ht_search (ht, hash);
 	return entry? entry->data : NULL;
 }
 
 #if 0
-void r_ht_set(RHash *ht, ut32 hash, void *data) {
-	RHashEntry *e = r_ht_search (ht, hash);
+void r_ht_set(SdbHash *ht, ut32 hash, void *data) {
+	SdbHashEntry *e = r_ht_search (ht, hash);
 	if (e) {
 		if (ht->list->free)
 			ht->list->free (e->data);
@@ -184,7 +184,7 @@ void r_ht_set(RHash *ht, ut32 hash, void *data) {
  * Note that insertion may rearrange the table on a resize or rehash,
  * so previously found hash_entries are no longer valid after this function.
  */
-int r_ht_insert(RHash *ht, ut32 hash, void *data, RListIter *iter) {
+int r_ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter) {
 	ut32 hash_address;
 
 	if (ht->entries >= ht->max_entries)
@@ -194,7 +194,7 @@ int r_ht_insert(RHash *ht, ut32 hash, void *data, RListIter *iter) {
 
 	hash_address = hash % ht->size;
 	do {
-		RHashEntry *entry = ht->table + hash_address;
+		SdbHashEntry *entry = ht->table + hash_address;
 		ut32 double_hash;
 
 		if (!entry_is_present (entry)) {
@@ -220,7 +220,7 @@ int r_ht_insert(RHash *ht, ut32 hash, void *data, RListIter *iter) {
 	return 0;
 }
 
-void r_ht_remove_entry(RHash *ht, RHashEntry *entry) {
+void r_ht_remove_entry(SdbHash *ht, SdbHashEntry *entry) {
 	if (!entry)
 		return;
 	if (!rehash && entry->iter) {

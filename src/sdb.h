@@ -12,7 +12,7 @@ typedef struct sdb_t {
 	int lock;
 	struct cdb db;
 	struct cdb_make m;
-	RHash *ht;
+	SdbHash *ht;
 	ut32 eod;
 } Sdb;
 
