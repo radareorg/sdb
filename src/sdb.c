@@ -108,6 +108,11 @@ int sdb_exists (Sdb* s, const char *key) {
 	return 0;
 }
 
+void sdb_reset (Sdb *s) {
+	ht_free (s->ht);
+	s->ht = ht_new ();
+}
+
 struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
 	struct sdb_kv *kv = R_NEW (struct sdb_kv);
 	strncpy (kv->key, k, sizeof (kv->key)-1);
