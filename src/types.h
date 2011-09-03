@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 typedef unsigned long seek_pos;
+#ifndef ut8
 #define ut8 unsigned char
 #define ut32 unsigned int
 #define ut64 unsigned long long
@@ -16,6 +17,7 @@ typedef unsigned long seek_pos;
 #define R_ANEW(x) (x*)alloc(sizeof(x))
 #define UT32_MAX ((ut32)0xffffffff)
 #define UT64_MAX ((ut64)(0xffffffffffffffff))
+#endif
 
 #include "config.h"
 

@@ -112,7 +112,7 @@ void sdb_kv_free (struct sdb_kv *kv) {
 
 int sdb_set (sdb* s, const char *key, const char *val) {
 	SdbKv *kv;
-	RHashTableEntry *e;
+	RHashEntry *e;
 	ut32 hash = cdb_hashstr (key);
 	cdb_findstart (&s->db);
 	e = r_ht_search (s->ht, hash);
@@ -152,7 +152,7 @@ int sdb_sync (sdb* s) {
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v)) {
 		ut32 hash = cdb_hashstr (k);
-		RHashTableEntry *hte = r_ht_search (s->ht, hash);
+		RHashEntry *hte = r_ht_search (s->ht, hash);
 		if (hte) {
 			kv = (SdbKv*)hte->data;
 			if (*kv->value) 

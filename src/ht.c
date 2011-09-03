@@ -92,11 +92,11 @@ static const struct {
  * Returns NULL if no entry is found.  Note that the data pointer may be
  * modified by the user.
  */
-RHashTableEntry* r_ht_search(RHashTable *ht, ut32 hash) {
+RHashEntry* r_ht_search(RHash *ht, ut32 hash) {
 	ut32 double_hash, hash_address = hash % ht->size;
 	if (ht->entries)
 	do {
-		RHashTableEntry *entry = ht->table + hash_address;
+		RHashEntry *entry = ht->table + hash_address;
 		if (entry_is_free (entry))
 			return NULL;
 		if (entry_is_present (entry) && entry->hash == hash)
@@ -110,9 +110,9 @@ RHashTableEntry* r_ht_search(RHashTable *ht, ut32 hash) {
 }
 
 static int rehash = 0;
-static void r_ht_rehash(RHashTable *ht, int new_size_index) {
-	RHashTable old_ht = *ht;
-	RHashTableEntry *e;
+static void r_ht_rehash(RHash *ht, int new_size_index) {
+	RHash old_ht = *ht;
+	RHashEntry *e;
 	if (new_size_index >= ARRAY_SIZE (hash_sizes))
 		return;
 	// XXX: This code is redupped! fuck't
@@ -134,8 +134,8 @@ rehash = 1;
 rehash = 0;
 }
 
-RHashTable* r_ht_new(void) {
-	RHashTable *ht = R_NEW (RHashTable);
+RHash* r_ht_new(void) {
+	RHash *ht = R_NEW (RHash);
 	if (!ht) return NULL;
 	// TODO: use slices here
 	ht->list = r_list_new ();
@@ -153,7 +153,7 @@ RHashTable* r_ht_new(void) {
 	return ht;
 }
 
-void r_ht_free(RHashTable *ht) {
+void r_ht_free(RHash *ht) {
 	if (ht) {
 		free (ht->table);
 		r_list_free (ht->list);
@@ -161,14 +161,14 @@ void r_ht_free(RHashTable *ht) {
 	}
 }
 
-void *r_ht_lookup(RHashTable *ht, ut32 hash) {
-	RHashTableEntry *entry = r_ht_search (ht, hash);
+void *r_ht_lookup(RHash *ht, ut32 hash) {
+	RHashEntry *entry = r_ht_search (ht, hash);
 	return entry? entry->data : NULL;
 }
 
 #if 0
-void r_ht_set(RHashTable *ht, ut32 hash, void *data) {
-	RHashTableEntry *e = r_ht_search (ht, hash);
+void r_ht_set(RHash *ht, ut32 hash, void *data) {
+	RHashEntry *e = r_ht_search (ht, hash);
 	if (e) {
 		if (ht->list->free)
 			ht->list->free (e->data);
@@ -184,7 +184,7 @@ void r_ht_set(RHashTable *ht, ut32 hash, void *data) {
  * Note that insertion may rearrange the table on a resize or rehash,
  * so previously found hash_entries are no longer valid after this function.
  */
-int r_ht_insert(RHashTable *ht, ut32 hash, void *data, RListIter *iter) {
+int r_ht_insert(RHash *ht, ut32 hash, void *data, RListIter *iter) {
 	ut32 hash_address;
 
 	if (ht->entries >= ht->max_entries)
@@ -194,7 +194,7 @@ int r_ht_insert(RHashTable *ht, ut32 hash, void *data, RListIter *iter) {
 
 	hash_address = hash % ht->size;
 	do {
-		RHashTableEntry *entry = ht->table + hash_address;
+		RHashEntry *entry = ht->table + hash_address;
 		ut32 double_hash;
 
 		if (!entry_is_present (entry)) {
@@ -220,7 +220,7 @@ int r_ht_insert(RHashTable *ht, ut32 hash, void *data, RListIter *iter) {
 	return 0;
 }
 
-void r_ht_remove_entry(RHashTable *ht, RHashTableEntry *entry) {
+void r_ht_remove_entry(RHash *ht, RHashEntry *entry) {
 	if (!entry)
 		return;
 	if (!rehash && entry->iter) {
