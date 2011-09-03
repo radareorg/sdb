@@ -8,7 +8,7 @@
 #include "sdb.h"
 
 static int save = 0;
-static sdb *s = NULL;
+static Sdb *s = NULL;
 
 static void terminate(int sig) {
 	if (!s) return;
@@ -19,7 +19,7 @@ static void terminate(int sig) {
 
 static void syncronize(int sig) {
 	// TODO: must be in sdb_sync() or wat?
-	sdb *n;
+	Sdb *n;
 	sdb_sync (s);
 	n = sdb_new (s->dir, s->lock);
 	sdb_free (s);
@@ -29,7 +29,7 @@ static void syncronize(int sig) {
 static int sdb_dump (const char *db) {
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
-	sdb *s = sdb_new (db, 0);
+	Sdb *s = sdb_new (db, 0);
 	if (!s) return 1;
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v))
@@ -67,7 +67,7 @@ static void createdb(const char *f) {
 	free (ftmp);
 }
 
-static void runline (sdb *s, const char *cmd) {
+static void runline (Sdb *s, const char *cmd) {
 	ut64 n;
 	char *p, *eq;
 	switch (*cmd) {

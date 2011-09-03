@@ -1,7 +1,7 @@
 #include "sdb.h"
 #include "types.h"
 
-int sdb_nexists (sdb *s, const char *key) {
+int sdb_nexists (Sdb *s, const char *key) {
 	char c, *o = sdb_get (s, key);
 	if (!o) return 0;
 	c = *o;
@@ -26,7 +26,7 @@ static void ulltoa(ut64 n, char *s) {
 	strrev (s, i);
 }
 
-ut64 sdb_getn(sdb *s, const char *key) {
+ut64 sdb_getn(Sdb *s, const char *key) {
 	ut64 n;
 	char *p, *v = sdb_get (s, key);
 	if (!v) return 0LL;
@@ -37,13 +37,13 @@ ut64 sdb_getn(sdb *s, const char *key) {
 	return n;
 }
 
-void sdb_setn(sdb *s, const char *key, ut64 v) {
+void sdb_setn(Sdb *s, const char *key, ut64 v) {
 	char b[128];
 	ulltoa (v, b);
 	sdb_set (s, key, b);
 }
 
-ut64 sdb_inc(sdb *s, const char *key, ut64 n2) {
+ut64 sdb_inc(Sdb *s, const char *key, ut64 n2) {
 	ut64 n = sdb_getn (s, key);
 	if (-n2<n)
 		return 0LL;
@@ -51,7 +51,7 @@ ut64 sdb_inc(sdb *s, const char *key, ut64 n2) {
 	return n;
 }
 
-ut64 sdb_dec(sdb *s, const char *key, ut64 n2) {
+ut64 sdb_dec(Sdb *s, const char *key, ut64 n2) {
 	ut64 n = sdb_getn (s, key);
 	if (n2>n) {
 		sdb_setn (s, key, 0LL);

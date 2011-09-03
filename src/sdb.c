@@ -10,11 +10,11 @@
 // must be deprecated
 static ut32 eod, pos; // what about lseek?
 
-sdb* sdb_new (const char *dir, int lock) {
-	sdb* s;
+Sdb* sdb_new (const char *dir, int lock) {
+	Sdb* s;
 	if (lock && !sdb_lock (sdb_lockfile (dir)))
 		return NULL;
-	s = malloc (sizeof (sdb));
+	s = malloc (sizeof (Sdb));
 	if (dir) {
 		s->dir = strdup (dir);
 		s->fd = open (dir, O_RDONLY);
@@ -31,7 +31,7 @@ sdb* sdb_new (const char *dir, int lock) {
 	return s;
 }
 
-void sdb_free (sdb* s) {
+void sdb_free (Sdb* s) {
 	if (!s) return;
 	cdb_free (&s->db);
 	if (s->lock)
@@ -43,7 +43,7 @@ void sdb_free (sdb* s) {
 	free (s);
 }
 
-char *sdb_get (sdb* s, const char *key) {
+char *sdb_get (Sdb* s, const char *key) {
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
@@ -76,11 +76,11 @@ char *sdb_get (sdb* s, const char *key) {
 	return buf;
 }
 
-int sdb_delete (sdb *s, const char *key) {
+int sdb_delete (Sdb* s, const char *key) {
 	return sdb_set (s, key, "");
 }
 
-int sdb_exists (sdb *s, const char *key) {
+int sdb_exists (Sdb* s, const char *key) {
 	char ch;
 	SdbKv *kv;
 	ut32 pos, hash = cdb_hashstr (key);
@@ -110,7 +110,7 @@ void sdb_kv_free (struct sdb_kv *kv) {
 	free (kv);
 }
 
-int sdb_set (sdb* s, const char *key, const char *val) {
+int sdb_set (Sdb* s, const char *key, const char *val) {
 	SdbKv *kv;
 	RHashEntry *e;
 	ut32 hash = cdb_hashstr (key);
@@ -132,7 +132,7 @@ int sdb_add (struct cdb_make *c, const char *key, const char *data) {
 	return cdb_make_add (c, key, strlen (key), data, strlen (data));
 }
 
-int sdb_sync (sdb* s) {
+int sdb_sync (Sdb* s) {
 	int fd;
 	SdbKv *kv;
 	RListIter it, *iter;
@@ -203,7 +203,7 @@ static int getbytes(int fd, char *b, int len) {
 	return len;
 }
 
-void sdb_dump_begin (sdb* s) {
+void sdb_dump_begin (Sdb* s) {
 	if (s->fd != -1) {
 		seek_set (s->fd, 0);
 		eod = getnum (s->fd);
@@ -213,7 +213,7 @@ void sdb_dump_begin (sdb* s) {
 }
 
 // XXX: possible overflow if caller doesnt respects sizes
-int sdb_dump_next (sdb* s, char *key, char *value) {
+int sdb_dump_next (Sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
 	if (s->fd==-1 || !getkvlen (s->fd, &klen, &dlen))
 		return 0;
@@ -241,7 +241,7 @@ static ut64 expire_adapt (ut64 e) {
 	return e;
 }
 
-int sdb_expire(sdb *s, const char *key, ut64 expire) {
+int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
@@ -270,7 +270,7 @@ int sdb_expire(sdb *s, const char *key, ut64 expire) {
 	return sdb_expire (s, key, expire); // recursive
 }
 
-ut64 sdb_get_expire(sdb *s, const char *key) {
+ut64 sdb_get_expire(Sdb* s, const char *key) {
 	SdbKv *kv;
 	ut32 hash = cdb_hashstr (key);
 	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
@@ -283,7 +283,7 @@ ut32 sdb_hash(const char *s) {
 	return cdb_hashstr (s);
 }
 
-void sdb_flush(sdb* s) {
+void sdb_flush(Sdb* s) {
 	r_ht_free (s->ht);
 	s->ht = r_ht_new ();
 	close (s->fd);
