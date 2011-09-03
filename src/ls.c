@@ -1,15 +1,15 @@
 /* radare - LGPL - Copyright 2007-2011 pancake<nopcode.org> */
 
 #include <string.h>
-#include "list.h"
+#include "ls.h"
 
-R_API void r_list_delete (SdbList *list, SdbListIter *iter) {
+R_API void ls_delete (SdbList *list, SdbListIter *iter) {
 	if (iter==NULL) {
-		printf ("r_list_delete: null iter?\n");
+		printf ("ls_delete: null iter?\n");
 		return;
 	}
 list->free = free; // XXX HACK
-	r_list_split_iter (list, iter);
+	ls_split_iter (list, iter);
 	if (list->free && iter->data) {
 		list->free (iter->data);
 		iter->data = NULL;
@@ -17,7 +17,7 @@ list->free = free; // XXX HACK
 	free (iter);
 }
 
-R_API SdbList *r_list_new() {
+R_API SdbList *ls_new() {
 	SdbList *list = R_NEW (SdbList);
 	list->head = NULL;
 	list->tail = NULL;
@@ -25,20 +25,20 @@ R_API SdbList *r_list_new() {
 	return list;
 }
 
-R_API void r_list_split_iter (SdbList *list, SdbListIter *iter) {
+R_API void ls_split_iter (SdbList *list, SdbListIter *iter) {
 	if (list->head == iter) list->head = iter->n;
 	if (list->tail == iter) list->tail = iter->p;
 	if (iter->p) iter->p->n = iter->n;
 	if (iter->n) iter->n->p = iter->p;
 }
 
-R_API void r_list_destroy (SdbList *list) {
+R_API void ls_destroy (SdbList *list) {
 	SdbListIter *it;
 	if (list) {
 		it = list->head;
 		while (it) {
 			SdbListIter *next = it->n;
-			r_list_delete (list, it);
+			ls_delete (list, it);
 			it = next;
 		//	free (it);
 		}
@@ -47,14 +47,14 @@ R_API void r_list_destroy (SdbList *list) {
 	//free (list);
 }
 
-R_API void r_list_free (SdbList *list) {
+R_API void ls_free (SdbList *list) {
 	list->free = NULL;
-	r_list_destroy (list);
+	ls_destroy (list);
 	free (list);
 }
 
 // XXX: Too slow?
-R_API SdbListIter *r_list_append(SdbList *list, void *data) {
+R_API SdbListIter *ls_append(SdbList *list, void *data) {
 	SdbListIter *new = NULL;
 	if (data) {
 		new = R_NEW (SdbListIter);
@@ -70,7 +70,7 @@ R_API SdbListIter *r_list_append(SdbList *list, void *data) {
 	return new;
 }
 
-R_API SdbListIter *r_list_prepend(SdbList *list, void *data) {
+R_API SdbListIter *ls_prepend(SdbList *list, void *data) {
 	SdbListIter *new = R_NEW (SdbListIter);
 	if (list->head)
 		list->head->p = new;

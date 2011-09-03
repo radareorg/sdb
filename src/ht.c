@@ -92,7 +92,7 @@ static const struct {
  * Returns NULL if no entry is found.  Note that the data pointer may be
  * modified by the user.
  */
-SdbHashEntry* r_ht_search(SdbHash *ht, ut32 hash) {
+SdbHashEntry* ht_search(SdbHash *ht, ut32 hash) {
 	ut32 double_hash, hash_address = hash % ht->size;
 	if (ht->entries)
 	do {
@@ -110,7 +110,7 @@ SdbHashEntry* r_ht_search(SdbHash *ht, ut32 hash) {
 }
 
 static int rehash = 0;
-static void r_ht_rehash(SdbHash *ht, int new_size_index) {
+static void ht_rehash(SdbHash *ht, int new_size_index) {
 	SdbHash old_ht = *ht;
 	SdbHashEntry *e;
 	if (new_size_index >= ARRAY_SIZE (hash_sizes))
@@ -128,17 +128,17 @@ rehash = 1;
 	ht->deleted_entries = 0;
 	for (e = old_ht.table; e != old_ht.table + old_ht.size; e++) {
 		if (entry_is_present (e))
-			r_ht_insert (ht, e->hash, e->data, e->iter);
+			ht_insert (ht, e->hash, e->data, e->iter);
 	}
 	free (old_ht.table);
 rehash = 0;
 }
 
-SdbHash* r_ht_new(void) {
+SdbHash* ht_new(void) {
 	SdbHash *ht = R_NEW (SdbHash);
 	if (!ht) return NULL;
 	// TODO: use slices here
-	ht->list = r_list_new ();
+	ht->list = ls_new ();
 	ht->size = hash_sizes[0].size;
 	ht->table = calloc (ht->size, sizeof (*ht->table));
 	if (!ht->table) {
@@ -153,28 +153,28 @@ SdbHash* r_ht_new(void) {
 	return ht;
 }
 
-void r_ht_free(SdbHash *ht) {
+void ht_free(SdbHash *ht) {
 	if (ht) {
 		free (ht->table);
-		r_list_free (ht->list);
+		ls_free (ht->list);
 		free (ht);
 	}
 }
 
-void *r_ht_lookup(SdbHash *ht, ut32 hash) {
-	SdbHashEntry *entry = r_ht_search (ht, hash);
+void *ht_lookup(SdbHash *ht, ut32 hash) {
+	SdbHashEntry *entry = ht_search (ht, hash);
 	return entry? entry->data : NULL;
 }
 
 #if 0
-void r_ht_set(SdbHash *ht, ut32 hash, void *data) {
-	SdbHashEntry *e = r_ht_search (ht, hash);
+void ht_set(SdbHash *ht, ut32 hash, void *data) {
+	SdbHashEntry *e = ht_search (ht, hash);
 	if (e) {
 		if (ht->list->free)
 			ht->list->free (e->data);
 		e->data = data;
 		e->iter->data = data;
-	} else r_ht_insert (ht, hash, data, NULL);
+	} else ht_insert (ht, hash, data, NULL);
 }
 #endif
 
@@ -184,13 +184,13 @@ void r_ht_set(SdbHash *ht, ut32 hash, void *data) {
  * Note that insertion may rearrange the table on a resize or rehash,
  * so previously found hash_entries are no longer valid after this function.
  */
-int r_ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter) {
+int ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter) {
 	ut32 hash_address;
 
 	if (ht->entries >= ht->max_entries)
-		r_ht_rehash (ht, ht->size_index + 1);
+		ht_rehash (ht, ht->size_index + 1);
 	else if (ht->deleted_entries + ht->entries >= ht->max_entries)
-		r_ht_rehash (ht, ht->size_index);
+		ht_rehash (ht, ht->size_index);
 
 	hash_address = hash % ht->size;
 	do {
@@ -202,7 +202,7 @@ int r_ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter) {
 				ht->deleted_entries--;
 			entry->hash = hash;
 			entry->data = data;
-			if (!rehash) entry->iter = r_list_append (ht->list, data);
+			if (!rehash) entry->iter = ls_append (ht->list, data);
 			else entry->iter = iter;
 			ht->entries++;
 			return 1;
@@ -220,11 +220,11 @@ int r_ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter) {
 	return 0;
 }
 
-void r_ht_remove_entry(SdbHash *ht, SdbHashEntry *entry) {
+void ht_remove_entry(SdbHash *ht, SdbHashEntry *entry) {
 	if (!entry)
 		return;
 	if (!rehash && entry->iter) {
-		r_list_delete (ht->list, entry->iter);
+		ls_delete (ht->list, entry->iter);
 		//free (entry->iter);
 		entry->iter = NULL;
 	}

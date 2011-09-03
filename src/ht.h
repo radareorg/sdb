@@ -1,14 +1,14 @@
-#include "list.h"
+#include "ls.h"
 #include "types.h"
 
 /** ht **/
-typedef struct r_ht_entry_t {
+typedef struct ht_entry_t {
 	SdbListIter *iter;
 	ut32 hash;
 	void *data;
 } SdbHashEntry;
 
-typedef struct r_ht_t {
+typedef struct ht_t {
 	SdbList *list;
 	SdbHashEntry *table;
 	ut32 size;
@@ -19,12 +19,12 @@ typedef struct r_ht_t {
 	ut32 deleted_entries;
 } SdbHash;
 
-SdbHash* r_ht_new(void);
-void r_ht_free(SdbHash *ht);
-void r_ht_set(SdbHash *ht, ut32 hash, void *data);
-SdbHashEntry* r_ht_search(SdbHash *ht, ut32 hash);
-void *r_ht_lookup(SdbHash *ht, ut32 hash);
-void r_ht_set(SdbHash *ht, ut32 hash, void *data);
-int r_ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter);
-void r_ht_remove(SdbHash *ht, ut32 hash);
-void r_ht_remove_entry(SdbHash *ht, SdbHashEntry *entry);
+SdbHash* ht_new(void);
+void ht_free(SdbHash *ht);
+void ht_set(SdbHash *ht, ut32 hash, void *data);
+SdbHashEntry* ht_search(SdbHash *ht, ut32 hash);
+void *ht_lookup(SdbHash *ht, ut32 hash);
+void ht_set(SdbHash *ht, ut32 hash, void *data);
+int ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter);
+void ht_remove(SdbHash *ht, ut32 hash);
+void ht_remove_entry(SdbHash *ht, SdbHashEntry *entry);

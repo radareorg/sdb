@@ -22,7 +22,7 @@ Sdb* sdb_new (const char *dir, int lock) {
 		s->dir = NULL;
 		s->fd = -1;
 	}
-	s->ht = r_ht_new ();
+	s->ht = ht_new ();
 	s->lock = lock;
 	//s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
@@ -36,7 +36,7 @@ void sdb_free (Sdb* s) {
 	cdb_free (&s->db);
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
-	r_ht_free (s->ht);
+	ht_free (s->ht);
 	if (s->fd != -1)
 		close (s->fd);
 	free (s->dir);
@@ -49,7 +49,7 @@ char *sdb_get (Sdb* s, const char *key) {
 	SdbKv *kv;
 
 	hash = cdb_hashstr (key);
-	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
 			if (kv->expire && sdb_now () > kv->expire) {
@@ -84,7 +84,7 @@ int sdb_exists (Sdb* s, const char *key) {
 	char ch;
 	SdbKv *kv;
 	ut32 pos, hash = cdb_hashstr (key);
-	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) return (*kv->value)? 1: 0;
 	if (s->fd == -1)
 		return 0;
@@ -115,15 +115,15 @@ int sdb_set (Sdb* s, const char *key, const char *val) {
 	SdbHashEntry *e;
 	ut32 hash = cdb_hashstr (key);
 	cdb_findstart (&s->db);
-	e = r_ht_search (s->ht, hash);
+	e = ht_search (s->ht, hash);
 	if (e) {
 		if (cdb_findnext (&s->db, hash, key, strlen (key))) {
 			kv = e->data;
 			strcpy (kv->value, val);
-		} else r_ht_remove_entry (s->ht, e);
+		} else ht_remove_entry (s->ht, e);
 		return 1;
 	}
-	r_ht_insert (s->ht, hash, sdb_kv_new (key, val), NULL);
+	ht_insert (s->ht, hash, sdb_kv_new (key, val), NULL);
 	return *val? 1: 0;
 }
 
@@ -152,21 +152,21 @@ int sdb_sync (Sdb* s) {
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v)) {
 		ut32 hash = cdb_hashstr (k);
-		SdbHashEntry *hte = r_ht_search (s->ht, hash);
+		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
 			kv = (SdbKv*)hte->data;
 			if (*kv->value) 
 				sdb_add (&c, kv->key, kv->value);
 			// XXX: This fails if key is dupped
 			//else printf ("remove (%s)\n", kv->key);
-			r_list_delete (s->ht->list, hte->iter);
+			ls_delete (s->ht->list, hte->iter);
 			hte->iter = NULL;
-			r_ht_remove_entry (s->ht, hte);
+			ht_remove_entry (s->ht, hte);
 		} else if (*v)
 			sdb_add (&c, k, v);
 	}
 	/* append new keyvalues */
-	r_list_foreach (s->ht->list, iter, kv) {
+	ls_foreach (s->ht->list, iter, kv) {
 	//	printf ("%s=%s\n", kv->key, kv->value);
 		if (*kv->value && kv->expire == 0LL) {
 			sdb_add (&c, kv->key, kv->value);
@@ -246,7 +246,7 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 	ut32 hash, pos, len;
 	SdbKv *kv;
 	hash = cdb_hashstr (key);
-	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
 			kv->expire = expire_adapt (expire);
@@ -273,7 +273,7 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 ut64 sdb_get_expire(Sdb* s, const char *key) {
 	SdbKv *kv;
 	ut32 hash = cdb_hashstr (key);
-	kv = (SdbKv*)r_ht_lookup (s->ht, hash);
+	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv && *kv->value)
 		return kv->expire;
 	return 0LL;
@@ -284,8 +284,8 @@ ut32 sdb_hash(const char *s) {
 }
 
 void sdb_flush(Sdb* s) {
-	r_ht_free (s->ht);
-	s->ht = r_ht_new ();
+	ht_free (s->ht);
+	s->ht = ht_new ();
 	close (s->fd);
 	s->fd = -1;
 }

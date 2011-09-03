@@ -2,7 +2,7 @@
 #define _INCLUDE_SDB_H_
 
 #include "ht.h"
-#include "list.h"
+#include "ls.h"
 #include "cdb.h"
 #include "cdb_make.h"
 
