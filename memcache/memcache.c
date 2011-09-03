@@ -3,7 +3,7 @@
 
 McSdb *mcsdb_new(const char *file) {
 	McSdb *ms;
-	sdb *s = sdb_new (file, 0);
+	Sdb *s = sdb_new (file, 0);
 	if (!s) return NULL;
 	ms = R_NEW (McSdb);
 	if (!ms) {

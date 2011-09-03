@@ -1,5 +1,5 @@
-#ifndef _INCLUDE_R_LIST_H_
-#define _INCLUDE_R_LIST_H_
+#ifndef _INCLUDE_LS_H_
+#define _INCLUDE_LS_H_
 
 #include <stdio.h>
 #include "types.h"
@@ -61,5 +61,4 @@ R_API void ls_reverse (SdbList *list);
 R_API SdbList *ls_clone (SdbList *list);
 
 #endif
-
 #endif

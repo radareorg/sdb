@@ -26,7 +26,7 @@ typedef struct {
 } McSdbClient;
 
 typedef struct {
-	sdb *sdb;
+	Sdb *sdb;
 	int fd;
 	/* stats */
 	ut64 time;
