@@ -15,7 +15,7 @@ Sdb* sdb_new (const char *dir, int lock) {
 	if (lock && !sdb_lock (sdb_lockfile (dir)))
 		return NULL;
 	s = malloc (sizeof (Sdb));
-	if (dir) {
+	if (dir && *dir) {
 		s->dir = strdup (dir);
 		s->fd = open (dir, O_RDONLY);
 	} else {
@@ -35,7 +35,9 @@ void sdb_file (Sdb* s, const char *dir) {
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
 	free (s->dir);
+	if (dir && *dir)
 	s->dir = strdup (dir);
+	else s->dir = NULL;
 	if (s->lock)
 		sdb_lock (sdb_lockfile (s->dir));
 }
