@@ -59,6 +59,8 @@ char *sdb_get (Sdb* s, const char *key) {
 	ut32 hash, pos, len;
 	SdbKv *kv;
 
+	if (!key)
+		return NULL;
 	hash = cdb_hashstr (key);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
@@ -88,7 +90,7 @@ char *sdb_get (Sdb* s, const char *key) {
 }
 
 int sdb_delete (Sdb* s, const char *key) {
-	return sdb_set (s, key, "");
+	return key? sdb_set (s, key, ""): 0;
 }
 
 int sdb_exists (Sdb* s, const char *key) {
@@ -129,7 +131,10 @@ void sdb_kv_free (struct sdb_kv *kv) {
 int sdb_set (Sdb* s, const char *key, const char *val) {
 	SdbKv *kv;
 	SdbHashEntry *e;
-	ut32 hash = cdb_hashstr (key);
+	ut32 hash;
+	if (!key || !val)
+		return 0;
+	hash = cdb_hashstr (key);
 	cdb_findstart (&s->db);
 	e = ht_search (s->ht, hash);
 	if (e) {
@@ -145,6 +150,8 @@ int sdb_set (Sdb* s, const char *key, const char *val) {
 
 // TODO: refactoring hard
 int sdb_add (struct cdb_make *c, const char *key, const char *data) {
+	if (!key || !data)
+		return 0;
 	return cdb_make_add (c, key, strlen (key), data, strlen (data));
 }
 
