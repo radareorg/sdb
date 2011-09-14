@@ -202,7 +202,9 @@ int sdb_sync (Sdb* s) {
 	}
 //	printf ("db '%s' created\n", f);
 	cdb_make_finish (&c);
+#if USE_MMAN
 	fsync (fd);
+#endif
 	close (fd);
 	rename (ftmp, f);
 	free (ftmp);
