@@ -31,7 +31,7 @@ install:
 	cp -f src/cdb.h ${PFX}/include/sdb
 	cp -f src/ht.h ${PFX}/include/sdb
 	cp -f src/types.h ${PFX}/include/sdb
-	cp -f src/list.h ${PFX}/include/sdb
+	cp -f src/ls.h ${PFX}/include/sdb
 	cp -f src/cdb_make.h ${PFX}/include/sdb
 	cp -f src/buffer.h ${PFX}/include/sdb
 	cp -f src/config.h ${PFX}/include/sdb

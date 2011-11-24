@@ -52,4 +52,4 @@ wcl:
 	wc -l `echo ${OBJ}|sed -e 's,\.o,.c,g'`
 
 clean:
-	rm -rf ${OBJ} libsdb.a a.out sdb sdb.dSYM *.sdb *.db
+	rm -rf ${OBJ} libsdb.a a.out sdb sdb.dSYM *.sdb *.db *.${SOEXT}
