@@ -3,7 +3,7 @@ include ../config.mk
 BIN=mcsdbd
 CBIN=mcsdbc
 OBJS=main.o memcache.o net.o protocol.o client.o
-COBJS=client.o net.o memcache.o mainclient.o
+COBJS=client.o net.o memcache.o
 LIBS=../src/libsdb.a
 LIBA=libmcsdb.a
 CFLAGS+=-I../src
@@ -14,8 +14,8 @@ ${LIBA}: ${COBJS}
 	ar -r ${LIBA} ${COBJS}
 	ranlib ${LIBA}
 
-${CBIN}: ${COBJS}
-	${CC} ${COBJS} ${LIBS} -o ${CBIN}
+${CBIN}: ${COBJS} mainclient.o
+	${CC} mainclient.o ${COBJS} ${LIBS} -o ${CBIN}
 
 ${OBJS}: cmds.h
 
@@ -29,7 +29,7 @@ cmds.h: cmds.o
 clean:
 	rm -f *.sdb
 	rm -f ${LIBA}
-	rm -f ${COBJS} ${CBIN}
+	rm -f ${COBJS} ${CBIN} mainclient.o
 	rm -f ${OBJS} ${BIN}
 	rm -f cmds.h cmds cmds.o
 
