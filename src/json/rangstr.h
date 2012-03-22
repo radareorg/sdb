@@ -1,0 +1,15 @@
+#define ut16 unsigned short
+typedef struct {
+	int type;
+	int next;
+	int f, t;
+	const char *p;
+} Rangstr;
+
+void rangstr_print (Rangstr *s);
+Rangstr rangstr_new (const char *s);
+Rangstr rangstr_null();
+int rangstr_int (Rangstr *s);
+char *rangstr_dup (Rangstr *rs);
+Rangstr rangstr_news (const char *s, ut16 *res, int i);
+int rangstr_cmp (Rangstr *a, Rangstr *b);

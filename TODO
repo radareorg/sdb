@@ -1,5 +1,7 @@
 TODO
 ----
+* Create json api (see src/json/README)
+* Add support for socket file for memcached api
 * incr returns char * in mcsdb and ut64 in sdb api? looks wrong!
 * add api to create db without caching it before
 * remove buffer
