@@ -1,4 +1,4 @@
-/* Copyleft 2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2012 - api (aka SimpleDB) - pancake<nopcode.org> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,11 +12,11 @@ int main(int argc, char **argv) {
 	buf[n] = 0;
 	char *path = argv[1];
 
-	printf (">>>> %s <<<<\n", sdb_json_unindent (buf));
-	printf (">>>> %s <<<<\n", sdb_json_indent (buf));
+	printf (">>>> %s <<<<\n", api_json_unindent (buf));
+	printf (">>>> %s <<<<\n", api_json_indent (buf));
 // set value //
 	path = "glossary.title";
-	char *s = sdb_json_set (buf, path, "patata");
+	char *s = api_json_set (buf, path, "patata");
 	if (s) {
 		printf ("%s\n", s);
 		free (s);

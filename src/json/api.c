@@ -7,23 +7,17 @@
 #include "json.h"
 
 /* public sdb api */
-char *sdb_json_get (const char *s, const char *p) {
+char *api_json_get (const char *s, const char *p) {
 	Rangstr rs = json_get (s, p);
 	return rangstr_dup (&rs);
 }
 
-int sdb_json_geti (const char *s, const char *p) {
+int api_json_geti (const char *s, const char *p) {
 	Rangstr rs = json_get (s, p);
 	return rangstr_int (&rs);
 }
 
-char *sdb_json_seti (const char *s, const char *k, int a) {
-	char str[64];
-	sprintf (str, "%d", a);
-	return sdb_json_set (s, k, str);
-}
-
-char *sdb_json_set (const char *s, const char *k, const char *v) {
+char *api_json_set (const char *s, const char *k, const char *v) {
 	const char *beg[3];
 	const char *end[3];
 	int idx, len[3];
@@ -54,7 +48,13 @@ char *sdb_json_set (const char *s, const char *k, const char *v) {
 	return str;
 }
 
-char *sdb_json_indent(const char *s) {
+char *api_json_seti (const char *s, const char *k, int a) {
+	char str[64];
+	sprintf (str, "%d", a);
+	return api_json_set (s, k, str);
+}
+
+char *api_json_indent(const char *s) {
 	int indent = -1;
 	int i, instr = 0;
 	char *o, *O = malloc (strlen (s)*2);
@@ -100,7 +100,7 @@ char *sdb_json_indent(const char *s) {
 	return O;
 }
 
-char *sdb_json_unindent(const char *s) {
+char *api_json_unindent(const char *s) {
 	int instr = 0;
 	char *o, *O = malloc (strlen (s));
 	for (o=O; *s; s++) {

@@ -1,4 +1,4 @@
-/* Public domain -- pancake @ 2011 */
+/* Public domain -- pancake @ 2011-2012 */
 
 #include <signal.h>
 #include <stdio.h>
@@ -84,14 +84,32 @@ static void runline (Sdb *s, const char *cmd) {
 		printf ("%"ULLFMT"d\n", n);
 		break;
 	default:
-		if ((eq = strchr (cmd, '='))) {
-			save = 1;
+		/* spaghetti */
+		if ((eq = strchr (cmd, '?'))) {
+			char *path = eq+1;
 			*eq = 0;
-			sdb_set (s, cmd, eq+1);
-		} else
-		if ((p = sdb_get (s, cmd))) {
-			printf ("%s\n", p);
-			free (p);
+			if ((eq = strchr (path+1, '='))) {
+				save = 1;
+				*eq = 0;
+printf ("KEY = %s\n", cmd);
+printf ("PATH = %s\n", path);
+printf ("VALUE = %s\n", eq+1);
+				sdb_json_set (s, cmd, path, eq+1);
+			}
+			if ((p = sdb_json_get (s, cmd, path))) {
+				printf ("%s\n", p);
+				free (p);
+			}
+		} else {
+			if ((eq = strchr (cmd, '='))) {
+				save = 1;
+				*eq = 0;
+				sdb_set (s, cmd, eq+1);
+			} else
+			if ((p = sdb_get (s, cmd))) {
+				printf ("%s\n", p);
+				free (p);
+			}
 		}
 	}
 }

@@ -28,11 +28,13 @@ Rangstr rangstr_null() {
 int rangstr_int (Rangstr *s) {
 	const int base = 10;
 	int mul = 1;
-	int ch, i, n = 0;
+	int ch, i = 0, n = 0;
+	if (s->p[s->f]=='[')
+		i++;
 	if (s->p[s->f]=='-') {
 		mul = -1;
-		i = s->f+1;
-	} else i = s->f;
+		i += s->f+1;
+	} else i += s->f;
 	for (;i<s->t;i++) {
 		ch = s->p[i];
 		if (ch <'0'||ch>'9')

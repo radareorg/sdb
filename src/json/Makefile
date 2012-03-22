@@ -1,6 +1,6 @@
 CFLAGS+=-Wall -g -ggdb
 BIN=a.out
-OBJ=rangstr.o json.o js0n.o sdb.o main.o
+OBJ=rangstr.o json.o js0n.o api.o main.o
 
 all: ${BIN}
 

@@ -57,4 +57,13 @@ ut64 sdb_get_expire(Sdb* s, const char *key);
 ut64 sdb_now ();
 ut32 sdb_hash ();
 
+/* json api */
+char *sdb_json_get (Sdb *s, const char *key, const char *p);
+int sdb_json_geti (Sdb *s, const char *k, const char *p);
+int sdb_json_seti (Sdb *s, const char *k, const char *p, int v);
+int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v);
+// XXX: move ?
+char *sdb_json_indent(const char *s);
+char *sdb_json_unindent(const char *s);
+
 #endif

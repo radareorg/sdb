@@ -65,13 +65,14 @@ void json_walk (const char *s) {
 }
 
 Rangstr json_find (const char *s, Rangstr *rs) {
-	int i, j, n, len, ret;
 	unsigned short resfix[512];
 	unsigned short *res = NULL;
+	int i, j, n, len, ret;
 	Rangstr rs2;
+
 	if (!s) return rangstr_null ();
 	len = strlen (s);
-	if (len <512)
+	if (len<512)
 		res = resfix;
 	else res = malloc (len);
 	ret = js0n ((unsigned char *)s, len, res);
@@ -100,14 +101,17 @@ beach:
 	return rangstr_null ();
 }
 
-Rangstr json_get (const char *s, const char *path) {
-	Rangstr r = rangstr_new (s);
-	// split 'k' by '.' .. walk the dinosaur
-	Rangstr rs = rangstr_new (path);
+Rangstr json_get (const char *js, const char *p) {
+	Rangstr rj = rangstr_new (js);
+	Rangstr rs = rangstr_new (p);
+printf ("JSGET (%s) PATH (%s)\n", js, p);
 	json_path_first (&rs);
-	do { r = json_find (rangstr_str (&r), &rs);
+	do { rj = json_find (rangstr_str (&rj), &rs);
 	} while (json_path_next (&rs));
-	return r;
+printf ("RET ");
+rangstr_print (&rj);
+printf ("\n");
+	return rj;
 }
 
 char *json_set (const char *s, const char *k, const char *v) {
