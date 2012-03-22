@@ -1,10 +1,15 @@
+/* Copyleft 2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "rangstr.h"
+#include "json.h"
 
 void json_path_first(Rangstr *s) {
-	char *p = strchr (s->p, '.');
+	char *p;
+	if (!s->p) return;
+	p = strchr (s->p, '.');
 	s->f = 0;
 	s->t = p? p-s->p: strlen (s->p);
 }
@@ -41,12 +46,12 @@ rep:
 	return 1;
 }
 
-Rangstr json_walk (const char *s) {
+void json_walk (const char *s) {
 	int i, len, ret;
 	unsigned short *res;
 	len = strlen (s);
 	res = malloc (len);
-	ret = js0n (s, len, res);
+	ret = js0n ((unsigned char *)s, len, res);
 	if (*s=='[') {
 		for (i=0; res[i]; i+=2) {
 			printf ("%d %.*s\n", i, res[i+1], s+res[i]);
@@ -69,7 +74,7 @@ Rangstr json_find (const char *s, Rangstr *rs) {
 	if (len <512)
 		res = resfix;
 	else res = malloc (len);
-	ret = js0n (s, len, res);
+	ret = js0n ((unsigned char *)s, len, res);
 #define PFREE(x) if (x&&x!=resfix) free (x)
 	if (*s=='[') {
 		n = rangstr_int (rs);
@@ -93,14 +98,6 @@ Rangstr json_find (const char *s, Rangstr *rs) {
 beach:
 	PFREE (res);
 	return rangstr_null ();
-}
-
-const char *rangstr_str (Rangstr* rs) {
-	return rs->p + rs->f;
-}
-
-int rangstr_length (Rangstr* rs) {
-	return rs->t - rs->f;
 }
 
 Rangstr json_get (const char *s, const char *path) {

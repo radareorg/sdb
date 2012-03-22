@@ -1,4 +1,5 @@
 /* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>

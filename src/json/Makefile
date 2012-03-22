@@ -1,3 +1,4 @@
+CFLAGS+=-Wall -g -ggdb
 BIN=a.out
 OBJ=rangstr.o json.o js0n.o sdb.o main.o
 
@@ -13,7 +14,7 @@ mrproper: clean
 	rm -rf js0n
 
 test:
-	./${BIN} glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0] < test.json
+	@./${BIN} glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0] < test.json | tail -n 1
 
 update:
 	rm -rf js0n js0n.c

@@ -1,3 +1,5 @@
+/* Copyleft 2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -8,19 +10,9 @@ void rangstr_print (Rangstr *s) {
 	if (s->p) fwrite (s->p+s->f, s->t-s->f, 1, stdout);
 }
 
-static const char *staticstr = NULL;
-
-void rangstr_static (const char *s) {
-	staticstr = s;
-}
-
-void rangstr_free (void *p) {
-	if (p && p == staticstr)
-		free (p);
-}
-
 Rangstr rangstr_new (const char *s) {
 	Rangstr rs;
+	if (!s) return rangstr_null ();
 	rs.f = 0;
 	rs.next = 1;
 	rs.t = strlen (s);
@@ -36,7 +28,7 @@ Rangstr rangstr_null() {
 int rangstr_int (Rangstr *s) {
 	const int base = 10;
 	int mul = 1;
-	int ch, i, f, n = 0;
+	int ch, i, n = 0;
 	if (s->p[s->f]=='-') {
 		mul = -1;
 		i = s->f+1;
@@ -77,4 +69,12 @@ int rangstr_cmp (Rangstr *a, Rangstr *b) {
 	if (la != lb)
 		return 1;
 	return memcmp (a->p+a->f, b->p+b->f, la);
+}
+
+const char *rangstr_str (Rangstr* rs) {
+	return rs->p + rs->f;
+}
+
+int rangstr_length (Rangstr* rs) {
+	return rs->t - rs->f;
 }
