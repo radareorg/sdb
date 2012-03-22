@@ -128,7 +128,6 @@ struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
 }
 
 void sdb_kv_free (struct sdb_kv *kv) {
-	fprintf (stderr, "kv free!\n"); // XXX: just for debugging
 	free (kv);
 }
 
