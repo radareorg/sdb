@@ -91,11 +91,8 @@ static void runline (Sdb *s, const char *cmd) {
 			if ((eq = strchr (path+1, '='))) {
 				save = 1;
 				*eq = 0;
-printf ("KEY = %s\n", cmd);
-printf ("PATH = %s\n", path);
-printf ("VALUE = %s\n", eq+1);
 				sdb_json_set (s, cmd, path, eq+1);
-			}
+			} else
 			if ((p = sdb_json_get (s, cmd, path))) {
 				printf ("%s\n", p);
 				free (p);

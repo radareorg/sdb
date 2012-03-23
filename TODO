@@ -1,5 +1,8 @@
 TODO
 ----
+* Add api and syntax for json_length()
+* Add query api sdb_query ("") - for running command prompts
+* Add comparision stuff
 * Add support for socket file for memcached api
 * incr returns char * in mcsdb and ut64 in sdb api? looks wrong!
 * add api to create db without caching it before

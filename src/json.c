@@ -7,7 +7,6 @@ char *sdb_json_get (Sdb *s, const char *k, const char *p) {
 	char *v = sdb_get (s, k);
 	if (!v) return NULL;
 	Rangstr rs = json_get (v, p);
-printf ("rs=%p (%s) (%s)\n", rs.p, v, p);
 	return rangstr_dup (&rs);
 }
 
@@ -36,17 +35,11 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
 	char *js = sdb_get (s, k);
 	if (!js) return 0;
 	rs = json_get (js, p);
-printf (".rs=%p (js=%s) (key=%s) (path=%s)\n", rs.p, js, k, p);
-printf ("____: ");
-rangstr_print (&rs);
-printf ("\n");
-printf ("JS IS (%s)\n" , js);
 	if (!rs.p) {
 		printf ("FAIL\n");
 		free (js);
 		return 0;
 	}
-printf ("WIN\n");
 #define WLEN(x) (int)(size_t)(end[x]-beg[x])
 
 	beg[0] = js;
@@ -70,7 +63,6 @@ printf ("WIN\n");
 	memcpy (str+idx, beg[2], len[2]);
 	str[idx+len[2]] = 0;
 
-printf ("set!! (%s)\n", str);
 	sdb_set (s, k, str);
 	free (str);
 	free (js);

@@ -14,7 +14,7 @@ mrproper: clean
 	rm -rf js0n
 
 test:
-	@./${BIN} glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0] < test.json | tail -n 1
+	./${BIN} glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0] < test.json | tail -n 1
 
 update:
 	rm -rf js0n js0n.c

@@ -16,6 +16,8 @@ void json_path_first(Rangstr *s) {
 
 int json_path_next(Rangstr *s) {
 	int stop = '.';
+	if (!s||!s->p||!s->p[s->t])
+		return 0;
 	if (!s->next) return 0;
 	if (s->p[s->t] == '"')
 		s->t++;
@@ -27,7 +29,8 @@ rep:
 	s->f = ++s->t;
 	if (s->p[s->t] == stop)
 		s->f = ++s->t;
-	if (!s->p[s->t]) return 0;
+		if (!s->p[s->t])
+			return 0;
 	while (s->p[s->t] != stop) {
 		if (!s->p[s->t]) {
 			s->next = 0;
@@ -102,15 +105,16 @@ beach:
 }
 
 Rangstr json_get (const char *js, const char *p) {
+	int len;
 	Rangstr rj = rangstr_new (js);
 	Rangstr rs = rangstr_new (p);
-printf ("JSGET (%s) PATH (%s)\n", js, p);
 	json_path_first (&rs);
-	do { rj = json_find (rangstr_str (&rj), &rs);
+	len = rs.t;
+	do { 
+		rj = json_find (rangstr_str (&rj), &rs);
+		//if (!rs.p || !rs.p[rs.t]) // HACK to fix path_next()
+		//	break;
 	} while (json_path_next (&rs));
-printf ("RET ");
-rangstr_print (&rj);
-printf ("\n");
 	return rj;
 }
 

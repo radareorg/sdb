@@ -1,4 +1,4 @@
-/* Copyleft 2011 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2011-2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +14,7 @@
 // must be deprecated
 static ut32 eod, pos; // what about lseek?
 
+// TODO: use mmap instead of read.. much faster!
 Sdb* sdb_new (const char *dir, int lock) {
 	Sdb* s;
 	if (lock && !sdb_lock (sdb_lockfile (dir)))

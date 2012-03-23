@@ -9,11 +9,11 @@
 #endif
 
 int getkvlen(int fd, ut32 *klen, ut32 *vlen) {
-	char buf[4];
+	unsigned char buf[4];
 	if (read (fd, buf, 4) != 4)
 		return 0;
 	*klen = (ut32)buf[0];
-	*vlen = (ut32)buf[1] + (buf[2]<<8) + (buf[3]<<16);
+	*vlen = (ut32)(buf[1] + ((ut32)buf[2]<<8) + ((ut32)buf[3]<<16));
 	return 1;
 }
 
@@ -96,7 +96,7 @@ static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
 	return 1;
 }
 
-int cdb_findnext(struct cdb *c, ut32 u, const char *key,unsigned int len) {
+int cdb_findnext(struct cdb *c, ut32 u, const char *key, unsigned int len) {
 	char buf[8];
 	ut32 pos;
 
