@@ -21,7 +21,7 @@ int sdb_json_geti (Sdb *s, const char *k, const char *p) {
 
 int sdb_json_seti (Sdb *s, const char *k, const char *p, int v) {
 	char str[64];
-	sprintf (str, "%d", v);
+	sprintf (str, "%d", v); // XXX this is slow
 	return sdb_json_set (s, k, p, str);
 }
 
@@ -36,7 +36,6 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
 	if (!js) return 0;
 	rs = json_get (js, p);
 	if (!rs.p) {
-		printf ("FAIL\n");
 		free (js);
 		return 0;
 	}
@@ -94,7 +93,7 @@ char *sdb_json_indent(const char *s) {
 		case ',':
 			*o++ = *s;
 			*o++ = '\n';
-			INDENT(0);
+			INDENT (0);
 			break;
 		case '{':
 		case '[':

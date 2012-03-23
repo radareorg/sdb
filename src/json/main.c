@@ -84,10 +84,8 @@ int main(int argc, char **argv) {
 
 	path = argv[1];
 	rs = json_get (buf, path);
-	rs = rangstr_new (path);
-	rs = json_find (buf, &rs);
-printf ("-- output --\n");
-rangstr_print(&rs);
-printf ("\n");
+	printf ("-- output --\n");
+	rangstr_print(&rs);
+	printf ("\n");
 	return 0;
 }
