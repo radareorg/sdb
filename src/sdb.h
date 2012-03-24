@@ -14,6 +14,8 @@ typedef struct sdb_t {
 	struct cdb_make m;
 	SdbHash *ht;
 	ut32 eod;
+	int fdump;
+	char *ndump;
 } Sdb;
 
 #define SDB_BLOCK 4096
@@ -36,22 +38,33 @@ int sdb_nexists (Sdb*, const char *key);
 int sdb_delete (Sdb*, const char *key);
 char *sdb_get (Sdb*, const char *key);
 int sdb_set (Sdb*, const char *key, const char *data);
+int sdb_add (Sdb *s, const char *key, const char *val);
 void sdb_list(Sdb*);
 int sdb_sync (Sdb*);
 void sdb_kv_free (struct sdb_kv *kv);
-void sdb_dump_begin (Sdb* s);
-int sdb_add (struct cdb_make *c, const char *key, const char *data);
-int sdb_dump_next (Sdb* s, char *key, char *value);
 void sdb_flush (Sdb* s);
 
+/* create db */
+int sdb_create (Sdb *s);
+int sdb_append (Sdb *s, const char *key, const char *val);
+int sdb_finish (Sdb *s);
+
+/* iterate */
+void sdb_dump_begin (Sdb* s);
+int sdb_dump_next (Sdb* s, char *key, char *value); // XXX: needs refactor?
+
+/* numeric */
 ut64 sdb_getn (Sdb* s, const char *key);
 void sdb_setn (Sdb* s, const char *key, ut64 v);
 ut64 sdb_inc (Sdb* s, const char *key, ut64 n);
 ut64 sdb_dec (Sdb* s, const char *key, ut64 n);
 
+/* locking */
 int sdb_lock(const char *s);
 const char *sdb_lockfile(const char *f);
 void sdb_unlock(const char *s);
+
+/* expiration */
 int sdb_expire(Sdb* s, const char *key, ut64 expire);
 ut64 sdb_get_expire(Sdb* s, const char *key);
 ut64 sdb_now ();

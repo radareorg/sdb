@@ -15,6 +15,8 @@
 	(sdb_new file lock))
 (define (sdb:set db var val)
 	(sdb_set db var val))
+(define (sdb:add db var val)
+	(sdb_add db var val))
 (define (sdb:get db var)
 	(let (ret (sdb_get db var))
 		(if (= 0 ret) "" (get-string ret))))

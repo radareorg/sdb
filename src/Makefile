@@ -4,17 +4,28 @@ CFLAGS+= -g -ggdb
 OBJ=alloc.o cdb.o buffer.o cdb_make.o ls.o ht.o sdb.o sdbn.o lock.o
 OBJ+=json.o json/js0n.o json/json.o json/rangstr.o
 # This is hacky
-SOEXT=dylib
-#SOEXT=so
+OS=$(shell uname)
 ARCH=$(shell uname -m)
+ifeq (${OS},Darwin)
+SOEXT=dylib
+ ifeq (${ARCH},i386)
+   CC+=-arch i386 -arch x86_64
+ endif
+else
+SOEXT=so
+endif
 RANLIB?=ranlib
 EXEXT=
 
 BIN=sdb${EXEXT}
 
-.PHONY: all libsdb.${SOEXT} clean wcl syms
+.PHONY: all static shared clean wcl syms
 
-all: libsdb.a ${BIN}
+all: static shared ${BIN}
+
+shared: libsdb.${SOEXT}
+
+static: libsdb.a
 
 libsdb.a: ${OBJ}
 	@#ar qf libasb.a ${OBJ}
@@ -22,8 +33,7 @@ libsdb.a: ${OBJ}
 	${RANLIB} libsdb.a
 
 libsdb.${SOEXT}:
-	${CC} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared -arch ${ARCH}
-	sudo cp libsdb.${SOEXT} ${PREFIX}/lib
+	${CC} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared
 
 t:
 	rm -f foo

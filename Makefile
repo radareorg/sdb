@@ -26,7 +26,7 @@ dist: clean
 install:
 	mkdir -p ${PFX}/lib/pkgconfig ${PFX}/bin 
 	mkdir -p ${PFX}/share/vala/vapi ${PFX}/include/sdb
-	cp -f src/libsdb.a ${PFX}/lib
+	cp -f src/libsdb.* ${PFX}/lib
 	cp -f src/sdb.h ${PFX}/include/sdb
 	cp -f src/cdb.h ${PFX}/include/sdb
 	cp -f src/ht.h ${PFX}/include/sdb
@@ -50,6 +50,6 @@ endif
 
 deinstall uninstall:
 	rm -f ${PFX}/include/sdb.h
-	rm -f ${PFX}/lib/libsdb.a
+	rm -f ${PFX}/lib/libsdb.*
 
 .PHONY: all vala clean dist install uninstall deinstall

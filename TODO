@@ -1,5 +1,6 @@
 TODO
 ----
+* use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts
 * Add comparision stuff
@@ -13,7 +14,7 @@ Syncronization
  - each key/value have a timestamp of creation/modification
  - sdb_diff() must check both databases and look for removed entries
  - sincronization between hosts - realtime storage
- - run sync every N seconds?
+ - run sync every N seconds? every N keys in cache?
 
 Optimization
 ------------

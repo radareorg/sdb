@@ -43,15 +43,12 @@ static int sdb_dump (const char *db) {
 
 static void createdb(const char *f) {
 	char line[SDB_VALUESIZE];
-	struct cdb_make c;
-	char *eq, *ftmp = malloc (strlen (f)+5);
-	sprintf (ftmp, "%s.tmp", f);
-	int fd = open (ftmp, O_RDWR|O_CREAT|O_TRUNC, 0644);
-	if (fd == -1) {
-		printf ("cannot create %s\n", ftmp);
+	char *eq;
+	s = sdb_new (f, 0);
+	if (!sdb_create (s)) {
+		printf ("Cannot create database\n");
 		exit (1);
 	}
-	cdb_make_start (&c, fd);
 	for (;;) {
 		fgets (line, sizeof line, stdin);
 		if (feof (stdin))
@@ -59,14 +56,10 @@ static void createdb(const char *f) {
 		line[strlen (line)-1] = 0;
 		if ((eq = strchr (line, '='))) {
 			*eq = 0;
-			sdb_add (&c, line, eq+1);
+			sdb_append (s, line, eq+1);
 		}
 	}
-	cdb_make_finish (&c);
-	//fsync (fd);
-	close (fd);
-	rename (ftmp, f);
-	free (ftmp);
+	sdb_finish (s);
 }
 
 static void runline (Sdb *s, const char *cmd) {

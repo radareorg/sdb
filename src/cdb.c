@@ -9,7 +9,7 @@
 #endif
 
 int getkvlen(int fd, ut32 *klen, ut32 *vlen) {
-	unsigned char buf[4];
+	ut8 buf[4];
 	if (read (fd, buf, 4) != 4)
 		return 0;
 	*klen = (ut32)buf[0];

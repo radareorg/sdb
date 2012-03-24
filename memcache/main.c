@@ -92,7 +92,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 			c->buf[c->idx+r] = 0;
 			//printf ("---- (%s)\n", c->buf+c->idx);
 			if ((p = strchr (c->buf+c->idx, '\n'))) {
-				char *rest = p+1;
+				//char *rest = p+1;
 				*p--=0;
 				if (p>c->buf && *p=='\r')
 					*p = 0;

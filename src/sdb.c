@@ -23,10 +23,13 @@ Sdb* sdb_new (const char *dir, int lock) {
 	if (dir && *dir) {
 		s->dir = strdup (dir);
 		s->fd = open (dir, O_RDONLY|O_BINARY);
+		// if (s->fd == -1) // must fail if we cant open for write in sync
 	} else {
 		s->dir = NULL;
 		s->fd = -1;
 	}
+	s->fdump = -1;
+	s->ndump = NULL;
 	s->ht = ht_new ();
 	s->lock = lock;
 	//s->ht->list->free = (SdbListFree)sdb_kv_free;
@@ -98,6 +101,13 @@ int sdb_delete (Sdb* s, const char *key) {
 	return key? sdb_set (s, key, ""): 0;
 }
 
+// set if not defined
+int sdb_add (Sdb *s, const char *key, const char *val) {
+	if (sdb_exists (s, key))
+		return 0;
+	return sdb_set (s, key, val);
+}
+
 int sdb_exists (Sdb* s, const char *key) {
 	char ch;
 	SdbKv *kv;
@@ -152,19 +162,12 @@ int sdb_set (Sdb* s, const char *key, const char *val) {
 	return *val? 1: 0;
 }
 
-// TODO: refactoring hard
-int sdb_add (struct cdb_make *c, const char *key, const char *data) {
-	if (!key || !data)
-		return 0;
-	return cdb_make_add (c, key, strlen (key), data, strlen (data));
-}
-
 int sdb_sync (Sdb* s) {
-	int fd;
 	SdbKv *kv;
 	SdbListIter it, *iter;
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
+#if 0
 	struct cdb_make c;
 	char *ftmp, *f = s->dir;
 	if (!f) return 0;
@@ -175,7 +178,8 @@ int sdb_sync (Sdb* s) {
 		fprintf (stderr, "cannot create %s\n", ftmp);
 		return -1;
 	}
-	cdb_make_start (&c, fd);
+#endif
+	sdb_create (s);
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v)) {
 		ut32 hash = cdb_hashstr (k);
@@ -183,20 +187,20 @@ int sdb_sync (Sdb* s) {
 		if (hte) {
 			kv = (SdbKv*)hte->data;
 			if (*kv->value) 
-				sdb_add (&c, kv->key, kv->value);
+				sdb_append (s, kv->key, kv->value);
 			// XXX: This fails if key is dupped
 			//else printf ("remove (%s)\n", kv->key);
 			ls_delete (s->ht->list, hte->iter);
 			hte->iter = NULL;
 			ht_remove_entry (s->ht, hte);
 		} else if (*v)
-			sdb_add (&c, k, v);
+			sdb_append (s, k, v);
 	}
 	/* append new keyvalues */
 	ls_foreach (s->ht->list, iter, kv) {
 	//	printf ("%s=%s\n", kv->key, kv->value);
 		if (*kv->value && kv->expire == 0LL) {
-			sdb_add (&c, kv->key, kv->value);
+			sdb_append (s, kv->key, kv->value);
 		}
 		if (kv->expire == 0LL) {
 			it.n = iter->n;
@@ -204,14 +208,8 @@ int sdb_sync (Sdb* s) {
 			iter = &it;
 		}
 	}
+	sdb_finish (s);
 //	printf ("db '%s' created\n", f);
-	cdb_make_finish (&c);
-#if USE_MMAN
-	fsync (fd);
-#endif
-	close (fd);
-	rename (ftmp, f);
-	free (ftmp);
 	return 0;
 }
 
@@ -317,4 +315,41 @@ void sdb_flush(Sdb* s) {
 	s->ht = ht_new ();
 	close (s->fd);
 	s->fd = -1;
+}
+
+/* sdb-create api */
+int sdb_create (Sdb *s) {
+	int nlen = strlen (s->dir);
+	char *str = malloc (nlen+5);
+	if (s->fdump != -1) return 0; // cannot re-create
+	if (!str) return 0;
+	strcpy (str, s->dir);
+	strcpy (str+nlen, ".tmp");
+	s->fdump = open (str, O_BINARY|O_RDWR|O_CREAT|O_TRUNC, 0644);
+	if (s->fdump == -1) {
+		free (str);
+		return 0;
+	}
+	cdb_make_start (&s->m, s->fdump);
+	s->ndump = str;
+	return 1;
+}
+
+int sdb_append (Sdb *s, const char *key, const char *val) {
+	struct cdb_make *c = &s->m;
+	if (!key || !val) return 0;
+	return cdb_make_add (c, key, strlen (key), val, strlen (val));
+}
+
+int sdb_finish (Sdb *s) {
+	cdb_make_finish (&s->m);
+#if USE_MMAN
+	fsync (s->fdump);
+#endif
+	close (s->fdump);
+	s->fdump = -1;
+	rename (s->ndump, s->dir);
+	free (s->ndump);
+	s->ndump = NULL;
+	return 1; // XXX: 
 }
