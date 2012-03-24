@@ -29,7 +29,8 @@ static: libsdb.a
 
 libsdb.a: ${OBJ}
 	@#ar qf libasb.a ${OBJ}
-	ar -r libsdb.a ${OBJ}
+	rm -f libsdb.a
+	${AR} -r libsdb.a ${OBJ}
 	${RANLIB} libsdb.a
 
 libsdb.${SOEXT}:

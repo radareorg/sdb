@@ -167,19 +167,9 @@ int sdb_sync (Sdb* s) {
 	SdbListIter it, *iter;
 	char k[SDB_KEYSIZE];
 	char v[SDB_VALUESIZE];
-#if 0
-	struct cdb_make c;
-	char *ftmp, *f = s->dir;
-	if (!f) return 0;
-	ftmp = malloc (strlen (f)+5);
-	sprintf (ftmp, "%s.tmp", f);
-	fd = open (ftmp, O_BINARY|O_RDWR|O_CREAT|O_TRUNC, 0644);
-	if (fd == -1) {
-		fprintf (stderr, "cannot create %s\n", ftmp);
-		return -1;
-	}
-#endif
-	sdb_create (s);
+
+	if (!sdb_create (s))
+		return 0;
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v)) {
 		ut32 hash = cdb_hashstr (k);
@@ -319,10 +309,12 @@ void sdb_flush(Sdb* s) {
 
 /* sdb-create api */
 int sdb_create (Sdb *s) {
-	int nlen = strlen (s->dir);
-	char *str = malloc (nlen+5);
-	if (s->fdump != -1) return 0; // cannot re-create
+	int nlen;
+	char *str;
+	if (!s || !s->dir || s->fdump != -1) return 0; // cannot re-create
+	str = malloc (nlen+5);
 	if (!str) return 0;
+	nlen = strlen (s->dir);
 	strcpy (str, s->dir);
 	strcpy (str+nlen, ".tmp");
 	s->fdump = open (str, O_BINARY|O_RDWR|O_CREAT|O_TRUNC, 0644);
