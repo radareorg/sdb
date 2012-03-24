@@ -17,7 +17,7 @@ ${LIBA}: ${COBJS}
 ${CBIN}: ${COBJS} mainclient.o
 	${CC} mainclient.o ${COBJS} ${LIBS} -o ${CBIN}
 
-${OBJS}: cmds.h
+${OBJS} mainclient.o: cmds.h
 
 ${BIN}: ${OBJS}
 	${CC} -o ${BIN} ${OBJS} ${LDFLAGS} ${LIBS}
