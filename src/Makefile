@@ -8,6 +8,7 @@ OS=$(shell uname)
 ARCH=$(shell uname -m)
 ifeq (${OS},Darwin)
 SOEXT=dylib
+LDFLAGS+=-dynamic
  ifeq (${ARCH},i386)
    CC+=-arch i386 -arch x86_64
  endif
@@ -34,7 +35,7 @@ libsdb.a: ${OBJ}
 	${RANLIB} libsdb.a
 
 libsdb.${SOEXT}: ${OBJ}
-	${CC} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared
 
 t:
 	rm -f foo

@@ -1,6 +1,5 @@
 TODO
 ----
-* add make symstall
 * use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts
@@ -15,14 +14,16 @@ Syncronization
 --------------
  - each key/value have a timestamp of creation/modification
  - sdb_diff() must check both databases and look for removed entries
- - sincronization between hosts - realtime storage
+ - syncronization between hosts - realtime storage
  - run sync every N seconds? every N keys in cache?
+ - sdb_log to dump to a file descriptor all sets.. as a stream
 
 Optimization
 ------------
 * remove endian conversions
 * use slices instead of mallocs
 * implement udp protocol for memcache
+* rewrite mcsdb in luvit
 * use 16 bit key and 16 bit value
 * use kernel's linked list? it should be faster..
 

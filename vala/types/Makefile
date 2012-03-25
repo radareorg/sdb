@@ -1,4 +1,5 @@
 PFX?=/usr
+PWD=$(shell pwd)
 
 VFILES+=hash.vala 
 VFILES+=stack.vala stackiterator.vala
@@ -34,14 +35,28 @@ test: ${VFILES} main.vala
 	valac -H sdbtypes.h --vapi=sdbtypes.vapi --save-temps -c ${VFILES} ${VFLAGS} main.vala
 	${CC} -o test ${OFILES} ${LDFLAGS} main.o
 
-install:
+install-dirs:
 	mkdir -p ${PFX}/include
-	cp -f sdbtypes.h ${PFX}/include
 	mkdir -p ${PFX}/lib/pkgconfig
+	mkdir -p ${PFX}/share/vala/vapi
+
+install: install-dirs
+	cp -f sdbtypes.h ${PFX}/include
 	cp -f libsdbtypes.a ${PFX}/lib
 	cp -f sdbtypes.pc ${PFX}/lib/pkgconfig
-	mkdir -p ${PFX}/share/vala/vapi
 	cp -f sdbtypes.vapi ${PFX}/share/vala/vapi
+
+symstall: install-dirs
+	ln -fs ${PWD}/sdbtypes.h ${PFX}/include/sdbtypes.h
+	ln -fs ${PWD}/libsdbtypes.a ${PFX}/lib/libsdbtypes.a
+	ln -fs ${PWD}/sdbtypes.pc ${PFX}/lib/pkgconfig/sdbtypes.pc
+	ln -fs ${PWD}/sdbtypes.vapi ${PFX}/share/vala/vapi/sdbtypes.vapi
+
+uninstall deinstall:
+	rm -f ${PFX}/include/sdbtypes.h
+	rm -f ${PFX}/lib/libsdbtypes.a
+	rm -f ${PFX}/lib/pkgconfig/sdbtypes.pc
+	rm -f ${PFX}/share/vala/vapi/sdbtypes.vapi
 
 clean:
 	rm -f *.c *.o sdbtypes.vapi sdbtypes.h
