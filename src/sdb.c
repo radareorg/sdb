@@ -58,6 +58,7 @@ void sdb_free (Sdb* s) {
 	ht_free (s->ht);
 	if (s->fd != -1)
 		close (s->fd);
+	free (s->ndump);
 	free (s->dir);
 	free (s);
 }
@@ -165,8 +166,8 @@ int sdb_set (Sdb* s, const char *key, const char *val) {
 int sdb_sync (Sdb* s) {
 	SdbKv *kv;
 	SdbListIter it, *iter;
-	char k[SDB_KEYSIZE];
-	char v[SDB_VALUESIZE];
+	char k[SDB_KSZ];
+	char v[SDB_VSZ];
 
 	if (!sdb_create (s))
 		return 0;
@@ -234,7 +235,7 @@ int sdb_dump_next (Sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
 	if (s->fd==-1 || !getkvlen (s->fd, &klen, &dlen))
 		return 0;
-	if (klen >= SDB_KEYSIZE || dlen >= SDB_VALUESIZE)
+	if (klen >= SDB_KSZ || dlen >= SDB_VSZ)
 		return 0;
 	pos += 4;
 	if (key && getbytes (s->fd, key, klen)>0)

@@ -10,6 +10,10 @@
 (import SDBLIB "sdb_get")
 (import SDBLIB "sdb_sync")
 (import SDBLIB "sdb_free")
+(import SDBLIB "sdb_json_get")
+(import SDBLIB "sdb_json_set")
+(import SDBLIB "sdb_json_indent")
+(import SDBLIB "sdb_json_unindent")
 
 (define (sdb:new file lock)
 	(sdb_new file lock))
@@ -24,6 +28,9 @@
 	(sdb_free db))
 (define (sdb:sync db)
 	(sdb_sync db))
+(define (sdb:json_get db key path)
+	(sdb_sync db key path))
+(define (sdb:json_set db key path)
+	(sdb_json_set db key path value))
 
 (context 'MAIN)
-

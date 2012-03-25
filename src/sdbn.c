@@ -37,10 +37,10 @@ ut64 sdb_getn(Sdb *s, const char *key) {
 	return n;
 }
 
-void sdb_setn(Sdb *s, const char *key, ut64 v) {
+int sdb_setn(Sdb *s, const char *key, ut64 v) {
 	char b[128];
 	__ulltoa (v, b);
-	sdb_set (s, key, b);
+	return sdb_set (s, key, b);
 }
 
 ut64 sdb_inc(Sdb *s, const char *key, ut64 n2) {

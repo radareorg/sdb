@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "rangstr.h"
 #include "json.h"
+#include "../sdb.h"
 
 Rangstr json_find (const char *s, Rangstr *rs);
 int test_main () {
@@ -61,8 +62,8 @@ int main(int argc, char **argv) {
 	char *path = argv[1];
 
 #if 1
-	printf (">>>> %s <<<<\n", api_json_unindent (buf));
-	printf (">>>> %s <<<<\n", api_json_indent (buf));
+	printf (">>>> %s <<<<\n", sdb_json_unindent (buf));
+	printf (">>>> %s <<<<\n", sdb_json_indent (buf));
 // set value //
 	path = "glossary.title";
 	char *s = api_json_set (buf, path, "patata");

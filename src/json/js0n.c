@@ -123,6 +123,4 @@ int js0n(unsigned char *js, unsigned int len, unsigned short *out)
 		if (!--utf8_remain)
 			go=gostring;
 		goto l_loop;
-
 }
-

@@ -18,13 +18,14 @@ typedef struct sdb_t {
 	char *ndump;
 } Sdb;
 
+// XXX: use buckets here, drop these limits
 #define SDB_BLOCK 4096
-#define SDB_KEYSIZE 32
-#define SDB_VALUESIZE (SDB_BLOCK-sizeof(ut64)-SDB_KEYSIZE)
+#define SDB_KSZ 64
+#define SDB_VSZ (SDB_BLOCK-sizeof(ut64)-SDB_KEYSIZE)
 
 typedef struct sdb_kv {
-	char key[SDB_KEYSIZE];
-	char value[SDB_VALUESIZE];
+	char key[SDB_KSZ];
+	char value[SDB_VSZ];
 	ut64 expire;
 } SdbKv;
 
@@ -55,7 +56,7 @@ int sdb_dump_next (Sdb* s, char *key, char *value); // XXX: needs refactor?
 
 /* numeric */
 ut64 sdb_getn (Sdb* s, const char *key);
-void sdb_setn (Sdb* s, const char *key, ut64 v);
+int sdb_setn (Sdb* s, const char *key, ut64 v);
 ut64 sdb_inc (Sdb* s, const char *key, ut64 n);
 ut64 sdb_dec (Sdb* s, const char *key, ut64 n);
 
@@ -75,7 +76,7 @@ char *sdb_json_get (Sdb *s, const char *key, const char *p);
 int sdb_json_geti (Sdb *s, const char *k, const char *p);
 int sdb_json_seti (Sdb *s, const char *k, const char *p, int v);
 int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v);
-// XXX: move ?
+
 char *sdb_json_indent(const char *s);
 char *sdb_json_unindent(const char *s);
 

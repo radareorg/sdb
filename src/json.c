@@ -28,11 +28,11 @@ int sdb_json_seti (Sdb *s, const char *k, const char *p, int v) {
 int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
 	const char *beg[3];
 	const char *end[3];
-	int idx, len[3];
+	int l, idx, len[3];
 	char *str = NULL;
 	Rangstr rs;
-
 	char *js = sdb_get (s, k);
+
 	if (!js) return 0;
 	rs = json_get (js, p);
 	if (!rs.p) {
@@ -57,10 +57,12 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
 	str = malloc (len[0]+len[1]+len[2]+1);
 	idx = len[0];
 	memcpy (str, beg[0], idx);
-	memcpy (str+idx, beg[1], len[1]);
+	l = len[1];
+	memcpy (str+idx, beg[1], l);
 	idx += len[1];
-	memcpy (str+idx, beg[2], len[2]);
-	str[idx+len[2]] = 0;
+	l= len[2];
+	memcpy (str+idx, beg[2], l);
+	str[idx+l] = 0;
 
 	sdb_set (s, k, str);
 	free (str);
@@ -69,7 +71,7 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
 }
 
 char *sdb_json_indent(const char *s) {
-	int indent = -1;
+	int indent = 0;
 	int i, instr = 0;
 	char *o, *O = malloc (strlen (s)*2);
 	for (o=O; *s; s++) {
@@ -90,33 +92,46 @@ char *sdb_json_indent(const char *s) {
 			continue;
 		#define INDENT(x) indent+=x; for (i=0;i<indent;i++) *o++ = '\t'
 		switch (*s) {
-		case ',':
-			*o++ = *s;
-			*o++ = '\n';
-			INDENT (0);
-			break;
-		case '{':
-		case '[':
-			*o++ = *s;
-			*o++ = '\n';
-			INDENT (1);
-			break;
-		case '}':
-		case ']':
-			*o++ = *s;
-			*o++ = '\n';
-			INDENT (-1);
-			break;
+                case ':':
+                        *o++ = *s;
+                        *o++ = ' ';
+                        break;
+                case ',':
+                        *o++ = *s;
+                        *o++ = '\n';
+                        INDENT(0);
+                        break;
+                case '{':
+                case '[':
+                        if (indent!=-1 ) {
+                                *o++ = *s;
+                                *o++ = '\n';
+                        } else {
+                                *o++ = *s;
+                                *o++ = ' ';
+                        }
+                        INDENT (1);
+                        break;
+                case '}':
+                case ']':
+                        *o++ = '\n';
+                        INDENT (-1);
+                        *o++ = *s;
+                        break;
 		default:
 			*o++ = *s;
 		}
 	}
+	*o = 0;
 	return O;
 }
 
 char *sdb_json_unindent(const char *s) {
 	int instr = 0;
-	char *o, *O = malloc (strlen (s));
+	int len = strlen (s);
+	char *o, *O = malloc (len);
+	if (!O) return NULL;
+	memset (O, 0, len);
 	for (o=O; *s; s++) {
 		if (instr) {
 			if (s[0] == '"') {
@@ -135,5 +150,6 @@ char *sdb_json_unindent(const char *s) {
 			continue;
 		*o++ = *s;
 	}
+	*o = 0;
 	return O;
 }

@@ -3,6 +3,15 @@
 #include <string.h>
 #include "ls.h"
 
+R_API SdbList *ls_new() {
+	SdbList *list = R_NEW (SdbList);
+	list->head = NULL;
+	list->tail = NULL;
+	list->free = NULL;
+	list->length = 0;
+	return list;
+}
+
 R_API void ls_delete (SdbList *list, SdbListIter *iter) {
 	if (iter==NULL) {
 		printf ("ls_delete: null iter?\n");
@@ -15,14 +24,7 @@ list->free = free; // XXX HACK
 		iter->data = NULL;
 	}
 	free (iter);
-}
-
-R_API SdbList *ls_new() {
-	SdbList *list = R_NEW (SdbList);
-	list->head = NULL;
-	list->tail = NULL;
-	list->free = NULL;
-	return list;
+	list->length--;
 }
 
 R_API void ls_split_iter (SdbList *list, SdbListIter *iter) {
@@ -44,6 +46,7 @@ R_API void ls_destroy (SdbList *list) {
 		}
 		list->head = list->tail = NULL;
 	}
+	list->length = 0;
 	//free (list);
 }
 
@@ -66,6 +69,7 @@ R_API SdbListIter *ls_append(SdbList *list, void *data) {
 		list->tail = new;
 		if (list->head == NULL)
 			list->head = new;
+		list->length++;
 	}
 	return new;
 }
@@ -80,5 +84,6 @@ R_API SdbListIter *ls_prepend(SdbList *list, void *data) {
 	list->head = new;
 	if (list->tail == NULL)
 		list->tail = new;
+	list->length++;
 	return new;
 }

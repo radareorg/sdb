@@ -33,7 +33,7 @@ libsdb.a: ${OBJ}
 	${AR} -r libsdb.a ${OBJ}
 	${RANLIB} libsdb.a
 
-libsdb.${SOEXT}:
+libsdb.${SOEXT}: ${OBJ}
 	${CC} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared
 
 t:
@@ -59,7 +59,8 @@ syms:
 main.c:
 
 ${BIN}: libsdb.a main.c
-	${CC} ${CFLAGS} -o ${BIN} main.c libsdb.a
+	${CC} ${CFLAGS} -o ${BIN} main.c ${OBJ}
+	#libsdb.a
 
 wcl:
 	wc -l `echo ${OBJ}|sed -e 's,\.o,.c,g'`

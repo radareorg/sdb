@@ -15,6 +15,7 @@ typedef struct ls_iter_t {
 } SdbListIter;
 
 typedef struct ls_t {
+	unsigned int length;
 	struct ls_iter_t *head;
 	struct ls_iter_t *tail;
 	SdbListFree free;

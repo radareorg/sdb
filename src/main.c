@@ -29,8 +29,8 @@ static void syncronize(int sig) {
 #endif
 
 static int sdb_dump (const char *db) {
-	char k[SDB_KEYSIZE];
-	char v[SDB_VALUESIZE];
+	char k[SDB_KSZ];
+	char v[SDB_VSZ];
 	Sdb *s = sdb_new (db, 0);
 	if (!s) return 1;
 	sdb_dump_begin (s);
@@ -42,7 +42,7 @@ static int sdb_dump (const char *db) {
 }
 
 static void createdb(const char *f) {
-	char line[SDB_VALUESIZE];
+	char line[SDB_VSZ];
 	char *eq;
 	s = sdb_new (f, 0);
 	if (!sdb_create (s)) {
@@ -116,6 +116,7 @@ static void showversion() {
 
 int main(int argc, char **argv) {
 	int i;
+
 	if (argc<2)
 		showusage (1);
 	if (!strcmp (argv[1], "-v"))
@@ -124,17 +125,15 @@ int main(int argc, char **argv) {
 		showusage (0);
 	if (argc == 2)
 		return sdb_dump (argv[1]);
-
 #if USE_MMAN
 	signal (SIGINT, terminate);
 	signal (SIGHUP, syncronize);
 #endif
-
 	if (!strcmp (argv[2], "=")) {
 		createdb (argv[1]);
 	} else
 	if (!strcmp (argv[2], "-")) {
-		char line[SDB_VALUESIZE];
+		char line[SDB_VSZ+SDB_KSZ]; // XXX can overflow stack
 		if ((s = sdb_new (argv[1], 0)))
 			for (;;) {
 				fgets (line, sizeof line, stdin);

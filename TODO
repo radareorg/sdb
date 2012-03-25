@@ -1,5 +1,6 @@
 TODO
 ----
+* add make symstall
 * use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts

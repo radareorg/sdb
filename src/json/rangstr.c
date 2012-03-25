@@ -52,7 +52,7 @@ char *rangstr_dup (Rangstr *rs) {
 	len = rangstr_length (rs);
 	p = malloc (len+1);
 	memcpy (p, rs->p+rs->f, len);
-	p[len+1] = 0;
+	p[len] = 0;
 	return p;
 }
 
