@@ -7,13 +7,24 @@ Description
 sdb is a simple key/value database with disk storage.
 mcsdbd is a memcache server with disk storage based on sdb.
 sdbtypes is a vala library that implements several data
-   structures on top of an sdb or memcache instance.
+structures on top of an sdb or memcache instance.
+
+json is supported in the core api. You can store json
+objects as value for a specific key and access the members
+using a path expression (get and set).
+
+Contains
+--------
+* vala, newlisp and nodejs bindings
+* luvit bindings (in git://github.com/radare/luvit-sdb)
+* commandline frontend for sdb databases
+* memcache client and server with sdb backend
 
 Rips
 ----
-disk storage based on cdb code
-memory hashtable based on wayland code
-linked lists from r2 api
+* disk storage based on cdb code
+* memory hashtable based on wayland code
+* linked lists from r2 api
 
 Changes
 -------
@@ -21,11 +32,43 @@ I have slightly modified the cdb code to get smaller databases
 and be memory leak free.
 
 The sdb's cdb database format is 10% smaller than the original
-one. This is because keylen and valuelen are encoded in 4 bytes
-using two endian-safe unsigned short values.
+one. This is because keylen and valuelen are encoded in 4 bytes:
+1 for the key length and 3 for the value length.
 
 In a test case, a 4.3MB cdb database takes only 3.9MB after this
 file format change.
+
+Example
+-------
+Let's create a database!
+
+	$ sdb d hello=world
+	$ sdb d hello
+	world
+
+Let's play with json:
+
+	$ sdb d g='{"foo":1,"bar":{"cow":3}}'
+	$ sdb d g?bar.cow
+	3
+
+Use the prompt:
+
+	$ sdb -
+	foo=bar
+	foo
+	bar
+	a=3
+	+a
+	3
+	a
+	4
+	-a
+	4
+	
+Remove the database
+
+	$ rm -f d # :)
 
 Backups
 -------
@@ -36,10 +79,14 @@ To make a backup of a database to move it between different boxes use the textua
 	my.db        3.9M
 	my.xz        5K
 
-Using ascii+xz is the best option for storing compressed sdb databases.
+Using ascii+xz is the best option for storing compressed sdb databases:
 
-	$ xz -9 my.db ; du -hs my.db.xz ; xz -d my.db
-	my.db.xz     37K
+	$ gzip < my.db | wc -c
+	  110768
+	$ xz -9 < my.db | wc -c
+	  37480
+	$ sdb my.db | xz -9 | wc -c
+	  5620
 
 To import the database:
 

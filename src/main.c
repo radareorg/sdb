@@ -67,12 +67,12 @@ static void runline (Sdb *s, const char *cmd) {
 	char *p, *eq;
 	switch (*cmd) {
 	case '+': // inc
-		n = sdb_inc (s, cmd, 1);
+		n = sdb_inc (s, cmd+1, 1);
 		save = 1;
 		printf ("%"ULLFMT"d\n", n);
 		break;
 	case '-': // dec
-		n = sdb_inc (s, cmd, -1);
+		n = sdb_inc (s, cmd+1, -1);
 		save = 1;
 		printf ("%"ULLFMT"d\n", n);
 		break;
@@ -123,6 +123,11 @@ int main(int argc, char **argv) {
 		showversion ();
 	if (!strcmp (argv[1], "-h"))
 		showusage (0);
+	if (!strcmp (argv[1], "-")) {
+		argv[1] = "";
+		argv[2] = "-";
+		argc++;
+	}
 	if (argc == 2)
 		return sdb_dump (argv[1]);
 #if USE_MMAN
