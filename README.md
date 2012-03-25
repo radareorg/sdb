@@ -4,7 +4,6 @@ author: pancake
 
 Description
 -----------
-
 sdb is a simple key/value database with disk storage.
 mcsdbd is a memcache server with disk storage based on sdb.
 sdbtypes is a vala library that implements several data
@@ -13,7 +12,7 @@ sdbtypes is a vala library that implements several data
 Rips
 ----
 disk storage based on cdb code
-in memory hashtable based on wayland
+memory hashtable based on wayland code
 linked lists from r2 api
 
 Changes
@@ -31,11 +30,17 @@ file format change.
 Backups
 -------
 To make a backup of a database to move it between different boxes use the textual format:
- $ sdb my.db > my.txt
- $ gzip my.txt
- $ du -hs my.*
- my.db        3.9M
- my.txt.gz    500K
+
+	$ sdb my.db | xz > my.xz
+	$ du -hs my.*
+	my.db        3.9M
+	my.xz        5K
+
+Using ascii+xz is the best option for storing compressed sdb databases.
+
+	$ xz -9 my.db ; du -hs my.db.xz ; xz -d my.db
+	my.db.xz     37K
 
 To import the database:
-  $ zcat my.txt.gz | sdb my.db =
+
+	$ xz -d < my.xz | sdb my.db =
