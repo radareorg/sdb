@@ -51,6 +51,9 @@ Let's play with json:
 	$ sdb d g='{"foo":1,"bar":{"cow":3}}'
 	$ sdb d g?bar.cow
 	3
+	$ sdb - user='{"id":123}' +user?id user?id
+	123
+	124
 
 Use the prompt:
 

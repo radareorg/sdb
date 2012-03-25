@@ -44,7 +44,6 @@ int rangstr_int (Rangstr *s) {
 	return n * mul;
 }
 
-
 char *rangstr_dup (Rangstr *rs) {
 	int len;
 	char *p;

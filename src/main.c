@@ -67,14 +67,28 @@ static void runline (Sdb *s, const char *cmd) {
 	char *p, *eq;
 	switch (*cmd) {
 	case '+': // inc
-		n = sdb_inc (s, cmd+1, 1);
-		save = 1;
-		printf ("%"ULLFMT"d\n", n);
+		if ((eq = strchr (cmd+1, '?'))) {
+			*eq = 0;
+			n = sdb_json_inc (s, cmd+1, eq+1, 1);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		} else {
+			n = sdb_inc (s, cmd+1, 1);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		}
 		break;
 	case '-': // dec
-		n = sdb_inc (s, cmd+1, -1);
-		save = 1;
-		printf ("%"ULLFMT"d\n", n);
+		if ((eq = strchr (cmd+1, '?'))) {
+			*eq = 0;
+			n = sdb_json_dec (s, cmd+1, eq+1, 1);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		} else {
+			n = sdb_inc (s, cmd+1, -1);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		}
 		break;
 	default:
 		/* spaghetti */
@@ -105,7 +119,7 @@ static void runline (Sdb *s, const char *cmd) {
 }
 
 static void showusage(int o) {
-	printf ("usage: sdb [-v|-h] [db[.lock]] [-=]|[key[=value] ..]\n");
+	printf ("usage: sdb [-v|-h] [file.db] [-=]|[key[=value] ..]\n");
 	exit (o);
 }
 
@@ -125,8 +139,10 @@ int main(int argc, char **argv) {
 		showusage (0);
 	if (!strcmp (argv[1], "-")) {
 		argv[1] = "";
-		argv[2] = "-";
-		argc++;
+		if (argc == 2) {
+			argv[2] = "-";
+			argc++;
+		}
 	}
 	if (argc == 2)
 		return sdb_dump (argv[1]);

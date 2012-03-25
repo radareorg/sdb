@@ -77,6 +77,9 @@ int sdb_json_geti (Sdb *s, const char *k, const char *p);
 int sdb_json_seti (Sdb *s, const char *k, const char *p, int v);
 int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v);
 
+int sdb_json_dec(Sdb *s, const char *k, const char *p, int n);
+int sdb_json_inc(Sdb *s, const char *k, const char *p, int n);
+
 char *sdb_json_indent(const char *s);
 char *sdb_json_unindent(const char *s);
 

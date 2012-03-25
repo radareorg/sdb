@@ -27,6 +27,7 @@ static int itoa(int value, char *string) {
 	/* reverse string */
 	for (i = 0; i < count; i++, temp--, ptr++)
 		*ptr = *temp;
+	*ptr = 0;
 	return 1;
 }
 
@@ -35,6 +36,18 @@ char *sdb_json_get (Sdb *s, const char *k, const char *p) {
 	if (!v) return NULL;
 	Rangstr rs = json_get (v, p);
 	return rangstr_dup (&rs);
+}
+
+int sdb_json_inc(Sdb *s, const char *k, const char *p, int n) {
+	int cur = sdb_json_geti (s, k, p);
+	sdb_json_seti (s, k, p, cur+n);
+	return cur;
+}
+
+int sdb_json_dec(Sdb *s, const char *k, const char *p, int n) {
+	int cur = sdb_json_geti (s, k, p);
+	sdb_json_seti (s, k, p, cur-n);
+	return cur;
 }
 
 int sdb_json_geti (Sdb *s, const char *k, const char *p) {
