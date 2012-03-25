@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var Sdb = require ("./sdb");
 
 var s = Sdb.open ("test.sdb");

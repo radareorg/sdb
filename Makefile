@@ -18,12 +18,14 @@ clean:
 	cd test && ${MAKE} clean
 	cd vala && ${MAKE} clean
 
-dist: clean
-	cd .. && mv sdb sdb-${VERSION} ; \
-	rm -f sdb-${VERSION}.tar.gz ; \
-	tar czvf sdb-${VERSION}.tar.gz ${HGFILES} ; \
-	pub sdb-${VERSION}.tar.gz ; \
-	mv sdb-${VERSION} sdb
+dist:
+	rm -f sdb-${VERSION}.tar.gz
+	rm -rf sdb-${VERSION}
+	hg clone . sdb-${VERSION}
+	rm -rf sdb-${VERSION}/.hg*
+	tar czvf sdb-${VERSION}.tar.gz sdb-${VERSION}
+	pub sdb-${VERSION}.tar.gz
+	rm -rf sdb-${VERSION}
 
 install-dirs:
 	mkdir -p ${PFX}/lib/pkgconfig ${PFX}/bin 
