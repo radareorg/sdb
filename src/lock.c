@@ -1,3 +1,5 @@
+/* Copyleft 2011-2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

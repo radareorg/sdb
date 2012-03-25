@@ -13,6 +13,11 @@ namespace SimpleDB {
 		public uint64 dec (string key, uint64 n);
 		public uint64 getn (string key);
 		public void setn (string key, uint64 num);
+		/* json */
+		public string json_get (string key, string path);
+		public string json_set (string key, string path, string val);
+		public static string json_indent (string json);
+		public static string json_unindent (string json);
 		/* delete */
 		public bool exists (string key);
 		public bool nexists (string key);

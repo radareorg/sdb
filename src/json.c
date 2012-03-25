@@ -3,6 +3,33 @@
 #include "sdb.h"
 #include "json/json.h"
 
+static int itoa(int value, char *string) {
+	int i, sign, count;
+	char buf[64];
+	char *temp = buf;
+	char *ptr = string;
+
+	count = 0;
+	temp[0] = 0;
+	string[0] = 0;
+
+	if ((sign = value) < 0) {
+		value = -value;
+		count++;
+	}
+	do {
+		*temp++ = value % 10 + '0';
+		count++;
+	} while ((value /= 10)>0);
+	if (sign < 0)
+		*temp++ = '-';
+	*temp-- = '\0';
+	/* reverse string */
+	for (i = 0; i < count; i++, temp--, ptr++)
+		*ptr = *temp;
+	return 1;
+}
+
 char *sdb_json_get (Sdb *s, const char *k, const char *p) {
 	char *v = sdb_get (s, k);
 	if (!v) return NULL;
@@ -21,7 +48,7 @@ int sdb_json_geti (Sdb *s, const char *k, const char *p) {
 
 int sdb_json_seti (Sdb *s, const char *k, const char *p, int v) {
 	char str[64];
-	sprintf (str, "%d", v); // XXX this is slow
+	itoa (v, str);
 	return sdb_json_set (s, k, p, str);
 }
 
