@@ -1,5 +1,6 @@
 HAVE_VALA=$(shell valac --version)
 HAVE_LUM=$(shell lum -h)
+HAVE_NEWLISP=$(shell newlisp -h)
 HAVE_LUVIT=$(shell luvit -h)
 HAVE_NODE=$(shell node -h)
 
@@ -11,6 +12,10 @@ all:
 	@printf "c:"
 	@${CC} -o a.out ${CFLAGS} ${LDFLAGS} t.c
 	@(time ./a.out) 2>&1 | grep real | sed s,real,,
+ifneq (${HAVE_NEWLISP},)
+	@printf "nlisp:"
+	@(time newlisp newlisp.lsp) 2>&1 | grep real | sed s,real,,
+endif
 ifneq (${HAVE_NODE},)
 	@printf "node:"
 	@(time node node.js) 2>&1 | grep real | sed s,real,,

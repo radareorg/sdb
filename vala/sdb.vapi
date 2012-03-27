@@ -7,6 +7,7 @@ namespace SimpleDB {
 		public void sync ();
 		/* string */
 		public string @get (string key);
+		public bool @add (string key, string @value);
 		public bool @set (string key, string @value);
 		/* numeric */
 		public uint64 inc (string key, uint64 n);
