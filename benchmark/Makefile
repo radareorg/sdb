@@ -3,6 +3,9 @@ HAVE_LUM=$(shell lum -h)
 HAVE_NEWLISP=$(shell newlisp -h)
 HAVE_LUVIT=$(shell luvit -h)
 HAVE_NODE=$(shell node -h)
+HAVE_JAVA=$(shell javac -help)
+HAVE_PYTHON=$(shell python -h)
+HAVE_PERL=$(shell perl -h)
 
 CFLAGS+=`pkg-config --cflags sdb`
 LDFLAGS+=`pkg-config --libs sdb`
@@ -30,6 +33,21 @@ endif
 ifneq (${HAVE_LUVIT},)
 	@printf "luvit:"
 	@(time luvit luvit.lua) 2>&1 | grep real | sed s,real,,
+endif
+ifneq (${HAVE_JAVA},)
+	@printf "java:"
+	@-[ ! -e json.jar ] && wget lolcathost.org/b/json.jar
+	@javac -cp json.jar java.java
+	@(time java -cp json.jar:. java) 2>&1 | grep real | sed s,real,,
+endif
+ifneq (${HAVE_PYTHON},)
+	@printf "python:"
+	@(time python python.py) 2>&1 | grep real | sed s,real,,
+endif
+ifneq (${HAVE_PERL},)
+	@printf "perl:"
+	@# sudo cpan -i JSON
+	@(time perl perl.pl) 2>&1 | grep real | sed s,real,,
 endif
 ifneq (${HAVE_LUM},)
 	@if [ ! -d modules/sdb ]; then lum -i sdb ; fi

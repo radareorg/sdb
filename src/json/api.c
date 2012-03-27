@@ -13,11 +13,6 @@ char *api_json_get (const char *s, const char *p) {
 	return rangstr_dup (&rs);
 }
 
-int api_json_geti (const char *s, const char *p) {
-	Rangstr rs = json_get (s, p);
-	return rangstr_int (&rs);
-}
-
 char *api_json_set (const char *s, const char *k, const char *v) {
 	const char *beg[3];
 	const char *end[3];

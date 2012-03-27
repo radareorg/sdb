@@ -1,5 +1,8 @@
 TODO
 ----
+* support for arrays/lists
+  - we need them!.. what about using json?
+  s.json_get ("obj", "foo[0]");
 * use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts
