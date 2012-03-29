@@ -6,23 +6,23 @@ namespace SimpleDB {
 		public Sdb (string? name=null, bool locked=false);
 		public void sync ();
 		/* string */
-		public string @get (string key);
+		public string @get (string key, out int? cas=null);
 		public bool @add (string key, string @value);
-		public bool @set (string key, string @value);
+		public bool @set (string key, string @value, int cas=0);
 		/* numeric */
-		public uint64 inc (string key, uint64 n);
-		public uint64 dec (string key, uint64 n);
+		public uint64 inc (string key, uint64 n, int cas=0);
+		public uint64 dec (string key, uint64 n, int cas=0);
 		public uint64 getn (string key);
 		public void setn (string key, uint64 num);
 		/* json */
 		public string json_get (string key, string path);
-		public string json_set (string key, string path, string val);
+		public string json_set (string key, string path, string val, int cas);
 		public static string json_indent (string json);
 		public static string json_unindent (string json);
 		/* delete */
 		public bool exists (string key);
 		public bool nexists (string key);
-		public bool @delete (string key);
+		public bool @delete (string key, int cas=0);
 		public void flush ();
 		/* time */
 		public uint64 get_expire (string key);

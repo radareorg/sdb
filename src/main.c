@@ -69,11 +69,11 @@ static void runline (Sdb *s, const char *cmd) {
 	case '+': // inc
 		if ((eq = strchr (cmd+1, '?'))) {
 			*eq = 0;
-			n = sdb_json_inc (s, cmd+1, eq+1, 1);
+			n = sdb_json_inc (s, cmd+1, eq+1, 1, 0);
 			save = 1;
 			printf ("%"ULLFMT"d\n", n);
 		} else {
-			n = sdb_inc (s, cmd+1, 1);
+			n = sdb_inc (s, cmd+1, 1, 0);
 			save = 1;
 			printf ("%"ULLFMT"d\n", n);
 		}
@@ -81,11 +81,11 @@ static void runline (Sdb *s, const char *cmd) {
 	case '-': // dec
 		if ((eq = strchr (cmd+1, '?'))) {
 			*eq = 0;
-			n = sdb_json_dec (s, cmd+1, eq+1, 1);
+			n = sdb_json_dec (s, cmd+1, eq+1, 1, 0);
 			save = 1;
 			printf ("%"ULLFMT"d\n", n);
 		} else {
-			n = sdb_inc (s, cmd+1, -1);
+			n = sdb_inc (s, cmd+1, -1, 0);
 			save = 1;
 			printf ("%"ULLFMT"d\n", n);
 		}
@@ -98,9 +98,9 @@ static void runline (Sdb *s, const char *cmd) {
 			if ((eq = strchr (path+1, '='))) {
 				save = 1;
 				*eq = 0;
-				sdb_json_set (s, cmd, path, eq+1);
+				sdb_json_set (s, cmd, path, eq+1, 0);
 			} else
-			if ((p = sdb_json_get (s, cmd, path))) {
+			if ((p = sdb_json_get (s, cmd, path, 0))) {
 				printf ("%s\n", p);
 				free (p);
 			}
@@ -108,9 +108,9 @@ static void runline (Sdb *s, const char *cmd) {
 			if ((eq = strchr (cmd, '='))) {
 				save = 1;
 				*eq = 0;
-				sdb_set (s, cmd, eq+1);
+				sdb_set (s, cmd, eq+1, 0);
 			} else
-			if ((p = sdb_get (s, cmd))) {
+			if ((p = sdb_get (s, cmd, 0))) {
 				printf ("%s\n", p);
 				free (p);
 			}

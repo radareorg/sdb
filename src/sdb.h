@@ -27,6 +27,7 @@ typedef struct sdb_kv {
 	char key[SDB_KSZ];
 	char value[SDB_VSZ];
 	ut64 expire;
+	ut32 cas;
 } SdbKv;
 
 Sdb* sdb_new (const char *dir, int lock);
@@ -36,9 +37,9 @@ void sdb_reset (Sdb *s);
 
 int sdb_exists (Sdb*, const char *key);
 int sdb_nexists (Sdb*, const char *key);
-int sdb_delete (Sdb*, const char *key);
-char *sdb_get (Sdb*, const char *key);
-int sdb_set (Sdb*, const char *key, const char *data);
+int sdb_delete (Sdb*, const char *key, ut32 cas);
+char *sdb_get (Sdb*, const char *key, ut32 *cas);
+int sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
 int sdb_add (Sdb *s, const char *key, const char *val);
 void sdb_list(Sdb*);
 int sdb_sync (Sdb*);
@@ -55,10 +56,10 @@ void sdb_dump_begin (Sdb* s);
 int sdb_dump_next (Sdb* s, char *key, char *value); // XXX: needs refactor?
 
 /* numeric */
-ut64 sdb_getn (Sdb* s, const char *key);
-int sdb_setn (Sdb* s, const char *key, ut64 v);
-ut64 sdb_inc (Sdb* s, const char *key, ut64 n);
-ut64 sdb_dec (Sdb* s, const char *key, ut64 n);
+ut64 sdb_getn (Sdb* s, const char *key, ut32 *cas);
+int sdb_setn (Sdb* s, const char *key, ut64 v, ut32 cas);
+ut64 sdb_inc (Sdb* s, const char *key, ut64 n, ut32 cas);
+ut64 sdb_dec (Sdb* s, const char *key, ut64 n, ut32 cas);
 
 /* locking */
 int sdb_lock(const char *s);
@@ -68,17 +69,18 @@ void sdb_unlock(const char *s);
 /* expiration */
 int sdb_expire(Sdb* s, const char *key, ut64 expire);
 ut64 sdb_get_expire(Sdb* s, const char *key);
+// int sdb_get_cas(Sdb* s, const char *key) -> takes no sense at all..
 ut64 sdb_now ();
 ut32 sdb_hash ();
 
 /* json api */
-char *sdb_json_get (Sdb *s, const char *key, const char *p);
+char *sdb_json_get (Sdb *s, const char *key, const char *p, ut32 *cas);
 int sdb_json_geti (Sdb *s, const char *k, const char *p);
-int sdb_json_seti (Sdb *s, const char *k, const char *p, int v);
-int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v);
+int sdb_json_seti (Sdb *s, const char *k, const char *p, int v, ut32 cas);
+int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, ut32 cas);
 
-int sdb_json_dec(Sdb *s, const char *k, const char *p, int n);
-int sdb_json_inc(Sdb *s, const char *k, const char *p, int n);
+int sdb_json_dec(Sdb *s, const char *k, const char *p, int n, ut32 cas);
+int sdb_json_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas);
 
 char *sdb_json_indent(const char *s);
 char *sdb_json_unindent(const char *s);

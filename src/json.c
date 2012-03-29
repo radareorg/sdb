@@ -31,27 +31,27 @@ static int itoa(int value, char *string) {
 	return 1;
 }
 
-char *sdb_json_get (Sdb *s, const char *k, const char *p) {
-	char *v = sdb_get (s, k);
+char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
+	char *v = sdb_get (s, k, cas);
 	if (!v) return NULL;
 	Rangstr rs = json_get (v, p);
 	return rangstr_dup (&rs);
 }
 
-int sdb_json_inc(Sdb *s, const char *k, const char *p, int n) {
+int sdb_json_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
 	int cur = sdb_json_geti (s, k, p);
-	sdb_json_seti (s, k, p, cur+n);
+	sdb_json_seti (s, k, p, cur+n, cas);
 	return cur;
 }
 
-int sdb_json_dec(Sdb *s, const char *k, const char *p, int n) {
+int sdb_json_dec(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
 	int cur = sdb_json_geti (s, k, p);
-	sdb_json_seti (s, k, p, cur-n);
+	sdb_json_seti (s, k, p, cur-n, cas);
 	return cur;
 }
 
 int sdb_json_geti (Sdb *s, const char *k, const char *p) {
-	char *v = sdb_get (s, k);
+	char *v = sdb_get (s, k, 0); // XXX cas
 	if (v) {
 		Rangstr rs = json_get (v, p);
 		return rangstr_int (&rs);
@@ -59,19 +59,25 @@ int sdb_json_geti (Sdb *s, const char *k, const char *p) {
 	return 0;
 }
 
-int sdb_json_seti (Sdb *s, const char *k, const char *p, int v) {
+int sdb_json_seti (Sdb *s, const char *k, const char *p, int v, ut32 cas) {
 	char str[64];
+	str[0] = 0;
 	itoa (v, str);
-	return sdb_json_set (s, k, p, str);
+	return sdb_json_set (s, k, p, str, cas);
 }
 
-int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
+int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, ut32 cas) {
 	const char *beg[3];
 	const char *end[3];
 	int l, idx, len[3];
 	char *str = NULL;
 	Rangstr rs;
-	char *js = sdb_get (s, k);
+	ut32 c;
+	char *js = sdb_get (s, k, &c);
+	if (cas && c != cas) {
+		free (js);
+		return 0;
+	}
 
 	if (!js) return 0;
 	rs = json_get (js, p);
@@ -104,7 +110,7 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v) {
 	memcpy (str+idx, beg[2], l);
 	str[idx+l] = 0;
 
-	sdb_set (s, k, str);
+	sdb_set (s, k, str, cas);
 	free (str);
 	free (js);
 	return 1;

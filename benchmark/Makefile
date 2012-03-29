@@ -3,7 +3,7 @@ HAVE_LUM=$(shell lum -h)
 HAVE_NEWLISP=$(shell newlisp -h)
 HAVE_LUVIT=$(shell luvit -h)
 HAVE_NODE=$(shell node -h)
-HAVE_JAVA=$(shell javac -help)
+HAVE_JAVA=$(shell javac -help 2>&1)
 HAVE_PYTHON=$(shell python -h)
 HAVE_PERL=$(shell perl -h)
 

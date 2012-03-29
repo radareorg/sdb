@@ -14,6 +14,12 @@
 // must be deprecated
 static ut32 eod, pos; // what about lseek?
 
+static inline int nextcas() {
+	static ut32 cas = 1;
+	if (!cas) cas++;
+	return cas++;
+}
+
 // TODO: use mmap instead of read.. much faster!
 Sdb* sdb_new (const char *dir, int lock) {
 	Sdb* s;
@@ -63,11 +69,12 @@ void sdb_free (Sdb* s) {
 	free (s);
 }
 
-char *sdb_get (Sdb* s, const char *key) {
+char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
 
+	if (cas) *cas = 0;
 	if (!key)
 		return NULL;
 	hash = cdb_hashstr (key);
@@ -75,9 +82,10 @@ char *sdb_get (Sdb* s, const char *key) {
 	if (kv) {
 		if (*kv->value) {
 			if (kv->expire && sdb_now () > kv->expire) {
-				sdb_delete (s, key);
+				sdb_delete (s, key, 0);
 				return NULL;
 			}
+			if (cas) *cas = kv->cas;
 			return strdup (kv->value);
 		}
 		return NULL;
@@ -89,8 +97,10 @@ char *sdb_get (Sdb* s, const char *key) {
 
 	if (!cdb_findnext (&s->db, hash, key, strlen (key)))
 		return NULL;
-	pos = cdb_datapos (&s->db);
 	len = cdb_datalen (&s->db);
+	if (len == 0)
+		return NULL;
+	pos = cdb_datapos (&s->db);
 	if (!(buf = malloc (len+1)))
 		return NULL;
 	cdb_read (&s->db, buf, len, pos);
@@ -98,15 +108,15 @@ char *sdb_get (Sdb* s, const char *key) {
 	return buf;
 }
 
-int sdb_delete (Sdb* s, const char *key) {
-	return key? sdb_set (s, key, ""): 0;
+int sdb_delete (Sdb* s, const char *key, ut32 cas) {
+	return key? sdb_set (s, key, "", cas): 0;
 }
 
 // set if not defined
 int sdb_add (Sdb *s, const char *key, const char *val) {
 	if (sdb_exists (s, key))
 		return 0;
-	return sdb_set (s, key, val);
+	return sdb_set (s, key, val, 0);
 }
 
 int sdb_exists (Sdb* s, const char *key) {
@@ -135,6 +145,7 @@ struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
 	struct sdb_kv *kv = R_NEW (struct sdb_kv);
 	strncpy (kv->key, k, sizeof (kv->key)-1);
 	strncpy (kv->value, v, sizeof (kv->value)-1);
+	kv->cas = nextcas ();
 	kv->expire = 0LL;
 	return kv;
 }
@@ -143,7 +154,7 @@ void sdb_kv_free (struct sdb_kv *kv) {
 	free (kv);
 }
 
-int sdb_set (Sdb* s, const char *key, const char *val) {
+int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	SdbKv *kv;
 	SdbHashEntry *e;
 	ut32 hash;
@@ -155,12 +166,16 @@ int sdb_set (Sdb* s, const char *key, const char *val) {
 	if (e) {
 		if (cdb_findnext (&s->db, hash, key, strlen (key))) {
 			kv = e->data;
+			if (cas && kv->cas != cas)
+				return 0;
+			cas = kv->cas = nextcas ();
 			strcpy (kv->value, val);
 		} else ht_remove_entry (s->ht, e);
-		return 1;
+		return cas;
 	}
-	ht_insert (s->ht, hash, sdb_kv_new (key, val), NULL);
-	return *val? 1: 0;
+	kv = sdb_kv_new (key, val);
+	ht_insert (s->ht, hash, kv, NULL);
+	return *val? kv->cas: 0;
 }
 
 int sdb_sync (Sdb* s) {
@@ -195,7 +210,7 @@ int sdb_sync (Sdb* s) {
 		}
 		if (kv->expire == 0LL) {
 			it.n = iter->n;
-			sdb_delete (s, kv->key);
+			sdb_delete (s, kv->key, 0);
 			iter = &it;
 		}
 	}
@@ -283,7 +298,7 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 		return 0;
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
-	sdb_set (s, key, buf);
+	sdb_set (s, key, buf, 0); // TODO use cas here?
 	free (buf);
 	return sdb_expire (s, key, expire); // recursive
 }
