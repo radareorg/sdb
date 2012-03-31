@@ -155,10 +155,10 @@ void sdb_kv_free (struct sdb_kv *kv) {
 }
 
 int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
-	SdbKv *kv;
 	SdbHashEntry *e;
+	SdbKv *kv;
 	ut32 hash;
-	if (!key || !val)
+	if (!s || !key || !val)
 		return 0;
 	hash = cdb_hashstr (key);
 	cdb_findstart (&s->db);

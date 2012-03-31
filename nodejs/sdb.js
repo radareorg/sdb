@@ -33,17 +33,16 @@ var SDB = new FFI.Library ("libsdb", {
 
 exports.open = function (file) {
 	this.o = SDB.sdb_new (file, 0);
-	this.json = {};
-	this.json_get = function (key, path) {
+	this.jsonGet = function (key, path) {
 		return SDB.sdb_json_get (this.o, key, path, null);
 	}
-	this.json.set = function (key, path, val) {
+	this.jsonSet = function (key, path, val) {
 		return SDB.sdb_json_set (this.o, key, path, val, 0);
 	}
-	this.json.indent = function (str) {
+	this.jsonIndent = function (str) {
 		return SDB.sdb_json_indent (str);
 	}
-	this.json.unindent = function (str) {
+	this.jsonUnindent = function (str) {
 		return SDB.sdb_json_unindent (str);
 	}
 	this.get = function (x) {

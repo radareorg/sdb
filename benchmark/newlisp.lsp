@@ -10,7 +10,8 @@
 
 (sdb:set db "g" json) ; "{\"hello\":\"world\"}")
 ; (sdb:set db "g" "{\"hello\":\"world\"}")
-(dotimes (i 199999)
+; (dotimes (i 199999)
+(for (i 0 199999)
 	(setq v (sdb:json_get db "g" "glossary.title"))
 ;	(print i " " v " <--\n")
 )
