@@ -1,5 +1,7 @@
 TODO
 ----
+* Add api to store serialized in memory
+* Add api for raw bytes
 * support for arrays/lists
   - we need them!.. what about using json?
   s.json_get ("obj", "foo[0]");
@@ -7,7 +9,6 @@ TODO
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts
 * Add comparision stuff
-* Add 'cas' api for non-memcache?
 * Add support for socket file for memcached api
 * incr returns char * in mcsdb and ut64 in sdb api? looks wrong!
 * add api to create db without caching it before
@@ -25,6 +26,7 @@ Optimization
 ------------
 * remove endian conversions
 * use slices instead of mallocs
+* accelerate get ops with cached results (const char* instead of strdup)
 * implement udp protocol for memcache
 * rewrite mcsdb in luvit
 * use 16 bit key and 16 bit value

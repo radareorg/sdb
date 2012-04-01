@@ -49,9 +49,7 @@ void sdb_file (Sdb* s, const char *dir) {
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
 	free (s->dir);
-	if (dir && *dir)
-	s->dir = strdup (dir);
-	else s->dir = NULL;
+	s->dir = (dir && *dir)? strdup (dir): NULL;
 	if (s->lock)
 		sdb_lock (sdb_lockfile (s->dir));
 }
@@ -75,9 +73,10 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	SdbKv *kv;
 
 	if (cas) *cas = 0;
-	if (!key)
-		return NULL;
-	hash = cdb_hashstr (key);
+	if (!key) return NULL;
+	hash = sdb_hash (key, strlen (key));
+
+	/* search in memory */
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
@@ -86,11 +85,12 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 				return NULL;
 			}
 			if (cas) *cas = kv->cas;
-			return strdup (kv->value);
+			return strdup (kv->value); // XXX too many mallocs
 		}
 		return NULL;
 	}
 
+	/* search in disk */
 	if (s->fd == -1)
 		return NULL;
 	cdb_findstart (&s->db);
@@ -101,7 +101,7 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	if (len == 0)
 		return NULL;
 	pos = cdb_datapos (&s->db);
-	if (!(buf = malloc (len+1)))
+	if (!(buf = malloc (len+1))) // XXX too many mallocs
 		return NULL;
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
@@ -122,13 +122,14 @@ int sdb_add (Sdb *s, const char *key, const char *val) {
 int sdb_exists (Sdb* s, const char *key) {
 	char ch;
 	SdbKv *kv;
-	ut32 pos, hash = cdb_hashstr (key);
+	int klen = strlen (key);
+	ut32 pos, hash = sdb_hash (key, klen);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) return (*kv->value)? 1: 0;
 	if (s->fd == -1)
 		return 0;
 	cdb_findstart (&s->db);
-	if (cdb_findnext (&s->db, hash, key, strlen (key))) {
+	if (cdb_findnext (&s->db, hash, key, klen)) {
 		pos = cdb_datapos (&s->db);
 		cdb_read (&s->db, &ch, 1, pos);
 		return ch != 0;
@@ -157,14 +158,15 @@ void sdb_kv_free (struct sdb_kv *kv) {
 int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	SdbHashEntry *e;
 	SdbKv *kv;
-	ut32 hash;
+	ut32 hash, klen;
 	if (!s || !key || !val)
 		return 0;
-	hash = cdb_hashstr (key);
+	klen = strlen (key);
+	hash = sdb_hash (key, klen);
 	cdb_findstart (&s->db);
 	e = ht_search (s->ht, hash);
 	if (e) {
-		if (cdb_findnext (&s->db, hash, key, strlen (key))) {
+		if (cdb_findnext (&s->db, hash, key, klen)) {
 			kv = e->data;
 			if (cas && kv->cas != cas)
 				return 0;
@@ -188,7 +190,7 @@ int sdb_sync (Sdb* s) {
 		return 0;
 	sdb_dump_begin (s);
 	while (sdb_dump_next (s, k, v)) {
-		ut32 hash = cdb_hashstr (k);
+		ut32 hash = sdb_hash (k, 0);
 		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
 			kv = (SdbKv*)hte->data;
@@ -204,10 +206,8 @@ int sdb_sync (Sdb* s) {
 	}
 	/* append new keyvalues */
 	ls_foreach (s->ht->list, iter, kv) {
-	//	printf ("%s=%s\n", kv->key, kv->value);
-		if (*kv->value && kv->expire == 0LL) {
+		if (*kv->value && kv->expire == 0LL)
 			sdb_append (s, kv->key, kv->value);
-		}
 		if (kv->expire == 0LL) {
 			it.n = iter->n;
 			sdb_delete (s, kv->key, 0);
@@ -215,7 +215,6 @@ int sdb_sync (Sdb* s) {
 		}
 	}
 	sdb_finish (s);
-//	printf ("db '%s' created\n", f);
 	return 0;
 }
 
@@ -278,7 +277,7 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
-	hash = cdb_hashstr (key);
+	hash = sdb_hash (key, 0);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
@@ -305,15 +304,21 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 
 ut64 sdb_get_expire(Sdb* s, const char *key) {
 	SdbKv *kv;
-	ut32 hash = cdb_hashstr (key);
+	ut32 hash = sdb_hash (key, 0);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv && *kv->value)
 		return kv->expire;
 	return 0LL;
 }
 
-ut32 sdb_hash(const char *s) {
-	return cdb_hashstr (s);
+ut32 sdb_hash(const char *s, int len) {
+	ut32 h = CDB_HASHSTART;
+	if (len<1) len = strlen (s); // XXX slow
+	while (len--) {
+		h += (h<<5);
+		h ^= *s++;
+	}
+	return h;
 }
 
 void sdb_flush(Sdb* s) {

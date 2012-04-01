@@ -10,4 +10,5 @@
 (println "--> " (sdb:get db "user.name") " <--")
 (sdb:sync db)
 (sdb:free db)
+(println (format "HASH: %d" (sdb:hash (sdb:get db "user.name"))))
 (exit)

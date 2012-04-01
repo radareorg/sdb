@@ -8,6 +8,7 @@
 #include <sys/mman.h>
 #endif
 
+// XXX: this code must be rewritten . too slow
 int getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 	ut8 buf[4];
 	if (read (fd, buf, 4) != 4)
@@ -15,18 +16,6 @@ int getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 	*klen = (ut32)buf[0];
 	*vlen = (ut32)(buf[1] + ((ut32)buf[2]<<8) + ((ut32)buf[3]<<16));
 	return 1;
-}
-
-ut32 cdb_hashadd(ut32 h, ut8 c) {
-	h += (h << 5);
-	return h ^ c;
-}
-
-ut32 cdb_hash(const char *buf, ut32 len) {
-	ut32 h = CDB_HASHSTART;
-	while (len--)
-		h = cdb_hashadd (h, *buf++);
-	return h;
 }
 
 void cdb_free(struct cdb *c) {

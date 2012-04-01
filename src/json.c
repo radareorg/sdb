@@ -106,7 +106,7 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, ut32 cas)
 	l = len[1];
 	memcpy (str+idx, beg[1], l);
 	idx += len[1];
-	l= len[2];
+	l = len[2];
 	memcpy (str+idx, beg[2], l);
 	str[idx+l] = 0;
 

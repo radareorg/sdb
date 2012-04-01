@@ -16,12 +16,9 @@
 #define USE_MMAN 1
 #endif
 
-// GTFO!
+// TODO THIS MUST GTFO!
 int getkvlen(int fd, ut32 *klen, ut32 *vlen);
 #define CDB_HASHSTART 5381
-extern ut32 cdb_hashadd(ut32,unsigned char);
-extern ut32 cdb_hash(const char *,unsigned int);
-#define cdb_hashstr(x) (cdb_hash(x,strlen(x)))
 
 struct cdb {
 	char *map; /* 0 if no map is available */
