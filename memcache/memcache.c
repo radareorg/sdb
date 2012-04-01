@@ -49,10 +49,11 @@ char *mcsdb_decr(McSdb *ms, const char *key, ut64 val) {
 	return sdb_get (ms->sdb, key, 0);
 }
 
-void mcsdb_set(McSdb *ms, const char *key, ut64 exptime, const char *body) {
-	sdb_set (ms->sdb, key, body, 0);
+int mcsdb_set(McSdb *ms, const char *key, const char *value, ut64 exptime, ut32 cas) {
+	int ret = sdb_set (ms->sdb, key, value, cas);
 	sdb_expire (ms->sdb, key, exptime);
 	ms->sets++;
+	return ret;
 }
 
 int mcsdb_add(McSdb *ms, const char *key, ut64 exptime, const char *body) {
@@ -118,17 +119,19 @@ int mcsdb_replace(McSdb *ms, const char *key, ut64 exptime, const char *body) {
   "cas" is a check and set operation which means "store this data but
   only if no one else has updated since I last fetched it."
 */
-void mcsdb_cas(McSdb *ms, const char *key, ut64 exptime, const char *body) {
-#warning mcsdb_cas not implemented
-	mcsdb_set (ms, key, exptime, body);
+// cas <key> <flags> <exptime> <bytes> <cas unqiue> [noreply]\r\n
+int mcsdb_cas(McSdb *ms, const char *key, const char *value, ut64 exptime, ut32 cas) {
+	return mcsdb_set (ms, key, value, exptime, cas);
 }
 
 /* retrieval */
-char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime) {
-	char *s = sdb_get (ms->sdb, key, 0);
+char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime, ut32 *cas) {
+	ut32 n;
+	char *s = sdb_get (ms->sdb, key, &n);
 	if (s) ms->hits++;
 	else ms->misses++;
 	ms->gets++;
+	if (cas) *cas = n;
 	*exptime = sdb_get_expire (ms->sdb, key);
 	return s;
 }

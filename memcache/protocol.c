@@ -11,6 +11,7 @@ static inline void strtolower (char *s) {
 
 static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	ut64 exptime = 0LL;
+	ut32 cas;
 	int n = 0;
 	char *s, *k, *K = key;
 	if (!key) {
@@ -20,10 +21,11 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	do {
 		k = strchr (K, ' ');
 		if (k) *k = 0;
-		s = mcsdb_get (ms, K, &exptime);
+		s = mcsdb_get (ms, K, &exptime, &cas);
 		if (s) {
 			if (smode) net_printf (fd, 
-				"VALUE %s %llu 0 %d\r\n", K, exptime, (int)strlen (s));
+				"VALUE %s %llu %d %d\r\n",
+				K, exptime, (int)strlen (s), cas);
 			else net_printf (fd,
 				"VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
 			net_printf (fd, "%s\r\n", s);
@@ -53,7 +55,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		b = buf;
 		b[c->len-1] = 0;
 		switch (c->cmdhash) {
-		case MCSDB_CMD_SET: mcsdb_set (ms, c->key, c->exptime, b); break;
+		case MCSDB_CMD_SET: mcsdb_set (ms, c->key, b, c->exptime, 0); break;
 		case MCSDB_CMD_APPEND: mcsdb_append (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_ADD: stored = mcsdb_add (ms, c->key, c->exptime, b); break;
 		case MCSDB_CMD_PREPEND: mcsdb_prepend (ms, c->key, c->exptime, b); break;
@@ -80,7 +82,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 	}
 	strtolower (cmd);
 
-	cmdhash = sdb_hash (cmd);
+	cmdhash = sdb_hash (cmd, 0);
 	switch (cmdhash) {
 	case MCSDB_CMD_FLUSH_ALL:
 		mcsdb_flush (ms);
@@ -186,6 +188,11 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		c->cmdhash = cmdhash;
 		// continue on mode 1
 		return 1;
+	case MCSDB_CMD_CAS:
+		// check and set
+		// cas <key> <flags> <exptime> <bytes> <cas unqiue> [noreply]\r\n
+		printf ("NOT YET IMPLEMENTED\n");
+		return 0;
 	default:
 		net_printf (fd, "ERROR\r\n");
 	}

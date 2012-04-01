@@ -8,7 +8,7 @@ static void cmdhash(const char *s) {
 	for (i=0; s[i]; i++)
 		su[i] = toupper (s[i]);
 	su[i] = 0;
-	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s));
+	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s, 0));
 }
 
 int main() {
@@ -24,6 +24,7 @@ int main() {
 	cmdhash ("delete");
 	cmdhash ("set");
 	cmdhash ("replace");
+	cmdhash ("cas");
 	cmdhash ("add");
 	cmdhash ("stats");
 	cmdhash ("quit");

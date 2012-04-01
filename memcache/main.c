@@ -27,6 +27,13 @@ static int fds_add(int fd) {
 
 static void sigint() {
 	signal (SIGINT, SIG_IGN);
+	fprintf (stderr, "gets %lld\n", ms->gets);
+	fprintf (stderr, "sets %lld\n", ms->sets);
+	fprintf (stderr, "hits %lld\n", ms->hits);
+	fprintf (stderr, "miss %lld\n", ms->misses);
+	fprintf (stderr, "read %lld\n", ms->bread);
+	fprintf (stderr, "writ %lld\n", ms->bwrite);
+	fprintf (stderr, "nfds %d\n", ms->nfds);
 	fprintf (stderr, "SIGINT handled.\n");
 	mcsdb_free (ms);
 	exit (0);
