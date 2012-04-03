@@ -3,7 +3,7 @@ CFLAGS+= -g -ggdb
 LDFLAGS+= -g -ggdb
 #CFLAGS+=-DOLDFMT=1
 OBJ=alloc.o cdb.o buffer.o cdb_make.o ls.o ht.o sdb.o sdbn.o lock.o
-OBJ+=json.o json/js0n.o json/json.o json/rangstr.o
+OBJ+=json.o json/js0n.o json/json.o json/rangstr.o ns.o
 # This is hacky
 OS=$(shell uname)
 ARCH=$(shell uname -m)

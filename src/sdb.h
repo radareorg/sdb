@@ -6,6 +6,16 @@
 #include "cdb.h"
 #include "cdb_make.h"
 
+#define MAXNS 128
+
+typedef struct sdb_ns_t {
+// todo. store last used
+// todo. sync?
+// todo. 
+	ut32 hash;
+	struct sdb_t *sdb;
+} SdbNs;
+
 typedef struct sdb_t {
 	char *dir;
 	int fd;
@@ -16,7 +26,9 @@ typedef struct sdb_t {
 	ut32 eod;
 	int fdump;
 	char *ndump;
+	SdbNs ns[MAXNS];
 } Sdb;
+
 
 // XXX: use buckets here, drop these limits
 #define SDB_BLOCK 4096
@@ -73,7 +85,7 @@ ut64 sdb_get_expire(Sdb* s, const char *key);
 ut64 sdb_now ();
 ut64 sdb_unow ();
 ut32 sdb_hash (const char *key, int klen);
-#define sdb_hashstr(x) sdb_hashstr(x,strlen(x))
+#define sdb_hashstr(x) sdb_hash(x,strlen(x))
 
 /* json api */
 char *sdb_json_get (Sdb *s, const char *key, const char *p, ut32 *cas);
@@ -86,5 +98,12 @@ int sdb_json_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas);
 
 char *sdb_json_indent(const char *s);
 char *sdb_json_unindent(const char *s);
+
+
+// namespace
+Sdb *sdb_ns(Sdb *s, const char *name);
+void sdb_ns_init(Sdb *s);
+void sdb_ns_free(Sdb *s);
+void sdb_ns_sync (Sdb *s, const char *db);
 
 #endif

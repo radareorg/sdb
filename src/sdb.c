@@ -42,6 +42,7 @@ Sdb* sdb_new (const char *dir, int lock) {
 	// if open fails ignore
 	cdb_init (&s->db, s->fd);
 	cdb_findstart (&s->db);
+	sdb_ns_init (s);
 	return s;
 }
 
