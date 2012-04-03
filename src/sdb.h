@@ -71,6 +71,7 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire);
 ut64 sdb_get_expire(Sdb* s, const char *key);
 // int sdb_get_cas(Sdb* s, const char *key) -> takes no sense at all..
 ut64 sdb_now ();
+ut64 sdb_unow ();
 ut32 sdb_hash (const char *key, int klen);
 #define sdb_hashstr(x) sdb_hashstr(x,strlen(x))
 

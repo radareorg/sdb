@@ -1,10 +1,10 @@
 TODO
 ----
+* create string pool for a list of sizes 
+	newpool (sizeof (char), 10, 100, 1000);
 * Add api to store serialized in memory
 * Add api for raw bytes
 * support for arrays/lists
-  - we need them!.. what about using json?
-  s.json_get ("obj", "foo[0]");
 * use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts
@@ -29,7 +29,7 @@ Optimization
 * accelerate get ops with cached results (const char* instead of strdup)
 * implement udp protocol for memcache
 * rewrite mcsdb in luvit
-* use 16 bit key and 16 bit value
+* use 16 bit key and 16 bit value // dont think so
 * use kernel's linked list? it should be faster..
 
 BUGS

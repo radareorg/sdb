@@ -3,3 +3,13 @@ mcsdb
 This is a memcache client and server implementation with
 bindings for Vala (and valaswig (perl, ruby, python.. )
 that is based on the Sdb api.
+
+TODO
+----
+There's a lot of work to do..
+- implement 'stats cachedump' feature
+  memdump uses stats cachedump 0-39
+- implement get over udp
+- optimize tcp code
+- implement multiple get/set
+- implement cas

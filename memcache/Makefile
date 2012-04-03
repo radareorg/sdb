@@ -7,6 +7,7 @@ COBJS=client.o net.o memcache.o
 LIBS=../src/libsdb.a
 LIBA=libmcsdb.a
 CFLAGS+=-I../src
+CFLAGS+= -g -ggdb
 
 all: ${BIN} ${CBIN} libmcsdb.a
 

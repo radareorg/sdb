@@ -260,11 +260,20 @@ int sdb_dump_next (Sdb* s, char *key, char *value) {
 	return 0;
 }
 
-// XXX: fix 64 bit issue
 ut64 sdb_now () {
         struct timeval now;
         gettimeofday (&now, NULL);
-        return (ut64)(now.tv_sec);
+	return now.tv_sec;
+}
+
+ut64 sdb_unow () {
+	ut64 x;
+        struct timeval now;
+        gettimeofday (&now, NULL);
+	x = now.tv_sec;
+	x <<= 32;
+	x += now.tv_usec;
+        return x;
 }
 
 static ut64 expire_adapt (ut64 e) {

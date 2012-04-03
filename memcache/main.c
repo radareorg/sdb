@@ -1,4 +1,4 @@
-/* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
 #include <signal.h>
 #include <sys/socket.h>
 #include "mcsdb.h"
@@ -147,10 +147,10 @@ static int mcsdb_client_state(McSdbClient *c) {
 	return 0;
 }
 
-static void fds_server (int fd) {
-	ms->fds[0].fd = fd;
-	ms->fds[0].events = POLLIN;
-	ms->nfds = 1;
+static void fds_server (int n, int fd) {
+	ms->fds[n].fd = fd;
+	ms->fds[n].events = POLLIN;
+	ms->nfds = n+1;
 }
 
 static int fds_del (McSdbClient *c) {
@@ -171,28 +171,114 @@ static int fds_del (McSdbClient *c) {
 	return 1;
 }
 
+#include <netinet/in.h>
+#include <fcntl.h>
+static int udp_listen (int port) {
+	struct sockaddr_in si_me;
+	int s;
+
+	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
+		return -1;
+
+	memset((char *) &si_me, 0, sizeof(si_me));
+	si_me.sin_family = AF_INET;
+	si_me.sin_port = htons(port);
+	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (bind (s, (struct sockaddr*)&si_me, sizeof(si_me))==-1) {
+		close (s);
+		return -1;
+	}
+//fcntl (s, F_SETFL, O_NONBLOCK, 0);
+	return s;
+}
+
+static int udp_parse(McSdbClient *c, int fd) {
+#pragma pack(2)
+#define ut16 unsigned short
+struct udphdr_t {
+	ut16 rid; // request id
+	ut16 seq; // sequence number
+	ut16 ndg; // number of datagrams
+	ut16 res; // reserved for future use
+};
+#pragma pack()
+struct udphdr_t h;
+	char buf[32768];
+	int ret = read (fd, buf, 32768);
+
+	if (ret<1)
+		return 0;
+	buf[ret] = 0;
+	memcpy (&h, buf, 8);
+#if 0
+0-1 Request ID
+2-3 Sequence number
+4-5 Total number of datagrams in this message
+6-7 Reserved for future use; must be 0
+#endif
+	//printf ("UDP (%s)\n", buf+8); // TODO
+	if (!memcmp(buf+8, "set ", 4)) {
+		char *p = strchr (buf+12, ' ');
+		if (p) {
+			int a,b,l;
+			char *n = strchr (p, '\n');
+			*p=0;
+			*n=0;
+			sscanf (p+1, "%d %d %d", &a, &b, &l);
+			n++;
+			n[l] =0 ;
+		//	printf ("KEY %s\n", buf+12);
+		//	printf ("SET %s\n", n);
+			mcsdb_set (ms, buf+12, n, 0, 0);
+		}
+	}
+#if 0
+set Xi5HaaaJ1nLnZGOEbkou9D7iuSc2fL4239JTclgdY2O5AgKeG0OP5X0zrStMppOkyjDQSu3soJyyrAc8A0PFNP67lrTaguAWTOxq 0 0 400 noreply
+A0iqCgg3i9Bs1TzHmxOYotySn9z9PwrRoZ9s6pwoyzZsKY97MZXAQTX6eM7vAyMyXXjTDXI3Mjvj74iTdDYwi3uDP18bzNPMm8srf2vulqdsnJMGYu46pyJEzKhyb6LDF55m7sgsa9cLSqWscazPZIXYWCNxJcBQh84g0lOam0o7rIzJkylH98iXL5TgZgyEo2ugfIEQAuZt4ODpNq6OygvJlGrIwpOcsA8NSFpX9EOEfT3uJ1IAi5LJEDWAuufexn2H2jo4y5ITaDNu6ZwgWH0kWMnH8Qv55xN0ZB4XGEsjJFTHgPyAiqv5CiMK0HIx7hxgkt3tzvcA2xSiMIsw8n1CLFODPiBYN040u7lluLowI8eYQMSQAMeNd2d2loQ0oWsaTdCNq0B88pYQ
+#endif
+	return 1;
+}
+
 static int net_loop(int port) {
-	int ret, i, r, fd = net_listen (port);
+	int i0, udpfd, ret, i, r, fd = net_listen (port);
 	if (fd==-1) {
-		printf ("cannot listen on %d\n", port);
+		printf ("cannot listen on tcp %d\n", port);
 		return 1;
 	}
-	printf ("listening on %d\n", port);
-	fds_server (fd);
+	udpfd = udp_listen (port);
+	printf ("listening on %d tcp/udp\n", port);
+	fds_server (0, fd);
+	if (udpfd != -1) {
+		fds_server (1, udpfd);
+		ms->fds[1].events = POLLIN;
+		i0 = 2;
+	} else i0 = 1;
+
 	for (;;) {
+		for (i=0;i<ms->nfds; i++)
+			ms->fds[i].revents = 0;
 		r = poll (ms->fds, ms->nfds, -1);
 		if (r<1)
 			continue;
 		if (ms->fds[0].revents) {
 			mcsdb_client_accept (fd);
-			continue;
+			//continue;
+		}
+		if (udpfd != -1)
+		if (ms->fds[1].revents) { // == POLLIN) {
+			// XXX HIHGLY INEFFICIENT
+			McSdbClient *c = mcsdb_client_new_fd (udpfd);
+			udp_parse (c, udpfd);
+			free (c);
+			//continue;
 		}
 	respawn:
-		for (i=1; i<ms->nfds; i++) {
-			McSdbClient *c = ms->msc[i];
+		for (i=i0; i<ms->nfds; i++) {
+			McSdbClient *c;
 			/* skip no events for this fd */
 			if (!ms->fds[i].revents)
 				continue;
+			c = ms->msc[i];
 			do {
 				ret = mcsdb_client_state (c);
 //printf ("BOING next=%d idx=%d (%s)\n", c->next, c->idx, c->buf+c->idx);
@@ -208,6 +294,7 @@ static int net_loop(int port) {
 					break;
 				case -1:
 					fds_del (c);
+					ms->fds[i].revents = 0;
 					goto respawn;
 				}
 			} while (ret);
@@ -217,6 +304,7 @@ static int net_loop(int port) {
 			/* client closed the connection */
 			if (ms->fds[i].revents & POLLHUP) {
 				fds_del (c);
+				ms->fds[i].revents = 0;
 				goto respawn;
 			}
 		}

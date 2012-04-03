@@ -22,7 +22,7 @@ typedef struct {
 	ut32 cmdhash;
 	char buf[MCSDB_MAX_BUFFER]; // buffer
 	ut64 exptime;
-	char key[100];
+	char key[256];
 } McSdbClient;
 
 typedef struct {
