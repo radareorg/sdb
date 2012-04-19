@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var Sdb = require ("../nodejs/sdb");
+var Sdb = require ("../nodejs/ffi/sdb");
 
 var s = Sdb.open ();
 
@@ -8,11 +8,11 @@ var js = '{"glossary":{"title":"example glossary","page":1,"GlossDiv":{"title":"
 
 s.set ("g", js);
 
-var a = s.json_get ("g", 'glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0]');
+var a = s.jsonGet ("g", 'glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0]');
 console.log (a);
 // 3 times slower than luajit-ffi!
 if (true) {
 	for (var i=0; i<199999; i++) {
-		var a = s.json_get ("g", "glossary.title");
+		var a = s.jsonGet ("g", "glossary.title");
 	}
 }

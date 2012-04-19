@@ -1,12 +1,17 @@
 #ifndef _INCLUDE_SDB_H_
 #define _INCLUDE_SDB_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "ht.h"
 #include "ls.h"
 #include "cdb.h"
 #include "cdb_make.h"
 
 #define MAXNS 128
+#include "sdb-version.h"
 
 typedef struct sdb_ns_t {
 // todo. store last used
@@ -105,5 +110,9 @@ Sdb *sdb_ns(Sdb *s, const char *name);
 void sdb_ns_init(Sdb *s);
 void sdb_ns_free(Sdb *s);
 void sdb_ns_sync (Sdb *s, const char *db);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

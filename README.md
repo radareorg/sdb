@@ -13,12 +13,16 @@ json is supported in the core api. You can store json
 objects as value for a specific key and access the members
 using a path expression (get and set).
 
+namespace are also supported using the sdb_ns api, which
+permits to store various references to other Sdb instances
+from a single one.
+
 Contains
 --------
-* vala, newlisp and nodejs bindings
-* luvit bindings (in git://github.com/radare/luvit-sdb)
+* vala, luvit, newlisp and nodejs bindings
 * commandline frontend for sdb databases
 * memcache client and server with sdb backend
+* json parser/getter (js0n.c)
 
 Rips
 ----

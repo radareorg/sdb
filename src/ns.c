@@ -4,6 +4,14 @@
 
 void sdb_ns_free(Sdb *s) {
 	// TODO: recursive free
+	int i;
+	for (i=0; i<MAXNS; i++) {
+		Sdb *s2 = s->ns[i].sdb;
+		if (s2) sdb_ns_free (s2);
+		sdb_free (s2);
+		s->ns[i].sdb = NULL;
+		s->ns[i].hash = 0;
+	}
 }
 
 void sdb_ns_init(Sdb *s) {
@@ -18,7 +26,7 @@ Sdb *sdb_ns(Sdb *s, const char *name) {
 	int i, new = -1;
 	// s.ns ("user").set ("name.pancake", "MrPancake")
 	ut32 hash = sdb_hashstr (name);
-	for(i=0;i<MAXNS;i++) {
+	for (i=0; i<MAXNS; i++) {
 		if (new == -1 && s->ns[i].sdb == NULL)
 			new = i;
 		if (!s->ns[i].hash) break;

@@ -22,8 +22,10 @@ endif
 ifneq (${HAVE_NODE},)
 	@printf "node:"
 	@(time node node.js) 2>&1 | grep real | sed s,real,,
-	@printf ".sdb:"
-	@(time node node-sdb.js) 2>&1 | grep real | sed s,real,,
+	@printf ".ffi:"
+	@(time node node-ffi.js) 2>&1 | grep real | sed s,real,,
+	@printf ".cc:"
+	@(time node node-cc.js) 2>&1 | grep real | sed s,real,,
 endif
 ifneq (${HAVE_VALA},)
 	@printf "vala:"
@@ -36,7 +38,7 @@ ifneq (${HAVE_LUVIT},)
 endif
 ifneq (${HAVE_JAVA},)
 	@printf "java:"
-	@-[ ! -e json.jar ] && wget lolcathost.org/b/json.jar
+	@if [ ! -e json.jar ] ; then wget lolcathost.org/b/json.jar ; else true ; fi
 	@javac -cp json.jar java.java
 	@(time java -cp json.jar:. java) 2>&1 | grep real | sed s,real,,
 endif

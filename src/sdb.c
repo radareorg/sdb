@@ -70,12 +70,14 @@ void sdb_free (Sdb* s) {
 
 char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	char *buf;
-	ut32 hash, pos, len;
+	ut32 hash, pos, len, keylen;
 	SdbKv *kv;
 
+	if (!s) return NULL;
 	if (cas) *cas = 0;
 	if (!key) return NULL;
-	hash = sdb_hash (key, strlen (key));
+	keylen = strlen (key);
+	hash = sdb_hash (key, keylen);
 
 	/* search in memory */
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
@@ -96,7 +98,7 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 		return NULL;
 	cdb_findstart (&s->db);
 
-	if (!cdb_findnext (&s->db, hash, key, strlen (key)))
+	if (!cdb_findnext (&s->db, hash, key, keylen))
 		return NULL;
 	len = cdb_datalen (&s->db);
 	if (len == 0)

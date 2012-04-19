@@ -4,7 +4,7 @@ PWD=$(shell pwd)
 PFX=${DESTDIR}${PREFIX}
 HGFILES=`find sdb-${VERSION} -type f | grep -v hg | grep -v swp`
 
-all:
+all: src/sdb-version.h
 	cd src && ${MAKE}
 	cd memcache && ${MAKE}
 ifneq (${HAVE_VALA},)
@@ -12,7 +12,11 @@ ifneq (${HAVE_VALA},)
 	cd vala/types && ${MAKE}
 endif
 
+src/sdb-version.h:
+	echo '#define SDB_VERSION "${VERSION}"' > src/sdb-version.h
+
 clean:
+	rm -f src/sdb-version.h
 	cd src && ${MAKE} clean
 	cd memcache && ${MAKE} clean
 	cd test && ${MAKE} clean
@@ -34,6 +38,7 @@ install-dirs:
 install: install-dirs
 	cp -f src/libsdb.* ${PFX}/lib
 	cp -f src/sdb.h ${PFX}/include/sdb
+	cp -f src/sdb-version.h ${PFX}/include/sdb
 	cp -f src/cdb.h ${PFX}/include/sdb
 	cp -f src/ht.h ${PFX}/include/sdb
 	cp -f src/types.h ${PFX}/include/sdb
@@ -73,6 +78,7 @@ symstall: install-dirs
 	cd src ; for a in libsdb.* ; do ln -fs ${PWD}/src/$$a ${PFX}/lib/$$a ; done
 	ln -fs ${PWD}/src/sdb ${PFX}/bin
 	ln -fs ${PWD}/src/sdb.h ${PFX}/include/sdb
+	ln -fs ${PWD}/src/sdb-version.h ${PFX}/include/sdb
 	ln -fs ${PWD}/src/cdb.h ${PFX}/include/sdb
 	ln -fs ${PWD}/src/ht.h ${PFX}/include/sdb
 	ln -fs ${PWD}/src/types.h ${PFX}/include/sdb
