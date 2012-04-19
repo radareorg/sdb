@@ -116,10 +116,10 @@ int sdb_delete (Sdb* s, const char *key, ut32 cas) {
 }
 
 // set if not defined
-int sdb_add (Sdb *s, const char *key, const char *val) {
+int sdb_add (Sdb *s, const char *key, const char *val, ut32 cas) {
 	if (sdb_exists (s, key))
 		return 0;
-	return sdb_set (s, key, val, 0);
+	return sdb_set (s, key, val, cas);
 }
 
 int sdb_exists (Sdb* s, const char *key) {

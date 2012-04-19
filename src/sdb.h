@@ -57,7 +57,7 @@ int sdb_nexists (Sdb*, const char *key);
 int sdb_delete (Sdb*, const char *key, ut32 cas);
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
 int sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
-int sdb_add (Sdb *s, const char *key, const char *val);
+int sdb_add (Sdb *s, const char *key, const char *val, ut32 cas);
 void sdb_list(Sdb*);
 int sdb_sync (Sdb*);
 void sdb_kv_free (struct sdb_kv *kv);

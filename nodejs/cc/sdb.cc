@@ -18,6 +18,20 @@ class NodeSdb : public ObjectWrap {
 			sdb = sdb_new (file, lock);
 		}
 
+		static Handle<Value> node_sdb_sync(const Arguments& args) {
+			HandleScope scope;
+			NodeSdb *ns = Unwrap<NodeSdb>(args.This());
+			int foo = sdb_sync(ns->sdb);
+			return scope.Close (foo? True (): False ());
+		}
+		static Handle<Value> node_sdb_exists(const Arguments& args) {
+			HandleScope scope;
+			Local<String> a = args[0]->ToString (); String::Utf8Value pa(a);
+			NodeSdb *ns = Unwrap<NodeSdb>(args.This());
+			int foo = sdb_exists (ns->sdb, *pa);
+			return scope.Close (foo? True (): False ());
+		}
+
 		static Handle<Value> node_sdb_new(const Arguments& args) {
 			HandleScope scope;
 
@@ -29,9 +43,11 @@ class NodeSdb : public ObjectWrap {
 			ns->Wrap (args.This());
 
 			obj->Set (String::NewSymbol ("file"), String::New (*pa));
+			NODE_SET_METHOD (obj, "exists", node_sdb_exists);
+			NODE_SET_METHOD (obj, "sync", node_sdb_sync);
 			NODE_SET_METHOD (obj, "set", node_sdb_set);
 			NODE_SET_METHOD (obj, "get", node_sdb_get);
-			//NODE_SET_METHOD (obj, "jsonSet", node_sdb_set);
+			NODE_SET_METHOD (obj, "jsonSet", node_sdb_json_set);
 			NODE_SET_METHOD (obj, "jsonGet", node_sdb_json_get);
 			return scope.Close (obj);
 		}
@@ -40,6 +56,7 @@ class NodeSdb : public ObjectWrap {
 			return node_sdb_new (args);
 		}
 
+
 		static Handle<Value> node_sdb_json_get(const Arguments& args) {
 			HandleScope scope;
 			Local<String> a = args[0]->ToString (); String::Utf8Value pa(a);
@@ -47,6 +64,18 @@ class NodeSdb : public ObjectWrap {
 			NodeSdb *ns = Unwrap<NodeSdb>(args.This());
 			char *s = sdb_json_get (ns->sdb, *pa, *pb, NULL);
 			if (s) return scope.Close (String::New (s));
+			return scope.Close (Null ());
+		}
+
+		static Handle<Value> node_sdb_json_set(const Arguments& args) {
+			HandleScope scope;
+			Local<String> a = args[0]->ToString (); String::Utf8Value pa(a);
+			Local<String> b = args[1]->ToString (); String::Utf8Value pb(b);
+			Local<String> c = args[2]->ToString (); String::Utf8Value pc(c);
+			// CAS Local<String> c = args[2]->ToInteger(); 
+			NodeSdb *ns = Unwrap<NodeSdb>(args.This());
+			int ret = sdb_json_set (ns->sdb, *pa, *pb, *pc, NULL);
+			if (ret) return scope.Close (Integer::New (ret));
 			return scope.Close (Null ());
 		}
 
