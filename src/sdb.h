@@ -10,7 +10,6 @@ extern "C" {
 #include "cdb.h"
 #include "cdb_make.h"
 
-#define MAXNS 128
 #include "sdb-version.h"
 
 typedef struct sdb_ns_t {
@@ -31,7 +30,8 @@ typedef struct sdb_t {
 	ut32 eod;
 	int fdump;
 	char *ndump;
-	SdbNs ns[MAXNS];
+	ut64 expire;
+	SdbList *ns;
 } Sdb;
 
 
@@ -109,7 +109,7 @@ char *sdb_json_unindent(const char *s);
 Sdb *sdb_ns(Sdb *s, const char *name);
 void sdb_ns_init(Sdb *s);
 void sdb_ns_free(Sdb *s);
-void sdb_ns_sync (Sdb *s, const char *db);
+void sdb_ns_sync (Sdb *s);
 
 #ifdef __cplusplus
 }

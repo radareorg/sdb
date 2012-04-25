@@ -36,13 +36,14 @@ Sdb* sdb_new (const char *dir, int lock) {
 	}
 	s->fdump = -1;
 	s->ndump = NULL;
+	s->ns = ls_new ();
 	s->ht = ht_new ();
 	s->lock = lock;
+	s->expire = 0LL;
 	//s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
 	cdb_init (&s->db, s->fd);
 	cdb_findstart (&s->db);
-	sdb_ns_init (s);
 	return s;
 }
 
@@ -72,8 +73,16 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	char *buf;
 	ut32 hash, pos, len, keylen;
 	SdbKv *kv;
+	ut64 now = 0LL;
 
 	if (!s) return NULL;
+	if (s->expire) {
+		now = sdb_now ();
+		if (now > s->expire) {
+			sdb_delete (s, key, 0);
+			return NULL;
+		}
+	}
 	if (cas) *cas = 0;
 	if (!key) return NULL;
 	keylen = strlen (key);
@@ -83,9 +92,12 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
-			if (kv->expire && sdb_now () > kv->expire) {
-				sdb_delete (s, key, 0);
-				return NULL;
+			if (kv->expire) {
+				if (!now) now = sdb_now ();
+				if (now > kv->expire) {
+					sdb_delete (s, key, 0);
+					return NULL;
+				}
 			}
 			if (cas) *cas = kv->cas;
 			return strdup (kv->value); // XXX too many mallocs
@@ -247,7 +259,7 @@ void sdb_dump_begin (Sdb* s) {
 	} else eod = pos = 0;
 }
 
-// XXX: possible overflow if caller doesnt respects sizes
+// XXX: overflow if caller doesnt respects sizes
 int sdb_dump_next (Sdb* s, char *key, char *value) {
 	ut32 dlen, klen;
 	if (s->fd==-1 || !getkvlen (s->fd, &klen, &dlen))
@@ -279,7 +291,7 @@ ut64 sdb_unow () {
         return x;
 }
 
-static ut64 expire_adapt (ut64 e) {
+static ut64 parse_expire (ut64 e) {
 	const ut64 month = 30 * 24 * 60 * 60;
 	if (e>0 && e<month) e += sdb_now ();
 	return e;
@@ -289,11 +301,15 @@ int sdb_expire(Sdb* s, const char *key, ut64 expire) {
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
+	if (key == NULL) {
+		s->expire = parse_expire (expire);
+		return 1;
+	}
 	hash = sdb_hash (key, 0);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
-			kv->expire = expire_adapt (expire);
+			kv->expire = parse_expire (expire);
 			return 1;
 		}
 		return 0;
