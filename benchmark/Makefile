@@ -22,9 +22,9 @@ endif
 ifneq (${HAVE_NODE},)
 	@printf "node:"
 	@(time node node.js) 2>&1 | grep real | sed s,real,,
-	@printf ".ffi:"
+	@printf "n.ffi:"
 	@(time node node-ffi.js) 2>&1 | grep real | sed s,real,,
-	@printf ".cc:"
+	@printf "n.cc:"
 	@(time node node-cc.js) 2>&1 | grep real | sed s,real,,
 endif
 ifneq (${HAVE_VALA},)
@@ -53,7 +53,7 @@ ifneq (${HAVE_PERL},)
 endif
 ifneq (${HAVE_LUM},)
 	@if [ ! -d modules/sdb ]; then lum -i sdb ; fi
-	@printf "..sdb:"
+	@printf "l.sdb:"
 	@(time luvit luvit-sdb.lua) 2>&1 | grep real | sed s,real,,
 endif
 
