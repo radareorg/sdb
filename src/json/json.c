@@ -49,12 +49,13 @@ rep:
 	return 1;
 }
 
-void json_walk (const char *s) {
+int json_walk (const char *s) {
 	int i, len, ret;
 	unsigned short *res;
 	len = strlen (s);
 	res = malloc (len);
 	ret = js0n ((unsigned char *)s, len, res);
+	if (!ret) return 0;
 	if (*s=='[') {
 		for (i=0; res[i]; i+=2) {
 			printf ("%d %.*s\n", i, res[i+1], s+res[i]);
@@ -65,6 +66,7 @@ void json_walk (const char *s) {
 			printf ("%.*s\n", res[i+3], s+res[i+2]);
 		}
 	}
+	return 1;
 }
 
 Rangstr json_find (const char *s, Rangstr *rs) {
@@ -79,6 +81,7 @@ Rangstr json_find (const char *s, Rangstr *rs) {
 		res = resfix;
 	else res = malloc (len);
 	ret = js0n ((unsigned char *)s, len, res);
+	if (ret>0) return rangstr_null ();
 #define PFREE(x) if (x&&x!=resfix) free (x)
 	if (*s=='[') {
 		n = rangstr_int (rs);
@@ -105,11 +108,10 @@ beach:
 }
 
 Rangstr json_get (const char *js, const char *p) {
-	int len;
 	Rangstr rj = rangstr_new (js);
 	Rangstr rs = rangstr_new (p);
 	json_path_first (&rs);
-	len = rs.t;
+	//len = rs.t;
 	do { 
 		rj = json_find (rangstr_str (&rj), &rs);
 		//if (!rs.p || !rs.p[rs.t]) // HACK to fix path_next()

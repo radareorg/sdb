@@ -361,9 +361,9 @@ int sdb_create (Sdb *s) {
 	int nlen;
 	char *str;
 	if (!s || !s->dir || s->fdump != -1) return 0; // cannot re-create
+	nlen = strlen (s->dir);
 	str = malloc (nlen+5);
 	if (!str) return 0;
-	nlen = strlen (s->dir);
 	strcpy (str, s->dir);
 	strcpy (str+nlen, ".tmp");
 	s->fdump = open (str, O_BINARY|O_RDWR|O_CREAT|O_TRUNC, 0644);

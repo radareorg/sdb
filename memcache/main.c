@@ -91,7 +91,6 @@ static int mcsdb_client_state(McSdbClient *c) {
 		}
 		if (r<0) {
 			printf ("ignored error\n");
-			r = 0;
 			return 1;
 			//return 0;
 		}

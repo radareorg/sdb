@@ -45,8 +45,8 @@ R_API void ls_destroy (SdbList *list) {
 		//	free (it);
 		}
 		list->head = list->tail = NULL;
+		list->length = 0;
 	}
-	list->length = 0;
 	//free (list);
 }
 

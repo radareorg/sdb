@@ -51,7 +51,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		return 0;
 	}
 	//printf ("----> mode=%d buf=(%s)\n", c->mode, buf);
-	if (c->mode == 1) {
+	if (c && c->mode == 1) {
 		b = buf;
 		b[c->len-1] = 0;
 		switch (c->cmdhash) {
@@ -147,6 +147,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		net_printf (fd, "VERSION 0.1\r\n");
 		break;
 	case MCSDB_CMD_DELETE:
+		if (!key) return 0;
 		p = strchr (key, ' ');
 		if (p) {
 			*p = 0;
