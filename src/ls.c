@@ -17,7 +17,7 @@ R_API void ls_delete (SdbList *list, SdbListIter *iter) {
 		printf ("ls_delete: null iter?\n");
 		return;
 	}
-list->free = free; // XXX HACK
+	list->free = free; // XXX HACK
 	ls_split_iter (list, iter);
 	if (list->free && iter->data) {
 		list->free (iter->data);

@@ -32,10 +32,12 @@ static int itoa(int value, char *string) {
 }
 
 char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
-	char *v = sdb_get (s, k, cas);
+	char *u, *v = sdb_get (s, k, cas);
 	if (!v) return NULL;
 	Rangstr rs = json_get (v, p);
-	return rangstr_dup (&rs);
+	u = rangstr_dup (&rs);
+	free (v);
+	return u;
 }
 
 int sdb_json_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas) {

@@ -61,6 +61,7 @@ void sdb_free (Sdb* s) {
 	cdb_free (&s->db);
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
+	ls_free (s->ns);
 	ht_free (s->ht);
 	if (s->fd != -1)
 		close (s->fd);
