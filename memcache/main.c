@@ -70,8 +70,8 @@ static int mcsdb_client_state(McSdbClient *c) {
 	int r, rlen;
 
 	if (c->next>0) {
-		int clen = c->idx-c->next;
-		clen = strlen (c->buf+c->next)+1;
+		//int clen = c->idx-c->next;
+		int clen = strlen (c->buf+c->next)+1;
 		memmove (c->buf, c->buf+c->next, clen);
 		c->idx = clen-1;
 		c->next = 0;

@@ -39,19 +39,19 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 
 int protocol_handle (McSdbClient *c, char *buf) {
 	struct rusage ru;
-	int ret, reply, stored = 1;
+	int fd, ret, reply, stored = 1;
 	char *b, *p, *q, *cmd = buf, *key = NULL;
 	int flags = 0, bytes = 0;
 	ut64 n = 0;
-	int fd = c?c->fd:-1;
 	ut32 cmdhash;
 
-	if (!*buf) { // never happenz
+	if (!c || !*buf) { // never happenz
 		//net_printf (fd, "ERROR\r\n");
 		return 0;
 	}
+	fd = c->fd;
 	//printf ("----> mode=%d buf=(%s)\n", c->mode, buf);
-	if (c && c->mode == 1) {
+	if (c->mode == 1) {
 		b = buf;
 		b[c->len-1] = 0;
 		switch (c->cmdhash) {
