@@ -1,7 +1,7 @@
-HAVE_VALA=$(shell valac --version)
-HAVE_LUM=$(shell lum -h)
-HAVE_NEWLISP=$(shell newlisp -h)
-HAVE_LUVIT=$(shell luvit -h)
+HAVE_VALA=$(shell valac --version 2>/dev/null)
+HAVE_LUM=$(shell lum -h 2>/dev/null)
+HAVE_NEWLISP=$(shell newlisp -h 2>/dev/null)
+HAVE_LUVIT=$(shell luvit -h 2>/dev/null)
 HAVE_NODE=$(shell node -h)
 HAVE_JAVA=$(shell javac -help 2>&1)
 HAVE_PYTHON=$(shell python -h)
@@ -9,6 +9,8 @@ HAVE_PERL=$(shell perl -h)
 
 CFLAGS+=`pkg-config --cflags sdb`
 LDFLAGS+=`pkg-config --libs sdb`
+#CFLAGS+=-I../src
+#LDFLAGS+=-L../src -lsdb
 CFLAGS+=-Wall -O3
 
 all:

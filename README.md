@@ -94,6 +94,8 @@ Using ascii+xz is the best option for storing compressed sdb databases:
 	  37480
 	$ sdb my.db | xz -9 | wc -c
 	  5620
+	$ sdb my.db | lzma -9 | wc -c
+	  5575
 
 To import the database:
 

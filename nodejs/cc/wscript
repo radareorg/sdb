@@ -30,10 +30,10 @@ def build(bld):
   #obj.source = "a.cc"
   obj.cxxflags = ["-D_FILE_OFFSET_BITS=64",
 	"-D_LARGEFILE_SOURCE",
-	"-I/usr/include/sdb",
-	"-arch", arch ]
+	"-I/usr/include/sdb"]
+#, "-arch", arch ]
   obj.ldflags = ["-lsdb"]
-  obj.ldflags = ["/usr/lib/libsdb.a", "-arch", arch]
+  obj.ldflags = ["/usr/lib/libsdb.a"] #, "-arch", arch]
 
 def shutdown():
   if Options.commands['clean']:
