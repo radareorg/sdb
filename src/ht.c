@@ -202,8 +202,7 @@ int ht_insert(SdbHash *ht, ut32 hash, void *data, SdbListIter *iter) {
 				ht->deleted_entries--;
 			entry->hash = hash;
 			entry->data = data;
-			if (!rehash) entry->iter = ls_append (ht->list, data);
-			else entry->iter = iter;
+			entry->iter = rehash? iter: ls_append (ht->list, data);
 			ht->entries++;
 			return 1;
 		}

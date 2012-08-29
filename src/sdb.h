@@ -41,8 +41,8 @@ typedef struct sdb_t {
 #define SDB_VSZ (SDB_BLOCK-sizeof(ut64)-SDB_KEYSIZE)
 
 typedef struct sdb_kv {
-	char key[SDB_KSZ];
-	char value[SDB_VSZ];
+	char key[SDB_KSZ]; // key = 64
+	char value[SDB_VSZ]; // value = 4032
 	ut64 expire;
 	ut32 cas;
 } SdbKv;

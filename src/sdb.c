@@ -159,7 +159,7 @@ void sdb_reset (Sdb *s) {
 }
 
 struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
-	struct sdb_kv *kv = R_NEW (struct sdb_kv);
+	struct sdb_kv *kv = R_NEW (struct sdb_kv); // TODO: too many allocs here. use slices
 	strncpy (kv->key, k, sizeof (kv->key)-1);
 	strncpy (kv->value, v, sizeof (kv->value)-1);
 	kv->cas = nextcas ();
