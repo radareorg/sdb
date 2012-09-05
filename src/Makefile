@@ -25,9 +25,14 @@ BIN=sdb${EXEXT}
 
 all: static shared ${BIN}
 
-shared: libsdb.${SOEXT}
+sdb-version.h:
+	cd .. ; ${MAKE} src/sdb-version.h
 
-static: libsdb.a
+shared: sdb-version.h
+	${MAKE} libsdb.${SOEXT}
+
+static: sdb-version.h
+	${MAKE} libsdb.a
 
 libsdb.a: ${OBJ}
 	@#ar qf libasb.a ${OBJ}
