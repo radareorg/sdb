@@ -1,6 +1,7 @@
 PFX?=/usr
 PWD=$(shell pwd)
 
+VALAC?=valac
 VFILES+=hash.vala 
 VFILES+=stack.vala stackiterator.vala
 VFILES+=array.vala arrayiterator.vala
@@ -17,22 +18,26 @@ LDFLAGS+=../../memcache/libmcsdb.a
 CFLAGS+=$(shell pkg-config --cflags gobject-2.0)
 LDFLAGS+=$(shell pkg-config --libs gobject-2.0)
 
-all: test libsdbtypes.a
+all: test
 
 run:
 	rm -f food.sdb
 	./test
 	sdb food.sdb
 
-libsdbtypes.a: ${VFILES}
+libsdbtypes.a: ${OFILES}
 	ar -r libsdbtypes.a ${OFILES}
 	ranlib libsdbtypes.a
 
 testvapi:
 	valac --pkg sdbtypes main.vala
 
-test: ${VFILES} main.vala
-	valac -H sdbtypes.h --vapi=sdbtypes.vapi --save-temps -c ${VFILES} ${VFLAGS} main.vala
+${OFILES}: intermediate
+
+intermediate: ${VFILES} main.vala
+	${VALAC} -H sdbtypes.h --vapi=sdbtypes.vapi --save-temps -c ${VFILES} ${VFLAGS} main.vala
+
+test: libsdbtypes.a main.vala
 	${CC} -o test ${OFILES} ${LDFLAGS} main.o
 
 install-dirs:
@@ -62,4 +67,5 @@ clean:
 	rm -f *.c *.o sdbtypes.vapi sdbtypes.h
 	rm -f test food.sdb libsdbtypes.a
 
-.PHONY: all run clean install
+.PHONY: all run clean install uninstall deinstall symstall install-dirs testvapi
+.INTERMEDIATE: intermediate
