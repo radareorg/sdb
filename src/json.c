@@ -203,13 +203,7 @@ char *sdb_json_unindent(const char *s) {
 	return O;
 }
 
-typedef struct {
-	char *buf;
-	int blen;
-	int len;
-} SdbJsonString;
-
-char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
+const char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
 	va_list ap;
 	char *arg_s, *x, tmp[128];
 	float arg_f;
@@ -290,7 +284,7 @@ int main () {
 	SdbJsonString s = {0};
 	sdb_json_format (&s, "[{%s:%d},%b]", "Hello \"world\"", 1024, 3);
 	printf ("%s\n", sdb_json_format (&s, 0));
-	free (s.buf);
+	sdb_json_format_free (&s);
 	return 0;
 }
 #endif
