@@ -209,7 +209,7 @@ typedef struct {
 	int len;
 } SdbJsonString;
 
-char *sdb_json_format(SdbJsonString* s, ...) {
+char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
 	va_list ap;
 	char *arg_s, *x, tmp[128];
 	float arg_f;
@@ -226,61 +226,58 @@ char *sdb_json_format(SdbJsonString* s, ...) {
 	if (!s->buf) {
 		s->blen = 1024;
 		s->buf = malloc (s->blen);
+		*s->buf = 0;
 	}
-	va_start (ap, s);
-	for (;;) {
-		char p = va_arg (ap, int);
-		if (!p) break;
-		switch (p) {
-		case ',':
-		case ':':
-		case '{':
-		case '}':
-		case '[':
-		case ']':
-			JSONSTR_ALLOCATE (10);
-			s->buf[s->len++] = p;
-			break;
-		case 'b':
-			JSONSTR_ALLOCATE (32);
-			arg_i = va_arg (ap, int);
-			arg_i = arg_i? 4: 5;
-			memcpy (s->buf+s->len, arg_i==4?"true":"false", 5);
-			s->len += arg_i;
-			break;
-		case 'f':
-			JSONSTR_ALLOCATE (32);
-			arg_f = va_arg (ap, int);
-			snprintf (tmp, sizeof (tmp), "%f", arg_f);
-			memcpy (s->buf+s->len, tmp, strlen (tmp));
-			s->len += strlen (tmp);
-			break;
-		case 'l':
-			JSONSTR_ALLOCATE (32);
-			arg_l = va_arg (ap, unsigned long long);
-			snprintf (tmp, sizeof (tmp), "0x%llx", arg_l);
-			memcpy (s->buf+s->len, tmp, strlen (tmp));
-			s->len += strlen (tmp);
-			break;
-		case 'd':
-		case 'i':
-			JSONSTR_ALLOCATE (32);
-			arg_i = va_arg (ap, int);
-			snprintf (tmp, sizeof (tmp), "%d", arg_i);
-			memcpy (s->buf+s->len, tmp, strlen (tmp));
-			s->len += strlen (tmp);
-			break;
-		case 's':
-			arg_s = va_arg (ap, char *);
-			JSONSTR_ALLOCATE (strlen (arg_s)+3);
-			s->buf[s->len++] = '"';
-			for (i=0; arg_s[i]; i++) {
-				if (arg_s[i]=='"')
-					s->buf[s->len++] = '\\';
-				s->buf[s->len++] = arg_s[i];
+	if (!fmt || !*fmt) return s->buf;
+	va_start (ap, fmt);
+	for (; *fmt; fmt++) {
+		if (*fmt == '%') {
+			fmt++;
+			switch (*fmt) {
+			case 'b':
+				JSONSTR_ALLOCATE (32);
+				arg_i = va_arg (ap, int);
+				arg_i = arg_i? 4: 5;
+				memcpy (s->buf+s->len, arg_i==4?"true":"false", 5);
+				s->len += arg_i;
+				break;
+			case 'f':
+				JSONSTR_ALLOCATE (32);
+				arg_f = va_arg (ap, int);
+				snprintf (tmp, sizeof (tmp), "%f", arg_f);
+				memcpy (s->buf+s->len, tmp, strlen (tmp));
+				s->len += strlen (tmp);
+				break;
+			case 'l':
+				JSONSTR_ALLOCATE (32);
+				arg_l = va_arg (ap, unsigned long long);
+				snprintf (tmp, sizeof (tmp), "0x%llx", arg_l);
+				memcpy (s->buf+s->len, tmp, strlen (tmp));
+				s->len += strlen (tmp);
+				break;
+			case 'd':
+			case 'i':
+				JSONSTR_ALLOCATE (32);
+				arg_i = va_arg (ap, int);
+				snprintf (tmp, sizeof (tmp), "%d", arg_i);
+				memcpy (s->buf+s->len, tmp, strlen (tmp));
+				s->len += strlen (tmp);
+				break;
+			case 's':
+				arg_s = va_arg (ap, char *);
+				JSONSTR_ALLOCATE (strlen (arg_s)+3);
+				s->buf[s->len++] = '"';
+				for (i=0; arg_s[i]; i++) {
+					if (arg_s[i]=='"')
+						s->buf[s->len++] = '\\';
+					s->buf[s->len++] = arg_s[i];
+				}
+				s->buf[s->len++] = '"';
+				break;
 			}
-			s->buf[s->len++] = '"';
-			break;
+		} else {
+			JSONSTR_ALLOCATE (10);
+			s->buf[s->len++] = *fmt;
 		}
 		s->buf[s->len] = 0;
 	}
@@ -288,13 +285,10 @@ char *sdb_json_format(SdbJsonString* s, ...) {
 	return s->buf;
 }
 
-#if JSON_STRING_TEST
+#if 0
 int main () {
 	SdbJsonString s = {0};
-	sdb_json_format (&s, '[');
-	sdb_json_format (&s, '{', 's', "Hello \"World", ':', 'i', 1024, '}', 0);
-	sdb_json_format (&s, ',', 'b', 3);
-	sdb_json_format (&s, ']');
+	sdb_json_format (&s, "[{%s:%d},%b]", "Hello \"world\"", 1024, 3);
 	printf ("%s\n", sdb_json_format (&s, 0));
 	free (s.buf);
 	return 0;
