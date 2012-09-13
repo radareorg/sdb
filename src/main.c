@@ -64,6 +64,7 @@ static void createdb(const char *f) {
 
 static void runline (Sdb *s, const char *cmd) {
 	ut64 n;
+	const char *p2;
 	char *p, *eq;
 	switch (*cmd) {
 	case '+': // inc
@@ -110,10 +111,8 @@ static void runline (Sdb *s, const char *cmd) {
 				*eq = 0;
 				sdb_set (s, cmd, eq+1, 0);
 			} else
-			if ((p = sdb_get (s, cmd, 0))) {
-				printf ("%s\n", p);
-				free (p);
-			}
+			if ((p2 = sdb_getc (s, cmd, 0)))
+				printf ("%s\n", p2);
 		}
 	}
 }
