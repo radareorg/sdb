@@ -62,7 +62,7 @@ char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime, ut32 *cas);
 char *mcsdb_incr(McSdb *ms, const char *key, ut64 val);
 char *mcsdb_decr(McSdb *ms, const char *key, ut64 val);
 int mcsdb_replace(McSdb *ms, const char *key, ut64 exptime, const char *body);
-int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime);
+int mcsdb_remove(McSdb *ms, const char *key, ut64 exptime);
 int mcsdb_add(McSdb *ms, const char *key, ut64 exptime, const char *body);
 void mcsdb_append(McSdb *ms, const char *key, ut64 exptime, const char *body);
 void mcsdb_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body);
@@ -85,6 +85,6 @@ int mcsdb_client_append(McSdbClient *ms, const char *key, const char *body, ut64
 int mcsdb_client_prepend(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
 int mcsdb_client_replace(McSdbClient *ms, const char *key, const char *body, ut64 exptime);
 char *mcsdb_client_get (McSdbClient *ms, const char *key, ut64 *exptime);
-int mcsdb_client_delete(McSdbClient *ms, const char *key, ut64 exptime);
+int mcsdb_client_remove(McSdbClient *ms, const char *key, ut64 exptime);
 
 #endif

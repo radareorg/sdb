@@ -54,7 +54,7 @@ void sdb_reset (Sdb *s);
 
 int sdb_exists (Sdb*, const char *key);
 int sdb_nexists (Sdb*, const char *key);
-int sdb_delete (Sdb*, const char *key, ut32 cas);
+int sdb_remove (Sdb*, const char *key, ut32 cas);
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
 int sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
 int sdb_add (Sdb *s, const char *key, const char *val, ut32 cas);

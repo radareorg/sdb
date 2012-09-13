@@ -157,7 +157,7 @@ int protocol_handle (McSdbClient *c, char *buf) {
 		} else reply = 1;
 		c->exptime = 0LL;
 		sscanf (key, "%llu", &c->exptime);
-		ret = mcsdb_delete (ms, key, c->exptime);
+		ret = mcsdb_remove (ms, key, c->exptime);
 		if (reply) {
 			if (ret) net_printf (fd, "DELETED\r\n");
 			else net_printf (fd, "NOT_FOUND\r\n");

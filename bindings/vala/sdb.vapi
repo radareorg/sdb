@@ -19,10 +19,10 @@ namespace SimpleDB {
 		public string json_set (string key, string path, string val, uint32 cas);
 		public static string json_indent (string json);
 		public static string json_unindent (string json);
-		/* delete */
+		/* remove */
 		public bool exists (string key);
 		public bool nexists (string key);
-		public bool @delete (string key, int cas=0);
+		public bool remove (string key, int cas=0);
 		public void flush ();
 		/* time */
 		public uint64 get_expire (string key);

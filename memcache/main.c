@@ -8,6 +8,7 @@ int protocol_handle(McSdbClient *c, char *buf);
 
 static McSdbClient *mcsdb_client_new_fd(int fd) {
 	McSdbClient *c = R_NEW (McSdbClient);
+	if (!c) return NULL;
 	memset (c, 0, sizeof (McSdbClient));
 	c->fd = fd;
 	return c;

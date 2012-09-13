@@ -80,7 +80,7 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	if (s->expire) {
 		now = sdb_now ();
 		if (now > s->expire) {
-			sdb_delete (s, key, 0);
+			sdb_remove (s, key, 0);
 			return NULL;
 		}
 	}
@@ -96,7 +96,7 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 			if (kv->expire) {
 				if (!now) now = sdb_now ();
 				if (now > kv->expire) {
-					sdb_delete (s, key, 0);
+					sdb_remove (s, key, 0);
 					return NULL;
 				}
 			}
@@ -124,7 +124,7 @@ char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	return buf;
 }
 
-int sdb_delete (Sdb* s, const char *key, ut32 cas) {
+int sdb_remove (Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
@@ -226,7 +226,7 @@ int sdb_sync (Sdb* s) {
 			sdb_append (s, kv->key, kv->value);
 		if (kv->expire == 0LL) {
 			it.n = iter->n;
-			sdb_delete (s, kv->key, 0);
+			sdb_remove (s, kv->key, 0);
 			iter = &it;
 		}
 	}

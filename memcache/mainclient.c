@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 			if (p) {
 				*p++ = 0;
 				if (*p) mcsdb_client_set (ms, buf, p, 0);
-				else mcsdb_client_delete (ms, buf, 0);
+				else mcsdb_client_remove (ms, buf, 0);
 			} else {
 				char *v = mcsdb_client_get (ms, buf, NULL);
 				printf ("%s\n", v? v: "");

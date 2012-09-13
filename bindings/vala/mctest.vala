@@ -7,11 +7,11 @@ int main() {
 		return 1;
 	}
 	c.set ("count", "0");
-	for(int i =0 ; i<2000; i++) {
+	for(int i = 0 ; i<2000; i++) {
 		c.add ("foo", "Hello");
 		c.set ("bar", "World");
 		print ("%s %s\n", c.get ("foo"), c.get ("bar"));
-		c.delete ("foo");
+		c.remove ("foo");
 		c.incr ("count", 1);
 	}
 	return 0;

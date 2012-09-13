@@ -136,7 +136,7 @@ char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime, ut32 *cas) {
 	return s;
 }
 
-int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime) {
+int mcsdb_remove(McSdb *ms, const char *key, ut64 exptime) {
 	if (!sdb_exists (ms->sdb, key))
 		return 0;
 	if (exptime>0) {
@@ -145,5 +145,5 @@ int mcsdb_delete(McSdb *ms, const char *key, ut64 exptime) {
 	}
 	if (sdb_get_expire (ms->sdb, key)>0)
 		ms->evictions++;
-	return sdb_delete (ms->sdb, key, 0);
+	return sdb_remove(ms->sdb, key, 0);
 }

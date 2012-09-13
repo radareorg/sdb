@@ -39,7 +39,7 @@ namespace SdbTypes {
 					kstr += k;
 				}
 			}
-			si.delete ("hash."+name+"."+key);
+			si.remove ("hash."+name+"."+key);
 			si.set ("hash."+name+"keys", kstr);
 		}
 

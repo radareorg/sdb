@@ -7,7 +7,7 @@ var SDB = new FFI.Library ("libsdb", {
 //,	"malloc": [ "pointer", ["int"]]
 ,	"sdb_append": [ "int", ["pointer", "string", "string"]]
 ,	"sdb_finish": [ "int", ["pointer"]]
-,	"sdb_delete": [ "int", ["pointer", "string", "int"]]
+,	"sdb_remove": [ "int", ["pointer", "string", "int"]]
 ,	"sdb_get": [ "string", ["pointer", "string", "pointer"]]
 ,	"sdb_set": [ "int", ["pointer", "string", "string", "uint32"]]
 ,	"sdb_add": [ "int", ["pointer", "string", "string", "uint32"]]
@@ -70,8 +70,8 @@ exports.open = function (file) {
 	this.add = function (x, y) {
 		return SDB.sdb_add (this.o, x, y, 0);
 	}
-	this.delete = function (x, y) {
-		return SDB.sdb_delete(this.o, x, y);
+	this.remove = function (x, y) {
+		return SDB.sdb_remove (this.o, x, y);
 	}
 	this.sync = function () {
 		SDB.sdb_sync (this.o);

@@ -99,7 +99,7 @@ char *mcsdb_client_get (McSdbClient *ms, const char *key, ut64 *exptime) {
 	return buf;
 }
 
-int mcsdb_client_delete (McSdbClient *ms, const char *key, ut64 exptime) {
+int mcsdb_client_remove (McSdbClient *ms, const char *key, ut64 exptime) {
 	int ret;
 	char *res;
 	net_printf (ms->fd, "delete %s %lld 0\r\n", key, exptime);
