@@ -1,6 +1,8 @@
-PKGCFG=PKG_CONFIG_PATH=. pkg-config --cflags --libs --define-variable=libdir=../src --define-variable=includedir=../src
+PKGCFG=PKG_CONFIG_PATH=. pkg-config --cflags --libs
+PKGCFG+=--define-variable=libdir=../../src --define-variable=includedir=../../src
 SDB_FLAGS=$(shell ${PKGCFG} sdb)
-MCPKGCFG=PKG_CONFIG_PATH=. pkg-config --cflags --libs --define-variable=libdir=../memcache --define-variable=includedir=../memcache
+MCPKGCFG=PKG_CONFIG_PATH=. pkg-config --cflags --libs 
+MCPKGCFG+=--define-variable=libdir=../../memcache --define-variable=includedir=../../memcache
 MCSDB_FLAGS=$(shell ${MCPKGCFG} mcsdb) ${SDB_FLAGS}
 GFLAGS=$(shell pkg-config gobject-2.0 --libs --cflags)
 
