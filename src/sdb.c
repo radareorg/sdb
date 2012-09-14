@@ -209,7 +209,7 @@ int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	ut32 hash, klen;
 	if (!s || !key || !val)
 		return 0;
-	klen = strlen (key);
+	klen = strlen (key)+1;
 	hash = sdb_hash (key, klen);
 	cdb_findstart (&s->db);
 	e = ht_search (s->ht, hash);
@@ -376,7 +376,7 @@ ut64 sdb_get_expire(Sdb* s, const char *key) {
 
 ut32 sdb_hash(const char *s, int len) {
 	ut32 h = CDB_HASHSTART;
-	if (len<1) len = strlen (s); // XXX slow
+	if (len<1) len = strlen (s)+1; // XXX slow
 	while (len--) {
 		h += (h<<5);
 		h ^= *s++;
@@ -430,3 +430,61 @@ int sdb_finish (Sdb *s) {
 	s->ndump = NULL;
 	return 1; // XXX: 
 }
+
+int sdb_query (Sdb *s, const char *cmd) {
+	int save = 0;
+	ut64 n;
+	const char *p2;
+	char *p, *eq;
+	switch (*cmd) {
+	case '+': // inc
+		if ((eq = strchr (cmd+1, '?'))) {
+			*eq = 0;
+			n = sdb_json_inc (s, cmd+1, eq+1, 1, 0);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		} else {
+			n = sdb_inc (s, cmd+1, 1, 0);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		}
+		break;
+	case '-': // dec
+		if ((eq = strchr (cmd+1, '?'))) {
+			*eq = 0;
+			n = sdb_json_dec (s, cmd+1, eq+1, 1, 0);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		} else {
+			n = sdb_dec (s, cmd+1, 1, 0);
+			save = 1;
+			printf ("%"ULLFMT"d\n", n);
+		}
+		break;
+	default:
+		/* spaghetti */
+		if ((eq = strchr (cmd, '?'))) {
+			char *path = eq+1;
+			*eq = 0;
+			if ((eq = strchr (path+1, '='))) {
+				save = 1;
+				*eq = 0;
+				sdb_json_set (s, cmd, path, eq+1, 0);
+			} else
+			if ((p = sdb_json_get (s, cmd, path, 0))) {
+				printf ("%s\n", p);
+				free (p);
+			}
+		} else {
+			if ((eq = strchr (cmd, '='))) {
+				save = 1;
+				*eq = 0;
+				sdb_set (s, cmd, eq+1, 0);
+			} else
+			if ((p2 = sdb_getc (s, cmd, 0)))
+				printf ("%s\n", p2);
+		}
+	}
+	return save;
+}
+

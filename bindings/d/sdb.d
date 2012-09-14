@@ -4,9 +4,10 @@ import std.conv;
 import std.string;
 import core.stdc.string;
 
-extern(C) {
+extern (C) {
 	void* sdb_new (const char *dir, int lock);
 	char* sdb_get (void*, const char *key, uint* cas);
+	const (char*) sdb_getc (void*, const char *key, uint* cas);
 	int sdb_remove (void*, const char *key, uint cas);
 	int sdb_set (void*, const char *key, const char *data, uint cas);
 	void sdb_free (void* s);
@@ -14,11 +15,12 @@ extern(C) {
 
 class Sdb {
 	private void *db;
-	~this() {
+
+	~this () {
 		sdb_free (db);
 	}
 
-	this() {
+	this () {
 		db = sdb_new (null, 0);
 		writeln ("Hello World");
 	}
@@ -37,7 +39,7 @@ class Sdb {
 	}
 
 	public string get(string key, uint* cas=null) {
-		char* s = sdb_get (db, cast(char*)key, cas);
+		auto s = sdb_getc (db, cast(char*)key, cas);
 		return s? to!string (s): null;
 	}
 }
