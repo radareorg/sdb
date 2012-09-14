@@ -26,8 +26,8 @@ clean:
 dist:
 	rm -f sdb-${VERSION}.tar.gz
 	rm -rf sdb-${VERSION}
-	hg clone . sdb-${VERSION}
-	rm -rf sdb-${VERSION}/.hg*
+	git clone . sdb-${VERSION}
+	rm -rf sdb-${VERSION}/.git*
 	tar czvf sdb-${VERSION}.tar.gz sdb-${VERSION}
 	pub sdb-${VERSION}.tar.gz
 	rm -rf sdb-${VERSION}

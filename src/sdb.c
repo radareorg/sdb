@@ -431,55 +431,43 @@ int sdb_finish (Sdb *s) {
 	return 1; // XXX: 
 }
 
+// TODO: return char *
 int sdb_query (Sdb *s, const char *cmd) {
 	int save = 0;
 	ut64 n;
 	const char *p2;
-	char *p, *eq;
+	char *p, *eq, *ask;
 	switch (*cmd) {
 	case '+': // inc
 		if ((eq = strchr (cmd+1, '?'))) {
 			*eq = 0;
 			n = sdb_json_inc (s, cmd+1, eq+1, 1, 0);
-			save = 1;
-			printf ("%"ULLFMT"d\n", n);
-		} else {
-			n = sdb_inc (s, cmd+1, 1, 0);
-			save = 1;
-			printf ("%"ULLFMT"d\n", n);
-		}
+		} else n = sdb_inc (s, cmd+1, 1, 0);
+		printf ("%"ULLFMT"d\n", n);
+		save = 1;
 		break;
 	case '-': // dec
 		if ((eq = strchr (cmd+1, '?'))) {
 			*eq = 0;
 			n = sdb_json_dec (s, cmd+1, eq+1, 1, 0);
-			save = 1;
-			printf ("%"ULLFMT"d\n", n);
-		} else {
-			n = sdb_dec (s, cmd+1, 1, 0);
-			save = 1;
-			printf ("%"ULLFMT"d\n", n);
-		}
+		} else n = sdb_dec (s, cmd+1, 1, 0);
+		printf ("%"ULLFMT"d\n", n);
+		save = 1;
 		break;
 	default:
-		/* spaghetti */
-		if ((eq = strchr (cmd, '?'))) {
-			char *path = eq+1;
+		if ((ask = strchr (cmd+1, '?')))
+			*ask = 0;
+		if ((eq = strchr (ask+1, '='))) {
 			*eq = 0;
-			if ((eq = strchr (path+1, '='))) {
-				save = 1;
-				*eq = 0;
-				sdb_json_set (s, cmd, path, eq+1, 0);
-			} else
-			if ((p = sdb_json_get (s, cmd, path, 0))) {
-				printf ("%s\n", p);
-				free (p);
-			}
+			save = 1;
+			if (ask) sdb_json_set (s, cmd, ask+1, eq+1, 0);
+			else sdb_set (s, cmd, eq+1, 0);
 		} else {
-			if ((eq = strchr (cmd, '='))) {
-				save = 1;
-				*eq = 0;
-				sdb_set (s, cmd, eq+1, 0);
+			if (ask) {
+				if ((p = sdb_json_get (s, cmd, ask+1, 0))) {
+					printf ("%s\n", p);
+					free (p);
+				}
 			} else
 			if ((p2 = sdb_getc (s, cmd, 0)))
 				printf ("%s\n", p2);
@@ -487,4 +475,3 @@ int sdb_query (Sdb *s, const char *cmd) {
 	}
 	return save;
 }
-

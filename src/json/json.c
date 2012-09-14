@@ -159,4 +159,3 @@ return rj;
 char *json_set (const char *s, const char *k, const char *v) {
 	return NULL;
 }
-

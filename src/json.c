@@ -5,12 +5,11 @@
 #include "json/json.h"
 
 static int itoa(int value, char *string) {
-	int i, sign, count;
+	int i, sign, count = 0;
 	char buf[64];
 	char *temp = buf;
 	char *ptr = string;
 
-	count = 0;
 	temp[0] = 0;
 	string[0] = 0;
 
@@ -125,12 +124,9 @@ char *sdb_json_indent(const char *s) {
 	char *o, *O = malloc (strlen (s)*2);
 	for (o=O; *s; s++) {
 		if (instr) {
-			if (s[0] == '"') {
-				instr = 0;
-			} else {
-				if (s[0] == '\\' && s[1] == '"')
-					*o++ = *s;
-			}
+			if (s[0] == '"') instr = 0;
+			else if (s[0] == '\\' && s[1] == '"')
+				*o++ = *s;
 			*o++ = *s;
 			continue;
 		} else {
@@ -152,13 +148,8 @@ char *sdb_json_indent(const char *s) {
                         break;
                 case '{':
                 case '[':
-                        if (indent!=-1 ) {
-                                *o++ = *s;
-                                *o++ = '\n';
-                        } else {
-                                *o++ = *s;
-                                *o++ = ' ';
-                        }
+			*o++ = *s;
+			*o++ = (indent!=-1)?'\n':' ';
                         INDENT (1);
                         break;
                 case '}':

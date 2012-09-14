@@ -42,6 +42,7 @@ void cdb_init(struct cdb *c, int fd) {
 		char *x = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 #else
 		char *x = malloc (st.st_size);
+		if (!x) return;
 		read (fd, x, st.st_size); // TODO: handle return value
 #endif
 		if (x + 1) {
