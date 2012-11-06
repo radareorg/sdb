@@ -435,11 +435,16 @@ int sdb_query (Sdb *s, const char *cmd) {
 	int save = 0;
 	ut64 n;
 	const char *p2;
-	char *p, *eq;
+	char *p, *eq = strchr (cmd, '?');
+
+	if (eq) {
+		if (!eq[1]) return 0;
+		*eq = 0;
+	}
+	
 	switch (*cmd) {
 	case '+': // inc
-		if ((eq = strchr (cmd+1, '?'))) {
-			*eq = 0;
+		if (eq) {
 			n = sdb_json_inc (s, cmd+1, eq+1, 1, 0);
 			save = 1;
 			printf ("%"ULLFMT"d\n", n);
@@ -450,8 +455,7 @@ int sdb_query (Sdb *s, const char *cmd) {
 		}
 		break;
 	case '-': // dec
-		if ((eq = strchr (cmd+1, '?'))) {
-			*eq = 0;
+		if (eq) {
 			n = sdb_json_dec (s, cmd+1, eq+1, 1, 0);
 			save = 1;
 			printf ("%"ULLFMT"d\n", n);
@@ -463,9 +467,9 @@ int sdb_query (Sdb *s, const char *cmd) {
 		break;
 	default:
 		/* spaghetti */
-		if ((eq = strchr (cmd, '?'))) {
+		if (eq) {
 			char *path = eq+1;
-			*eq = 0;
+			if (!*path) break;
 			if ((eq = strchr (path+1, '='))) {
 				save = 1;
 				*eq = 0;
