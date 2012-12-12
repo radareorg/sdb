@@ -1,0 +1,19 @@
+{
+  "name": "sdb",
+  "version": "0.5.0",
+  "url": "http://www.github.com/radare/sdb",
+  "description": "simple keyvalue database with native json support",
+  "dependencies": {
+    "node-ffi": "*"
+  },
+  "files": [
+    "index.js",
+    "test.js"
+  ],
+  "keywords": [
+    "database",
+    "key",
+    "value",
+    "memcache"
+  ]
+}

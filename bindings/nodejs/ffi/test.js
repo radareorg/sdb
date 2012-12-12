@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var Sdb = require ("./sdb");
+var Sdb = require ("./");
 
 var s = Sdb.open ("test.sdb");
 s.add ("foo", "Hello World");
@@ -16,7 +16,7 @@ console.log (js);
 s.set ("g", js);
 
 var a = s.jsonGet ("g", 'glossary.GlossDiv.GlossList.GlossEntry.GlossDef.GlossSeeAlso[0]');
-console.log (a);
+console.log ("==> ",a);
 // 3 times slower than luajit-ffi!
 if (false) {
 	for (var i=0; i<199999; i++) {

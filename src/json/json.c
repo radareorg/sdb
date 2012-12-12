@@ -49,6 +49,28 @@ rep:
 	return 1;
 }
 
+typedef int (*JSONCallback)();
+
+int json_foreach(const char *s, JSONCallback cb) {
+	int i, len, ret;
+	unsigned short *res = NULL;
+	len = strlen (s);
+	res = malloc (len);
+	ret = js0n ((unsigned char *)s, len, res);
+	if (!ret) return 0;
+	if (*s=='[') {
+		for (i=0; res[i]; i+=2) {
+			printf ("%d %.*s\n", i, res[i+1], s+res[i]);
+		}
+	} else {
+		for (i=0; res[i]; i+=4) {
+			printf ("%.*s = ", res[i+1], s+res[i]);
+			printf ("%.*s\n", res[i+3], s+res[i+2]);
+		}
+	}
+	return 1;
+}
+
 int json_walk (const char *s) {
 	int i, len, ret;
 	unsigned short *res;
@@ -56,7 +78,7 @@ int json_walk (const char *s) {
 	res = malloc (len);
 	ret = js0n ((unsigned char *)s, len, res);
 	if (!ret) return 0;
-	if (*s=='[') {
+	if (*s=='[' || *s=='{') {
 		for (i=0; res[i]; i+=2) {
 			printf ("%d %.*s\n", i, res[i+1], s+res[i]);
 		}

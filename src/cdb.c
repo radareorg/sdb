@@ -8,7 +8,7 @@
 #include <sys/mman.h>
 #endif
 
-// XXX: this code must be rewritten . too slow
+/* XXX: this code must be rewritten . too slow */
 int getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 	ut8 buf[4];
 	if (read (fd, buf, 4) != 4)

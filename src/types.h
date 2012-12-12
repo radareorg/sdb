@@ -5,7 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 
-typedef unsigned long seek_pos;
 #ifndef ut8
 #define ut8 unsigned char
 #define ut32 unsigned int
@@ -24,8 +23,8 @@ typedef unsigned long seek_pos;
 #define SET 0 /* sigh */
 #define CUR 1 /* sigh */
 #define seek_cur(fd) (lseek((fd), 0, CUR))
-#define seek_begin(fd) (seek_set ((fd), (seek_pos) 0))
-static inline int seek_set(int fd, seek_pos pos) {
+#define seek_begin(fd) (seek_set ((fd), (off_t) 0))
+static inline int seek_set(int fd, off_t pos) {
 	return (lseek (fd, (off_t) pos, SET) == -1)? 0:1;
 }
 
