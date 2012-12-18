@@ -4,8 +4,8 @@
 #include "sdb.h"
 #include "json/json.h"
 
-static int itoa(int value, char *string) {
-	int i, sign, count = 0;
+static int __itoa(int value, char *string) {
+	int i, sign, count;
 	char buf[64];
 	char *temp = buf;
 	char *ptr = string;
@@ -32,9 +32,10 @@ static int itoa(int value, char *string) {
 }
 
 char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
+	Rangstr rs;
 	char *u, *v = sdb_get (s, k, cas);
 	if (!v) return NULL;
-	Rangstr rs = json_get (v, p);
+	rs = json_get (v, p);
 	u = rangstr_dup (&rs);
 	free (v);
 	return u;
@@ -63,8 +64,7 @@ int sdb_json_geti (Sdb *s, const char *k, const char *p) {
 
 int sdb_json_seti (Sdb *s, const char *k, const char *p, int v, ut32 cas) {
 	char str[64];
-	str[0] = 0;
-	itoa (v, str);
+	__itoa (v, str);
 	return sdb_json_set (s, k, p, str, cas);
 }
 
@@ -80,7 +80,6 @@ int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, ut32 cas)
 		free (js);
 		return 0;
 	}
-
 	if (!js) return 0;
 	rs = json_get (js, p);
 	if (!rs.p) {

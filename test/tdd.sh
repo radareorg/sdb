@@ -1,6 +1,7 @@
 #!/bin/sh
 # test driven development tests for sdb
 # author: pancake 2012
+
 tdd() {
 	v="$1" ; shift ; a="`$@`"
 #echo $a
@@ -9,7 +10,7 @@ tdd() {
 }
 
 df="test.db"
-db="./sdb $df"
+db="../src/sdb $df"
 rm -f $df
 $db = <<EOF
 ctr=0

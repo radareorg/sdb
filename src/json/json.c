@@ -157,7 +157,10 @@ fprintf (stderr, "onjson (%s)\n", rangstr_dup (&rj));
 //fprintf (stderr, "++ (%s)(%d vs %d)\n", rangstr_dup (&rs), x, rs.t);
 //if (rj.p[rj.f]=='[') { break; }
 //fprintf (stderr, "ee %c\n", rj.p[rj.f]);
-			if (!rj2.p) break;
+			if (!rj2.p) {
+				if (!rj.p[rj.t]) return rj2;
+				break;
+			}
 			rj = rj2;
 #if 0
 fprintf (stderr, "--  (%s)\n", rangstr_dup (&rj));
