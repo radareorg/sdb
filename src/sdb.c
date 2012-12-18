@@ -454,14 +454,15 @@ int sdb_query (Sdb *s, const char *cmd) {
 		save = 1;
 		break;
 	default:
+		if (ask>eq) ask = NULL;
 		if ((eq = strchr (cmd, '='))) {
 			// 1 0 kvpath=value
 			// 1 1 kvpath?jspath=value
 			save = 1;
 			*eq++ = 0;
 			if (ask) {
-				*ask++ = 0;
 				// sdbjsonset
+				*ask++ = 0;
 				sdb_json_set (s, cmd, ask, eq, 0);
 			} else {
 				// sdbset
