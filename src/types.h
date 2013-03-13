@@ -25,7 +25,7 @@
 #define seek_cur(fd) (lseek((fd), 0, CUR))
 #define seek_begin(fd) (seek_set ((fd), (off_t) 0))
 static inline int seek_set(int fd, off_t pos) {
-	return (lseek (fd, (off_t) pos, SET) == -1)? 0:1;
+	return (fd==-1 || lseek (fd, (off_t) pos, SET) == -1)? 0:1;
 }
 
 #define byte_equal(s,n,t) (!byte_diff((s),(n),(t)))

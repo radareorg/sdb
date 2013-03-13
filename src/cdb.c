@@ -11,7 +11,7 @@
 /* XXX: this code must be rewritten . too slow */
 int getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 	ut8 buf[4];
-	if (read (fd, buf, 4) != 4)
+	if (fd == -1 || read (fd, buf, 4) != 4)
 		return 0;
 	*klen = (ut32)buf[0];
 	*vlen = (ut32)(buf[1] + ((ut32)buf[2]<<8) + ((ut32)buf[3]<<16));
