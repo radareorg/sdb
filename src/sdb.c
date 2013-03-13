@@ -454,8 +454,9 @@ int sdb_query (Sdb *s, const char *cmd) {
 		save = 1;
 		break;
 	default:
-		if (ask>eq) ask = NULL;
-		if ((eq = strchr (cmd, '='))) {
+		eq = strchr (cmd, '=');
+		if (eq && ask>eq) ask = NULL;
+		if (eq) {
 			// 1 0 kvpath=value
 			// 1 1 kvpath?jspath=value
 			save = 1;

@@ -5,7 +5,7 @@
 #include "json/json.h"
 
 static int __itoa(int value, char *string) {
-	int i, sign, count;
+	int i, sign, count = 0;
 	char buf[64];
 	char *temp = buf;
 	char *ptr = string;
