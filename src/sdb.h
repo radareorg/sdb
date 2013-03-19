@@ -34,7 +34,6 @@ typedef struct sdb_t {
 	SdbList *ns;
 } Sdb;
 
-
 // XXX: use buckets here, drop these limits
 #define SDB_BLOCK 4096
 #define SDB_KSZ 64

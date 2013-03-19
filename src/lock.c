@@ -1,4 +1,4 @@
-/* Copyleft 2011-2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2011-2013 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 
 #include <stdio.h>
 #include <string.h>
@@ -31,12 +31,19 @@ int sdb_lock(const char *s) {
 
 void sdb_lock_wait(const char *s) {
 	// TODO use flock() here
-	while (!sdb_lock (s)) {
+#if __WIN32__ || __CYGWIN__ || MINGW32
+ 	while (!sdb_lock (s)) {
 	// 	usleep (100); // hack
-	}
+	 	Sleep (500); // hack
+ 	}
+#else
+#include <sys/file.h>
+	// TODO flock (fd, LOCK_EX);
+#endif
 }
 
 void sdb_unlock(const char *s) {
+	//flock (fd, LOCK_UN);
 	unlink (s);
 }
 
