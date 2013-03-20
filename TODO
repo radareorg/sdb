@@ -1,12 +1,10 @@
 TODO
 ----
-* implement array support
 * support json 2.0 ({foo:"bar"}) <- no need for quotes in name
 * create string pool for a list of sizes 
 	newpool (sizeof (char), 10, 100, 1000);
 * Add api to store serialized in memory
 * Add api for raw bytes
-* support for arrays/lists
 * use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add query api sdb_query ("") - for running command prompts

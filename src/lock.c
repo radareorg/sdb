@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+//#include <sys/file.h>
 
 static char buf[128];
 
@@ -37,7 +38,6 @@ void sdb_lock_wait(const char *s) {
 	 	Sleep (500); // hack
  	}
 #else
-#include <sys/file.h>
 	// TODO flock (fd, LOCK_EX);
 #endif
 }
