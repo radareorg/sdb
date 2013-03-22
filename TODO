@@ -1,5 +1,6 @@
 TODO
 ----
+* bug: empty keys can be used wtf.
 * support json 2.0 ({foo:"bar"}) <- no need for quotes in name
 * create string pool for a list of sizes 
 	newpool (sizeof (char), 10, 100, 1000);

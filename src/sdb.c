@@ -449,14 +449,20 @@ int sdb_query (Sdb *s, const char *cmd) {
 				if (eq) {
 					*eq = 0;
 					if (eq[1]) {
-						sdb_aset (s, p+1, i, eq+1);
+						if (cmd[1]=='+') {
+							sdb_ains (s, p+1, i, eq+1);
+						} else {
+							sdb_aset (s, p+1, i, eq+1);
+						}
 					} else {
 						sdb_adel (s, p+1, i);
 					}
 				} else {
 					char *val = sdb_aget (s, p+1, i);
-					printf ("%s\n", val);
-					free (val);
+					if (val) {
+						printf ("%s\n", val);
+						free (val);
+					}
 				}
 			} else {
 				if (eq) {
@@ -467,16 +473,7 @@ int sdb_query (Sdb *s, const char *cmd) {
 					sdb_set (s, p+1, out, 0);
 					free (out);
 				} else {
-					int hasnext = 1;
-					char *ptr, *list = sdb_get (s, p+1, 0);
-					ptr = list;
-					hasnext = list && *list;
-					while (hasnext) {
-						char *str = sdb_astring (ptr, &hasnext);
-						printf ("%s\n", str);
-						ptr = (char *)sdb_anext (str);
-					}
-					free (list);
+					sdb_alist (s, p+1);
 				}
 			}
 		} else fprintf (stderr, "Missing ']'.\n");

@@ -1,16 +1,28 @@
 #!/bin/sh
 # test driven development tests for sdb
-# author: pancake 2012
+# author: pancake 2012-2013
 
 tdd() {
 	v="$1" ; shift ; a="`$@`"
-#echo $a
 	test "$a" = "$v"
-	echo "$?  $@"
+	echo "$?  `echo $@`"
 }
 
 df="test.db"
 db="../src/sdb $df"
+
+rm -f $df
+tdd 'one' $db '[]list=one,two,tri,fur
+[0]list'
+tdd 'two' $db '[]list=one,two,tri,fur
+[1]list'
+tdd '0
+1' $db '[]list=1,two,tri,fur
+[+0]list=0
+[0]list
+[1]list
+'
+
 rm -f $df
 $db = <<EOF
 ctr=0
@@ -25,6 +37,7 @@ test7=[{"foo":1},{"bar":2}]
 EOF
 
 # testing counters
+tdd '' $db ctr=0
 tdd 0 $db ctr
 tdd 1 $db +ctr
 tdd 2 $db +ctr
@@ -56,3 +69,4 @@ tdd 4 $db test6?bar.cow[1]
 
 tdd 1 $db test7?[0].foo
 tdd 2 $db test7?[1].bar
+

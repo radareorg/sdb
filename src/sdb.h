@@ -125,6 +125,7 @@ void sdb_ns_sync (Sdb *s);
 // array
 int sdb_aset(Sdb *s, const char *key, int idx, const char *val);
 char *sdb_aget(Sdb *s, const char *key, int idx);
+int sdb_ains(Sdb *s, const char *key, int idx, const char *val);
 int sdb_adel(Sdb *s, const char *key, int n);
 // helpers
 const char *sdb_anext(const char *str);
@@ -132,6 +133,8 @@ char *sdb_astring(char *str, int *hasnext);
 int sdb_alen(const char *str);
 // iter
 const char *sdb_anext(const char *str);
+int sdb_alist(Sdb *s, const char *key);
+const char *sdb_aindex(const char *str, int idx);
 
 #ifdef __cplusplus
 }
