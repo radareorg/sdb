@@ -1,4 +1,4 @@
-/* Public domain -- pancake @ 2011-2012 */
+/* Public domain -- pancake @ 2011-2013 */
 
 #include <signal.h>
 #include <stdio.h>
