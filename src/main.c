@@ -63,7 +63,7 @@ static void createdb(const char *f) {
 }
 
 static void showusage(int o) {
-	printf ("usage: sdb [-v|-h] [file.db] [-=]|[-+][key[?path|=value] ..]\n");
+	printf ("usage: sdb [-fhv] [file.db] [-=]|[-+][(idx)key[?path|=value] ..]\n");
 	exit (o);
 }
 
@@ -72,15 +72,19 @@ static void showversion() {
 	exit (0);
 }
 
+static void showfeatures() {
+	// TODO lock
+	printf ("json array\n");
+	exit (0);
+}
+
 int main(int argc, char **argv) {
 	int i;
 
-	if (argc<2)
-		showusage (1);
-	if (!strcmp (argv[1], "-v"))
-		showversion ();
-	if (!strcmp (argv[1], "-h"))
-		showusage (0);
+	if (argc<2) showusage (1);
+	if (!strcmp (argv[1], "-v")) showversion ();
+	if (!strcmp (argv[1], "-h")) showusage (0);
+	if (!strcmp (argv[1], "-f")) showfeatures (0);
 	if (!strcmp (argv[1], "-")) {
 		argv[1] = "";
 		if (argc == 2) {

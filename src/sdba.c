@@ -144,15 +144,23 @@ const char *sdb_aindex(const char *str, int idx) {
 	return NULL;
 }
 
+// TODO: make static inline?
 int sdb_alen(const char *str) {
-	int len = 0;
+	int len = 1;
 	const char *n, *p = str;
+	if (!p|| !*p) return 0;
 	for (len=0; ; len++) {
 		n = strchr (p, SDB_RS);
 		if (n) p = n+1;
 		else break;
 	}
+	if (*p) len++;
 	return len;
+}
+
+int sdb_alength(Sdb *s, const char *key) {
+	const char *str = sdb_getc (s, key, 0);
+	return sdb_alen (str);
 }
 
 int sdb_alist(Sdb *s, const char *key) {

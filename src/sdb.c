@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -431,6 +432,17 @@ int sdb_finish (Sdb *s) {
 	return 1; // XXX: 
 }
 
+int sdb_queryf (Sdb *s, const char *fmt, ...) {
+        char string[4096];
+        int ret;
+        va_list ap;
+        va_start (ap, fmt);
+        vsnprintf (string, sizeof (string), fmt, ap);
+        ret = sdb_query (s, string);
+        va_end (ap);
+        return ret;
+}
+
 // TODO: return char *
 int sdb_query (Sdb *s, const char *cmd) {
 	char *p, *eq, *ask = strchr (cmd, '?');
@@ -439,11 +451,14 @@ int sdb_query (Sdb *s, const char *cmd) {
 	ut64 n;
 
 	switch (*cmd) {
-	case '[': // inc
-		p = strchr (cmd, ']');
+	case '(': // inc
+		p = strchr (cmd, ')');
 		if (p) {
 			*p = 0;
 			eq = strchr (p+1, '=');
+			if (cmd[1]=='?') {
+				printf ("%d\n", sdb_alength (s, p+1));
+			} else
 			if (cmd[1]) {
 				i = atoi (cmd+1);
 				if (eq) {
