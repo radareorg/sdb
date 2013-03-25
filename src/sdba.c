@@ -88,23 +88,21 @@ int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
 int sdb_aset(Sdb *s, const char *key, int idx, const char *val) {
 	char *nstr, *ptr;
 	const char *usr, *str = sdb_getc (s, key, 0);
-	int len, lnstr, lstr, lval, ret = 0;
+	int lval, len, ret = 0;
 	if (!str || !*str)
 		return sdb_set (s, key, val, 0);
 	len = sdb_alen (str);
-	lval = strlen (val);
-	lstr = strlen (str);
 	if (idx<0 || idx>len) // append
 		return sdb_ains (s, key, -1, val);
 	nstr = strdup (str);
 	ptr = (char *)sdb_aindex (nstr, idx);
 	if (ptr) {
-		lnstr = strlen (nstr);
-		strcpy (ptr, val);
+		lval = strlen (val);
+		memcpy (ptr, val, lval+1);
 		usr = sdb_aindex (str, idx+1);
 		if (usr) {
-			strcat (ptr, "\x1e"); // XXX
-			strcat (ptr, usr);
+			ptr[lval] = SDB_RS;
+			strcpy (ptr+lval+1, usr);
 		}
 		ret = sdb_set (s, key, nstr, 0);
 	}
