@@ -33,8 +33,23 @@ char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 	int i, ok, w, alength;
 	ut64 n;
 
-	switch (*cmd) {
-	case '(': // inc
+	if (*cmd == '+' || *cmd == '-') {
+		n = (*cmd=='+')?(
+			ask?  sdb_json_inc (s, cmd+1, ask, 1, 0):
+				sdb_inc (s, cmd+1, 1, 0)):(
+			ask?  sdb_json_dec (s, cmd+1, ask, 1, 0):
+				sdb_dec (s, cmd+1, 1, 0));
+		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
+		if (w>len) {
+			buf = malloc (64);
+			w = snprintf (buf, 64, "%"ULLFMT"d\n", n);
+			if (w>len) {
+				buf = malloc (32);
+				snprintf (buf, 64, "%"ULLFMT"d\n", n);
+			}
+		}
+		return buf;
+	} else if (*cmd == '(') {
 		p = strchr (cmd, ')');
 		if (!p) {
 			fprintf (stderr, "Missing ')'.\n");
@@ -87,47 +102,24 @@ char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 				return buf;
 			}
 		}
-		break;
-	case '+': // inc
-		n = ask? 
-			sdb_json_inc (s, cmd+1, ask, 1, 0):
-			sdb_inc (s, cmd+1, 1, 0);
-		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
-		if (w>len) {
-			buf = malloc (64);
-			w = snprintf (buf, 64, "%"ULLFMT"d\n", n);
-		}
-		return buf;
-	case '-': // dec
-		n = ask? 
-			sdb_json_dec (s, cmd+1, ask, 1, 0):
-			sdb_dec (s, cmd+1, 1, 0);
-		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
-		if (w>len) {
-			buf = malloc (64);
-			w = snprintf (buf, 64, "%"ULLFMT"d\n", n);
-		}
-		return buf;
-	default:
+	} else {
 		eq = strchr (cmd, '=');
-		if (eq && ask>eq) ask = NULL;
 		if (eq) {
 			// 1 0 kvpath=value
 			// 1 1 kvpath?jspath=value
+			if (ask>eq) ask = NULL;
 			*eq++ = 0;
 			if (ask) {
-				// sdbjsonset
 				*ask++ = 0;
-				sdb_json_set (s, cmd, ask, eq, 0);
-			} else {
-				// sdbset
-				sdb_set (s, cmd, eq, 0);
-			}
+				ok = sdb_json_set (s, cmd, ask, eq, 0);
+			} else ok = sdb_set (s, cmd, eq, 0);
+			if (!ok) return NULL;
+			*buf = 0;
+			return buf;
 		} else {
 			// 0 1 kvpath?jspath
 			// 0 0 kvpath
 			if (ask) {
-				// sdbjsonget
 				*ask++ = 0;
 				// TODO: not optimized to reuse 'buf'
 				if ((p = sdb_json_get (s, cmd, ask, 0)))
@@ -146,14 +138,9 @@ char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 }
 
 int sdb_query (Sdb *s, const char *cmd) {
-	char buf[1024], *out;
-	out = sdb_querys (s, buf, sizeof (buf), cmd);
-	if (out) {
-		if (*out)
-			puts (out);
-		if (out != buf)
-			free (out);
-		return 1;
-	}
-	return 0;
+	char buf[1024], *out = sdb_querys (s, buf, sizeof (buf), cmd);
+	if (!out) return 0;
+	if (*out) puts (out);
+	if (out != buf) free (out);
+	return 1;
 }

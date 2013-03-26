@@ -48,9 +48,9 @@ char *sdb_aget(Sdb *s, const char *key, int idx) {
 
 // TODO: done, but there's room for improvements
 int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
-	char *x;
 	const char *str = sdb_getc (s, key, 0);
 	int lnstr, lstr, lval, ret;
+	char *x, *nstr, *ptr;
 	if (!str || !*str)
 		return sdb_set (s, key, val, 0);
 	lval = strlen (val);
@@ -67,8 +67,8 @@ int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
 		memcpy (x+lval+1, str, lstr+1);
 		ret = sdb_set (s, key, x, 0);
 	} else {
-		char *nstr = strdup (str);
-		char *ptr = (char*)sdb_aindex (nstr, idx);
+		nstr = strdup (str);
+		ptr = (char*)sdb_aindex (nstr, idx);
 		if (ptr) {
 			*(ptr-1) = 0;
 			lnstr = strlen (nstr);
@@ -79,6 +79,7 @@ int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
 			memcpy (x+lval+2+lnstr, ptr, strlen (ptr)+1);
 			ret = sdb_set (s, key, x, 0);
 		} else ret = 0;
+		free (nstr);
 	}
 	free (x);
 	return ret;
@@ -149,8 +150,8 @@ int sdb_alen(const char *str) {
 	if (!p|| !*p) return 0;
 	for (len=0; ; len++) {
 		n = strchr (p, SDB_RS);
-		if (n) p = n+1;
-		else break;
+		if (!n) break;
+		p = n+1;
 	}
 	if (*p) len++;
 	return len;

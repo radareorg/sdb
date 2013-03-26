@@ -134,11 +134,10 @@ int sdb_adel(Sdb *s, const char *key, int n);
 const char *sdb_anext(const char *str);
 char *sdb_astring(char *str, int *hasnext);
 int sdb_alen(const char *str);
-// iter
-const char *sdb_anext(const char *str);
-int sdb_alist(Sdb *s, const char *key);
-const char *sdb_aindex(const char *str, int idx);
 int sdb_alength(Sdb *s, const char *key);
+int sdb_alist(Sdb *s, const char *key);
+const char *sdb_anext(const char *str);
+const char *sdb_aindex(const char *str, int idx);
 
 #ifdef __cplusplus
 }

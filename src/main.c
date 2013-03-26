@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 	if (argc<2) showusage (1);
 	if (!strcmp (argv[1], "-v")) showversion ();
 	if (!strcmp (argv[1], "-h")) showusage (0);
-	if (!strcmp (argv[1], "-f")) showfeatures (0);
+	if (!strcmp (argv[1], "-f")) showfeatures ();
 	if (!strcmp (argv[1], "-")) {
 		argv[1] = "";
 		if (argc == 2) {
