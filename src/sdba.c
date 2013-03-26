@@ -161,6 +161,8 @@ int sdb_alength(Sdb *s, const char *key) {
 	return sdb_alen (str);
 }
 
+#if 0
+// XXX: totally unefficient. do not use, replace SDB_RS for '\n' may be enought
 int sdb_alist(Sdb *s, const char *key) {
 	int len = 0, hasnext = 1;
 	char *list = sdb_get (s, key, 0);
@@ -176,3 +178,4 @@ int sdb_alist(Sdb *s, const char *key) {
 	free (list);
 	return len;
 }
+#endif

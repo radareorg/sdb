@@ -5,7 +5,7 @@ a="`echo '
 (0)list
 (+0)list=zero
 ()list
-' | ./sdb -`"
+' | sdb -`"
 r="one
 foo
 zero

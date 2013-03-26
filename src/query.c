@@ -17,79 +17,103 @@ int sdb_queryf (Sdb *s, const char *fmt, ...) {
         return ret;
 }
 
-// TODO: return char *
-//int sdb_querys (Sdb *s, const char *cmd) { }
+char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, ...) {
+        char string[4096];
+        char *ret;
+        va_list ap;
+        va_start (ap, fmt);
+        vsnprintf (string, sizeof (string), fmt, ap);
+        ret = sdb_querys (s, buf, buflen, string);
+        va_end (ap);
+        return ret;
+}
 
-int sdb_query (Sdb *s, const char *cmd) {
+char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 	char *p, *eq, *ask = strchr (cmd, '?');
-	const char *p2;
-	int i, save = 0;
+	int i, ok, w, alength;
 	ut64 n;
 
 	switch (*cmd) {
 	case '(': // inc
 		p = strchr (cmd, ')');
-		if (p) {
-			*p = 0;
-			eq = strchr (p+1, '=');
-			if (cmd[1]=='?') {
-				printf ("%d\n", sdb_alength (s, p+1));
-			} else
-			if (cmd[1]) {
-				i = atoi (cmd+1);
-				if (eq) {
-					*eq = 0;
-					if (eq[1]) {
-						if (cmd[1]=='+') {
-							sdb_ains (s, p+1, i, eq+1);
-						} else {
-							sdb_aset (s, p+1, i, eq+1);
-						}
-					} else {
-						sdb_adel (s, p+1, i);
-					}
-				} else {
-					char *val = sdb_aget (s, p+1, i);
-					if (val) {
-						printf ("%s\n", val);
-						free (val);
-					}
+		if (!p) {
+			fprintf (stderr, "Missing ')'.\n");
+			return NULL;
+		}
+		*p = 0;
+		eq = strchr (p+1, '=');
+		if (cmd[1]=='?') {
+			alength = sdb_alength (s, p+1);
+			w = snprintf (buf, len, "%d", alength);
+			if (w>len) {
+				buf = malloc (32);
+				snprintf (buf, 32, "%d", alength);
+			}
+			return buf;
+		}
+		if (cmd[1]) {
+			i = atoi (cmd+1);
+			if (eq) {
+				*eq = 0;
+				ok = eq[1]? (
+					(cmd[1]=='+')?
+						sdb_ains (s, p+1, i, eq+1):
+						sdb_aset (s, p+1, i, eq+1)
+					): sdb_adel (s, p+1, i);
+				if (ok) *buf = 0; else buf = NULL;
+				return buf;
+			}
+			return sdb_aget (s, p+1, i);
+		} else {
+			if (eq) {
+				char *q, *out = strdup (eq+1);
+				*eq = 0;
+				// TODO: define new printable separator character
+				for (q=out; *q; q++) if (*q==',') *q = SDB_RS;
+				ok = sdb_set (s, p+1, out, 0);
+				free (out);
+				if (ok) {
+					*buf = 0;
+					return buf;
 				}
 			} else {
-				if (eq) {
-					char *q, *out = strdup (eq+1);
-					*eq = 0;
-					// TODO: define new printable separator character
-					for (q=out;*q;q++) if (*q==',') *q = SDB_RS;
-					sdb_set (s, p+1, out, 0);
-					free (out);
-				} else {
-					sdb_alist (s, p+1);
-				}
+				const char *out = sdb_getc (s, p+1, 0);
+				if (!out) return NULL;
+				w = strlen (out);
+				if (w>len) buf = malloc (w+2);
+				for (i=0; out[i]; i++)
+					buf[i] = out[i]==SDB_RS? '\n': out[i];
+				buf[i] = 0;
+				return buf;
 			}
-		} else fprintf (stderr, "Missing ')'.\n");
+		}
 		break;
 	case '+': // inc
 		n = ask? 
 			sdb_json_inc (s, cmd+1, ask, 1, 0):
 			sdb_inc (s, cmd+1, 1, 0);
-		printf ("%"ULLFMT"d\n", n);
-		save = 1;
-		break;
+		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
+		if (w>len) {
+			buf = malloc (64);
+			w = snprintf (buf, 64, "%"ULLFMT"d\n", n);
+		}
+		return buf;
 	case '-': // dec
 		n = ask? 
 			sdb_json_dec (s, cmd+1, ask, 1, 0):
 			sdb_dec (s, cmd+1, 1, 0);
-		printf ("%"ULLFMT"d\n", n);
-		save = 1;
-		break;
+		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
+		if (w>len) {
+			buf = malloc (64);
+			w = snprintf (buf, 64, "%"ULLFMT"d\n", n);
+		}
+		return buf;
 	default:
 		eq = strchr (cmd, '=');
 		if (eq && ask>eq) ask = NULL;
 		if (eq) {
 			// 1 0 kvpath=value
 			// 1 1 kvpath?jspath=value
-			save = 1;
 			*eq++ = 0;
 			if (ask) {
 				// sdbjsonset
@@ -105,16 +129,31 @@ int sdb_query (Sdb *s, const char *cmd) {
 			if (ask) {
 				// sdbjsonget
 				*ask++ = 0;
-				if ((p = sdb_json_get (s, cmd, ask, 0))) {
-					printf ("%s\n", p);
-					free (p);
-				}
+				// TODO: not optimized to reuse 'buf'
+				if ((p = sdb_json_get (s, cmd, ask, 0)))
+					return p;
 			} else {
 				// sdbget
-				if ((p2 = sdb_getc (s, cmd, 0)))
-					printf ("%s\n", p2);
+				const char *p = sdb_getc (s, cmd, 0);
+				if (!p) return NULL;
+				if (strlen (p)> len) return strdup (p);
+				strcpy (buf, p);
+				return buf;
 			}
 		}
 	}
-	return save;
+	return NULL;
+}
+
+int sdb_query (Sdb *s, const char *cmd) {
+	char buf[1024], *out;
+	out = sdb_querys (s, buf, sizeof (buf), cmd);
+	if (out) {
+		if (*out)
+			puts (out);
+		if (out != buf)
+			free (out);
+		return 1;
+	}
+	return 0;
 }

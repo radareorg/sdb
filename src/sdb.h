@@ -55,6 +55,8 @@ void sdb_reset (Sdb *s);
 
 int sdb_query (Sdb *s, const char *cmd);
 int sdb_queryf (Sdb *s, const char *fmt, ...);
+char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd);
+char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, ...);
 int sdb_exists (Sdb*, const char *key);
 int sdb_nexists (Sdb*, const char *key);
 int sdb_remove (Sdb*, const char *key, ut32 cas);

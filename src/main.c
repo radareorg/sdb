@@ -74,7 +74,7 @@ static void showversion() {
 
 static void showfeatures() {
 	// TODO lock
-	printf ("json array\n");
+	printf ("ns json array\n");
 	exit (0);
 }
 
@@ -98,10 +98,9 @@ int main(int argc, char **argv) {
 	signal (SIGINT, terminate);
 	signal (SIGHUP, syncronize);
 #endif
-	if (!strcmp (argv[2], "=")) {
+	if (!strcmp (argv[2], "="))
 		createdb (argv[1]);
-	} else
-	if (!strcmp (argv[2], "-")) {
+	else if (!strcmp (argv[2], "-")) {
 		char line[SDB_VSZ+SDB_KSZ]; // XXX can overflow stack
 		if ((s = sdb_new (argv[1], 0)))
 			for (;;) {
@@ -111,11 +110,9 @@ int main(int argc, char **argv) {
 				line[strlen (line)-1] = 0;
 				save = sdb_query (s, line);
 			}
-	} else
-	if ((s = sdb_new (argv[1], 0))) {
+	} else if ((s = sdb_new (argv[1], 0)))
 		for (i=2; i<argc; i++)
 			save = sdb_query (s, argv[i]);
-	}
 	terminate (0);
 	return 0;
 }
