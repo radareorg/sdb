@@ -68,13 +68,13 @@ char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 				*eq = 0;
 				ok = eq[1]? (
 					(cmd[1]=='+')?
-						sdb_ains (s, p+1, i, eq+1):
-						sdb_aset (s, p+1, i, eq+1)
-					): sdb_adel (s, p+1, i);
+						sdb_ains (s, p+1, i, eq+1, 0):
+						sdb_aset (s, p+1, i, eq+1, 0)
+					): sdb_adel (s, p+1, i, 0);
 				if (ok) *buf = 0; else buf = NULL;
 				return buf;
 			}
-			return sdb_aget (s, p+1, i);
+			return sdb_aget (s, p+1, i, NULL);
 		} else {
 			if (eq) {
 				char *q, *out = strdup (eq+1);

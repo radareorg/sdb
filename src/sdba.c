@@ -17,9 +17,9 @@ char *sdb_astring(char *str, int *hasnext) {
 	return str;
 }
 
-char *sdb_aget(Sdb *s, const char *key, int idx) {
+char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
 	int i, len;
-	const char *str = sdb_getc (s, key, 0);
+	const char *str = sdb_getc (s, key, cas);
 	char *o, *n, *p = (char*)str;
 	if (!str || !*str) return NULL;
 	if (idx==0) {
@@ -46,13 +46,13 @@ char *sdb_aget(Sdb *s, const char *key, int idx) {
 	return o;
 }
 
-// TODO: done, but there's room for improvements
-int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
+// TODO: done, but there's room for improvement
+int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	const char *str = sdb_getc (s, key, 0);
 	int lnstr, lstr, lval, ret;
-	char *x, *nstr, *ptr;
+	char *x, *ptr, *nstr = NULL;
 	if (!str || !*str)
-		return sdb_set (s, key, val, 0);
+		return sdb_set (s, key, val, cas);
 	lval = strlen (val);
 	lstr = strlen (str);
 	x = malloc (lval + lstr + 2);
@@ -60,12 +60,10 @@ int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
 		memcpy (x, str, lstr);
 		x[lstr] = SDB_RS;
 		memcpy (x+lstr+1, val, lval+1);
-		ret = sdb_set (s, key, x, 0);
 	} else if (idx == 0) {
 		memcpy (x, val, lval);
 		x[lval] = SDB_RS;
 		memcpy (x+lval+1, str, lstr+1);
-		ret = sdb_set (s, key, x, 0);
 	} else {
 		nstr = strdup (str);
 		ptr = (char*)sdb_aindex (nstr, idx);
@@ -77,24 +75,24 @@ int sdb_ains(Sdb *s, const char *key, int idx, const char *val) {
 			memcpy (x+lnstr+1, val, lval);
 			x[lnstr+lval+1] = SDB_RS;
 			memcpy (x+lval+2+lnstr, ptr, strlen (ptr)+1);
-			ret = sdb_set (s, key, x, 0);
 		} else ret = 0;
-		free (nstr);
 	}
+	ret = sdb_set (s, key, x, cas);
+	free (nstr);
 	free (x);
 	return ret;
 }
 
 // set/replace
-int sdb_aset(Sdb *s, const char *key, int idx, const char *val) {
+int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	char *nstr, *ptr;
 	const char *usr, *str = sdb_getc (s, key, 0);
 	int lval, len, ret = 0;
 	if (!str || !*str)
-		return sdb_set (s, key, val, 0);
+		return sdb_set (s, key, val, cas);
 	len = sdb_alen (str);
 	if (idx<0 || idx>len) // append
-		return sdb_ains (s, key, -1, val);
+		return sdb_ains (s, key, -1, val, cas);
 	nstr = strdup (str);
 	ptr = (char *)sdb_aindex (nstr, idx);
 	if (ptr) {
@@ -111,7 +109,7 @@ int sdb_aset(Sdb *s, const char *key, int idx, const char *val) {
 	return ret;
 }
 
-int sdb_adel(Sdb *s, const char *key, int idx) {
+int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
 	int i;
 	char *p, *n, *str = sdb_get (s, key, 0);
 	p = str;
@@ -125,7 +123,7 @@ int sdb_adel(Sdb *s, const char *key, int idx) {
 	n = strchr (p, SDB_RS);
 	if (n) strcpy (p, n+1);
 	else *p = 0;
-	sdb_set (s, key, str, 0);
+	sdb_set (s, key, str, cas);
 	free (str);
 	return 1;
 }
