@@ -1,13 +1,11 @@
 TODO
 ----
-* Add query api sdb_query ("") - for running command prompts
 * bug: empty keys can be used wtf.
 * support json 2.0 ({foo:"bar"}) <- no need for quotes in name
 * create string pool for a list of sizes 
 	newpool (sizeof (char), 10, 100, 1000);
 * Add api to store serialized in memory
 * Add api for raw bytes
-* use stdin if database name is '-' ??
 * Add api and syntax for json_length()
 * Add comparision stuff
 * Add support for socket file for memcached api

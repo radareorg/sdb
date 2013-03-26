@@ -42,11 +42,7 @@ char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
 		if (w>len) {
 			buf = malloc (64);
-			w = snprintf (buf, 64, "%"ULLFMT"d\n", n);
-			if (w>len) {
-				buf = malloc (32);
-				snprintf (buf, 64, "%"ULLFMT"d\n", n);
-			}
+			snprintf (buf, 64, "%"ULLFMT"d\n", n);
 		}
 		return buf;
 	} else if (*cmd == '(') {
