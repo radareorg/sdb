@@ -1,7 +1,7 @@
 DESTDIR?=
 PREFIX?=/usr
 
-VERSION=0.6
+VERSION=0.6.1
 
 CFLAGS+=-DVERSION=\"${VERSION}\"
 
@@ -31,3 +31,21 @@ LDFLAGS_SHARED+=-Wl,-soname,libsdb.so.$(SOVERSION)
 endif
 RANLIB?=ranlib
 EXEXT=
+
+ifeq ($(MAKEFLAGS),s)
+SILENT=1
+else
+SILENT=
+endif
+
+.c:
+ifneq ($(SILENT),)
+	@echo LD $<
+endif
+	$(CC) $(LDFLAGS) -c $(CFLAGS) -o $@ $<
+
+.c.o:
+ifneq ($(SILENT),)
+	@echo CC $(shell basename $<)
+endif
+	$(CC) -c $(CFLAGS) -o $@ $<

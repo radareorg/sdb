@@ -13,6 +13,7 @@
 (import SDBLIB "sdb_get")
 (import SDBLIB "sdb_sync")
 (import SDBLIB "sdb_free")
+(import SDBLIB "sdb_query")
 (import SDBLIB "sdb_json_get")
 (import SDBLIB "sdb_json_set")
 (import SDBLIB "sdb_json_indent")
@@ -25,6 +26,8 @@
            "macro" "array"))
     (types (& 0xf ((dump x) 1)))))
 
+(define (sdb:query s cmd)
+	(sdb_query s cmd))
 (define (sdb:hash s)
 	(sdb_hash s (length s)))
 (define (sdb:new file lock)
