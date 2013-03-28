@@ -5,13 +5,14 @@
 #include <string.h>
 #include "rangstr.h"
 #include "json.h"
+#include "util.h"
 
 void json_path_first(Rangstr *s) {
 	char *p;
 	if (!s->p) return;
 	p = strchr (s->p, '.');
 	s->f = 0;
-	s->t = p? p-s->p: strlen (s->p);
+	s->t = p? (size_t)(p-s->p): strlen (s->p);
 }
 
 int json_path_next(Rangstr *s) {
@@ -51,7 +52,7 @@ rep:
 
 typedef int (*JSONCallback)();
 
-int json_foreach(const char *s, JSONCallback cb) {
+int json_foreach(const char *s, JSONCallback cb __unused) {
 	int i, len, ret;
 	unsigned short *res = NULL;
 	len = strlen (s);
@@ -132,7 +133,8 @@ beach:
 }
 
 Rangstr json_get (const char *js, const char *p) {
-	int x, rst, n = 0;
+	int x, n = 0;
+	size_t rst;
 	Rangstr rj2, rj = rangstr_new (js);
 	Rangstr rs = rangstr_new (p);
 	json_path_first (&rs);
@@ -180,6 +182,6 @@ return rj;
 	return rj;
 }
 
-char *json_set (const char *s, const char *k, const char *v) {
+char *json_set (const char *s __unused, const char *k __unused, const char *v __unused) {
 	return NULL;
 }

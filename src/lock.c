@@ -6,11 +6,12 @@
 #include <fcntl.h>
 //#include <sys/file.h>
 #include "sdb.h"
+#include "json/util.h"
 
 static char buf[128];
 
 SDB_VISIBLE const char *sdb_lockfile(const char *f) {
-	int len;
+	size_t len;
 	if (!f || !*f)
 		return NULL;
 	len = strlen (f);
@@ -31,7 +32,7 @@ SDB_VISIBLE int sdb_lock(const char *s) {
 	return 1;
 }
 
-void sdb_lock_wait(const char *s) {
+void sdb_lock_wait(const char *s __unused) {
 	// TODO use flock() here
 #if __WIN32__ || __CYGWIN__ || MINGW32
  	while (!sdb_lock (s)) {

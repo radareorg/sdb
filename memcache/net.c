@@ -10,7 +10,7 @@
 #include <stdarg.h>
 
 static char netbuf[MCSDB_MAX_BUFFER];
-static int netbuflen = 0;
+static size_t netbuflen = 0;
 
 
 char *net_readnl(int fd) {
@@ -44,10 +44,12 @@ int net_printf (int fd, char *fmt, ...) {
 	va_list ap;
 	va_start (ap, fmt);
 	n = vsnprintf (buf, sizeof (buf)-1, fmt, ap);
+	va_end (ap);
+	if (n < 0)
+		return 0;
 	if (netbuflen+n>sizeof (netbuf))
 		net_flush (fd);
 	strcpy (netbuf+netbuflen, buf);
-	va_end (ap);
 	netbuflen += n;
 	return n;
 }

@@ -9,7 +9,7 @@
 typedef struct {
 	int type;
 	int next;
-	int f, t;
+	size_t f, t;
 	const char *p;
 } Rangstr;
 

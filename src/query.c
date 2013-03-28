@@ -17,7 +17,7 @@ SDB_VISIBLE int sdb_queryf (Sdb *s, const char *fmt, ...) {
         return ret;
 }
 
-SDB_VISIBLE char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, ...) {
+SDB_VISIBLE char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ...) {
         char string[4096];
         char *ret;
         va_list ap;
@@ -28,19 +28,19 @@ SDB_VISIBLE char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, .
         return ret;
 }
 
-SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
+SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 	char *p, *eq, *ask = strchr (cmd, '?');
 	int i, ok, w, alength;
 	ut64 n;
 
 	if (*cmd == '+' || *cmd == '-') {
 		n = (*cmd=='+')?(
-			ask?  sdb_json_inc (s, cmd+1, ask, 1, 0):
+			ask?  (ut64)sdb_json_inc (s, cmd+1, ask, 1, 0):
 				sdb_inc (s, cmd+1, 1, 0)):(
-			ask?  sdb_json_dec (s, cmd+1, ask, 1, 0):
+			ask?  (ut64)sdb_json_dec (s, cmd+1, ask, 1, 0):
 				sdb_dec (s, cmd+1, 1, 0));
 		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
-		if (w>len) {
+		if (w<0 || (size_t)w>len) {
 			buf = malloc (64);
 			snprintf (buf, 64, "%"ULLFMT"d\n", n);
 		}
@@ -56,7 +56,7 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 		if (cmd[1]=='?') {
 			alength = sdb_alength (s, p+1);
 			w = snprintf (buf, len, "%d", alength);
-			if (w>len) {
+			if (w<0 || (size_t)w>len) {
 				buf = malloc (32);
 				snprintf (buf, 32, "%d", alength);
 			}
@@ -89,9 +89,10 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 				}
 			} else {
 				const char *out = sdb_getc (s, p+1, 0);
+				size_t wl;
 				if (!out) return NULL;
-				w = strlen (out);
-				if (w>len) buf = malloc (w+2);
+				wl = strlen (out);
+				if (wl>len) buf = malloc (wl+2);
 				for (i=0; out[i]; i++)
 					buf[i] = out[i]==SDB_RS? '\n': out[i];
 				buf[i] = 0;
