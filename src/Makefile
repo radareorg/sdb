@@ -5,6 +5,8 @@ LDFLAGS+= -g -ggdb
 OBJ=cdb.o buffer.o cdb_make.o ls.o ht.o sdb.o sdbn.o sdba.o query.o
 OBJ+=json.o json/js0n.o json/json.o json/rangstr.o ns.o lock.o
 
+SOBJ=$(subst .o,.so,${OBJ})
+
 BIN=sdb${EXEXT}
 
 .PHONY: all static shared clean
@@ -28,8 +30,11 @@ libsdb.a: ${OBJ}
 	${AR} -r libsdb.a ${OBJ}
 	${RANLIB} libsdb.a
 
-libsdb.${SOEXT}: ${OBJ}
-	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $(subst .o,.c,${OBJ}) -fPIC -shared
+%.so:	%.c
+	${CC} -c ${CPPFLAGS} ${CFLAGS} ${CFLAGS_SHARED} -o $@ $^
+
+libsdb.${SOEXT}: ${SOBJ}
+	${CC} ${LDFLAGS} $(LDFLAGS_SHARED) -o $@ ${SOBJ}
 
 t:
 	rm -f foo
