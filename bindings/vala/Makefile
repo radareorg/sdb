@@ -21,7 +21,7 @@ mctest: mctest.vala
 	@${CC} -o mctest mctest.c ${MCSDB_FLAGS} ${GFLAGS}
 	
 clean:
-	rm -f test a.out test.sdb test.c uuid.sdb
+	rm -f test a.out mctest.c mctest test.sdb test.c uuid.sdb
 	cd types && ${MAKE} clean
 
 .PHONY: all clean

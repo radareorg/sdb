@@ -59,4 +59,4 @@ ${BIN}: libsdb.a main.o
 	${CC} ${CFLAGS} -o ${BIN} main.o ${OBJ}
 
 clean:
-	rm -rf ${OBJ} libsdb.a a.out sdb sdb.dSYM *.sdb *.db *.${SOEXT}
+	rm -rf ${OBJ} ${SOBJ} main.o libsdb.a a.out sdb sdb.dSYM *.sdb *.db *.${SOEXT}
