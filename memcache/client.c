@@ -30,7 +30,7 @@ char *mcsdb_client_decr (McSdbClient *ms, const char *key, ut64 val) {
 	return net_readnl (ms->fd);
 }
 
-void mcsdb_client_set (McSdbClient *ms, const char *key, const char *body, ut64 exptime __unused) {
+void mcsdb_client_set (McSdbClient *ms, const char *key, const char *body, ut64 exptime __unused__) {
 	net_printf (ms->fd, "set %s 0 0 %d\r\n", key, strlen (body));
 	net_flush (ms->fd);
 	net_printf (ms->fd, "%s\r\n", body);
@@ -38,7 +38,7 @@ void mcsdb_client_set (McSdbClient *ms, const char *key, const char *body, ut64 
 	free (net_readnl (ms->fd));
 }
 
-static int sendcmd (int fd, const char *cmd __unused, const char *key, const char *body, ut64 exptime __unused) {
+static int sendcmd (int fd, const char *cmd __unused__, const char *key, const char *body, ut64 exptime __unused__) {
 	int ret;
 	char *res;
 	net_printf (fd, "add %s 0 0 %d\r\n", key, strlen (body));

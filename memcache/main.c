@@ -49,7 +49,7 @@ static void main_version() {
 	printf ("mcsdbd v"MCSDB_VERSION"\n");
 }
 
-static void main_help(const char *arg __unused) {
+static void main_help(const char *arg __unused__) {
 	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
@@ -193,7 +193,7 @@ static int udp_listen (int port) {
 	return s;
 }
 
-static int udp_parse(McSdbClient *c __unused, int fd) {
+static int udp_parse(McSdbClient *c __unused__, int fd) {
 #pragma pack(2)
 #define ut16 unsigned short
 struct udphdr_t {

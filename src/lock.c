@@ -32,7 +32,7 @@ SDB_VISIBLE int sdb_lock(const char *s) {
 	return 1;
 }
 
-void sdb_lock_wait(const char *s __unused) {
+void sdb_lock_wait(const char *s __unused__) {
 	// TODO use flock() here
 #if __WIN32__ || __CYGWIN__ || MINGW32
  	while (!sdb_lock (s)) {

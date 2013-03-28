@@ -11,7 +11,7 @@
 static int save = 0;
 static Sdb *s = NULL;
 
-static void terminate(int sig __unused) {
+static void terminate(int sig __unused__) {
 	if (!s) return;
 	if (save) sdb_sync (s);
 	sdb_free (s);
@@ -19,7 +19,7 @@ static void terminate(int sig __unused) {
 }
 
 #if USE_MMAN
-static void syncronize(int sig __unused) {
+static void syncronize(int sig __unused__) {
 	// TODO: must be in sdb_sync() or wat?
 	Sdb *n;
 	sdb_sync (s);
@@ -68,18 +68,18 @@ static void showusage(int o) {
 	exit (o);
 }
 
-static void showversion() {
+static void showversion(void) {
 	printf ("sdb "VERSION"\n");
 	exit (0);
 }
 
-static void showfeatures() {
+static void showfeatures(void) {
 	// TODO lock
 	printf ("ns json array\n");
 	exit (0);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
 	int i;
 
 	if (argc<2) showusage (1);
