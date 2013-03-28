@@ -16,7 +16,7 @@ ${LIBA}: ${COBJS}
 	ranlib ${LIBA}
 
 ${CBIN}: ${COBJS} mainclient.o
-	${CC} mainclient.o ${COBJS} ${LIBS} -o ${CBIN}
+	${CC} mainclient.o ${COBJS} ${LDFLAGS} ${LIBS} -o ${CBIN}
 
 ${OBJS} mainclient.o: cmds.h
 
@@ -24,7 +24,7 @@ ${BIN}: ${OBJS}
 	${CC} -o ${BIN} ${OBJS} ${LDFLAGS} ${LIBS}
 
 cmds.h: cmds.o
-	${CC} -o cmds cmds.o ${CFLAGS} ${LDFLAGS} ${LIBS}
+	${CC} -o cmds cmds.o ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} ${LIBS}
 	./cmds > cmds.h
 
 clean:
