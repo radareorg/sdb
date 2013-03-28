@@ -2,6 +2,8 @@
 
 #include "sdb.h"
 
+static char *sdb_aindex_nc(char *str, int idx);
+
 SDB_VISIBLE const char *sdb_anext(const char *str) {
 	return str+strlen (str)+1;
 }
@@ -20,7 +22,8 @@ SDB_VISIBLE char *sdb_astring(char *str, int *hasnext) {
 SDB_VISIBLE char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
 	int i, len;
 	const char *str = sdb_getc (s, key, cas);
-	char *o, *n, *p = (char*)str;
+	char *o, *n;
+	const char *p = str;
 	if (!str || !*str) return NULL;
 	if (idx==0) {
 		n = strchr (str, SDB_RS);
@@ -66,7 +69,7 @@ SDB_VISIBLE int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32
 		memcpy (x+lval+1, str, lstr+1);
 	} else {
 		nstr = strdup (str);
-		ptr = (char*)sdb_aindex (nstr, idx);
+		ptr = sdb_aindex_nc (nstr, idx);
 		if (ptr) {
 			*(ptr-1) = 0;
 			lnstr = strlen (nstr);
@@ -94,7 +97,7 @@ SDB_VISIBLE int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32
 	if (idx<0 || idx>len) // append
 		return sdb_ains (s, key, -1, val, cas);
 	nstr = strdup (str);
-	ptr = (char *)sdb_aindex (nstr, idx);
+	ptr = sdb_aindex_nc (nstr, idx);
 	if (ptr) {
 		lval = strlen (val);
 		memcpy (ptr, val, lval+1);
@@ -131,6 +134,19 @@ SDB_VISIBLE int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
 SDB_VISIBLE const char *sdb_aindex(const char *str, int idx) {
 	int len = 0;
 	const char *n, *p = str;
+	for (len=0; ; len++) {
+		if (len == idx)
+			return p;
+		n = strchr (p, SDB_RS);
+		if (n) p = n+1;
+		else break;
+	}
+	return NULL;
+}
+
+static char *sdb_aindex_nc(char *str, int idx) {
+	int len = 0;
+	char *n, *p = str;
 	for (len=0; ; len++) {
 		if (len == idx)
 			return p;

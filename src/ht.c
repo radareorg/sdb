@@ -44,7 +44,7 @@
  * free to avoid exponential performance degradation as the hash table fills
  */
 
-static const ut32 deleted_data;
+static ut32 deleted_data;
 
 static const struct {
 	ut32 max_entries, size, rehash;

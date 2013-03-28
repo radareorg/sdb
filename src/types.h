@@ -1,6 +1,8 @@
 #ifndef UINT32_H
 #define UINT32_H
 
+#include <sys/types.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
