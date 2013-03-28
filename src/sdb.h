@@ -1,6 +1,12 @@
 #ifndef _INCLUDE_SDB_H_
 #define _INCLUDE_SDB_H_
 
+#if defined(__GNUC__)
+#define SDB_VISIBLE __attribute__((visibility("default")))
+#else
+#define SDB_VISIBLE
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

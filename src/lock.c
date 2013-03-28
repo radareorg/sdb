@@ -5,10 +5,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 //#include <sys/file.h>
+#include "sdb.h"
 
 static char buf[128];
 
-const char *sdb_lockfile(const char *f) {
+SDB_VISIBLE const char *sdb_lockfile(const char *f) {
 	int len;
 	if (!f || !*f)
 		return NULL;
@@ -20,7 +21,7 @@ const char *sdb_lockfile(const char *f) {
 	return buf;
 }
 
-int sdb_lock(const char *s) {
+SDB_VISIBLE int sdb_lock(const char *s) {
 	int ret;
 	if (!s) return 0;
 	ret = open (s, O_CREAT | O_TRUNC | O_WRONLY | O_EXCL, 0644);
@@ -42,7 +43,7 @@ void sdb_lock_wait(const char *s) {
 #endif
 }
 
-void sdb_unlock(const char *s) {
+SDB_VISIBLE void sdb_unlock(const char *s) {
 	//flock (fd, LOCK_UN);
 	unlink (s);
 }

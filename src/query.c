@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "sdb.h"
 
-int sdb_queryf (Sdb *s, const char *fmt, ...) {
+SDB_VISIBLE int sdb_queryf (Sdb *s, const char *fmt, ...) {
         char string[4096];
         int ret;
         va_list ap;
@@ -17,7 +17,7 @@ int sdb_queryf (Sdb *s, const char *fmt, ...) {
         return ret;
 }
 
-char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, ...) {
+SDB_VISIBLE char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, ...) {
         char string[4096];
         char *ret;
         va_list ap;
@@ -28,7 +28,7 @@ char *sdb_querysf (Sdb *s, char *buf, int buflen, const char *fmt, ...) {
         return ret;
 }
 
-char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
+SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 	char *p, *eq, *ask = strchr (cmd, '?');
 	int i, ok, w, alength;
 	ut64 n;
@@ -133,7 +133,7 @@ char *sdb_querys (Sdb *s, char *buf, int len, const char *cmd) {
 	return NULL;
 }
 
-int sdb_query (Sdb *s, const char *cmd) {
+SDB_VISIBLE int sdb_query (Sdb *s, const char *cmd) {
 	char buf[1024], *out = sdb_querys (s, buf, sizeof (buf), cmd);
 	if (!out) return 0;
 	if (*out) puts (out);

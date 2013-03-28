@@ -2,11 +2,11 @@
 
 #include "sdb.h"
 
-const char *sdb_anext(const char *str) {
+SDB_VISIBLE const char *sdb_anext(const char *str) {
 	return str+strlen (str)+1;
 }
 
-char *sdb_astring(char *str, int *hasnext) {
+SDB_VISIBLE char *sdb_astring(char *str, int *hasnext) {
 	char *p = strchr (str, SDB_RS);
 	if (!p) {
 		if (hasnext) *hasnext = 0;
@@ -17,7 +17,7 @@ char *sdb_astring(char *str, int *hasnext) {
 	return str;
 }
 
-char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
+SDB_VISIBLE char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
 	int i, len;
 	const char *str = sdb_getc (s, key, cas);
 	char *o, *n, *p = (char*)str;
@@ -47,7 +47,7 @@ char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
 }
 
 // TODO: done, but there's room for improvement
-int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+SDB_VISIBLE int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	const char *str = sdb_getc (s, key, 0);
 	int lnstr, lstr, lval, ret;
 	char *x, *ptr, *nstr = NULL;
@@ -84,7 +84,7 @@ int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 }
 
 // set/replace
-int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+SDB_VISIBLE int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	char *nstr, *ptr;
 	const char *usr, *str = sdb_getc (s, key, 0);
 	int lval, len, ret = 0;
@@ -109,7 +109,7 @@ int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	return ret;
 }
 
-int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
+SDB_VISIBLE int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
 	int i;
 	char *p, *n, *str = sdb_get (s, key, 0);
 	p = str;
@@ -128,7 +128,7 @@ int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
 	return 1;
 }
 
-const char *sdb_aindex(const char *str, int idx) {
+SDB_VISIBLE const char *sdb_aindex(const char *str, int idx) {
 	int len = 0;
 	const char *n, *p = str;
 	for (len=0; ; len++) {
@@ -142,7 +142,7 @@ const char *sdb_aindex(const char *str, int idx) {
 }
 
 // TODO: make static inline?
-int sdb_alen(const char *str) {
+SDB_VISIBLE int sdb_alen(const char *str) {
 	int len = 1;
 	const char *n, *p = str;
 	if (!p|| !*p) return 0;
@@ -155,14 +155,14 @@ int sdb_alen(const char *str) {
 	return len;
 }
 
-int sdb_alength(Sdb *s, const char *key) {
+SDB_VISIBLE int sdb_alength(Sdb *s, const char *key) {
 	const char *str = sdb_getc (s, key, 0);
 	return sdb_alen (str);
 }
 
 #if 0
 // XXX: totally unefficient. do not use, replace SDB_RS for '\n' may be enought
-int sdb_alist(Sdb *s, const char *key) {
+SDB_VISIBLE int sdb_alist(Sdb *s, const char *key) {
 	int len = 0, hasnext = 1;
 	char *list = sdb_get (s, key, 0);
 	char *ptr = list;
