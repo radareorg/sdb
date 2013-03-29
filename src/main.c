@@ -1,4 +1,4 @@
-/* Public domain -- pancake @ 2011-2013 */
+/* sdb - LGPLv3 - Copyright 2011-2012 - pancake */
 
 #include <signal.h>
 #include <stdio.h>

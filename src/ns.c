@@ -1,4 +1,4 @@
-/* Copyleft 2012-2013 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+/* sdb - LGPLv3 - Copyright 2011-2013 - pancake */
 
 #include "sdb.h"
 

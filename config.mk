@@ -20,6 +20,7 @@ ARCH=$(shell uname -m)
 ifeq (${OS},Darwin)
 SOEXT=dylib
 LDFLAGS+=-dynamic
+LDFLAGS_SHARED?=-fPIC -shared
  ifeq (${ARCH},i386)
    CC+=-arch i386 -arch x86_64
  endif

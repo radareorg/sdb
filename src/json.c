@@ -1,4 +1,4 @@
-/* Copyleft 2012-2013 - sdb - pancake */
+/* sdb - LGPLv3 - 2012-2013 - pancake */
 
 #include <stdarg.h>
 #include "sdb.h"

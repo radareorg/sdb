@@ -1,6 +1,6 @@
 include ../config.mk
+
 CFLAGS+= -g -ggdb
-LDFLAGS+= -g -ggdb
 #CFLAGS+=-DOLDFMT=1
 OBJ=cdb.o buffer.o cdb_make.o ls.o ht.o sdb.o sdbn.o sdba.o query.o
 OBJ+=json.o json/js0n.o json/json.o json/rangstr.o ns.o lock.o
@@ -25,35 +25,16 @@ static: sdb-version.h
 	${MAKE} libsdb.a
 
 libsdb.a: ${OBJ}
-	@#ar qf libasb.a ${OBJ}
 	rm -f libsdb.a
 	${AR} -r libsdb.a ${OBJ}
 	${RANLIB} libsdb.a
 
-%.so:	%.c
+%.so: %.c
 	${CC} -c ${CPPFLAGS} ${CFLAGS} ${CFLAGS_SHARED} -o $@ $^
 
 libsdb.${SOEXT}: ${SOBJ}
+	echo JOJO
 	${CC} ${LDFLAGS} $(LDFLAGS_SHARED) -o $@ ${SOBJ}
-
-t:
-	rm -f foo
-	./sdb foo a=3 b=200
-	hexdump -C foo
-	./sdb foo
-	./sdb foo a
-
-tdd test:
-	sh tdd.sh
-
-xxx:
-	rm -f foo
-	./sdb foo a=3
-	valgrind ./sdb foo a
-	valgrind ./sdb foo a=3 b=4
-	valgrind ./sdb foo a=9 b=2
-
-main.c:
 
 ${BIN}: libsdb.a main.o
 	${CC} ${LDFLAGS} -o ${BIN} main.o ${OBJ}
