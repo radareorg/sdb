@@ -4,14 +4,11 @@ SDB (simple database)
 sdb is a simple string key/value database based on djb's cdb
 disk storage and supports JSON and arrays introspection.
 
-Other features include database lock and namespaces in order
-to split the information between several files.
-
 mcsdbd is a memcache server with disk storage based on sdb.
+It is distributed as a standalone binary and a library.
 
-It is distributed as a standalone binary and a library. There's
-als the sdbtypes: a vala library that implements several data
-structures on top of an sdb or a memcache instance.
+There's also the sdbtypes: a vala library that implements
+several data structures on top of an sdb or a memcache instance.
 
 Author
 ------
@@ -19,6 +16,8 @@ pancake <pancake@nopcode.org>
 
 Contains
 --------
+* namespaces (multiple sdb paths)
+* atomic database sync (never corrupted)
 * bindings for vala, luvit, newlisp and nodejs
 * commandline frontend for sdb databases
 * memcache client and server with sdb backend

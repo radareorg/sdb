@@ -1,4 +1,4 @@
-/* sdb - LGPLv3 - 2012-2013 - pancake */
+/* sdb - LGPLv3 - Copyright 2012-2013 - pancake */
 
 #include <stdio.h>
 #include <string.h>
