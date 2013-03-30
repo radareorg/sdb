@@ -34,11 +34,11 @@ dist:
 	rm -rf sdb-${VERSION}
 
 install-dirs:
-	mkdir -p ${MANDIR}${PFX}/lib/pkgconfig ${PFX}/bin 
+	mkdir -p ${MANDIR} ${PFX}/lib/pkgconfig ${PFX}/bin 
 	mkdir -p ${PFX}/share/vala/vapi ${PFX}/include/sdb
 
 install: install-dirs
-	cp -f src/sdb ${MANDIR}
+	cp -f src/sdb.1 ${MANDIR}
 	cp -f src/libsdb.* ${PFX}/lib
 	cp -f src/sdb.h ${PFX}/include/sdb
 	cp -f src/sdb-version.h ${PFX}/include/sdb
