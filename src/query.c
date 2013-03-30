@@ -42,7 +42,7 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			*ask = '?';
 		} else {
 			if (*cmd=='+') n = sdb_inc (s, cmd+1, 1, 0);
-			else sdb_dec (s, cmd+1, 1, 0);
+			else n = sdb_dec (s, cmd+1, 1, 0);
 		}
 		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d", n);
 		if (w<0 || (size_t)w>len) {

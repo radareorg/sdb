@@ -4,6 +4,7 @@ VALADIR=bindings/vala
 PWD=$(shell pwd)
 PFX=${DESTDIR}${PREFIX}
 HGFILES=`find sdb-${VERSION} -type f | grep -v hg | grep -v swp`
+MANDIR=${PFX}/share/man/man1
 
 all: src/sdb-version.h
 	cd src && ${MAKE}
@@ -33,10 +34,11 @@ dist:
 	rm -rf sdb-${VERSION}
 
 install-dirs:
-	mkdir -p ${PFX}/lib/pkgconfig ${PFX}/bin 
+	mkdir -p ${MANDIR}${PFX}/lib/pkgconfig ${PFX}/bin 
 	mkdir -p ${PFX}/share/vala/vapi ${PFX}/include/sdb
 
 install: install-dirs
+	cp -f src/sdb ${MANDIR}
 	cp -f src/libsdb.* ${PFX}/lib
 	cp -f src/sdb.h ${PFX}/include/sdb
 	cp -f src/sdb-version.h ${PFX}/include/sdb
@@ -101,9 +103,8 @@ endif
 # windows compiler prefix
 WCP=i386-mingw32
 
-w32:
+w32: src/sdb-version.h
 	cd src ; \
-	${MAKE} sdb-version.h ; \
 	${MAKE} OS=w32 WCP=${WCP} CC=${WCP}-gcc AR=${WCP}-ar RANLIB=${WCP}-ranlib sdb.exe
 
 .PHONY: all ${VALADIR} clean dist w32

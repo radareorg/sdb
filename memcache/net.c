@@ -1,4 +1,5 @@
-/* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
+
 #include "types.h"
 #include "mcsdb.h"
 #include <netinet/in.h>

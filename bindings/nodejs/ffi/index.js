@@ -8,6 +8,8 @@ var SDB = new FFI.Library ("libsdb", {
 ,	"sdb_append": [ "int", ["pointer", "string", "string"]]
 ,	"sdb_finish": [ "int", ["pointer"]]
 ,	"sdb_remove": [ "int", ["pointer", "string", "int"]]
+,	"sdb_query": [ "int", ["pointer", "string"]]
+,	"sdb_querys": [ "string", ["pointer", "string", "pointer", "int", "pointer"]]]
 ,	"sdb_get": [ "string", ["pointer", "string", "pointer"]]
 ,	"sdb_set": [ "int", ["pointer", "string", "string", "uint32"]]
 ,	"sdb_add": [ "int", ["pointer", "string", "string", "uint32"]]

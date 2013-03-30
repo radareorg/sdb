@@ -20,13 +20,10 @@ SDB_VISIBLE const char *sdb_anext(const char *str) {
 }
 
 SDB_VISIBLE char *sdb_astring(char *str, int *hasnext) {
+	int nxt = 0;
 	char *p = strchr (str, SDB_RS);
-	if (!p) {
-		if (hasnext) *hasnext = 0;
-		return str;
-	}
-	*p = 0;
-	if (hasnext) *hasnext = 1;
+	if (p) { *p = 0; nxt = 1; }
+	if (hasnext) *hasnext = nxt;
 	return str;
 }
 
