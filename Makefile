@@ -98,4 +98,5 @@ ifneq (${HAVE_VALA},)
 	cd ${VALADIR}/types && ${MAKE} symstall PFX=${PFX}
 endif
 
-.PHONY: all ${VALADIR} clean dist install uninstall deinstall
+.PHONY: all ${VALADIR} clean dist
+.PHONY: install-dirs install uninstall deinstall symstall

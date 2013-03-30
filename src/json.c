@@ -41,13 +41,13 @@ SDB_VISIBLE char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas)
 SDB_VISIBLE int sdb_json_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
 	int cur = sdb_json_geti (s, k, p);
 	sdb_json_seti (s, k, p, cur+n, cas);
-	return cur;
+	return cur+n;
 }
 
 SDB_VISIBLE int sdb_json_dec(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
 	int cur = sdb_json_geti (s, k, p);
 	sdb_json_seti (s, k, p, cur-n, cas);
-	return cur;
+	return cur-n;
 }
 
 SDB_VISIBLE int sdb_json_geti (Sdb *s, const char *k, const char *p) {

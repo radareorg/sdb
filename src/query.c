@@ -34,15 +34,20 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 	ut64 n;
 
 	if (*cmd == '+' || *cmd == '-') {
-		n = (*cmd=='+')?(
-			ask?  (ut64)sdb_json_inc (s, cmd+1, ask, 1, 0):
-				sdb_inc (s, cmd+1, 1, 0)):(
-			ask?  (ut64)sdb_json_dec (s, cmd+1, ask, 1, 0):
-				sdb_dec (s, cmd+1, 1, 0));
-		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d\n", n);
+		*buf = 0;
+		if (ask) {
+			*ask = 0;
+			if (*cmd=='+') n = sdb_json_inc (s, cmd+1, ask+1, 1, 0);
+			else n = sdb_json_dec (s, cmd+1, ask+1, 1, 0);
+			*ask = '?';
+		} else {
+			if (*cmd=='+') n = sdb_inc (s, cmd+1, 1, 0);
+			else sdb_dec (s, cmd+1, 1, 0);
+		}
+		w = snprintf (buf, sizeof (buf), "%"ULLFMT"d", n);
 		if (w<0 || (size_t)w>len) {
 			buf = malloc (64);
-			snprintf (buf, 64, "%"ULLFMT"d\n", n);
+			snprintf (buf, 64, "%"ULLFMT"d", n);
 		}
 		return buf;
 	} else if (*cmd == '(') {
