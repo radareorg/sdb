@@ -3,14 +3,6 @@
 #include "sdb.h"
 #include "types.h"
 
-SDB_VISIBLE int sdb_nexists (Sdb *s, const char *key) {
-	char c;
-	const char *o = sdb_getc (s, key, NULL);
-	if (!o) return 0;
-	c = *o;
-	return c>='0' && c<='9';
-}
-
 static void __strrev(char *s, int len) {
 	int i, j = len -1;
 	for (i=0; i<j; i++, j--) {
@@ -26,6 +18,14 @@ static void __ulltoa(ut64 n, char *s) {
 	while ((n /= 10) > 0);
 	s[i] = '\0';
 	__strrev (s, i);
+}
+
+SDB_VISIBLE int sdb_nexists (Sdb *s, const char *key) {
+	char c;
+	const char *o = sdb_getc (s, key, NULL);
+	if (!o) return 0;
+	c = *o;
+	return c>='0' && c<='9';
 }
 
 SDB_VISIBLE ut64 sdb_getn(Sdb *s, const char *key, ut32 *cas) {

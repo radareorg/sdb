@@ -1,4 +1,4 @@
-/* sdb - LGPLv3 - Copyright 2011-2012 - pancake */
+/* sdb - LGPLv3 - Copyright 2011-2013 - pancake */
 
 #include <signal.h>
 #include <stdio.h>
@@ -6,12 +6,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "sdb.h"
-#include "json/util.h"
 
 static int save = 0;
 static Sdb *s = NULL;
 
-static void terminate(int sig __unused__) {
+static void terminate(int sig __unused) {
 	if (!s) return;
 	if (save) sdb_sync (s);
 	sdb_free (s);
@@ -19,7 +18,7 @@ static void terminate(int sig __unused__) {
 }
 
 #if USE_MMAN
-static void syncronize(int sig __unused__) {
+static void syncronize(int sig __unused) {
 	// TODO: must be in sdb_sync() or wat?
 	Sdb *n;
 	sdb_sync (s);

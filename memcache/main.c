@@ -1,8 +1,8 @@
 /* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+
 #include <signal.h>
 #include <sys/socket.h>
 #include "mcsdb.h"
-#include "json/util.h"
 
 McSdb *ms = NULL;
 int protocol_handle(McSdbClient *c, char *buf);
@@ -49,7 +49,7 @@ static void main_version() {
 	printf ("mcsdbd v"MCSDB_VERSION"\n");
 }
 
-static void main_help(const char *arg __unused__) {
+static void main_help(const char *arg __unused) {
 	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
@@ -193,7 +193,7 @@ static int udp_listen (int port) {
 	return s;
 }
 
-static int udp_parse(McSdbClient *c __unused__, int fd) {
+static int udp_parse(McSdbClient *c __unused, int fd) {
 #pragma pack(2)
 #define ut16 unsigned short
 struct udphdr_t {
@@ -206,9 +206,7 @@ struct udphdr_t {
 struct udphdr_t h;
 	char buf[32768];
 	int ret = read (fd, buf, 32768);
-
-	if (ret<1)
-		return 0;
+	if (ret<1) return 0;
 	buf[ret] = 0;
 	memcpy (&h, buf, 8);
 #if 0

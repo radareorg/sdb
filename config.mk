@@ -38,15 +38,3 @@ SILENT=1
 else
 SILENT=
 endif
-
-.c:
-ifneq ($(SILENT),)
-	@echo LD $<
-endif
-	$(CC) $(LDFLAGS) -c $(CFLAGS) -o $@ $<
-
-.c.o:
-ifneq ($(SILENT),)
-	@echo CC $(shell basename $<)
-endif
-	$(CC) -c $(CFLAGS) -o $@ $<

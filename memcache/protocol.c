@@ -1,4 +1,5 @@
 /* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+
 #include "mcsdb.h"
 #include <ctype.h>
 #include <sys/resource.h>

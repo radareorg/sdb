@@ -1,4 +1,5 @@
 /* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+
 #include "mcsdb.h"
 
 int main(int argc, char **argv) {

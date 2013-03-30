@@ -25,15 +25,17 @@ static: sdb-version.h
 	${MAKE} libsdb.a
 
 libsdb.a: ${OBJ}
+ifneq ($(SILENT),)
+	@echo AR libsdb.a
+endif
 	rm -f libsdb.a
 	${AR} -r libsdb.a ${OBJ}
 	${RANLIB} libsdb.a
 
-%.so: %.c
-	${CC} -c ${CPPFLAGS} ${CFLAGS} ${CFLAGS_SHARED} -o $@ $^
-
 libsdb.${SOEXT}: ${SOBJ}
-	echo JOJO
+ifneq ($(SILENT),)
+	@echo LD libsdb.${SOEXT}
+endif
 	${CC} ${LDFLAGS} $(LDFLAGS_SHARED) -o $@ ${SOBJ}
 
 ${BIN}: libsdb.a main.o
@@ -41,3 +43,22 @@ ${BIN}: libsdb.a main.o
 
 clean:
 	rm -rf ${OBJ} ${SOBJ} main.o libsdb.a a.out sdb sdb.dSYM *.sdb *.db *.${SOEXT}
+
+# rules #
+.c:
+ifneq ($(SILENT),)
+	@echo LD $<
+endif
+	$(CC) $(LDFLAGS) -c $(CFLAGS) -o $@ $<
+
+.c.o:
+ifneq ($(SILENT),)
+	@echo CC $(shell basename $<)
+endif
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+%.so: %.c
+ifneq ($(SILENT),)
+	@echo SO $<
+endif
+	${CC} -c ${CPPFLAGS} ${CFLAGS} ${CFLAGS_SHARED} -o $@ $^

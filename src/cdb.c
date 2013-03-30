@@ -89,6 +89,7 @@ static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
 int cdb_findnext(struct cdb *c, ut32 u, const char *key, unsigned int len) {
 	char buf[8];
 	ut32 pos;
+	int m;
 
 	if (!c->loop) {
 		if (!cdb_read (c, buf, 8, (u << 3) & 2047))
@@ -121,8 +122,7 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, unsigned int len) {
 			if (!getkvlen (c->fd, &u, &c->dlen))
 				return -1;
 			if (u == len) {
-				int m = match (c, key, len, pos + KVLSZ);
-				if (m == -1)
+				if ((m = match (c, key, len, pos + KVLSZ))==-1)
 					return 0;
 				if (m == 1) {
 					c->dpos = pos + KVLSZ + len;

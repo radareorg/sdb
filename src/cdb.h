@@ -16,6 +16,10 @@
 #define USE_MMAN 1
 #endif
 
+extern /*@null@*//*@out@*/char *alloc();
+extern void alloc_free();
+extern int alloc_re();
+
 /* TODO THIS MUST GTFO! */
 int getkvlen(int fd, ut32 *klen, ut32 *vlen);
 #define CDB_HASHSTART 5381

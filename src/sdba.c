@@ -2,7 +2,18 @@
 
 #include "sdb.h"
 
-static char *sdb_aindex_nc(char *str, int idx);
+static char *sdb_aindex_nc(char *str, int idx) {
+	int len = 0;
+	char *n, *p = str;
+	for (len=0; ; len++) {
+		if (len == idx)
+			return p;
+		n = strchr (p, SDB_RS);
+		if (n) p = n+1;
+		else break;
+	}
+	return NULL;
+}
 
 SDB_VISIBLE const char *sdb_anext(const char *str) {
 	return str+strlen (str)+1;
@@ -20,10 +31,10 @@ SDB_VISIBLE char *sdb_astring(char *str, int *hasnext) {
 }
 
 SDB_VISIBLE char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
-	int i, len;
-	const char *str = sdb_getc (s, key, cas);
-	char *o, *n;
+	const char *str = sdb_getc (s, key, 0); // XXX cas
 	const char *p = str;
+	char *o, *n;
+	int i, len;
 	if (!str || !*str) return NULL;
 	if (idx==0) {
 		n = strchr (str, SDB_RS);
@@ -134,19 +145,6 @@ SDB_VISIBLE int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
 SDB_VISIBLE const char *sdb_aindex(const char *str, int idx) {
 	int len = 0;
 	const char *n, *p = str;
-	for (len=0; ; len++) {
-		if (len == idx)
-			return p;
-		n = strchr (p, SDB_RS);
-		if (n) p = n+1;
-		else break;
-	}
-	return NULL;
-}
-
-static char *sdb_aindex_nc(char *str, int idx) {
-	int len = 0;
-	char *n, *p = str;
 	for (len=0; ; len++) {
 		if (len == idx)
 			return p;
