@@ -5,7 +5,7 @@
 #include <string.h>
 #include "rangstr.h"
 #include "json.h"
-#include "util.h"
+#include "../types.h"
 
 void json_path_first(Rangstr *s) {
 	char *p;

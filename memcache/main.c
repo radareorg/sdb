@@ -1,8 +1,13 @@
 /* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
 
 #include <signal.h>
-#include <sys/socket.h>
 #include "mcsdb.h"
+#include "../src/types.h"
+#if WINDOWS
+#include <windows.h>
+#else
+#include <sys/socket.h>
+#endif
 
 McSdb *ms = NULL;
 int protocol_handle(McSdbClient *c, char *buf);

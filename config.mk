@@ -11,12 +11,26 @@ CFLAGS+=${CFLAGS_STD}
 CFLAGS+=-Wall
 #CFLAGS+=-O3
 #CFLAGS+=-ggdb -g -Wall -O0
-CFLAGS_SHARED?=-fPIC -shared -fvisibility=hidden
 
 HAVE_VALA=$(shell valac --version)
 # This is hacky
-OS=$(shell uname)
-ARCH=$(shell uname -m)
+HOST_CC?=gcc
+RANLIB?=ranlib
+OS?=$(shell uname)
+ARCH?=$(shell uname -m)
+
+ifeq (${OS},w32)
+WCP?=i386-mingw32
+CC=${WCP}-gcc
+AR?=${WCP}-ar
+CFLAGS_SHARED?=-fPIC -shared
+EXEXT=.exe
+else
+CFLAGS_SHARED?=-fPIC -shared -fvisibility=hidden
+CC?=gcc
+EXEXT=
+endif
+
 ifeq (${OS},Darwin)
 SOEXT=dylib
 LDFLAGS+=-dynamic
@@ -30,8 +44,6 @@ SOEXT=so.0.0.0
 LDFLAGS_SHARED?=-fPIC -shared
 LDFLAGS_SHARED+=-Wl,-soname,libsdb.so.$(SOVERSION)
 endif
-RANLIB?=ranlib
-EXEXT=
 
 ifeq ($(MAKEFLAGS),s)
 SILENT=1

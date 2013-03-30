@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "sdb.h"
+#if WINDOWS
+#include <windows.h>
+#endif
 
 static char buf[128];
 
@@ -32,14 +35,14 @@ SDB_VISIBLE int sdb_lock(const char *s) {
 
 void sdb_lock_wait(const char *s __unused) {
 	// TODO use flock() here
-#if __WIN32__ || __CYGWIN__ || MINGW32
  	while (!sdb_lock (s)) {
-	// 	usleep (100); // hack
+#if WINDOWS
 	 	Sleep (500); // hack
- 	}
 #else
 	// TODO flock (fd, LOCK_EX);
+	// 	usleep (100); // hack
 #endif
+ 	}
 }
 
 SDB_VISIBLE void sdb_unlock(const char *s) {

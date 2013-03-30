@@ -12,11 +12,11 @@ CFLAGS+= -g -ggdb
 all: ${BIN} ${CBIN} libmcsdb.a
 
 ${LIBA}: ${COBJS}
-	ar -r ${LIBA} ${COBJS}
-	ranlib ${LIBA}
+	${AR} -r ${LIBA} ${COBJS}
+	${RANLIB} ${LIBA}
 
 ${CBIN}: ${COBJS} mainclient.o
-	${CC} mainclient.o ${COBJS} ${LDFLAGS} ${LIBS} -o ${CBIN}
+	${CC} ${LIBS} mainclient.o ${COBJS} ${LDFLAGS} -o ${CBIN}
 
 ${OBJS} mainclient.o: cmds.h
 
@@ -24,7 +24,7 @@ ${BIN}: ${OBJS}
 	${CC} -o ${BIN} ${OBJS} ${LDFLAGS} ${LIBS}
 
 cmds.h: cmds.o
-	${CC} -o cmds cmds.o ${CPPFLAGS} ${CFLAGS} ${LDFLAGS} ${LIBS}
+	${HOST_CC} -o cmds ../src/util.c cmds.c ${CPPFLAGS} ${CFLAGS} ${LDFLAGS}
 	./cmds > cmds.h
 
 clean:

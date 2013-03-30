@@ -375,16 +375,6 @@ SDB_VISIBLE ut64 sdb_get_expire(Sdb* s, const char *key) {
 	return 0LL;
 }
 
-SDB_VISIBLE ut32 sdb_hash(const char *s, int len) {
-	ut32 h = CDB_HASHSTART;
-	if (len<1) len = strlen (s)+1; // XXX slow
-	while (len--) {
-		h += (h<<5);
-		h ^= *s++;
-	}
-	return h;
-}
-
 SDB_VISIBLE void sdb_flush(Sdb* s) {
 	ht_free (s->ht);
 	s->ht = ht_new ();

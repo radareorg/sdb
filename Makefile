@@ -98,5 +98,13 @@ ifneq (${HAVE_VALA},)
 	cd ${VALADIR}/types && ${MAKE} symstall PFX=${PFX}
 endif
 
-.PHONY: all ${VALADIR} clean dist
+# windows compiler prefix
+WCP=i386-mingw32
+
+w32:
+	cd src ; \
+	${MAKE} sdb-version.h ; \
+	${MAKE} OS=w32 WCP=${WCP} CC=${WCP}-gcc AR=${WCP}-ar RANLIB=${WCP}-ranlib sdb.exe
+
+.PHONY: all ${VALADIR} clean dist w32
 .PHONY: install-dirs install uninstall deinstall symstall
