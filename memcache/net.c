@@ -39,7 +39,7 @@ int net_flush(int fd) {
 	return n;
 }
 
-int net_printf (int fd, char *fmt, ...) {
+int net_printf (int fd, const char *fmt, ...) {
 	int n;
 	char buf[MCSDB_MAX_BUFFER];
 	va_list ap;

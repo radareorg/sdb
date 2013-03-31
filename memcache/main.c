@@ -9,8 +9,7 @@
 #include <sys/socket.h>
 #endif
 
-McSdb *ms = NULL;
-int protocol_handle(McSdbClient *c, char *buf);
+static McSdb *ms = NULL;
 
 static McSdbClient *mcsdb_client_new_fd(int fd) {
 	McSdbClient *c = R_NEW (McSdbClient);
@@ -32,7 +31,7 @@ static int fds_add(int fd) {
 	return 1;
 }
 
-static void sigint() {
+static void sigint(int sig __unused) {
 	signal (SIGINT, SIG_IGN);
 	fprintf (stderr, "gets %lld\n", ms->gets);
 	fprintf (stderr, "sets %lld\n", ms->sets);
@@ -46,11 +45,11 @@ static void sigint() {
 	exit (0);
 }
 
-static void setup_signals() {
+static void setup_signals(void) {
 	signal (SIGINT, sigint);
 }
 
-static void main_version() {
+static void main_version(void) {
 	printf ("mcsdbd v"MCSDB_VERSION"\n");
 }
 
@@ -90,37 +89,25 @@ static int mcsdb_client_state(McSdbClient *c) {
 	switch (c->mode) {
 	case 0: // read until newline
 		rlen = MCSDB_MAX_BUFFER - c->idx;
-		if (c->next) {
-			// never happens
-			r = 0;
-		} else {
-			r = read (c->fd, c->buf+c->idx, rlen);
-		}
+		r = c->next? 0: read (c->fd, c->buf+c->idx, rlen);
 		if (r<0) {
 			printf ("ignored error\n");
 			return 1;
 			//return 0;
 		}
-//		if (r>0) {
-			c->buf[c->idx+r] = 0;
-			//printf ("---- (%s)\n", c->buf+c->idx);
-			if ((p = strchr (c->buf+c->idx, '\n'))) {
-				//char *rest = p+1;
-				*p--=0;
-				if (p>c->buf && *p=='\r')
-					*p = 0;
-				int restlen = (int)(size_t)(p-c->buf); //(int)r-(rest-c->buf);
-				c->next = restlen+2; //(c->idx-restlen);
-				//printf ("MUST REREAD (%s) %d %d\n", c->buf, c->idx, c->next);
-				//printf (" - --- next (%s) %d (len=%d)\n", c->buf+c->next, c->idx, c->idx);
-				c->idx += r;
-				return 1;
-			}
-			ms->bread += r;
+		c->buf[c->idx+r] = 0;
+		if ((p = strchr (c->buf+c->idx, '\n'))) {
+			*p--=0;
+			if (p>c->buf && *p=='\r')
+				*p = 0;
+			int restlen = (int)(size_t)(p-c->buf);
+			c->next = restlen+2;
 			c->idx += r;
-//		}
+			return 1;
+		}
+		ms->bread += r;
+		c->idx += r;
 		return 1;
-		// IGNORED return 0;
 	case 1: // read N bytes
 		if (c->idx>c->len)
 			c->idx = 0;
@@ -146,8 +133,9 @@ static int mcsdb_client_state(McSdbClient *c) {
 			return 1;
 		}
 		break;
-	case 2: // write : not yet used
-		write (c->fd, c->buf+c->idx, c->len-c->idx);
+	case 2:
+		r = write (c->fd, c->buf+c->idx, c->len-c->idx);
+		if (r!=(c->len-c->idx)) return 1;
 		break;
 	}
 	return 0;
@@ -285,9 +273,7 @@ static int net_loop(int port) {
 			c = ms->msc[i];
 			do {
 				ret = mcsdb_client_state (c);
-//printf ("BOING next=%d idx=%d (%s)\n", c->next, c->idx, c->buf+c->idx);
-//printf (".......................................... RET = %d\n", ret);
-				int ph = protocol_handle (c, c->buf); //+c->next);
+				int ph = protocol_handle (ms, c, c->buf);
 				switch (ph) {
 				case 1:
 					break;

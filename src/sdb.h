@@ -137,7 +137,6 @@ char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas);
 int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_adel(Sdb *s, const char *key, int n, ut32 cas);
 // helpers
-const char *sdb_anext(const char *str);
 char *sdb_astring(char *str, int *hasnext);
 int sdb_alen(const char *str);
 int sdb_alength(Sdb *s, const char *key);

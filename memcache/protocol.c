@@ -38,7 +38,7 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 	net_printf (fd, "END\r\n"); // no elements found
 }
 
-int protocol_handle (McSdbClient *c, char *buf) {
+int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 	struct rusage ru;
 	int fd, ret, reply, stored = 1;
 	char *b, *p, *q, *cmd = buf, *key = NULL;

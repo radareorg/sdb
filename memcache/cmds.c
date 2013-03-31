@@ -1,4 +1,4 @@
-/* Copyleft 2011 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
 
 #include "sdb.h"
 #include <ctype.h>
@@ -12,7 +12,7 @@ static void cmdhash(const char *s) {
 	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s, 0));
 }
 
-int main() {
+int main(void) {
 	cmdhash ("version");
 	cmdhash ("verbosity");
 	cmdhash ("flush_all");

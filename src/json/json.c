@@ -50,6 +50,7 @@ rep:
 	return 1;
 }
 
+#if 0
 typedef int (*JSONCallback)();
 
 int json_foreach(const char *s, JSONCallback cb __unused) {
@@ -71,6 +72,7 @@ int json_foreach(const char *s, JSONCallback cb __unused) {
 	}
 	return 1;
 }
+#endif
 
 int json_walk (const char *s) {
 	int i, len, ret;
@@ -97,7 +99,7 @@ Rangstr json_find (const char *s, Rangstr *rs) {
 	unsigned short resfix[RESFIXSZ];
 	unsigned short *res = NULL;
 	int i, j, n, len, ret;
-	Rangstr rs2;
+	Rangstr rsn;
 
 	if (!s) return rangstr_null ();
 	len = strlen (s);
@@ -114,16 +116,16 @@ Rangstr json_find (const char *s, Rangstr *rs) {
 		if (n<0) goto beach;
 		for (i=j=0; res[i] && j<n; i+=2, j++);
 		if (j<n) goto beach;
-		rs2 = rangstr_news (s, res, i-2);
+		rsn = rangstr_news (s, res, i-2);
 		PFREE (res);
-		return rs2;
+		return rsn;
 	} else {
 		for (i=0; res[i]; i+=4) {
-			Rangstr rs2 = rangstr_news (s, res, i);
-			if (!rangstr_cmp (rs, &rs2)) {
-				rs2 = rangstr_news (s, res, i+2);
+			Rangstr rsn = rangstr_news (s, res, i);
+			if (!rangstr_cmp (rs, &rsn)) {
+				rsn = rangstr_news (s, res, i+2);
 				PFREE (res);
-				return rs2;
+				return rsn;
 			}
 		}
 	}

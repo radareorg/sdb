@@ -51,7 +51,7 @@ typedef struct {
 	ut8 buf[NETBUFSZ];
 } NetClient;
 
-extern McSdb *ms;
+int protocol_handle(McSdb *, McSdbClient *c, char *buf);
 
 McSdb *mcsdb_new(const char *file);
 void mcsdb_free(McSdb *ms);
@@ -71,7 +71,7 @@ int net_connect(const char *host, const char *port);
 int net_listen(int port);
 int net_close(int s);
 int net_flush(int fd);
-int net_printf(int fd, char *fmt, ...);
+int net_printf(int fd, const char *fmt, ...);
 char *net_readnl(int fd);
 
 /* client */

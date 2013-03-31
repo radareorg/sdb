@@ -29,6 +29,7 @@ SDB_VISIBLE char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt
 }
 
 SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
+	const char *q;
 	char *p, *eq, *ask = strchr (cmd, '?');
 	int i, ok, w, alength;
 	ut64 n;
@@ -128,10 +129,10 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 					return p;
 			} else {
 				// sdbget
-				const char *p = sdb_getc (s, cmd, 0);
-				if (!p) return NULL;
-				if (strlen (p)> len) return strdup (p);
-				strcpy (buf, p);
+				if (!(q = sdb_getc (s, cmd, 0)))
+					return NULL;
+				if (strlen (q)> len) return strdup (q);
+				strcpy (buf, q);
 				return buf;
 			}
 		}

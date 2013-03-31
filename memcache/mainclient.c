@@ -17,8 +17,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	for (;;) {
-		fgets (buf, sizeof (buf), stdin);
-		if (feof (stdin))
+		if (fgets (buf, sizeof (buf), stdin) == NULL || feof (stdin))
 			break;
 		buf[strlen (buf)-1] = 0;
 		if (buf[0]=='+') {

@@ -50,8 +50,7 @@ static void createdb(const char *f) {
 		exit (1);
 	}
 	for (;;) {
-		fgets (line, sizeof line, stdin);
-		if (feof (stdin))
+		if (!fgets (line, sizeof line, stdin) || feof (stdin))
 			break;
 		line[strlen (line)-1] = 0;
 		if ((eq = strchr (line, '='))) {
@@ -104,8 +103,7 @@ int main(int argc, const char **argv) {
 		char line[SDB_VSZ+SDB_KSZ]; // XXX can overflow stack
 		if ((s = sdb_new (argv[1], 0)))
 			for (;;) {
-				fgets (line, sizeof line, stdin);
-				if (feof (stdin))
+				if (!fgets (line, sizeof line, stdin) || feof (stdin))
 					break;
 				line[strlen (line)-1] = 0;
 				save = sdb_query (s, line);
