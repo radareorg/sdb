@@ -12,15 +12,30 @@ CFLAGS+= -g -ggdb
 all: ${BIN} ${CBIN} libmcsdb.a
 
 ${LIBA}: ${COBJS}
+ifneq ($(SILENT),)
+	@echo AR ${LIBA}
+endif
 	${AR} -r ${LIBA} ${COBJS}
 	${RANLIB} ${LIBA}
 
+%.o: %.c
+ifneq ($(SILENT),)
+	@echo CC $<
+endif
+	${CC} -c ${CPPFLAGS} ${CFLAGS} ${CFLAGS_SHARED} -o $@ $<
+
 ${CBIN}: ${COBJS} mainclient.o
+ifneq ($(SILENT),)
+	@echo BIN ${CBIN}
+endif
 	${CC} ${LIBS} mainclient.o ${COBJS} ${LDFLAGS} -o ${CBIN}
 
 ${OBJS} mainclient.o: cmds.h
 
 ${BIN}: ${OBJS}
+ifneq ($(SILENT),)
+	@echo BIN ${BIN}
+endif
 	${CC} -o ${BIN} ${OBJS} ${LDFLAGS} ${LIBS}
 
 cmds.h: cmds.o
@@ -28,11 +43,9 @@ cmds.h: cmds.o
 	./cmds > cmds.h
 
 clean:
-	rm -f *.sdb
-	rm -f ${LIBA}
-	rm -f ${COBJS} ${CBIN} mainclient.o
-	rm -f ${OBJS} ${BIN}
-	rm -f cmds.h cmds cmds.o
+	rm -rf *.dSYM
+	rm -f *.sdb ${LIBA} ${COBJS} ${CBIN} mainclient.o
+	rm -f ${OBJS} ${BIN}cmds.h cmds cmds.o
 
 test:
 	./mcsdbd &
