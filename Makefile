@@ -71,6 +71,7 @@ deinstall uninstall:
 	rm -f ${PFX}/lib/libmcsdb.a
 	rm -f ${PFX}/lib/pkgconfig/sdb.pc
 	rm -f ${PFX}/lib/pkgconfig/mcsdb.pc
+	rm -f ${MANDIR}/sdb.1
 ifneq (${HAVE_VALA},)
 	rm -f ${PFX}/share/vala/vapi/sdb.vapi 
 	rm -f ${PFX}/share/vala/vapi/mcsdb.vapi 
@@ -80,6 +81,7 @@ endif
 symstall: install-dirs
 	cd src ; for a in libsdb.* ; do \
 		ln -fs ${PWD}/src/$$a ${PFX}/lib/$$a ; done
+	ln -fs ${PWD}/src/sdb.1 ${MANDIR}/sdb.1
 	ln -fs ${PWD}/src/sdb ${PFX}/bin
 	ln -fs ${PWD}/src/sdb.h ${PFX}/include/sdb
 	ln -fs ${PWD}/src/sdb-version.h ${PFX}/include/sdb
