@@ -28,7 +28,7 @@ ${CBIN}: ${COBJS} mainclient.o
 ifneq ($(SILENT),)
 	@echo BIN ${CBIN}
 endif
-	${CC} ${LIBS} mainclient.o ${COBJS} ${LDFLAGS} -o ${CBIN}
+	${CC} mainclient.o ${COBJS} ${LDFLAGS} -o ${CBIN} ${LIBS}
 
 ${OBJS} mainclient.o: cmds.h
 
