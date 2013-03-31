@@ -15,7 +15,7 @@ typedef struct {
 
 void rangstr_print (Rangstr *s);
 Rangstr rangstr_new (const char *s);
-Rangstr rangstr_null();
+Rangstr rangstr_null(void);
 int rangstr_int (Rangstr *s);
 char *rangstr_dup (Rangstr *rs);
 Rangstr rangstr_news (const char *s, ut16 *res, int i);

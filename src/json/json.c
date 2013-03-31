@@ -184,6 +184,8 @@ return rj;
 	return rj;
 }
 
+#if 0
 char *json_set (const char *s __unused, const char *k __unused, const char *v __unused) {
 	return NULL;
 }
+#endif

@@ -191,8 +191,8 @@ SDB_VISIBLE void sdb_reset (Sdb *s) {
 }
 
 // TODO: too many allocs here. use slices
-struct sdb_kv* sdb_kv_new (const char *k, const char *v) {
-	struct sdb_kv *kv = R_NEW (struct sdb_kv);
+SdbKv* sdb_kv_new (const char *k, const char *v) {
+	SdbKv *kv = R_NEW (struct sdb_kv);
 	strncpy (kv->key, k, sizeof (kv->key)-1);
 	strncpy (kv->value, v, sizeof (kv->value)-1);
 	kv->cas = nextcas ();

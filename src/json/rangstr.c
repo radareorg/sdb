@@ -20,7 +20,7 @@ Rangstr rangstr_new (const char *s) {
 	return rs;
 }
 
-Rangstr rangstr_null() {
+Rangstr rangstr_null(void) {
 	Rangstr rs = {0};
 	return rs;
 }

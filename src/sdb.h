@@ -99,8 +99,8 @@ void sdb_unlock(const char *s);
 int sdb_expire(Sdb* s, const char *key, ut64 expire);
 ut64 sdb_get_expire(Sdb* s, const char *key);
 // int sdb_get_cas(Sdb* s, const char *key) -> takes no sense at all..
-ut64 sdb_now ();
-ut64 sdb_unow ();
+ut64 sdb_now (void);
+ut64 sdb_unow (void);
 ut32 sdb_hash (const char *key, int klen);
 #define sdb_hashstr(x) sdb_hash(x,strlen(x))
 
