@@ -7,8 +7,8 @@ HGFILES=`find sdb-${VERSION} -type f | grep -v hg | grep -v swp`
 MANDIR=${PFX}/share/man/man1
 
 all: src/sdb-version.h
-	cd src && ${MAKE}
-	cd memcache && ${MAKE}
+	${MAKE} -C src
+	${MAKE} -C memcache
 ifneq (${HAVE_VALA},)
 	cd ${VALADIR} && ${MAKE}
 	cd ${VALADIR}/types && ${MAKE}
