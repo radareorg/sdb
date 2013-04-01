@@ -31,7 +31,7 @@ static int fds_add(int fd) {
 	return 1;
 }
 
-static void sigint(int sig __unused) {
+static void sigint(int sig UNUSED) {
 	signal (SIGINT, SIG_IGN);
 	fprintf (stderr, "gets %lld\n", ms->gets);
 	fprintf (stderr, "sets %lld\n", ms->sets);
@@ -53,7 +53,7 @@ static void main_version(void) {
 	printf ("mcsdbd v"MCSDB_VERSION"\n");
 }
 
-static void main_help(const char *arg __unused) {
+static void main_help(const char *arg UNUSED) {
 	printf ("mcsdbd [-hv] [-p port] [sdbfile]\n");
 }
 
@@ -186,7 +186,7 @@ static int udp_listen (int port) {
 	return s;
 }
 
-static int udp_parse(McSdbClient *c __unused, int fd) {
+static int udp_parse(McSdbClient *c UNUSED, int fd) {
 #pragma pack(2)
 #define ut16 unsigned short
 struct udphdr_t {
