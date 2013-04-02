@@ -4,18 +4,18 @@ namespace SimpleDB {
 	public class Sdb {
 		/* lifecycle */
 		public Sdb (string? name=null, bool locked=false);
-		public void sync ();
+		public bool sync ();
 		/* string */
 		public string @get (string key, out int? cas=null);
 		public bool @add (string key, string val, uint32 cas=0);
 		public bool @set (string key, string val, uint32 cas=0);
 		/* arrays */
-		public int sdb_alength (string key);
-		public string sdb_aget (string key, int idx, uint32 *cas=null);
-		public string sdb_aset (string key, int idx, string val, uint32 *cas=null);
-		public bool sdb_adel (string key, int idx, uint32 cas=0);
+		public int alength (string key);
+		public string aget (string key, int idx, uint32 *cas=null);
+		public string aset (string key, int idx, string val, uint32 *cas=null);
+		public bool adel (string key, int idx, uint32 cas=0);
 		/* numeric */
-		public void setn (string key, uint64 num, uint32 cas=0);
+		public bool setn (string key, uint64 num, uint32 cas=0);
 		public uint64 getn (string key, uint32 *cas = null);
 		public uint64 inc (string key, uint64 n, uint32 cas=0);
 		public uint64 dec (string key, uint64 n, uint32 cas=0);
