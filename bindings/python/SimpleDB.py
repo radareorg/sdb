@@ -57,6 +57,8 @@ class Sdb(Structure):
 		if not hasattr(self,'_o'):
 			self._o = addressof(self)
 		register(self,'sync','sdb_sync','c_void_p','c_bool')
+		register(self,'query','sdb_query','c_void_p, c_char_p','c_bool')
+		register(self,'querys','sdb_querys','c_void_p, c_char_p, c_int, c_char_p','c_char_p')
 		register(self,'get','sdb_get','c_void_p, c_char_p, POINTER(c_int)','c_char_p')
 		register(self,'add','sdb_add','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
 		register(self,'set','sdb_set','c_void_p, c_char_p, c_char_p, c_uint','c_bool')

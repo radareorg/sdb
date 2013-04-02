@@ -5,6 +5,9 @@ namespace SimpleDB {
 		/* lifecycle */
 		public Sdb (string? name=null, bool locked=false);
 		public bool sync ();
+		/* query */
+		public bool query(string cmd);
+		public string querys(string? buf=null, int len=0, string cmd="");
 		/* string */
 		public string @get (string key, out int? cas=null);
 		public bool @add (string key, string val, uint32 cas=0);
