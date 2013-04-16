@@ -27,8 +27,24 @@ SDB_VISIBLE char *sdb_astring(char *str, int *hasnext) {
 	return str;
 }
 
+SDB_VISIBLE ut64 sdb_agetn(Sdb *s, const char *key, int idx, ut32 *cas) {
+	const char *str = sdb_getc (s, key, cas);
+	const char *n, *p = str;
+	int i;
+	if (!str || !*str) return UT64_MAX;
+	if (idx==0)
+		return sdb_atoi (str);
+	for (i=0; i<idx; i++) {
+		n = strchr (p, SDB_RS);
+		if (!n) return UT64_MAX;
+		p = n+1;
+	}
+	if (!p) return UT64_MAX;
+	return sdb_atoi (p);
+}
+
 SDB_VISIBLE char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
-	const char *str = sdb_getc (s, key, 0); // XXX cas
+	const char *str = sdb_getc (s, key, cas);
 	const char *p = str;
 	char *o, *n;
 	int i, len;
@@ -55,6 +71,11 @@ SDB_VISIBLE char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
 	memcpy (o, p, len);
 	o[len] = 0;
 	return o;
+}
+
+SDB_VISIBLE int sdb_ainsn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+	char valstr[64];
+	return sdb_ains(s, key, idx, sdb_itoa (val, valstr), cas);
 }
 
 // TODO: done, but there's room for improvement
@@ -95,6 +116,11 @@ SDB_VISIBLE int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32
 }
 
 // set/replace
+SDB_VISIBLE int sdb_asetn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+	char valstr[64];
+	return sdb_aset(s, key, idx, sdb_itoa (val, valstr), cas);
+}
+
 SDB_VISIBLE int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	char *nstr, *ptr;
 	const char *usr, *str = sdb_getc (s, key, 0);

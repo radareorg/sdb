@@ -86,6 +86,8 @@ void sdb_dump_begin (Sdb* s);
 int sdb_dump_next (Sdb* s, char *key, char *value); // XXX: needs refactor?
 
 /* numeric */
+R_API char *sdb_itoa(ut64 n, char *s);
+R_API ut64 sdb_atoi(const char *s);
 ut64 sdb_getn (Sdb* s, const char *key, ut32 *cas);
 int sdb_setn (Sdb* s, const char *key, ut64 v, ut32 cas);
 ut64 sdb_inc (Sdb* s, const char *key, ut64 n, ut32 cas);
@@ -134,8 +136,11 @@ void sdb_ns_sync (Sdb *s);
 
 // array
 int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas);
+int sdb_asetn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas);
 char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas);
+ut64 sdb_agetn(Sdb *s, const char *key, int idx, ut32 *cas);
 int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas);
+int sdb_ainsn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_adel(Sdb *s, const char *key, int n, ut32 cas);
 // helpers
 char *sdb_astring(char *str, int *hasnext);
