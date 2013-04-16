@@ -19,6 +19,7 @@ extern "C" {
 #include "sdb-version.h"
 
 #define SDB_RS '\x1e'
+#define SDB_SS "\x1e"
 
 typedef struct sdb_ns_t {
 // todo. store last used
