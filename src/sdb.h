@@ -142,6 +142,7 @@ ut64 sdb_agetn(Sdb *s, const char *key, int idx, ut32 *cas);
 int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_ainsn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_adel(Sdb *s, const char *key, int n, ut32 cas);
+int sdb_adeln(Sdb *s, const char *key, ut64 val, ut32 cas);
 // helpers
 char *sdb_astring(char *str, int *hasnext);
 int sdb_alen(const char *str);
