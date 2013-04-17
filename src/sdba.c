@@ -115,7 +115,6 @@ SDB_VISIBLE int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32
 	return ret;
 }
 
-// set/replace
 SDB_VISIBLE int sdb_asetn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[64];
 	return sdb_aset(s, key, idx, sdb_itoa (val, valstr), cas);
@@ -147,11 +146,11 @@ SDB_VISIBLE int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32
 }
 
 SDB_VISIBLE int sdb_adeln(Sdb *s, const char *key, ut64 val, ut32 cas) {
-	ut64 num;
-	int idx;
 	const char *str = sdb_getc (s, key, 0);
 	const char *n, *p = str;
-	for (;;) {
+	ut64 num;
+	int idx;
+	for (idx=0; ; idx++) {
 		num = sdb_atoi (p);
 		if (num == val)
 			return sdb_adel (s, key, idx, cas);
