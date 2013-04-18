@@ -120,6 +120,13 @@ SDB_VISIBLE int sdb_asetn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) 
 	return sdb_aset (s, key, idx, sdb_itoa (val, valstr), cas);
 }
 
+SDB_VISIBLE int sdb_aaddn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+	char valstr[64];
+	if (sdb_aexists (s, key, val))
+		return 0;
+	return sdb_aadd (s, key, idx, sdb_itoa (val, valstr), cas);
+}
+
 SDB_VISIBLE int sdb_aadd(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 /*
 	if (sdb_exists (s, key))
