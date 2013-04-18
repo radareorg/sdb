@@ -1,5 +1,6 @@
 TODO
 ----
+* support plain text databases
 * implement mmap for w32
 * implement sdb_ainc/sdb_adec
 * implement io filters for load/save databases (io wrap)
