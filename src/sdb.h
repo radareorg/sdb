@@ -135,6 +135,7 @@ void sdb_ns_free(Sdb *s);
 void sdb_ns_sync (Sdb *s);
 
 // array
+int sdb_aexists(Sdb *s, const char *key, const char *val);
 int sdb_aadd(Sdb *s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_aset(Sdb *s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_asetn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas);

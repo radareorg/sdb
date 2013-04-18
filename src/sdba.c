@@ -117,11 +117,15 @@ SDB_VISIBLE int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32
 
 SDB_VISIBLE int sdb_asetn(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[64];
-	return sdb_aset(s, key, idx, sdb_itoa (val, valstr), cas);
+	return sdb_aset (s, key, idx, sdb_itoa (val, valstr), cas);
 }
 
 SDB_VISIBLE int sdb_aadd(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+/*
 	if (sdb_exists (s, key))
+		return 0;
+*/
+	if (sdb_aexists (s, key, val))
 		return 0;
 	return sdb_aset (s, key, idx, val, cas);
 }
@@ -197,6 +201,23 @@ SDB_VISIBLE const char *sdb_aindex(const char *str, int idx) {
 		else break;
 	}
 	return NULL;
+}
+
+SDB_VISIBLE int sdb_aexists(Sdb *s, const char *key, const char *val) {
+	int found = 0, hasnext = 1;
+	char *list = sdb_get (s, key, 0);
+	char *ptr = list;
+	hasnext = list && *list;
+	while (hasnext) {
+		char *str = sdb_astring (ptr, &hasnext);
+		if (!strcmp (str, val)) {
+			found = 1;
+			break;
+		}
+		ptr = (char *)sdb_anext (str);
+	}
+	free (list);
+	return found;
 }
 
 // TODO: make static inline?
