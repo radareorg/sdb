@@ -102,6 +102,11 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 	case MCSDB_CMD_GETS:
 		handle_get (ms, fd, key, 1);
 		break;
+	case MCSDB_CMD_TOUCH: /* key exptime [noreply] */
+		sscanf (p, "%llu", &n);
+		net_printf (fd, mcsdb_touch (ms, key, n)?
+			"TOUCHED\r\n": "NOT_TOUCHED\r\n");
+		break;
 	case MCSDB_CMD_INCR:
 	case MCSDB_CMD_DECR:
 		if (!key || !p) {

@@ -29,5 +29,6 @@ int main(void) {
 	cmdhash ("add");
 	cmdhash ("stats");
 	cmdhash ("quit");
+	cmdhash ("touch");
 	return 0;
 }

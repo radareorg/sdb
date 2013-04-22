@@ -58,6 +58,7 @@ void mcsdb_free(McSdb *ms);
 void mcsdb_flush(McSdb *ms);
 int mcsdb_set(McSdb *ms, const char *key, const char *value, ut64 exptime, ut32 cas);
 int mcsdb_cas(McSdb *ms, const char *key, const char *value, ut64 exptime, ut32 cas);
+int mcsdb_touch(McSdb *ms, const char *key, ut64 exptime);
 char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime, ut32 *cas);
 char *mcsdb_incr(McSdb *ms, const char *key, ut64 val);
 char *mcsdb_decr(McSdb *ms, const char *key, ut64 val);
