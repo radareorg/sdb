@@ -40,3 +40,16 @@ BUGS
 * hashtable is not cleaned up when sync
   - must honor expire time entries
 * key and value boundaries are probably not properly handled
+
+StringPool
+----------
+string types:
+  readonly
+  numeric
+  array
+  word
+  string
+
+char *hugestring;
+int hugestring_size;
+{type;}
