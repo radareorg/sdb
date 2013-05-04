@@ -44,7 +44,7 @@ ifneq ($(SILENT),)
 endif
 	${CC} ${LDFLAGS} -o ${BIN} main.o ${OBJ}
 
-clean:
+mrproper clean:
 	rm -rf ${OBJ} ${SOBJ} main.o libsdb.a a.out ${BIN} sdb.dSYM
 	rm -rf *.d *._d json/*.d json/*._d *.sdb *.db *.${SOEXT}
 

@@ -7,6 +7,10 @@
 #define SDB_VISIBLE
 #endif
 
+#if __WIN32__ || __CYGWIN__ || MINGW32
+#include <windows.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
