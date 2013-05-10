@@ -39,7 +39,7 @@ endif
 	${CC} -o ${BIN} ${OBJS} ${LDFLAGS} ${LIBS}
 
 cmds.h: cmds.o
-	${HOST_CC} -o cmds ../src/util.c cmds.c ${CPPFLAGS} ${CFLAGS} ${LDFLAGS}
+	${HOST_CC} -o cmds ../src/util.c cmds.c ${CPPFLAGS} -I../src ${HOST_CFLAGS} ${LDFLAGS}
 	./cmds > cmds.h
 
 clean:
