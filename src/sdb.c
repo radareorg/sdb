@@ -222,14 +222,14 @@ SDB_VISIBLE int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 			if (cas && kv->cas != cas)
 				return 0;
 			kv->cas = cas = nextcas ();
-			strcpy (kv->value, val); // XXX overflow
+			strncpy (kv->value, val, SDB_VSZ-1);
 		} else ht_remove_entry (s->ht, e);
 		return cas;
 	}
 	kv = sdb_kv_new (key, val);
 	kv->cas = nextcas ();
 	ht_insert (s->ht, hash, kv, NULL);
-	return *val? kv->cas: 0;
+	return kv->cas;
 }
 
 SDB_VISIBLE int sdb_sync (Sdb* s) {
