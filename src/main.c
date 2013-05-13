@@ -18,6 +18,12 @@ static void terminate(int sig UNUSED) {
 }
 
 static char *stdin_gets() {
+	static char buf[96096];
+	fgets (buf, sizeof (buf)-1, stdin);
+	if (feof (stdin)) return NULL;
+	buf[strlen (buf)-1] = 0;
+	return strdup (buf);
+#if 0
 	static char *previn = NULL;
         int n, l=0, size = 128; // increase for performance
         char *p, *tmp, *in = malloc (128);
@@ -54,6 +60,7 @@ static char *stdin_gets() {
         }
         in[l>0?l-1:0] = 0;
         return in;
+#endif
 }
 
 #if USE_MMAN
