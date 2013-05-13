@@ -18,16 +18,33 @@ static void terminate(int sig UNUSED) {
 }
 
 static char *stdin_gets() {
-        int n, l=0, size = 8; // increase for performance
-        char *tmp, *in = malloc (9);
-        for (;;) {
-                n = read (0, in+l, size);
-		if (n <1) {
-			free (in);
-			return NULL;
+	static char *previn = NULL;
+        int n, l=0, size = 128; // increase for performance
+        char *p, *tmp, *in = malloc (128);
+	for (;;) {
+		if (previn) {
+			strcpy (in, previn);
+			n = strlen (previn);
+			free (previn);
+			previn = NULL;
+		} else {
+			n = read (0, in+l, size);
+			if (n <1) {
+				free (in);
+				return NULL;
+			}
+		}
+		p = strchr (in+l, '\n');
+		if (p) {
+			free (previn);
+			previn = strdup (p+1);
+			n = (int)(size_t)(p-in+l);
+			l += n+1;
+			break;
 		}
                 l += n;
                 if (n!=size) break;
+		if (in[l-1]=='\n') break;
                 tmp = realloc (in, l+1);
 		if (!tmp) {
 			free (in);

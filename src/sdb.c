@@ -319,7 +319,7 @@ SDB_VISIBLE int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 	if (key) {
 		*key = 0;
 		if (klen>0) {
-			*key = malloc (klen+10);
+			*key = malloc (klen+1);
 			if (getbytes (s->fd, *key, klen) == -1) {
 				free (*key);
 				*key = NULL;
@@ -345,7 +345,7 @@ SDB_VISIBLE int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 			(*value)[vlen] = 0;
 		}
 	}
-	// pos += 4; // XXX no
+	 pos += 4; // XXX no
 	return 1;
 }
 

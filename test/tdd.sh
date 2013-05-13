@@ -12,16 +12,18 @@ df="test.db"
 db="../src/sdb $df"
 
 rm -f $df
-tdd 'one' $db '[]list=one,two,tri,fur
-[0]list'
-tdd 'two' $db '[]list=one,two,tri,fur
-[1]list'
+tdd 'one' $db '()list=one,two,tri,fur
+(0)list'
+tdd 'two' $db '()list=one,two,tri,fur
+(1)list'
 tdd '0
-1' $db '[]list=1,two,tri,fur
-[+0]list=0
-[0]list
-[1]list
+1' $db '()list=1,two,tri,fur
+(+0)list=0
+(0)list
+(1)list
 '
+tdd 4 $db '()list=1,2,3,4
+(?)list'
 
 rm -f $df
 $db = <<EOF
@@ -57,7 +59,7 @@ tdd 6 $db array?[0]=6 array?[0]
 #$db "" $db 'test?bar="cow"' 'test'
 #echo ===
 
-tdd "bar" $db test?foo
+tdd bar $db test?foo
 tdd 1 $db test4?foo[0]
 tdd 99 $db test4?foo[0]=99 test4?foo[0]
 
