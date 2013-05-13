@@ -423,7 +423,10 @@ SDB_VISIBLE void sdb_flush(Sdb* s) {
 }
 #if __WINDOWS__
 #define r_sys_mkdir(x) (CreateDirectory(x,NULL)!=0)
-#define r_sys_mkdir_failed() (GetLastError () != ERROR_ALREADY_EXISTS)
+#ifndef ERROR_ALREADY_EXISTS
+#define ERROR_ALREADY_EXISTS 183
+#endif
+#define r_sys_mkdir_failed() (GetLastError () != 183)
 #else
 #define r_sys_mkdir(x) (mkdir(x,0755)!=-1)
 #define r_sys_mkdir_failed() (errno != EEXIST)
