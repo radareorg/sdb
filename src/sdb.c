@@ -287,12 +287,14 @@ static ut32 getnum(int fd) {
 	return ret;
 }
 
+#if 0
 static int skipbytes(int fd, int len) {
 	int addr = lseek (fd, len, SEEK_CUR);
 	if (addr == -1) return -1;
 	pos += len;
 	return len;
 }
+#endif
 
 static int getbytes(int fd, char *b, int len) {
 	if (read (fd, b, len) != len)

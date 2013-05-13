@@ -46,7 +46,8 @@ install-dirs:
 
 install: install-dirs
 	cp -f src/sdb.1 ${MANDIR}
-	cp -f src/libsdb.* ${PFX}/lib
+	cp -f src/libsdb.${SOEXT} ${PFX}/lib
+	cp -f src/libsdb.${SOVER} ${PFX}/lib
 	cp -f src/sdb.h ${PFX}/include/sdb
 	cp -f src/sdb-version.h ${PFX}/include/sdb
 	cp -f src/cdb.h ${PFX}/include/sdb
