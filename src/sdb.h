@@ -27,13 +27,22 @@ extern "C" {
 #define SDB_RS '\x1e'
 #define SDB_SS "\x1e"
 
-typedef struct sdb_ns_t {
 // todo. store last used
 // todo. sync?
 // todo. 
+typedef struct sdb_ns_t {
 	ut32 hash;
 	struct sdb_t *sdb;
 } SdbNs;
+
+#define SDB_KSZ 0xff
+
+typedef struct sdb_kv {
+	char key[SDB_KSZ];
+	char *value;
+	ut64 expire;
+	ut32 cas;
+} SdbKv;
 
 typedef struct sdb_t {
 	char *dir;
@@ -47,16 +56,8 @@ typedef struct sdb_t {
 	char *ndump;
 	ut64 expire;
 	SdbList *ns;
+	SdbKv tmpkv;
 } Sdb;
-
-#define SDB_KSZ 0xff
-
-typedef struct sdb_kv {
-	char key[SDB_KSZ];
-	char *value;
-	ut64 expire;
-	ut32 cas;
-} SdbKv;
 
 Sdb* sdb_new (const char *dir, int lock);
 void sdb_free (Sdb* s);
@@ -86,7 +87,7 @@ int sdb_finish (Sdb *s);
 
 /* iterate */
 void sdb_dump_begin (Sdb* s);
-int sdb_dump_next (Sdb* s, char *key, char *value); // XXX: needs refactor?
+SDB_VISIBLE SdbKv *sdb_dump_next (Sdb* s);
 int sdb_dump_dupnext (Sdb* s, char **key, char **value);
 
 /* numeric */

@@ -42,6 +42,7 @@ SDB_VISIBLE Sdb* sdb_new (const char *dir, int lock) {
 	s->ht = ht_new ();
 	s->lock = lock;
 	s->expire = 0LL;
+	s->tmpkv.value = NULL;
 	//s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
 	cdb_init (&s->db, s->fd);
@@ -69,6 +70,7 @@ SDB_VISIBLE void sdb_free (Sdb* s) {
 		close (s->fd);
 	free (s->ndump);
 	free (s->dir);
+	free (s->tmpkv.value);
 	free (s);
 }
 
@@ -320,6 +322,19 @@ SDB_VISIBLE void sdb_dump_begin (Sdb* s) {
 	} else eod = pos = 0;
 }
 
+// TODO: move into Sdb*
+
+SDB_VISIBLE SdbKv *sdb_dump_next (Sdb* s) {
+	char *k = NULL, *v = NULL;
+	if (!sdb_dump_dupnext (s, &k, &v))
+		return NULL;
+	strcpy (s->tmpkv.key, k); // no overflow here?
+	free (k);
+	free (s->tmpkv.value);
+	s->tmpkv.value = v;
+	return &s->tmpkv;
+}
+
 SDB_VISIBLE int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 	ut32 vlen, klen;
 	if (s->fd==-1 || !getkvlen (s->fd, &klen, &vlen))
@@ -338,7 +353,6 @@ SDB_VISIBLE int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 			(*key)[klen] = 0;
 		}
 	}
-
 	if (value) {
 		*value = 0;
 		if (vlen>0) {
@@ -355,7 +369,7 @@ SDB_VISIBLE int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 			(*value)[vlen] = 0;
 		}
 	}
-	 pos += 4; // XXX no
+	pos += 4; // XXX no
 	return 1;
 }
 
