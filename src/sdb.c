@@ -456,15 +456,15 @@ SDB_VISIBLE void sdb_flush(Sdb* s) {
 
 static int r_sys_rmkdir(char *dir) {
         char *path = dir, *ptr = path;
-        if (*ptr=='/') ptr++; // XXX \\ on w32?
-        while ((ptr = strchr (ptr, '/'))) {
+        if (*ptr==DIRSEP) ptr++;
+        while ((ptr = strchr (ptr, DIRSEP))) {
                 *ptr = 0;
                 if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
                         fprintf (stderr, "r_sys_rmkdir: fail %s\n", dir);
                         free (path);
                         return R_FALSE;
                 }
-                *ptr = '/';
+                *ptr = DIRSEP;
                 ptr++;
         }
         return R_TRUE;
@@ -499,15 +499,17 @@ SDB_VISIBLE int sdb_append (Sdb *s, const char *key, const char *val) {
 	return cdb_make_add (c, key, strlen (key)+1, val, strlen (val)+1);
 }
 
+#define IFRET(x) if(x)ret=0
 SDB_VISIBLE int sdb_finish (Sdb *s) {
-	cdb_make_finish (&s->m);
+	int ret = 1;
+	IFRET (!cdb_make_finish (&s->m));
 #if USE_MMAN
-	fsync (s->fdump);
+	IFRET (fsync (s->fdump));
 #endif
-	close (s->fdump);
+	IFRET (close (s->fdump));
 	s->fdump = -1;
-	rename (s->ndump, s->dir);
+	IFRET (rename (s->ndump, s->dir));
 	free (s->ndump);
 	s->ndump = NULL;
-	return 1; // XXX: 
+	return ret;
 }

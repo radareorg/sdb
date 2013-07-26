@@ -11,6 +11,9 @@
 #undef __WINDOWS__
 #define __WINDOWS__ 1
 #include <windows.h>
+#define DIRSEP '\\'
+#else
+#define DIRSEP '/'
 #endif
 
 #ifdef __cplusplus

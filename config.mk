@@ -21,10 +21,10 @@ ifeq (${OS},w32)
 WCP?=i386-mingw32
 CC=${WCP}-gcc
 AR?=${WCP}-ar
-CFLAGS_SHARED?=-fPIC -shared
+CFLAGS_SHARED?=-fPIC
 EXEXT=.exe
 else
-CFLAGS_SHARED?=-fPIC -shared -fvisibility=hidden
+CFLAGS_SHARED?=-fPIC -fvisibility=hidden
 CC?=gcc
 EXEXT=
 endif
