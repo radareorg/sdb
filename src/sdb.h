@@ -1,6 +1,10 @@
 #ifndef _INCLUDE_SDB_H_
 #define _INCLUDE_SDB_H_
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 #if defined(__GNUC__)
 #define SDB_VISIBLE __attribute__((visibility("default")))
 #else

@@ -9,12 +9,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "sdb.h"
-#ifndef O_BINARY
-#define O_BINARY 0
-#endif
 
-// must be deprecated
-static ut32 eod, pos; // what about lseek?
+// XXX: deprecate, or use the one inside Sdb*
+static ut32 pos = 0L;
 
 static inline int nextcas() {
 	static ut32 cas = 1;
@@ -152,9 +149,9 @@ SDB_VISIBLE char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	len = cdb_datalen (&s->db);
 	if (len == 0)
 		return NULL;
-	pos = cdb_datapos (&s->db);
 	if (!(buf = malloc (len+1))) // XXX too many mallocs
 		return NULL;
+	pos = cdb_datapos (&s->db);
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
 	return buf;
@@ -249,9 +246,9 @@ SDB_VISIBLE void sdb_list (Sdb *s) {
 }
 
 SDB_VISIBLE int sdb_sync (Sdb* s) {
-	SdbKv *kv;
 	SdbListIter it, *iter;
 	char *k, *v;
+	SdbKv *kv;
 
 	if (!sdb_create (s))
 		return 0;
@@ -287,25 +284,6 @@ SDB_VISIBLE int sdb_sync (Sdb* s) {
 	return 0;
 }
 
-static ut32 getnum(int fd) {
-	char buf[4];
-	ut32 ret = 0;
-	if (read (fd, buf, 4) != 4)
-		return 0;
-	pos += 4;
-	ut32_unpack (buf, &ret);
-	return ret;
-}
-
-#if 0
-static int skipbytes(int fd, int len) {
-	int addr = lseek (fd, len, SEEK_CUR);
-	if (addr == -1) return -1;
-	pos += len;
-	return len;
-}
-#endif
-
 static int getbytes(int fd, char *b, int len) {
 	if (read (fd, b, len) != len)
 		return -1;
@@ -316,13 +294,10 @@ static int getbytes(int fd, char *b, int len) {
 SDB_VISIBLE void sdb_dump_begin (Sdb* s) {
 	if (s->fd != -1) {
 		seek_set (s->fd, 0);
-		eod = getnum (s->fd);
 		pos = 2048;
 		seek_set (s->fd, 2048);
-	} else eod = pos = 0;
+	} else pos = 0;
 }
-
-// TODO: move into Sdb*
 
 SDB_VISIBLE SdbKv *sdb_dump_next (Sdb* s) {
 	char *k = NULL, *v = NULL;
@@ -443,6 +418,7 @@ SDB_VISIBLE void sdb_flush(Sdb* s) {
 	close (s->fd);
 	s->fd = -1;
 }
+
 #if __WINDOWS__
 #define r_sys_mkdir(x) (CreateDirectory(x,NULL)!=0)
 #ifndef ERROR_ALREADY_EXISTS
@@ -462,12 +438,12 @@ static int r_sys_rmkdir(char *dir) {
                 if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
                         fprintf (stderr, "r_sys_rmkdir: fail %s\n", dir);
                         free (path);
-                        return R_FALSE;
+                        return 0;
                 }
                 *ptr = DIRSEP;
                 ptr++;
         }
-        return R_TRUE;
+        return 1;
 }
 
 /* sdb-create api */
