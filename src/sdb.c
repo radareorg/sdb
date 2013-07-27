@@ -56,7 +56,7 @@ SDB_VISIBLE void sdb_file (Sdb* s, const char *dir) {
 		sdb_lock (sdb_lockfile (s->dir));
 }
 
-SDB_VISIBLE void sdb_free (Sdb* s) {
+static void sdb_fini(Sdb* s, int donull) {
 	if (!s) return;
 	cdb_free (&s->db);
 	if (s->lock)
@@ -65,9 +65,22 @@ SDB_VISIBLE void sdb_free (Sdb* s) {
 	ht_free (s->ht);
 	if (s->fd != -1)
 		close (s->fd);
+	s->fd = -1;
 	free (s->ndump);
 	free (s->dir);
 	free (s->tmpkv.value);
+
+	if (donull) {
+		s->ns = NULL;
+		s->ht = NULL;
+		s->dir = NULL;
+		s->ndump = NULL;
+		s->tmpkv.value = NULL;
+	}
+}
+
+SDB_VISIBLE void sdb_free (Sdb* s) {
+	sdb_fini (s, 0);
 	free (s);
 }
 
@@ -162,7 +175,7 @@ SDB_VISIBLE int sdb_remove (Sdb* s, const char *key, ut32 cas) {
 }
 
 // set if not defined
-SDB_VISIBLE int sdb_add (Sdb *s, const char *key, const char *val, ut32 cas) {
+SDB_VISIBLE int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas) {
 	if (sdb_exists (s, key))
 		return 0;
 	return sdb_set (s, key, val, cas);
@@ -186,7 +199,7 @@ SDB_VISIBLE int sdb_exists (Sdb* s, const char *key) {
 	return 0;
 }
 
-SDB_VISIBLE void sdb_reset (Sdb *s) {
+SDB_VISIBLE void sdb_reset (Sdb* s) {
 	ht_free (s->ht);
 	s->ht = ht_new ();
 }
@@ -237,7 +250,7 @@ SDB_VISIBLE int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	return kv->cas;
 }
 
-SDB_VISIBLE void sdb_list (Sdb *s) {
+SDB_VISIBLE void sdb_list (Sdb* s) {
 	SdbKv *kv;
 	SdbListIter *iter;
 	ls_foreach (s->ht->list, iter, kv) {
@@ -447,7 +460,7 @@ static int r_sys_rmkdir(char *dir) {
 }
 
 /* sdb-create api */
-SDB_VISIBLE int sdb_create (Sdb *s) {
+SDB_VISIBLE int sdb_create (Sdb* s) {
 	int nlen;
 	char *str;
 	if (!s || !s->dir || s->fdump != -1) return 0; // cannot re-create
@@ -468,7 +481,7 @@ SDB_VISIBLE int sdb_create (Sdb *s) {
 	return 1;
 }
 
-SDB_VISIBLE int sdb_append (Sdb *s, const char *key, const char *val) {
+SDB_VISIBLE int sdb_append (Sdb* s, const char *key, const char *val) {
 	struct cdb_make *c = &s->m;
 	if (!key || !val) return 0;
 	//if (!*val) return 0; //undefine variable if no value
@@ -476,7 +489,7 @@ SDB_VISIBLE int sdb_append (Sdb *s, const char *key, const char *val) {
 }
 
 #define IFRET(x) if(x)ret=0
-SDB_VISIBLE int sdb_finish (Sdb *s) {
+SDB_VISIBLE int sdb_finish (Sdb* s) {
 	int ret = 1;
 	IFRET (!cdb_make_finish (&s->m));
 #if USE_MMAN
@@ -488,4 +501,9 @@ SDB_VISIBLE int sdb_finish (Sdb *s) {
 	free (s->ndump);
 	s->ndump = NULL;
 	return ret;
+}
+
+SDB_VISIBLE void sdb_drop (Sdb* s) {
+	sdb_fini (s, 1);
+	unlink (s->dir);
 }
