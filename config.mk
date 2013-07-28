@@ -4,7 +4,7 @@ PREFIX?=/usr
 VERSION=0.6.6
 
 CFLAGS_STD?=-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-CFLAGS+=-Wno-initializer-overrides
+#CFLAGS+=-Wno-initializer-overrides
 CFLAGS+=${CFLAGS_STD}
 
 CFLAGS+=-Wall

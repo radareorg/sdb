@@ -76,18 +76,40 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			return buf;
 		}
 		if (cmd[1]) {
-			i = atoi (cmd+1);
-			if (eq) {
-				*eq = 0;
-				ok = eq[1]? (
-					(cmd[1]=='+')?
-						sdb_ains (s, p+1, i, eq+1, 0):
-						sdb_aset (s, p+1, i, eq+1, 0)
-					): sdb_adel (s, p+1, i, 0);
-				if (ok) *buf = 0; else buf = NULL;
-				return buf;
+			/* (+)foo=bla (-)foo=bla */
+			if ((cmd[1]=='+'||cmd[1]=='-') && !cmd[2]) {
+				if (eq) {
+					*eq = 0;
+					if (cmd[1]=='+') {
+						sdb_aset (s, p+1, -1, eq+1, 0);
+					} else {
+						sdb_adels (s, p+1, eq+1, 0);
+					}
+					return NULL;
+				} else {
+					if (cmd[1]=='+') {
+						// (+)foo :: remove first element
+						sdb_adel (s, p+1, 0, 0);
+					} else {
+						// (-)foo :: remove last element
+						sdb_adel (s, p+1, -1, 0);
+					}
+					return NULL;
+				}
+			} else {
+				i = atoi (cmd+1);
+				if (eq) {
+					*eq = 0;
+					ok = eq[1]? (
+							(cmd[1]=='+')?
+							sdb_ains (s, p+1, i, eq+1, 0):
+							sdb_aset (s, p+1, i, eq+1, 0)
+						    ): sdb_adel (s, p+1, i, 0);
+					if (ok) *buf = 0; else buf = NULL;
+					return buf;
+				}
+				return sdb_aget (s, p+1, i, NULL);
 			}
-			return sdb_aget (s, p+1, i, NULL);
 		} else {
 			if (eq) {
 				char *q, *out = strdup (eq+1);

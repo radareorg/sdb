@@ -1,5 +1,6 @@
 TODO
 ----
+* ht->ls is wrong! dups appear
 * support plain text databases
 * implement mmap for w32
 * implement sdb_ainc/sdb_adec
