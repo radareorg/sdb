@@ -81,7 +81,8 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 				if (eq) {
 					*eq = 0;
 					if (cmd[1]=='+') {
-						sdb_aset (s, p+1, -1, eq+1, 0);
+						if (sdb_agetv (s, p+1, eq+1, 0)== -1)
+							sdb_aset (s, p+1, -1, eq+1, 0);
 					} else {
 						sdb_adels (s, p+1, eq+1, 0);
 					}

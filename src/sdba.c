@@ -195,6 +195,22 @@ static int astrcmp (const char *a, const char *b) {
 	return 1;
 }
 
+/* array value index */
+SDB_VISIBLE int sdb_agetv(Sdb *s, const char *key, const char *val, ut32 cas) {
+	const char *str = sdb_getc (s, key, 0);
+	const char *n, *p = str;
+	int idx;
+	for (idx=0; ; idx++) {
+		if (!p) break;
+		if (!astrcmp (p, val))
+			return idx;
+		n = strchr (p, SDB_RS);
+		if (!n) break;
+		p = n+1;
+	}
+	return -1;
+}
+
 SDB_VISIBLE int sdb_adels(Sdb *s, const char *key, const char *val, ut32 cas) {
 	const char *str = sdb_getc (s, key, 0);
 	const char *n, *p = str;
