@@ -133,6 +133,7 @@ SDB_VISIBLE int sdb_aadd(Sdb *s, const char *key, int idx, const char *val, ut32
 	if (sdb_exists (s, key))
 		return 0;
 */
+// TODO: use agetv here ?
 	if (sdb_aexists (s, key, val))
 		return 0;
 	return sdb_aset (s, key, idx, val, cas);
