@@ -179,13 +179,16 @@ SDB_VISIBLE int sdb_query (Sdb *s, const char *cmd) {
 	return 1;
 }
 
-SDB_VISIBLE void sdb_query_lines (Sdb *s, const char *cmd) {
-	char *o, *p = strdup (cmd);
+SDB_VISIBLE int sdb_query_lines (Sdb *s, const char *cmd) {
+	char *o, *p, *op = strdup (cmd);
+	if (!s || !op) return 0;
+	p = op;
 	do {
 		o = strchr (p, '\n');
 		if (o) *o = 0;
 		sdb_query (s, p);
 		if (o) p = o+1;
 	} while (o);
-	free (p);
+	free (op);
+	return 1;
 }
