@@ -256,7 +256,7 @@ SDB_VISIBLE void sdb_list (Sdb* s) {
 	ls_foreach (s->ht->list, iter, kv) {
 		if (strchr (kv->value, SDB_RS)) {
 			char *o, *p = strdup (kv->value);
-			for (o=p; *o; o++) if (*o==SDB_RS) *p = ',';
+			for (o=p; *o; o++) if (*o==SDB_RS) *o = ',';
 			printf ("()%s=%s\n", kv->key, p);
 			free (p);
 		} else {
