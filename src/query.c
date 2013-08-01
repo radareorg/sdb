@@ -33,6 +33,7 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 	char *p, *eq, *ask;
 	int i, ok, w, alength;
 	ut64 n;
+	if (!s) return NULL;
 	if (cmd == NULL) {
 		cmd = buf;
 		buf = NULL;
@@ -184,7 +185,7 @@ SDB_VISIBLE void sdb_query_lines (Sdb *s, const char *cmd) {
 		o = strchr (p, '\n');
 		if (o) *o = 0;
 		sdb_query (s, p);
-		if (o) o = p+1;
+		if (o) p = o+1;
 	} while (o);
 	free (p);
 }
