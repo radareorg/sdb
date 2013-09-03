@@ -250,7 +250,6 @@ SDB_VISIBLE int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	return kv->cas;
 }
 
-typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
 SDB_VISIBLE void sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbKv *kv;
 	SdbListIter *iter;
