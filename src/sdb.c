@@ -589,7 +589,7 @@ SDB_VISIBLE int sdb_hook_call(Sdb *s, const char *k, const char *v) {
 		}
 		i++;
 	}
-	return i/2;
+	return i>>1;
 }
 
 SDB_VISIBLE void sdb_hook_free(Sdb *s) {
