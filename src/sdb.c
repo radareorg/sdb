@@ -59,6 +59,7 @@ SDB_VISIBLE void sdb_file (Sdb* s, const char *dir) {
 
 static void sdb_fini(Sdb* s, int donull) {
 	if (!s) return;
+	sdb_hook_free (s);
 	cdb_free (&s->db);
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
@@ -81,7 +82,6 @@ static void sdb_fini(Sdb* s, int donull) {
 }
 
 SDB_VISIBLE void sdb_free (Sdb* s) {
-	sdb_hook_free (s);
 	sdb_fini (s, 0);
 	free (s);
 }
