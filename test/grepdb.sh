@@ -4,10 +4,9 @@ db() {
 	ARG="$1"
 	if [ -z "$ARG" ]; then
 		[ $n != 0 ] && return 1
-		cat "$FILE"
+		grep = "$FILE"
 	elif [ -z "`echo \"$ARG\" | grep =`" ]; then
 		grep "^${ARG}=" "$FILE" | cut -d = -f 2-
-		# grep = $FILE  # is grep faster than cat??
 	else
 		KEY="`echo $ARG|cut -d = -f 1`"
 		VAL="`echo $ARG| cut -d = -f 2`"
