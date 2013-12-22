@@ -315,6 +315,7 @@ SDB_VISIBLE int sdb_apush(Sdb *s, const char *key, const char *val, ut32 cas) {
 		memcpy (newval, str, str_len);
 		newval[str_len] = SDB_RS;
 		memcpy (newval+str_len+1, val, val_len);
+		newval[str_len+val_len+1] = 0;
 		sdb_set (s, key, newval, cas);
 		free (newval);
 	} else {
