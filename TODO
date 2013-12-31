@@ -1,5 +1,6 @@
 TODO
 ----
+* Add disk database file checksum to verify if its broken or valid file
 * ht->ls is wrong! dups appear
 * support plain text databases
 * implement mmap for w32
