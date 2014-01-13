@@ -1,4 +1,5 @@
 all: cas hook
+	@suite/run.sh
 
 cas:
 	${CC} -o cas cas.c -I ../src/ ../src/libsdb.a 
