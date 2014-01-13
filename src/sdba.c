@@ -49,6 +49,13 @@ SDB_VISIBLE char *sdb_aget(Sdb *s, const char *key, int idx, ut32 *cas) {
 	char *o, *n;
 	int i, len;
 	if (!str || !*str) return NULL;
+	if (idx<0) {
+		int len = sdb_alen (str);
+		idx = -idx;
+		if (idx>len)
+			return NULL;
+		idx = (len-idx);
+	}
 	if (idx==0) {
 		n = strchr (str, SDB_RS);
 		if (!n) return strdup (str);

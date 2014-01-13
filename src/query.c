@@ -105,16 +105,15 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			}
 			return buf;
 		}
-		if (cmd[1]) {
+		if (cmd[1]=='+'||cmd[1]=='-') {
 			/* (+)foo=bla (-)foo=bla */
-			if ((cmd[1]=='+'||cmd[1]=='-') && !cmd[2]) {
+			if (!cmd[2] || cmd[2] ==')') {
+				// insert
 				if (eq) {
 					if (cmd[1]=='+') {
-						if (sdb_agetv (s, p, eq+1, 0)== -1)
-							sdb_aset (s, p, -1, eq+1, 0);
-					} else {
-						sdb_adels (s, p, eq+1, 0);
-					}
+						if (sdb_agetv (s, p, val, 0)== -1)
+							sdb_aset (s, p, -1, val, 0);
+					} else sdb_adels (s, p, val, 0);
 					return NULL;
 				} else {
 					if (cmd[1]=='+') {
@@ -127,12 +126,14 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 					return NULL;
 				}
 			} else {
+				// get/set specific element in array
+				/* (+3)foo=bla */
 				i = atoi (cmd+1);
 				if (eq) {
-					ok = eq[1]? (
+					ok = cmd[1]? (
 							(cmd[1]=='+')?
-							sdb_ains (s, p, i, eq+1, 0):
-							sdb_aset (s, p, i, eq+1, 0)
+							sdb_ains (s, p, i, val, 0):
+							sdb_aset (s, p, i, val, 0)
 						    ): sdb_adel (s, p, i, 0);
 					if (ok) *buf = 0; else buf = NULL;
 					return buf;
@@ -141,19 +142,24 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			}
 		} else {
 			if (eq) {
-				char *q, *out = strdup (eq+1);
-				*eq = 0;
+				/* (3)foo=bla */
+				char *q, *out = strdup (val);
 				// TODO: define new printable separator character
 				for (q=out; *q; q++) if (*q==',') *q = SDB_RS;
-				ok = sdb_set (s, p+1, out, 0);
+				ok = sdb_set (s, p, out, 0);
 				free (out);
 				if (ok) {
 					*buf = 0;
 					return buf;
 				}
 			} else {
-				const char *out = sdb_getc (s, p+1, 0);
+				/* (3)foo */
+				const char *out = sdb_getc (s, p, 0);
 				size_t wl;
+				if (cmd[1]) {
+					i = atoi (cmd+1);
+					return sdb_aget (s, p, i, NULL);
+				}
 				if (!out) return NULL;
 				wl = strlen (out);
 				if (wl>len) buf = malloc (wl+2);
