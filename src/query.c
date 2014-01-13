@@ -1,9 +1,11 @@
-/* sdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* sdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "sdb.h"
 
 SDB_VISIBLE int sdb_queryf (Sdb *s, const char *fmt, ...) {
@@ -28,51 +30,78 @@ SDB_VISIBLE char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt
         return ret;
 }
 
+// XXX: cmd is reused
 SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
-	const char *q;
-	char *p, *eq, *ask;
-	int i, ok, w, alength;
+	const char *p, *q, *val = NULL;
+	char *eq, *ask;
+	int i, d, ok, w, alength;
 	ut64 n;
 	if (!s) return NULL;
 	if (cmd == NULL) {
 		cmd = buf;
 		buf = NULL;
 	}
-	if (!len || !buf) buf = malloc ((len=32));
-
+	if (!len || !buf) buf = malloc ((len=64));
 	ask = strchr (cmd, '?');
-	if (*cmd == '+' || *cmd == '-') {
-		*buf = 0;
-		if (ask) {
-			*ask = 0;
-			if (*cmd=='+') n = sdb_json_inc (s, cmd+1, ask+1, 1, 0);
-			else n = sdb_json_dec (s, cmd+1, ask+1, 1, 0);
-			*ask = '?';
-		} else {
-			if (*cmd=='+') n = sdb_inc (s, cmd+1, 1, 0);
-			else n = sdb_dec (s, cmd+1, 1, 0);
-		}
-		w = snprintf (buf, len-1, "%"ULLFMT"d", n);
-		if (w<0 || (size_t)w>len) {
-			buf = malloc (0xff);
-			snprintf (buf, 0xff, "%"ULLFMT"d", n);
-		}
-		return buf;
-	} else if (*cmd == '(') {
-		p = strchr (cmd, ')');
-		if (!p) {
+	if (*cmd == '(') {
+		char *tp = strchr (cmd, ')');
+		if (!tp) {
 			fprintf (stderr, "Missing ')'.\n");
 			return NULL;
 		}
-		*p = 0;
-		eq = strchr (p+1, '=');
+		*tp++ = 0;
+		p = (const char *)tp;
+	} else p = cmd;
+	eq = strchr (p, '=');
+	if (eq) {
+		*eq++ = 0;
+		if (*eq=='$')
+			val = sdb_getc (s, eq+1, 0);
+	}
+	if (!val) val = eq;
+	if (*cmd=='$')
+		cmd = sdb_getc (s, cmd+1, 0);
+	// cmd = val
+	// cmd is key and val is value
+
+	if (*cmd == '<') {
+		sdb_query_file (s, cmd+1);
+	} else
+	if (*cmd == '+' || *cmd == '-') {
+		d = 1;
+		*buf = 0;
+		if (val) {
+			d = sdb_atoi (val);
+			if (d) {
+				sdb_inc (s, cmd+1, d, 0);
+			} else {
+				sdb_concat (s, cmd+1, val, 0);
+			}
+		} else {
+			if (ask) {
+				*ask = 0;
+				if (*cmd=='+') n = sdb_json_inc (s, cmd+1, ask+1, d, 0);
+				else n = sdb_json_dec (s, cmd+1, ask+1, d, 0);
+				*ask = '?';
+			} else {
+				if (*cmd=='+') n = sdb_inc (s, cmd+1, d, 0);
+				else n = sdb_dec (s, cmd+1, d, 0);
+			}
+			w = snprintf (buf, len-1, "%"ULLFMT"d", n);
+			if (w<0 || (size_t)w>len) {
+				buf = malloc (0xff);
+				snprintf (buf, 0xff, "%"ULLFMT"d", n);
+			}
+			return buf;
+		}
+	} else if (*cmd == '(') {
 		if (cmd[1]=='?') {
 			// if (!eq) { ...
-			alength = sdb_alength (s, p+1);
+			alength = sdb_alength (s, p);
 			w = snprintf (buf, len, "%d", alength);
 			if (w<0 || (size_t)w>len) {
 				buf = malloc (32);
-				snprintf (buf, 32, "%d", alength);
+				snprintf (buf, 31, "%d", alength);
 			}
 			return buf;
 		}
@@ -80,37 +109,35 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			/* (+)foo=bla (-)foo=bla */
 			if ((cmd[1]=='+'||cmd[1]=='-') && !cmd[2]) {
 				if (eq) {
-					*eq = 0;
 					if (cmd[1]=='+') {
-						if (sdb_agetv (s, p+1, eq+1, 0)== -1)
-							sdb_aset (s, p+1, -1, eq+1, 0);
+						if (sdb_agetv (s, p, eq+1, 0)== -1)
+							sdb_aset (s, p, -1, eq+1, 0);
 					} else {
-						sdb_adels (s, p+1, eq+1, 0);
+						sdb_adels (s, p, eq+1, 0);
 					}
 					return NULL;
 				} else {
 					if (cmd[1]=='+') {
 						// (+)foo :: remove first element
-						sdb_adel (s, p+1, 0, 0);
+						sdb_adel (s, p, 0, 0);
 					} else {
 						// (-)foo :: remove last element
-						sdb_adel (s, p+1, -1, 0);
+						sdb_adel (s, p, -1, 0);
 					}
 					return NULL;
 				}
 			} else {
 				i = atoi (cmd+1);
 				if (eq) {
-					*eq = 0;
 					ok = eq[1]? (
 							(cmd[1]=='+')?
-							sdb_ains (s, p+1, i, eq+1, 0):
-							sdb_aset (s, p+1, i, eq+1, 0)
-						    ): sdb_adel (s, p+1, i, 0);
+							sdb_ains (s, p, i, eq+1, 0):
+							sdb_aset (s, p, i, eq+1, 0)
+						    ): sdb_adel (s, p, i, 0);
 					if (ok) *buf = 0; else buf = NULL;
 					return buf;
 				}
-				return sdb_aget (s, p+1, i, NULL);
+				return sdb_aget (s, p, i, NULL);
 			}
 		} else {
 			if (eq) {
@@ -140,16 +167,14 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			}
 		}
 	} else {
-		eq = strchr (cmd, '=');
 		if (eq) {
 			// 1 0 kvpath=value
 			// 1 1 kvpath?jspath=value
 			if (ask>eq) ask = NULL;
-			*eq++ = 0;
 			if (ask) {
 				*ask++ = 0;
-				ok = sdb_json_set (s, cmd, ask, eq, 0);
-			} else ok = sdb_set (s, cmd, eq, 0);
+				ok = sdb_json_set (s, cmd, ask, val, 0);
+			} else ok = sdb_set (s, cmd, val, 0);
 			if (!ok) return NULL;
 			*buf = 0;
 			return buf;
@@ -160,7 +185,7 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 				*ask++ = 0;
 				// TODO: not optimized to reuse 'buf'
 				if ((p = sdb_json_get (s, cmd, ask, 0)))
-					return p;
+					return strdup (p);
 			} else {
 				// sdbget
 				if (!(q = sdb_getc (s, cmd, 0)))
@@ -194,4 +219,31 @@ SDB_VISIBLE int sdb_query_lines (Sdb *s, const char *cmd) {
 	} while (o);
 	free (op);
 	return 1;
+}
+
+static char *slurp(const char *file) {
+	char *text;
+	long sz;
+	int fd = open (file, O_RDONLY);
+	if (fd == -1)
+		return NULL;
+	sz = lseek (fd, 0, SEEK_END);
+	if (sz<0)
+		return NULL;
+	lseek (fd, 0, SEEK_SET);
+	text = malloc (sz+1);
+	if (!text) {
+		close (fd);
+	}
+	read (fd, text, sz);
+	text[sz] = 0;
+	close (fd);
+	return text;
+}
+
+SDB_VISIBLE int sdb_query_file(Sdb *s, const char* file) {
+	char *txt = slurp (file);
+	int ret = sdb_query_lines (s, txt);
+	free (txt);
+	return ret;
 }

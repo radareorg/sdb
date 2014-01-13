@@ -1,4 +1,4 @@
-/* sdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* sdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
 #include <stdio.h>
 #include <string.h>
@@ -174,6 +174,24 @@ SDB_VISIBLE char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 
 SDB_VISIBLE int sdb_remove (Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
+}
+
+SDB_VISIBLE int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
+	int ret, kl, vl;
+	const char *p;
+	char *o;
+	if (!s || !key || !*key || !value || !*value)
+		return 0;
+	p = sdb_getc (s, key, 0);
+	if (!p) return sdb_set (s, key, value, cas);
+	kl = strlen (p);
+	vl = strlen (value);
+	o = malloc (kl+vl+1);
+	memcpy (o, p, kl);
+	memcpy (o+kl, value, vl+1);
+	ret = sdb_set (s, key, o, cas);
+	free (o);
+	return ret;
 }
 
 // set if not defined
