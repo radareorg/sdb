@@ -238,7 +238,10 @@ SDB_VISIBLE int sdb_adel(Sdb *s, const char *key, int idx, ut32 cas) {
 	int i;
 	char *p, *n, *str = sdb_get (s, key, 0);
 	p = str;
-	if (!str || !*str) return 0;
+	if (!str || !*str) {
+		free (str);
+		return 0;
+	}
 	if (idx<0) {
 		idx = sdb_alen (str);
 		if (idx) idx--;
