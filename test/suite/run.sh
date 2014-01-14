@@ -13,7 +13,7 @@ fi
 
 run() {
 	K="$1"
-	A=`echo "$1" | $SDB -`
+	A=`echo "$K" | $SDB -`
 	B="`echo \"$2\"`"
 	GREEN="\x1b[32m"
 	RED="\x1b[31m"
@@ -79,8 +79,10 @@ title "JSON"
 run 'foo=[1,2,3]\nfoo?[1]' 2
 run 'foo=[1,2,3]\n+foo?[1]\nfoo?[1]' "3\n3"
 run 'foo=[1,2,3]\nfoo?[1]=999\nfoo' '[1,999,3]'
-run 'foo={bar:"V"}\nfoo?bar' V
-run 'foo={bar:[1,2]}\nfoo?bar[0]' 1
+run 'foo={"bar":"V"}\nfoo?bar' V
+run 'foo={"bar":123}\nfoo?bar' 123
+run 'foo={"bar":123}\nfoo?bar=69\nfoo?bar' 69
+run 'foo={"bar":[1,2]}\nfoo?bar[0]' 1
 
 title "Slurp"
 printf "K=V\nK\n" > .t
