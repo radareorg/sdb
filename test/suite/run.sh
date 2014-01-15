@@ -52,12 +52,14 @@ run "K=1\n-K" 0
 run "K=0\n-K" 0
 run "K=0\n+K=1\nK" 1
 run "K=0\n+K=2\nK" 2
+run "K=10\n-K=4\nK" 6
 run "K=0\n-K=10\nK" 0
 run "K=-1\n+K" 0
 
 title "Arrays"
 run "()K=1,2,3\n(?)K" 3
 run "()K=1,2,3\n(1)K" 2
+run "()K=1,2,3\n(-)K" "3"
 run "()K=1,2,3\n(-1)K" "3"
 run "()K=1,2,3\n(-1)K\n(?)K" "3\n2"
 run "()K=1,2,3\n(-1)K=\n()K" "3\n2"
@@ -86,9 +88,9 @@ run 'foo={"bar":[1,2]}\nfoo?bar[0]' 1
 
 title "Slurp"
 printf "K=V\nK\n" > .t
-run "<.t" V
-run "<.f" ''
-run "<.t\n<.t" "V\nV"
+run "..t" V
+run "..f" ''
+run "..t\n..t" "V\nV"
 rm -f .t .f
 
 title "Results"

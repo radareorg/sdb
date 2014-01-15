@@ -64,7 +64,7 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 	// cmd = val
 	// cmd is key and val is value
 
-	if (*cmd == '<') {
+	if (*cmd == '.') {
 		sdb_query_file (s, cmd+1);
 	} else
 	if (*cmd == '+' || *cmd == '-') {
@@ -73,7 +73,10 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 		if (val) {
 			d = sdb_atoi (val);
 			if (d) {
-				sdb_inc (s, cmd+1, d, 0);
+				if (*cmd=='+')
+					sdb_inc (s, cmd+1, d, 0);
+				else
+					sdb_dec (s, cmd+1, d, 0);
 			} else {
 				sdb_concat (s, cmd+1, val, 0);
 			}
