@@ -228,9 +228,9 @@ SDB_VISIBLE int sdb_query_lines (Sdb *s, const char *cmd) {
 }
 
 static char *slurp(const char *file) {
+	int ret, fd = open (file, O_RDONLY);
 	char *text;
 	long sz;
-	int fd = open (file, O_RDONLY);
 	if (fd == -1)
 		return NULL;
 	sz = lseek (fd, 0, SEEK_END);
@@ -240,9 +240,13 @@ static char *slurp(const char *file) {
 	text = malloc (sz+1);
 	if (!text) {
 		close (fd);
+		return NULL;
 	}
-	read (fd, text, sz);
-	text[sz] = 0;
+	ret = read (fd, text, sz);
+	if (ret != sz) {
+		free (text);
+		text = NULL;
+	} else text[sz] = 0;
 	close (fd);
 	return text;
 }
