@@ -2,7 +2,7 @@ using SimpleDB;
 using Posix;
 
 void main () {
-	var s = new Sdb ("test.sdb");
+	var s = new Sdb (null, "test.sdb");
 	s.set ("user.name", "pancake");
 	s.set ("user.password", "food");
 	print ("Your name is: "+s.get ("user.name")+"\n");
@@ -20,7 +20,7 @@ void main () {
 	s = null;
 
 	// open database with lock
-	var s2 = new Sdb ("uuid.sdb", true);
+	var s2 = new Sdb (null, "uuid.sdb", true);
 	if (s2 != null) {
 		var uuid = s2.inc ("uuid", 1);
 		print (@"UUID: $uuid\n");

@@ -1,9 +1,10 @@
-/* Copyleft 2011-2012 - mcsdb (aka memcache-SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2011-2014 - mcsdb (aka memcache-SimpleDB) - pancake */
+
 #include "mcsdb.h"
 
 McSdb *mcsdb_new(const char *file) {
 	McSdb *ms;
-	Sdb *s = sdb_new (file, 0);
+	Sdb *s = sdb_new (NULL, file, 0);
 	if (!s) return NULL;
 	ms = R_NEW (McSdb);
 	if (!ms) {

@@ -3,7 +3,7 @@ namespace SimpleDB {
 	[CCode (cheader_filename="sdb.h", cname="struct sdb_t", cprefix="sdb_", free_function="sdb_free")]
 	public class Sdb {
 		/* lifecycle */
-		public Sdb (string? name=null, bool locked=false);
+		public Sdb (string? path=null, string? file=null, bool locked=false);
 		public bool sync ();
 		/* query */
 		public bool query(string cmd);
