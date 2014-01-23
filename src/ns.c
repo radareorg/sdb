@@ -17,9 +17,20 @@ SDB_VISIBLE void sdb_ns_free(Sdb *s) {
 }
 
 static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
-	SdbNs *ns = malloc (sizeof (SdbNs));
+	char dir[SDB_MAX_PATH];
+	SdbNs *ns;
+	if (s->dir && *s->dir && name && *name) {
+		int dir_len = strlen (s->dir);
+		int name_len = strlen (name);
+		if ((dir_len+name_len+3)>SDB_MAX_PATH)
+			return NULL;
+		memcpy (dir, s->dir, dir_len);
+		memcpy (dir+dir_len, ".", 1);
+		memcpy (dir+dir_len+1, name, name_len);
+	}
+	ns = malloc (sizeof (SdbNs));
 	ns->hash = hash;
-	ns->sdb = sdb_new (s->dir, name, 0);
+	ns->sdb = sdb_new (dir, name, 0);
 	return ns;
 }
 

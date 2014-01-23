@@ -38,10 +38,6 @@ extern "C" {
 // todo. store last used
 // todo. sync?
 // todo. 
-typedef struct sdb_ns_t {
-	ut32 hash;
-	struct sdb_t *sdb;
-} SdbNs;
 
 #define SDB_KSZ 0xff
 
@@ -53,9 +49,8 @@ typedef struct sdb_kv {
 } SdbKv;
 
 typedef struct sdb_t {
-	char *path;
-	char *file;
 	char *dir; // path+file
+	char *name;
 	int fd;
 	int lock;
 	struct cdb db;
@@ -70,10 +65,15 @@ typedef struct sdb_t {
 	SdbKv tmpkv;
 } Sdb;
 
+typedef struct sdb_ns_t {
+	ut32 hash;
+	Sdb *sdb;
+} SdbNs;
+
 Sdb* sdb_new (const char *path, const char *file, int lock);
 void sdb_free (Sdb* s);
 void sdb_drop (Sdb* s);
-void sdb_file (Sdb* s, const char *path, const char *file);
+void sdb_file (Sdb* s, const char *dir);
 void sdb_reset (Sdb* s);
 
 int sdb_query (Sdb* s, const char *cmd);

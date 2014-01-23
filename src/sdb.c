@@ -27,26 +27,9 @@ SDB_VISIBLE void sdb_global_hook(SdbHook hook, void *user) {
 	global_user = user;
 }
 
-static const char* getpath(const char *path, const char *file) {
-	static char dir[SDB_MAX_PATH];
-	dir[0] = 0;
-	if (file && *file) {
-		int file_len = file? strlen (file): 0;
-		int path_len = path? strlen (path): 0;
-		if (path_len) {
-			memcpy (dir, path, path_len);
-			memcpy (dir+path_len, "/", 2);
-			path_len++;
-		}
-		memcpy (dir+path_len, file, file_len+1);
-	}
-	return dir;
-}
-
 // TODO: use mmap instead of read.. much faster!
-SDB_VISIBLE Sdb* sdb_new (const char *path, const char *file, int lock) {
+SDB_VISIBLE Sdb* sdb_new (const char *dir, const char *name, int lock) {
 	Sdb* s;
-	const char *dir = getpath (path, file);
 	if (lock && !sdb_lock (sdb_lockfile (dir)))
 		return NULL;
 	s = malloc (sizeof (Sdb));
@@ -58,8 +41,7 @@ SDB_VISIBLE Sdb* sdb_new (const char *path, const char *file, int lock) {
 		s->dir = NULL;
 		s->fd = -1;
 	}
-	s->path = (path&&*path)? strdup (path): NULL;
-	s->file = (file&&*file)? strdup (file): NULL;
+	s->name = (name&&*name)? strdup (name): NULL;
 	s->fdump = -1;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
@@ -79,17 +61,8 @@ SDB_VISIBLE Sdb* sdb_new (const char *path, const char *file, int lock) {
 	return s;
 }
 
-SDB_VISIBLE void sdb_file (Sdb* s, const char *path, const char *file) {
-	const char *dir;
-	if (path) {
-		free (s->path);
-		s->path = strdup (path);
-	}
-	if (file) {
-		free (s->file);
-		s->file = strdup (file);
-	}
-	dir = getpath (s->path, file);
+// XXX: this is wrong. stuff not stored in memory is lost
+SDB_VISIBLE void sdb_file (Sdb* s, const char *dir) {
 	if (s->lock)
 		sdb_unlock (sdb_lockfile (s->dir));
 	free (s->dir);
