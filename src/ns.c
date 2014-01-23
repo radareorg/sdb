@@ -16,10 +16,10 @@ SDB_VISIBLE void sdb_ns_free(Sdb *s) {
 	}
 }
 
-SdbNs *sdb_ns_new (const char *name, ut32 hash) {
+static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	SdbNs *ns = malloc (sizeof (SdbNs));
 	ns->hash = hash;
-	ns->sdb = sdb_new (name, 0);
+	ns->sdb = sdb_new (s->dir, name, 0);
 	return ns;
 }
 
@@ -31,7 +31,7 @@ SDB_VISIBLE Sdb *sdb_ns(Sdb *s, const char *name) {
 		if (ns->hash == hash)
 			return ns->sdb;
 	}
-	ns = sdb_ns_new (name, hash);
+	ns = sdb_ns_new (s, name, hash);
 	ls_append (s->ns, ns);
 	return ns->sdb;
 }
