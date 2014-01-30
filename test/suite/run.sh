@@ -57,27 +57,27 @@ run "K=0\n-K=10\nK" 0
 run "K=-1\n+K" 0
 
 title "Arrays"
-run "()K=1,2,3\n(?)K" 3
-run "()K=1,2,3\n(1)K=9\n()K" "1\n9\n3"
-run "()K=1,2,3\n(1)K" 2
-run "()K=1,2,3\n(-)K\n()K" "3\n1\n2"
-run "()K=1,2,3\n(+)K\n()K" "1\n2\n3"
-run "()K=1,2,3\n(-1)K" "3"
-run "()K=1,2,3\n(-1)K\n(?)K" "3\n2"
-run "()K=1,2,3\n(-1)K=\n()K" "3\n2"
-run "()K=1,2,3\n(+1)K=a\n()K" "1\na\n2\n3"
-run "()K=1,2,3\n(0)K" 1
-run "()K=1,2,3\n(4)K" ''
-run "()K=1,2\n(+)K=3\n()K" '1\n2\n3'
-#run "()K=a,b,c\n(-b)K\nK" "a\nc"
-run "()K=a,b,c\n(-)K=b\n()K" "a\nc"
+run "[]K=1,2,3\n[?]K" 3
+run "[]K=1,2,3\n[1]K=9\n[]K" "1\n9\n3"
+run "[]K=1,2,3\n[1]K" 2
+run "[]K=1,2,3\n[-]K\n[]K" "3\n1\n2"
+run "[]K=1,2,3\n[+]K\n[]K" "1\n2\n3"
+run "[]K=1,2,3\n[-1]K" "3"
+run "[]K=1,2,3\n[-1]K\n[?]K" "3\n2"
+run "[]K=1,2,3\n[-1]K=\n[]K" "3\n2"
+run "[]K=1,2,3\n[+1]K=a\n[]K" "1\na\n2\n3"
+run "[]K=1,2,3\n[0]K" 1
+run "[]K=1,2,3\n[4]K" ''
+run "[]K=1,2\n[+]K=3\n[]K" '1\n2\n3'
+#run "[]K=a,b,c\n(-b)K\nK" "a\nc"
+run "[]K=a,b,c\n[-]K=b\n[]K" "a\nc"
 
 title "Stack"
-run "()K=\n(+)K=1\nK" 1
-run "()K=\n(+)K=1\n(+)K=2\n()K" "1\n2"
-run "()K=1,2,3\n(-)K\n(?)K" "2"
-run "()K=1,2,3\n(-)K\n()K" "3\n1\n2" # XXX
-run "()K=1,2,3\n(-)K\n(+)K=4\n()K" "1\n2\n4"
+run "[]K=\n[+]K=1\nK" 1
+run "[]K=\n[+]K=1\n[+]K=2\n[]K" "1\n2"
+run "[]K=1,2,3\n[-]K\n[?]K" "3\n2"
+run "[]K=1,2,3\n[-]K\n[]K" "3\n1\n2" # XXX
+run "[]K=1,2,3\n[-]K\n[+]K=4\n[]K" "3\n1\n2\n4"
 
 title "JSON"
 run 'foo=[1,2,3]\nfoo?[1]' 2
