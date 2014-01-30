@@ -149,7 +149,13 @@ SDB_VISIBLE char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 				char *q, *out = strdup (val);
 				// TODO: define new printable separator character
 				for (q=out; *q; q++) if (*q==',') *q = SDB_RS;
-				ok = sdb_set (s, p, out, 0);
+				if (cmd[1]) {
+					int idx = atoi (cmd+1);
+					ok = sdb_aset (s, p, idx, val, 0);
+// TODO: handle when idx > sdb_alen
+				} else {
+					ok = sdb_set (s, p, out, 0);
+				}
 				free (out);
 				if (ok) {
 					*buf = 0;
