@@ -58,8 +58,10 @@ run "K=-1\n+K" 0
 
 title "Arrays"
 run "()K=1,2,3\n(?)K" 3
+run "()K=1,2,3\n(1)K=9\n()K" "1\n9\n3"
 run "()K=1,2,3\n(1)K" 2
-run "()K=1,2,3\n(-)K" "3"
+run "()K=1,2,3\n(-)K\n()K" "3\n1\n2"
+run "()K=1,2,3\n(+)K\n()K" "1\n2\n3"
 run "()K=1,2,3\n(-1)K" "3"
 run "()K=1,2,3\n(-1)K\n(?)K" "3\n2"
 run "()K=1,2,3\n(-1)K=\n()K" "3\n2"
@@ -74,7 +76,7 @@ title "Stack"
 run "()K=\n(+)K=1\nK" 1
 run "()K=\n(+)K=1\n(+)K=2\n()K" "1\n2"
 run "()K=1,2,3\n(-)K\n(?)K" "2"
-run "()K=1,2,3\n(-)K\n()K" "1\n2" # XXX
+run "()K=1,2,3\n(-)K\n()K" "3\n1\n2" # XXX
 run "()K=1,2,3\n(-)K\n(+)K=4\n()K" "1\n2\n4"
 
 title "JSON"
