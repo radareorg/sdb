@@ -57,7 +57,7 @@ SDB_VISIBLE Sdb* sdb_new (const char *path, const char *name, int lock) {
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
 	s->hooks = NULL;
-	s->ht = ht_new ();
+	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 	s->lock = lock;
 	s->expire = 0LL;
 	s->tmpkv.value = NULL;
@@ -244,7 +244,7 @@ SDB_VISIBLE int sdb_exists (Sdb* s, const char *key) {
 
 SDB_VISIBLE void sdb_reset (Sdb* s) {
 	ht_free (s->ht);
-	s->ht = ht_new ();
+	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 }
 
 // TODO: too many allocs here. use slices
@@ -504,7 +504,7 @@ SDB_VISIBLE ut64 sdb_get_expire(Sdb* s, const char *key) {
 
 SDB_VISIBLE void sdb_flush(Sdb* s) {
 	ht_free (s->ht);
-	s->ht = ht_new ();
+	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 	close (s->fd);
 	s->fd = -1;
 }
@@ -521,18 +521,25 @@ SDB_VISIBLE void sdb_flush(Sdb* s) {
 #endif
 
 static int r_sys_rmkdir(char *dir) {
-        char *path = dir, *ptr = path;
+        char *ptr, *path;
+	ptr = path = dir;
+printf ("MAKE DIR\n");
         if (*ptr==DIRSEP) ptr++;
+printf ("2 MAKE DIR (%s)\n", ptr);
         while ((ptr = strchr (ptr, DIRSEP))) {
                 *ptr = 0;
+printf ("2.2 pene\n");
                 if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
                         fprintf (stderr, "r_sys_rmkdir: fail %s\n", dir);
+printf ("2.4 pene\n");
                         free (path);
                         return 0;
                 }
+printf ("2.8 pene\n");
                 *ptr = DIRSEP;
                 ptr++;
         }
+printf ("3 SOPA\n");
         return 1;
 }
 
