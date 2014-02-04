@@ -64,11 +64,11 @@ tdd 1 $db test4?foo[0]
 tdd 99 $db test4?foo[0]=99 test4?foo[0]
 
 tdd 3 $db test5?bar.cow
-tdd '' $db test5?bar.cow[0]
+# array syntax is ignored here. should be go strict?
+tdd 3 $db test5?bar.cow[0]
 
 tdd 3 $db test6?bar.cow[0]
 tdd 4 $db test6?bar.cow[1]
 
 tdd 1 $db test7?[0].foo
 tdd 2 $db test7?[1].bar
-
