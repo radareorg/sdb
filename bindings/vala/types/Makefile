@@ -1,6 +1,9 @@
 PFX?=/usr
 PWD=$(shell pwd)
 
+include ../../../config.mk
+INSTALL_DATA?=install -m 644
+
 VALAC?=valac
 VFILES+=hash.vala 
 VFILES+=stack.vala stackiterator.vala
@@ -27,8 +30,8 @@ run:
 	sdb food.sdb
 
 libsdbtypes.a: ${OFILES}
-	ar -r libsdbtypes.a ${OFILES}
-	ranlib libsdbtypes.a
+	$(AR) -r libsdbtypes.a ${OFILES}
+	$(RANLIB) libsdbtypes.a
 
 testvapi:
 	valac --pkg sdbtypes main.vala
@@ -47,10 +50,10 @@ install-dirs:
 	mkdir -p ${PFX}/share/vala/vapi
 
 install: install-dirs
-	cp -f sdbtypes.h ${PFX}/include
-	cp -f libsdbtypes.a ${PFX}/lib
-	cp -f sdbtypes.pc ${PFX}/lib/pkgconfig
-	cp -f sdbtypes.vapi ${PFX}/share/vala/vapi
+	$(INSTALL_DATA) sdbtypes.h ${PFX}/include
+	$(INSTALL_DATA) libsdbtypes.a ${PFX}/lib
+	$(INSTALL_DATA) sdbtypes.pc ${PFX}/lib/pkgconfig
+	$(INSTALL_DATA) sdbtypes.vapi ${PFX}/share/vala/vapi
 
 symstall: install-dirs
 	ln -fs ${PWD}/sdbtypes.h ${PFX}/include/sdbtypes.h
