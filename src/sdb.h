@@ -82,7 +82,7 @@ int sdb_queryf (Sdb* s, const char *fmt, ...);
 int sdb_query_lines (Sdb *s, const char *cmd);
 char *sdb_querys (Sdb* s, char *buf, size_t len, const char *cmd);
 char *sdb_querysf (Sdb* s, char *buf, size_t buflen, const char *fmt, ...);
-SDB_VISIBLE int sdb_query_file(Sdb *s, const char* file);
+int sdb_query_file(Sdb *s, const char* file);
 int sdb_exists (Sdb*, const char *key);
 int sdb_nexists (Sdb*, const char *key);
 int sdb_remove (Sdb*, const char *key, ut32 cas);
@@ -105,12 +105,12 @@ int sdb_finish (Sdb* s);
 
 /* iterate */
 void sdb_dump_begin (Sdb* s);
-SDB_VISIBLE SdbKv *sdb_dump_next (Sdb* s);
+SdbKv *sdb_dump_next (Sdb* s);
 int sdb_dump_dupnext (Sdb* s, char **key, char **value);
 
 /* numeric */
-R_API char *sdb_itoa(ut64 n, char *s);
-R_API ut64 sdb_atoi(const char *s);
+char *sdb_itoa(ut64 n, char *s);
+ut64 sdb_atoi(const char *s);
 ut64 sdb_getn (Sdb* s, const char *key, ut32 *cas);
 int sdb_setn (Sdb* s, const char *key, ut64 v, ut32 cas);
 ut64 sdb_inc (Sdb* s, const char *key, ut64 n, ut32 cas);
@@ -165,7 +165,7 @@ int sdb_aset(Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_asetn(Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 char *sdb_aget(Sdb* s, const char *key, int idx, ut32 *cas);
 ut64 sdb_agetn(Sdb* s, const char *key, int idx, ut32 *cas);
-SDB_VISIBLE int sdb_agetv(Sdb *s, const char *key, const char *val, ut32 cas);
+int sdb_agetv(Sdb *s, const char *key, const char *val, ut32 cas);
 int sdb_ains(Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_ainsn(Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_adel(Sdb* s, const char *key, int n, ut32 cas);
