@@ -21,7 +21,7 @@ McSdb *mcsdb_new(const char *file) {
 }
 
 void mcsdb_flush(McSdb *ms) {
-	sdb_flush (ms->sdb);
+	sdb_reset (ms->sdb);
 }
 
 void mcsdb_free(McSdb *ms) {

@@ -502,12 +502,6 @@ SDB_VISIBLE ut64 sdb_get_expire(Sdb* s, const char *key) {
 	return 0LL;
 }
 
-SDB_VISIBLE void sdb_flush(Sdb* s) {
-	sdb_reset (s);
-	close (s->fd);
-	s->fd = -1;
-}
-
 #if __WINDOWS__
 #define r_sys_mkdir(x) (CreateDirectory(x,NULL)!=0)
 #ifndef ERROR_ALREADY_EXISTS

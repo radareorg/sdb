@@ -33,7 +33,8 @@ namespace SimpleDB {
 		public bool exists (string key);
 		public bool nexists (string key);
 		public bool remove (string key, int cas=0);
-		public void flush ();
+		public void reset ();
+		public void drop ();
 		/* time */
 		public uint64 get_expire (string key);
 		public bool expire (string key, uint64 time);

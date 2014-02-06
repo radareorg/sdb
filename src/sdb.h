@@ -94,7 +94,6 @@ int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas);
 void sdb_list(Sdb*);
 int sdb_sync (Sdb*);
 void sdb_kv_free (SdbKv *kv);
-void sdb_flush (Sdb* s);
 
 typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
 void sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
