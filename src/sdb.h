@@ -5,30 +5,15 @@
 #define O_BINARY 0
 #endif
 
-#if defined(__GNUC__)
-#define SDB_VISIBLE __attribute__((visibility("default")))
-#else
-#define SDB_VISIBLE
-#endif
-
-#if __WIN32__ || __CYGWIN__ || MINGW32
-#undef __WINDOWS__
-#define __WINDOWS__ 1
-#include <windows.h>
-#define DIRSEP '\\'
-#else
-#define DIRSEP '/'
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "types.h"
 #include "ht.h"
 #include "ls.h"
 #include "cdb.h"
 #include "cdb_make.h"
-
 #include "sdb-version.h"
 
 #define SDB_RS '\x1e'
