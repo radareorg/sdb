@@ -3,34 +3,6 @@
 #include "sdb.h"
 #include "types.h"
 
-static void __strrev(char *s, int len) {
-	int i, j = len -1;
-	for (i=0; i<j; i++, j--) {
-		char c = s[i];
-		s[i] = s[j];
-		s[j] = c;
-	}
-}
-
-/* TODO: find algorithm without strrev */
-/* TODO: try to avoid the use of heap */
-SDB_API char *sdb_itoa(ut64 n, char *s) {
-	int i = 0;
-	if (!s) s = malloc (64);
-	do s[i++] = n % 10 + '0';
-	while ((n /= 10) > 0);
-	s[i] = '\0';
-	__strrev (s, i);
-	return s;
-}
-
-SDB_API ut64 sdb_atoi(const char *s) {
-	char *p;
-	if (!strncmp (s, "0x", 2))
-		return strtoull (s+2, &p, 16);
-	return strtoull (s, &p, 10);
-}
-
 SDB_API int sdb_nexists (Sdb *s, const char *key) {
 	char c;
 	const char *o = sdb_getc (s, key, NULL);
