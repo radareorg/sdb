@@ -503,8 +503,7 @@ SDB_VISIBLE ut64 sdb_get_expire(Sdb* s, const char *key) {
 }
 
 SDB_VISIBLE void sdb_flush(Sdb* s) {
-	ht_free (s->ht);
-	s->ht = ht_new ((SdbListFree)sdb_kv_free);
+	sdb_reset (s);
 	close (s->fd);
 	s->fd = -1;
 }
