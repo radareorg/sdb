@@ -4,10 +4,6 @@
 #include <stdio.h>
 #include "types.h"
 
-#ifndef SDB_VISIBLE
-#define SDB_VISIBLE
-#endif
-
 typedef void (*SdbListFree)(void *ptr);
 
 typedef struct ls_iter_t {
@@ -37,28 +33,28 @@ typedef int (*SdbListComparator)(void *a, void *b);
 #define ls_iter_next(x) (x?1:0)
 #define ls_iter_cur(x) x->p
 #define ls_iter_unref(x) x
-SDB_VISIBLE SdbList *ls_new(void);
-SDB_VISIBLE SdbListIter *ls_append(SdbList *list, void *data);
-SDB_VISIBLE SdbListIter *ls_prepend(SdbList *list, void *data);
-SDB_VISIBLE int ls_length(SdbList *list);
-SDB_VISIBLE void ls_add_sorted(SdbList *list, void *data, SdbListComparator cmp);
-SDB_VISIBLE void ls_sort(SdbList *list, SdbListComparator cmp);
+SDB_API SdbList *ls_new(void);
+SDB_API SdbListIter *ls_append(SdbList *list, void *data);
+SDB_API SdbListIter *ls_prepend(SdbList *list, void *data);
+SDB_API int ls_length(SdbList *list);
+SDB_API void ls_add_sorted(SdbList *list, void *data, SdbListComparator cmp);
+SDB_API void ls_sort(SdbList *list, SdbListComparator cmp);
 
-SDB_VISIBLE void ls_delete (SdbList *list, SdbListIter *iter);
-SDB_VISIBLE boolt ls_delete_data (SdbList *list, void *ptr);
-SDB_VISIBLE void ls_iter_init (SdbListIter *iter, SdbList *list);
-SDB_VISIBLE void ls_destroy (SdbList *list);
-SDB_VISIBLE void ls_free (SdbList *list);
-SDB_VISIBLE SdbListIter *ls_item_new (void *data);
-SDB_VISIBLE void ls_unlink (SdbList *list, void *ptr);
-SDB_VISIBLE void ls_split (SdbList *list, void *ptr);
-SDB_VISIBLE void ls_split_iter (SdbList *list, SdbListIter *iter);
-SDB_VISIBLE void *ls_get_n (SdbList *list, int n);
-SDB_VISIBLE int ls_del_n (SdbList *list, int n);
-SDB_VISIBLE void *ls_get_top (SdbList *list);
+SDB_API void ls_delete (SdbList *list, SdbListIter *iter);
+SDB_API boolt ls_delete_data (SdbList *list, void *ptr);
+SDB_API void ls_iter_init (SdbListIter *iter, SdbList *list);
+SDB_API void ls_destroy (SdbList *list);
+SDB_API void ls_free (SdbList *list);
+SDB_API SdbListIter *ls_item_new (void *data);
+SDB_API void ls_unlink (SdbList *list, void *ptr);
+SDB_API void ls_split (SdbList *list, void *ptr);
+SDB_API void ls_split_iter (SdbList *list, SdbListIter *iter);
+SDB_API void *ls_get_n (SdbList *list, int n);
+SDB_API int ls_del_n (SdbList *list, int n);
+SDB_API void *ls_get_top (SdbList *list);
 #define ls_push(x,y) ls_append(x,y)
-SDB_VISIBLE void *ls_pop (SdbList *list);
-SDB_VISIBLE void ls_reverse (SdbList *list);
-SDB_VISIBLE SdbList *ls_clone (SdbList *list);
+SDB_API void *ls_pop (SdbList *list);
+SDB_API void ls_reverse (SdbList *list);
+SDB_API SdbList *ls_clone (SdbList *list);
 
 #endif

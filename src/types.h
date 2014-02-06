@@ -8,9 +8,9 @@
 #include <unistd.h>
 
 #if defined(__GNUC__)
-#define SDB_VISIBLE __attribute__((visibility("default")))
+#define SDB_API __attribute__((visibility("default")))
 #else
-#define SDB_VISIBLE
+#define SDB_API
 #endif
 
 #if __WIN32__ || __CYGWIN__ || MINGW32
