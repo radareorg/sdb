@@ -268,8 +268,9 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	SdbHashEntry *e;
 	SdbKv *kv;
 	ut32 hash, klen;
-	if (!s || !key || !val)
+	if (!s || !key)
 		return 0;
+	if (!val) val = "";
 	klen = strlen (key)+1;
 	hash = sdb_hash (key, klen);
 	cdb_findstart (&s->db);
@@ -288,6 +289,8 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 		sdb_hook_call (s, key, val);
 		return cas;
 	}
+	if (!*val)
+		return 0;
 	kv = sdb_kv_new (key, val);
 	kv->cas = nextcas ();
 	ht_insert (s->ht, hash, kv, NULL);
