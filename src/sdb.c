@@ -28,20 +28,22 @@ SDB_API void sdb_global_hook(SdbHook hook, void *user) {
 
 // TODO: use mmap instead of read.. much faster!
 SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
-	Sdb* s;
-	s = malloc (sizeof (Sdb));
+        struct stat st = {0};
+	Sdb* s = R_NEW (Sdb);
 	if (name && *name) {
 		if (path && *path) {
-			s->dir = malloc (strlen (path) + strlen (name)+2);
-			strcpy (s->dir, path);
-			strcat (s->dir, "/");
-			strcat (s->dir, name);
+			int plen = strlen (path);
+			int nlen = strlen (name);
+			s->dir = malloc (plen+nlen+2);
+			memcpy (s->dir, path, plen);
+			s->dir[plen] = '/';
+			memcpy (s->dir+plen+1, name, nlen+1);
 		} else s->dir = strdup (name);
-		if (lock && !sdb_lock (sdb_lockfile (s->dir))) {
-			free (s->dir);
-			free (s);
-			return NULL;
-		}
+		if (lock && !sdb_lock (sdb_lockfile (s->dir)))
+			goto fail;
+		if (stat (s->dir, &st)!=-1)
+			if ((S_IFREG & st.st_mode)!=S_IFREG)
+				goto fail;
 		s->fd = open (s->dir, O_RDONLY|O_BINARY);
 		// if (s->fd == -1) // must fail if we cant open for write in sync
 		s->name = strdup (name);
@@ -55,11 +57,7 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	s->fdump = -1;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
-	if (!s->ns) {
-		free (s->dir);
-		free (s);
-		return NULL;
-	}
+	if (!s->ns) goto fail;
 	s->hooks = NULL;
 	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 	s->lock = lock;
@@ -72,6 +70,10 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	cdb_init (&s->db, s->fd);
 	cdb_findstart (&s->db);
 	return s;
+fail:
+	free (s->dir);
+	free (s);
+	return NULL;
 }
 
 // XXX: this is wrong. stuff not stored in memory is lost
