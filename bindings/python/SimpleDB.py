@@ -2,37 +2,80 @@
 from ctypes import *
 from ctypes.util import find_library
 lib = CDLL (find_library ('sdb'))
-def instance (x):
-	try:
-		y = x.contents
-		y.__init_methods__(y)
-	except:
-		pass
-	return x
-def register (self, name, cname, args, ret):
-	g = globals ()
-	g['self'] = self
-	if (ret and ret!='' and ret[0]>='A' and ret[0]<='Z'):
-		last = '.contents'
-		ret2 = ' '
-		ret = "instance(POINTER("+ret+"))"
-	else:
-		last = '.value'
-		ret2 = ret
-	setattr (self, cname, getattr (lib, cname))
-	exec ('self.%s.argtypes = [%s]'%(cname, args))
-	if ret != '':
-		argstr = '' # object self.. what about static (TODO)
-		for i in range (1, len(args.split (','))):
-			argstr += ',' if i>1 else ' '
-			argstr += 'x'+str(i)
-		exec ('self.%s.restype = %s'%(cname, ret), g)
-		argstr2 = '' # object self.. what about static (TODO)
-		if argstr != '':
-			argstr2 = ','+argstr
-		exec ('self.%s = lambda%s: %s(self.%s(self._o%s))%s'%
-			(name, argstr, ret2, cname, argstr2, last), g)
-class SignalSource(Structure):
+def rlist2array(x,y):
+	it = x.iterator ()
+	ret = []
+	while True:
+		data = it.get_data ()
+		ds = cast (data, POINTER(y)).contents
+		ret.append (ds)
+		if it.n == None:
+			break
+		it = it.get_next ()
+	return ret
+
+class AddressHolder(object):
+	def __get__(self, obj, type_):
+		if getattr(obj, '_address', None) is None:
+			obj._address = addressof(obj)
+		return obj._address
+
+	def __set__(self, obj, value):
+		obj._address = value
+
+class WrappedRMethod(object):
+	def __init__(self, cname, args, ret):
+		self.cname = cname
+		self.args = args
+		self.ret = ret
+		self.args_set = False
+		self.method = getattr(lib, cname)
+
+	def __call__(self, *a):
+		if not self.args_set:
+			if self.args:
+				self.method.argtypes = [eval(x.strip()) for x in self.args.split(',')]
+			self.method.restype = eval(self.ret) if self.ret else None
+			self.args_set = True
+		return self.method(*a)
+
+class WrappedApiMethod(object):
+	def __init__(self, method, ret2, last):
+		self.method = method
+		self._o = None
+		self.ret2 = ret2
+		self.last = last
+
+	def __call__(self, *a):
+		result = self.method(self._o, *a)
+		if self.ret2:
+			result = eval(self.ret2)(result)
+		if self.last:
+			return getattr(result, self.last)
+		return result
+
+	def __get__(self, obj, type_):
+		self._o = obj._o
+		return self
+
+def register(cname, args, ret):
+	ret2 = last = None
+	if ret:
+		if ret[0]>='A' and ret[0]<='Z':
+			x = ret.find('<')
+			if x != -1:
+				ret = ret[0:x]
+			last = 'contents'
+			ret = 'POINTER('+ret+')'
+		else:
+			last = 'value'
+			ret2 = ret
+			
+	method = WrappedRMethod(cname, args, ret)
+	wrapped_method = WrappedApiMethod(method, ret2, last)
+	return wrapped_method, method
+
+class SignalSource(Structure): #0
 	_fields_ = [
 	]
 	def __init__(self, signum):
@@ -40,46 +83,47 @@ class SignalSource(Structure):
 		g_unix_signal_source_new = lib.g_unix_signal_source_new
 		g_unix_signal_source_new.restype = c_void_p
 		self._o = g_unix_signal_source_new (signum)
-		self.__init_methods__()
-	def __init_methods__(self):
-		if not hasattr(self,'_o'):
-			self._o = addressof(self)
-class Sdb(Structure):
+
+	_o = AddressHolder()
+
+
+class Sdb(Structure): #1
 	_fields_ = [
 	]
-	def __init__(self, name, locked):
+	def __init__(self, path, file, locked):
 		Structure.__init__(self)
 		sdb_new = lib.sdb_new
 		sdb_new.restype = c_void_p
-		self._o = sdb_new (name, locked)
-		self.__init_methods__()
-	def __init_methods__(self):
-		if not hasattr(self,'_o'):
-			self._o = addressof(self)
-		register(self,'sync','sdb_sync','c_void_p','c_bool')
-		register(self,'query','sdb_query','c_void_p, c_char_p','c_bool')
-		register(self,'querys','sdb_querys','c_void_p, c_char_p, c_int, c_char_p','c_char_p')
-		register(self,'get','sdb_get','c_void_p, c_char_p, POINTER(c_int)','c_char_p')
-		register(self,'add','sdb_add','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
-		register(self,'set','sdb_set','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
-		register(self,'alength','sdb_alength','c_void_p, c_char_p','c_int')
-		register(self,'aget','sdb_aget','c_void_p, c_char_p, c_int, POINTER(c_uint)','c_char_p')
-		register(self,'aset','sdb_aset','c_void_p, c_char_p, c_int, c_char_p, POINTER(c_uint)','c_char_p')
-		register(self,'adel','sdb_adel','c_void_p, c_char_p, c_int, c_uint','c_bool')
-		register(self,'setn','sdb_setn','c_void_p, c_char_p, c_ulonglong, c_uint','c_bool')
-		register(self,'getn','sdb_getn','c_void_p, c_char_p, POINTER(c_uint)','c_ulonglong')
-		register(self,'inc','sdb_inc','c_void_p, c_char_p, c_ulonglong, c_uint','c_ulonglong')
-		register(self,'dec','sdb_dec','c_void_p, c_char_p, c_ulonglong, c_uint','c_ulonglong')
-		register(self,'json_get','sdb_json_get','c_void_p, c_char_p, c_char_p, POINTER(c_uint)','c_char_p')
-		register(self,'json_set','sdb_json_set','c_void_p, c_char_p, c_char_p, c_char_p, c_uint','c_char_p')
-		register(self,'json_inc','sdb_json_inc','c_void_p, c_char_p, c_char_p, c_int, c_uint','c_int')
-		register(self,'json_dec','sdb_json_dec','c_void_p, c_char_p, c_char_p, c_int, c_uint','c_int')
-		register(self,'json_indent','sdb_json_indent','c_char_p','c_char_p')
-		register(self,'json_unindent','sdb_json_unindent','c_char_p','c_char_p')
-		register(self,'exists','sdb_exists','c_void_p, c_char_p','c_bool')
-		register(self,'nexists','sdb_nexists','c_void_p, c_char_p','c_bool')
-		register(self,'remove','sdb_remove','c_void_p, c_char_p, c_int','c_bool')
-		register(self,'flush','sdb_flush','c_void_p',None)
-		register(self,'get_expire','sdb_get_expire','c_void_p, c_char_p','c_ulonglong')
-		register(self,'expire','sdb_expire','c_void_p, c_char_p, c_ulonglong','c_bool')
-		register(self,'now','sdb_now','','c_ulonglong')
+		self._o = sdb_new (path, file, locked)
+
+	_o = AddressHolder()
+
+	sync, sdb_sync = register('sdb_sync','c_void_p','c_bool')
+	query, sdb_query = register('sdb_query','c_void_p, c_char_p','c_bool')
+	querys, sdb_querys = register('sdb_querys','c_void_p, c_char_p, c_int, c_char_p','c_char_p')
+	get, sdb_get = register('sdb_get','c_void_p, c_char_p, POINTER(c_int)','c_char_p')
+	add, sdb_add = register('sdb_add','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
+	set, sdb_set = register('sdb_set','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
+	alength, sdb_alength = register('sdb_alength','c_void_p, c_char_p','c_int')
+	aget, sdb_aget = register('sdb_aget','c_void_p, c_char_p, c_int, POINTER(c_uint)','c_char_p')
+	aset, sdb_aset = register('sdb_aset','c_void_p, c_char_p, c_int, c_char_p, POINTER(c_uint)','c_char_p')
+	adel, sdb_adel = register('sdb_adel','c_void_p, c_char_p, c_int, c_uint','c_bool')
+	setn, sdb_setn = register('sdb_setn','c_void_p, c_char_p, c_ulonglong, c_uint','c_bool')
+	getn, sdb_getn = register('sdb_getn','c_void_p, c_char_p, POINTER(c_uint)','c_ulonglong')
+	inc, sdb_inc = register('sdb_inc','c_void_p, c_char_p, c_ulonglong, c_uint','c_ulonglong')
+	dec, sdb_dec = register('sdb_dec','c_void_p, c_char_p, c_ulonglong, c_uint','c_ulonglong')
+	json_get, sdb_json_get = register('sdb_json_get','c_void_p, c_char_p, c_char_p, POINTER(c_uint)','c_char_p')
+	json_set, sdb_json_set = register('sdb_json_set','c_void_p, c_char_p, c_char_p, c_char_p, c_uint','c_char_p')
+	json_inc, sdb_json_inc = register('sdb_json_inc','c_void_p, c_char_p, c_char_p, c_int, c_uint','c_int')
+	json_dec, sdb_json_dec = register('sdb_json_dec','c_void_p, c_char_p, c_char_p, c_int, c_uint','c_int')
+	json_indent, sdb_json_indent = register('sdb_json_indent','c_char_p','c_char_p')
+	json_unindent, sdb_json_unindent = register('sdb_json_unindent','c_char_p','c_char_p')
+	exists, sdb_exists = register('sdb_exists','c_void_p, c_char_p','c_bool')
+	nexists, sdb_nexists = register('sdb_nexists','c_void_p, c_char_p','c_bool')
+	remove, sdb_remove = register('sdb_remove','c_void_p, c_char_p, c_int','c_bool')
+	reset, sdb_reset = register('sdb_reset','c_void_p',None)
+	drop, sdb_drop = register('sdb_drop','c_void_p',None)
+	get_expire, sdb_get_expire = register('sdb_get_expire','c_void_p, c_char_p','c_ulonglong')
+	expire, sdb_expire = register('sdb_expire','c_void_p, c_char_p, c_ulonglong','c_bool')
+	now, sdb_now = register('sdb_now','','c_ulonglong')
+
