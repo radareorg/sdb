@@ -60,8 +60,7 @@ static int sdb_dump (const char *db, int qf) {
 static int createdb(const char *f) {
 	char *line, *eq;
 	s = sdb_new (NULL, f, 0);
-	if (!s)
-	if (!sdb_create (s)) {
+	if (!s || !sdb_create (s)) {
 		fprintf (stderr, "Cannot create database\n");
 		return 1;
 	}
