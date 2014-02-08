@@ -1,3 +1,9 @@
+BUGS
+----
+* empty keys can be used wtf.
+* expire time may be affected by timezone and system time change (NOTE)
+* verify return 0/1 everywhere
+
 TODO
 ----
 * Add disk database file checksum to verify if its broken or valid file
@@ -6,7 +12,6 @@ TODO
 * implement mmap for w32
 * implement sdb_ainc/sdb_adec
 * implement io filters for load/save databases (io wrap)
-* bug: empty keys can be used wtf.
 * support json 2.0 ({foo:"bar"}) <- no need for quotes in name
 * create string pool for a list of sizes 
 	newpool (sizeof (char), 10, 100, 1000);
