@@ -1,8 +1,7 @@
-/* sdb - LGPLv3 - Copyright 2012-2013 - pancake */
+/* sdb - LGPLv3 - Copyright 2012-2014 - pancake */
 
 #include <stdarg.h>
 #include "sdb.h"
-//#include "json/json.h"
 #include "json/api.c"
 #include "json/js0n.c"
 #include "json/path.c"
@@ -174,18 +173,13 @@ SDB_API char *sdb_json_unindent(const char *s) {
 	memset (O, 0, len);
 	for (o=O; *s; s++) {
 		if (instr) {
-			if (s[0] == '"') {
-				instr = 0;
-			} else {
+			if (s[0] != '"') {
 				if (s[0] == '\\' && s[1] == '"')
 					*o++ = *s;
-			}
+			} else instr = 0;
 			*o++ = *s;
 			continue;
-		} else {
-			if (s[0] == '"')
-				instr = 1;
-		}
+		} else if (s[0] == '"') instr = 1;
 		if (*s == '\n'|| *s == '\r' || *s == '\t' || *s == ' ')
 			continue;
 		*o++ = *s;
@@ -195,11 +189,11 @@ SDB_API char *sdb_json_unindent(const char *s) {
 }
 
 SDB_API const char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
-	va_list ap;
 	char *arg_s, *x, tmp[128];
-	float arg_f;
 	unsigned long long arg_l;
 	int i, arg_i;
+	float arg_f;
+	va_list ap;
 
 #define JSONSTR_ALLOCATE(y) \
 	if (s->len+y>s->blen) {\
