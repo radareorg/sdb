@@ -5,6 +5,7 @@
 
 sdb=../src/sdb
 SIZE=10000
+SIZE=100000
 #SIZE=1000
 
 makekeys() {
@@ -20,6 +21,10 @@ echo "[**] Generating keyvalues..."
 makekeys > a
 echo "========="
 rm -f test.db
+
+echo "[**] Bundling database of ${SIZE} keyvalues..."
+time cat a | $sdb test.db =
+
 echo "[**] Creating database of ${SIZE} keyvalues..."
 time cat a | $sdb test.db -
 
