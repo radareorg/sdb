@@ -114,8 +114,12 @@ SDB_API int sdb_ains(Sdb *s, const char *key, int idx, const char *val, ut32 cas
 			memcpy (x+lnstr+1, val, lval);
 			x[lnstr+lval+1] = SDB_RS;
 			memcpy (x+lval+2+lnstr, ptr, strlen (ptr)+1);
-		} else ret = 0;
-		free (nstr);
+		} else {
+            free (nstr);
+            free (x);
+            return 0;
+        }
+        free (nstr);
 	}
 	ret = sdb_set (s, key, x, cas);
 	free (x);

@@ -222,13 +222,20 @@ SDB_API char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 			if (ask) {
 				*ask++ = 0;
 				// TODO: not optimized to reuse 'buf'
-				if ((p = sdb_json_get (s, cmd, ask, 0)))
+				if ((p = sdb_json_get (s, cmd, ask, 0))){
+                    free (buf);
 					return strdup (p);
+                }
 			} else {
 				// sdbget
-				if (!(q = sdb_getc (s, cmd, 0)))
+				if (!(q = sdb_getc (s, cmd, 0))) {
+                    free (buf);
 					return NULL;
-				if (strlen (q)> len) return strdup (q);
+                }
+				if (strlen (q)> len) {
+                    free (buf);
+                    return strdup (q);
+                }
 				strcpy (buf, q);
 				return buf;
 			}
