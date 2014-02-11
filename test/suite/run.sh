@@ -40,11 +40,15 @@ title "Strings"
 run "K=V\nK\nV" V
 run "K=V\n+K=Y\nK" VY
 run "K=V\nK=Y\nK" Y
+run "K=Hello\nK" Hello
+run "K=V\n+K= Y\nK" 'V Y'
 
 title "References"
 run 'K=V\nV=$K\nV' V
 run 'K=V\n$K=$K\nV' V
+run 'K=V\nY=$K\nY' V
 run 'K=V\n$K=$K\n$K' V
+run 'V=$K\nV' '$K'
 
 title "Numbers"
 run "K=0\n+K" 1
@@ -55,6 +59,9 @@ run "K=0\n+K=2\nK" 2
 run "K=10\n-K=4\nK" 6
 run "K=0\n-K=10\nK" 0
 run "K=-1\n+K" 0
+run "K=-2\n+K" -1
+run "K=0\n+-+-+K" 1
+run "K=18446744073709551615\n+K\n" 0
 
 title "Arrays"
 run "[]K=1,2,3\n[?]K" 3
