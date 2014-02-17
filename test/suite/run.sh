@@ -16,14 +16,15 @@ run() {
 	A=`echo "$K" | $SDB -`
 	B="`echo \"$2\"`"
 	GREEN="\x1b[32m"
-	RED="\x1b[31m"
-	RESET="\x1b[0m"
+	GREEN=`printf "\033[32m"`
+	RED=`printf "\033[31m"`
+	RESET=`printf "\033[0m"`
 	if [ "$A" = "$B" ]; then
-		echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`\
+		eval echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`\
 			" = "`printf -- "$K"`
 		SUCCESS=$((${SUCCESS}+1))
 	else
-		echo " ${RED}ERROR${RESET} - "`printf -- "$B"`" = "\
+		printf " ${RED}ERROR${RESET} - "`printf -- "$B"`" = "\
 			`printf -- "$K"`"  =>  "`printf -- "$A"`
 		FAILED=$((${FAILED}+1))
 	fi
@@ -109,7 +110,8 @@ rm -f .t .f
 title "Results"
 
 TOTAL=$((${SUCCESS}+${FAILED}))
-RATIO=`echo "100 ${FAILED} * ${TOTAL} / n" | dc`
+#RATIO=`echo "100 ${FAILED} * ${TOTAL} / n" | dc`
+RATIO=$(((100*${FAILED})/${TOTAL}))
 echo "  TOTAL       ${TOTAL}" >/dev/stderr
 echo "  SUCCESS     ${SUCCESS}" >/dev/stderr
 echo "  FAILED      ${FAILED}" >/dev/stderr
