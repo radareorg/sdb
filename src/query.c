@@ -85,8 +85,8 @@ repeat:
 		d = 1;
 		*buf = 0;
 		if (val) {
-			d = sdb_atoi (val);
-			if (d) {
+			if (sdb_isnum (val)) {
+				d = sdb_atoi (val);
 				if (*cmd=='+')
 					sdb_inc (s, cmd+1, d, 0);
 				else

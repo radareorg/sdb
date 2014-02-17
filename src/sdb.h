@@ -187,6 +187,7 @@ char *sdb_apop(Sdb *s, const char *key, ut32 *cas);
 /* Util.c */
 int sdb_check_value(const char *s);
 int sdb_check_key(const char *s);
+SDB_API int sdb_isnum (const char *s);
 
 #ifdef __cplusplus
 }

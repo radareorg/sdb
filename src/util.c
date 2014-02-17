@@ -76,7 +76,7 @@ SDB_API char *sdb_itoa(ut64 n, char *s) {
 
 SDB_API ut64 sdb_atoi(const char *s) {
 	char *p;
-	if (!s)
+	if (!s || *s=='-')
 		return 0LL;
 	if (!strncmp (s, "0x", 2))
 		return strtoull (s+2, &p, 16);
@@ -111,4 +111,12 @@ SDB_API ut64 sdb_unow () {
 	x <<= 32;
 	x += now.tv_usec;
         return x;
+}
+
+SDB_API int sdb_isnum (const char *s) {
+	if (*s=='-') // || *s=='+')
+		return 1;
+	if (*s>='0' && *s<='9')
+		return 1;
+	return 0;
 }
