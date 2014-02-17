@@ -71,11 +71,14 @@ repeat:
 		cmd = sdb_getc (s, cmd+1, 0);
 	// cmd = val
 	// cmd is key and val is value
-
 	if (*cmd == '.') {
-		if (!sdb_query_file (s, cmd+1)) {
-			fprintf (stderr, "sdb: Cannot open '%s'\n", cmd+1);
-			goto failure;
+		if (s->options & SDB_OPTION_FS) {
+			if (!sdb_query_file (s, cmd+1)) {
+				fprintf (stderr, "sdb: cannot open '%s'\n", cmd+1);
+				goto failure;
+			}
+		} else {
+			fprintf (stderr, "sdb: filesystem access disabled in config\n");
 		}
 	} else
 	if (*cmd == '+' || *cmd == '-') {

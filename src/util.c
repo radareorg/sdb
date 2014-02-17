@@ -4,18 +4,21 @@
 #include <sys/time.h>
 
 SDB_API int sdb_check_value(const char *s) {
-	if (*s=='$') return 0;
+	if (!s || *s=='$')
+		return 0;
+#if 0
 	for (; *s; s++) {
 		switch (*s) {
 		case ';':
 			return 0;
 		}
 	}
+#endif
 	return 1;
 }
 
 SDB_API int sdb_check_key(const char *s) {
-	if (!*s)
+	if (!s || !*s)
 		return 0;
 	for (; *s; s++) {
 		switch (*s) {
