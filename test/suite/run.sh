@@ -64,20 +64,24 @@ run "K=0\n+-+-+K" 1
 run "K=18446744073709551615\n+K\n" 0
 
 title "Arrays"
+run "[]K=1,2,3\n[2]K=a,b\n[2]K" a
 run "[]K=1,2,3\n[?]K" 3
 run "[]K=1,2,3\n[1]K=9\n[]K" "1\n9\n3"
 run "[]K=1,2,3\n[1]K" 2
 run "[]K=1,2,3\n[-]K\n[]K" "3\n1\n2"
 run "[]K=1,2,3\n[+]K\n[]K" "1\n2\n3"
-run "[]K=1,2,3\n[-1]K" "3"
-run "[]K=1,2,3\n[-1]K\n[?]K" "3\n2"
-run "[]K=1,2,3\n[-1]K=\n[]K" "3\n2"
+run "[]K=1,2,3\n[-1]K" "2"
+run "[]K=1,2,3\n[-1]K\n[?]K" "2\n2"
+run "[]K=1,2,3\n[-1]K=\n[]K" "2\n1\n3"
 run "[]K=1,2,3\n[+1]K=a\n[]K" "1\na\n2\n3"
 run "[]K=1,2,3\n[0]K" 1
 run "[]K=1,2,3\n[4]K" ''
+run "[]K=1\n[1]K=2\nK" '1,2'
 run "[]K=1,2\n[+]K=3\n[]K" '1\n2\n3'
-#run "[]K=a,b,c\n(-b)K\nK" "a\nc"
+run "[]K=a,b,c\n[-b]K\nK" "a,c"
+# XXX run "[]K=a,b,c\n[b]K" "1"
 run "[]K=a,b,c\n[-]K=b\n[]K" "a\nc"
+run "[b]b" "" # crash test
 
 title "Stack"
 run "[]K=\n[+]K=1\nK" 1
@@ -87,18 +91,18 @@ run "[]K=1,2,3\n[-]K\n[]K" "3\n1\n2" # XXX
 run "[]K=1,2,3\n[-]K\n[+]K=4\n[]K" "3\n1\n2\n4"
 
 title "JSON"
-run 'foo=[1,2,3]\nfoo?[1]' 2
-run 'foo=[1,2,3]\n+foo?[1]\nfoo?[1]' "3\n3"
-run 'foo=[1,2,3]\nfoo?[1]=999\nfoo' '[1,999,3]'
-run 'foo={"bar":"V"}\nfoo?bar' V
-run 'foo={"bar":123}\nfoo?bar' 123
-run 'foo={"bar":123}\nfoo?bar=69\nfoo?bar' 69
-run 'foo={"bar":[1,2]}\nfoo?bar[0]' 1
+run 'foo=[1,2,3]\nfoo:[1]' 2
+run 'foo=[1,2,3]\n+foo:[1]\nfoo:[1]' "3\n3"
+run 'foo=[1,2,3]\nfoo:[1]=999\nfoo' '[1,999,3]'
+run 'foo={"bar":"V"}\nfoo:bar' V
+run 'foo={"bar":123}\nfoo:bar' 123
+run 'foo={"bar":123}\nfoo:bar=69\nfoo:bar' 69
+run 'foo={"bar":[1,2]}\nfoo:bar[0]' 1
 
 title "Slurp"
 printf "K=V\nK\n" > .t
 run "..t" V
-run "..f" ''
+run "..f" '' 2>/dev/null
 run "..t\n..t" "V\nV"
 rm -f .t .f
 
