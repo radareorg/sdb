@@ -59,17 +59,23 @@ SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
 	if (!s) s = malloc(65);
 	s[63] = '\0';
 	if (*s=='-') {
-		strcpy (s, "0");
+		memcpy (s, "0", 2);
 		return s;
 	}
 	memset (s, 0, 65);
 	if (base==16) {
 		static const char* lookup = "0123456789abcdef";
-		do s[i--] = lookup[(n % 16)]; while(n/=16); 
+		do {
+			s[i--] = lookup[(n % 16)];
+			if (i==0) break;
+		} while(n/=16); 
 		s[i--] = 'x';
 		s[i--] = '0';
 	} else {
-		do s[i--] = (n % 10) + '0'; while(n/=10); 
+		do {
+			s[i--] = (n % 10) + '0';
+			if (i==0) break;
+		} while(n/=10); 
 	}
 	return s+i+1;
 }
