@@ -62,7 +62,7 @@ repeat:
 	if (!is_ref && val && *val == '"') {
 		val++;
 		// TODO: escape \" too
-		quot = val;
+		quot = (char*)val;
 next_quote:
 		quot = strchr (quot, '"');
 		if (quot) {
