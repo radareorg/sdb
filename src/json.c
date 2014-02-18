@@ -7,30 +7,6 @@
 #include "json/path.c"
 #include "json/rangstr.c"
 
-static void __itoa(int value, char *string) {
-	int i, sign, count = 0;
-	char buf[64];
-	char *temp = buf;
-	char *ptr = string;
-
-	temp[0] = string[0] = 0;
-	if ((sign = value) < 0) {
-		value = -value;
-		count++;
-	}
-	do {
-		*temp++ = value % 10 + '0';
-		count++;
-	} while ((value /= 10)>0);
-	if (sign < 0)
-		*temp++ = '-';
-	*temp-- = '\0';
-	/* reverse string */
-	for (i = 0; i < count; i++, temp--, ptr++)
-		*ptr = *temp;
-	*ptr = 0;
-}
-
 SDB_API char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
 	Rangstr rs;
 	char *u, *v = sdb_get (s, k, cas);
@@ -69,8 +45,8 @@ SDB_API int sdb_json_geti (Sdb *s, const char *k, const char *p, ut32 *cas) {
 }
 
 SDB_API int sdb_json_seti (Sdb *s, const char *k, const char *p, int v, ut32 cas) {
-	char str[64];
-	__itoa (v, str);
+	char *_str, str[64];
+	_str = sdb_itoa (v, str, 10);
 	return sdb_json_set (s, k, p, str, cas);
 }
 
