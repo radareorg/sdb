@@ -22,6 +22,7 @@ SDB_API int sdb_check_key(const char *s) {
 		return 0;
 	for (; *s; s++) {
 		switch (*s) {
+		case '"':
 		case '+':
 		case '-':
 		case '=':

@@ -101,6 +101,10 @@ run "a=0\n-a=4\na" 0
 run "a=0\n+a=-4\na" 0
 run "a=0\n-a=4\na" 0
 
+title "Quoted strings"
+run "c=3;a=\"b;c\";a" "b;c"
+run "c=3;a=\"b\\\"c\";a" "b\"c"
+
 title "JSON"
 run 'foo=[1,2,3]\nfoo:[1]' 2
 run 'foo=[1,2,3]\n+foo:[1]\nfoo:[1]' "3\n3"
