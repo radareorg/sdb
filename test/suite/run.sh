@@ -61,7 +61,7 @@ run "K=10\n-K=4\nK" 6
 run "K=0\n-K=10\nK" 0
 run "K=-1\n+K" 1
 run "K=-2\n+K" 1
-run "K=0\n+-+-+K" 1
+run "K=0\n+-+-+K\nK" "1\n0"
 run "K=18446744073709551615\n+K\n" 0
 
 title "Arrays"
@@ -113,6 +113,11 @@ run 'foo={"bar":"V"}\nfoo:bar' V
 run 'foo={"bar":123}\nfoo:bar' 123
 run 'foo={"bar":123}\nfoo:bar=69\nfoo:bar' 69
 run 'foo={"bar":[1,2]}\nfoo:bar[0]' 1
+
+title "Limits"
+run "a=0x8000000000000001;a" 0x8000000000000001
+# use hex for big numbers only? what is a big number
+run "a=0x8000000000000001;+a" 0x8000000000000002
 
 title "Slurp"
 printf "K=V\nK\n" > .t
