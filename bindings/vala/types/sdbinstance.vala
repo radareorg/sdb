@@ -78,13 +78,13 @@ namespace SdbTypes {
 		public uint64 incr (string key, uint64 delta=1) {
 			if (m != null)
 				return uint64.parse (m.incr (key, delta));
-			return s.inc (key, delta);
+			return s.num_inc (key, delta);
 		}
 
 		public uint64 decr (string key, uint64 delta=1) {
 			if (m != null)
 				return uint64.parse (m.decr (key, delta));
-			return s.dec (key, delta);
+			return s.num_dec (key, delta);
 		}
 
 		public void sync () {

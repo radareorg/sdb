@@ -17,25 +17,25 @@ SDB_API char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
 	return u;
 }
 
-SDB_API int sdb_json_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
+SDB_API int sdb_json_num_inc(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
 	ut32 c;
-	int cur = sdb_json_geti (s, k, p, &c);
+	int cur = sdb_json_num_get (s, k, p, &c);
 	if (cas && c != cas)
 		return 0;
-	sdb_json_seti (s, k, p, cur+n, cas);
+	sdb_json_num_set (s, k, p, cur+n, cas);
 	return cur+n;
 }
 
-SDB_API int sdb_json_dec(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
+SDB_API int sdb_json_num_dec(Sdb *s, const char *k, const char *p, int n, ut32 cas) {
 	ut32 c;
-	int cur = sdb_json_geti (s, k, p, &c);
+	int cur = sdb_json_num_get (s, k, p, &c);
 	if (cas && c != cas)
 		return 0;
-	sdb_json_seti (s, k, p, cur-n, cas);
+	sdb_json_num_set (s, k, p, cur-n, cas);
 	return cur-n;
 }
 
-SDB_API int sdb_json_geti (Sdb *s, const char *k, const char *p, ut32 *cas) {
+SDB_API int sdb_json_num_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
 	char *v = sdb_get (s, k, cas);
 	if (v) {
 		Rangstr rs = json_get (v, p);
@@ -44,7 +44,7 @@ SDB_API int sdb_json_geti (Sdb *s, const char *k, const char *p, ut32 *cas) {
 	return 0;
 }
 
-SDB_API int sdb_json_seti (Sdb *s, const char *k, const char *p, int v, ut32 cas) {
+SDB_API int sdb_json_num_set (Sdb *s, const char *k, const char *p, int v, ut32 cas) {
 	char *_str, str[64];
 	_str = sdb_itoa (v, str, 10);
 	return sdb_json_set (s, k, p, str, cas);

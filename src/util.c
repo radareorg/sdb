@@ -127,7 +127,7 @@ SDB_API int sdb_isnum (const char *s) {
 	return 0;
 }
 
-SDB_API int sdb_numbase (const char *s) {
+SDB_API int sdb_num_base (const char *s) {
 	if (!s) return 10;
 	if (!strncmp (s, "0x", 2))
 		return 16;

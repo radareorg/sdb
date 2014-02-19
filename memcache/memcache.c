@@ -34,25 +34,25 @@ void mcsdb_free(McSdb *ms) {
 }
 
 char *mcsdb_incr(McSdb *ms, const char *key, ut64 val) {
-	if (!sdb_nexists (ms->sdb, key))
+	if (!sdb_num_exists (ms->sdb, key))
 		return NULL;
-	if (sdb_inc (ms->sdb, key, val, 0) == 0LL)
+	if (sdb_num_inc (ms->sdb, key, val, 0) == 0LL)
 		return NULL;
 	ms->sets++;
 	return sdb_get (ms->sdb, key, 0);
 }
 
 char *mcsdb_decr(McSdb *ms, const char *key, ut64 val) {
-	if (!sdb_nexists (ms->sdb, key))
+	if (!sdb_num_exists (ms->sdb, key))
 		return NULL;
-	sdb_dec (ms->sdb, key, val, 0);
+	sdb_num_dec (ms->sdb, key, val, 0);
 	ms->sets++;
 	return sdb_get (ms->sdb, key, 0);
 }
 
 int mcsdb_set(McSdb *ms, const char *key, const char *value, ut64 exptime, ut32 cas) {
 	int ret = sdb_set (ms->sdb, key, value, cas);
-	sdb_expire (ms->sdb, key, exptime);
+	sdb_expire_set (ms->sdb, key, exptime);
 	ms->sets++;
 	return ret;
 }
@@ -60,7 +60,7 @@ int mcsdb_set(McSdb *ms, const char *key, const char *value, ut64 exptime, ut32 
 int mcsdb_add(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	if (!sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body, 0);
-		sdb_expire (ms->sdb, key, exptime);
+		sdb_expire_set (ms->sdb, key, exptime);
 		ms->sets++;
 		ms->hits++;
 		return 1;
@@ -82,7 +82,7 @@ void mcsdb_append(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 		free (b);
 		free (a);
 	} else sdb_set (ms->sdb, key, body, 0);
-	sdb_expire (ms->sdb, key, exptime);
+	sdb_expire_set (ms->sdb, key, exptime);
 	ms->sets++;
 }
 
@@ -99,14 +99,14 @@ void mcsdb_prepend(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 		free (b);
 		free (a);
 	} else sdb_set (ms->sdb, key, body, 0);
-	sdb_expire (ms->sdb, key, exptime);
+	sdb_expire_set (ms->sdb, key, exptime);
 	ms->sets++;
 }
 
 int mcsdb_replace(McSdb *ms, const char *key, ut64 exptime, const char *body) {
 	if (sdb_exists (ms->sdb, key)) {
 		sdb_set (ms->sdb, key, body, 0);
-		sdb_expire (ms->sdb, key, exptime);
+		sdb_expire_set (ms->sdb, key, exptime);
 		ms->sets++;
 		ms->hits++;
 		return 1;
@@ -133,7 +133,7 @@ char *mcsdb_get(McSdb *ms, const char *key, ut64 *exptime, ut32 *cas) {
 	else ms->misses++;
 	ms->gets++;
 	if (cas) *cas = n;
-	*exptime = sdb_get_expire (ms->sdb, key);
+	*exptime = sdb_expire_get (ms->sdb, key);
 	return s;
 }
 
@@ -141,16 +141,16 @@ int mcsdb_remove(McSdb *ms, const char *key, ut64 exptime) {
 	if (!sdb_exists (ms->sdb, key))
 		return 0;
 	if (exptime>0) {
-		sdb_expire (ms->sdb, key, exptime);
+		sdb_expire_set (ms->sdb, key, exptime);
 		return 0;
 	}
-	if (sdb_get_expire (ms->sdb, key)>0)
+	if (sdb_expire_get (ms->sdb, key)>0)
 		ms->evictions++;
-	return sdb_remove(ms->sdb, key, 0);
+	return sdb_del (ms->sdb, key, 0);
 }
 
 int mcsdb_touch(McSdb *ms, const char *key, ut64 exptime) {
 	if (!sdb_exists (ms->sdb, key))
 		return 0;
-	return sdb_expire (ms->sdb, key, exptime);
+	return sdb_expire_set (ms->sdb, key, exptime);
 }
