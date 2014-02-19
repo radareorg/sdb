@@ -47,7 +47,7 @@ SDB_API int sdb_json_num_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
 SDB_API int sdb_json_num_set (Sdb *s, const char *k, const char *p, int v, ut32 cas) {
 	char *_str, str[64];
 	_str = sdb_itoa (v, str, 10);
-	return sdb_json_set (s, k, p, str, cas);
+	return sdb_json_set (s, k, p, _str, cas);
 }
 
 SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, ut32 cas) {

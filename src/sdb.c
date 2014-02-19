@@ -568,5 +568,6 @@ SDB_API void sdb_config(Sdb *s, int options) {
 
 SDB_API void sdb_unlink (Sdb* s) {
 	sdb_fini (s, 1);
-	unlink (s->dir);
+	if (s->dir && *(s->dir))
+		unlink (s->dir);
 }

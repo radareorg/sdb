@@ -146,7 +146,7 @@ int mcsdb_remove(McSdb *ms, const char *key, ut64 exptime) {
 	}
 	if (sdb_expire_get (ms->sdb, key)>0)
 		ms->evictions++;
-	return sdb_del (ms->sdb, key, 0);
+	return sdb_unset (ms->sdb, key, 0);
 }
 
 int mcsdb_touch(McSdb *ms, const char *key, ut64 exptime) {

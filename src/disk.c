@@ -59,7 +59,6 @@ SDB_API int sdb_disk_create (Sdb* s) {
 	return 1;
 }
 
-
 SDB_API int sdb_disk_insert(Sdb* s, const char *key, const char *val) {
 	struct cdb_make *c = &s->m;
 	if (!key || !val) return 0;
