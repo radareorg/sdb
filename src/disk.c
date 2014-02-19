@@ -22,14 +22,13 @@
 
 // TODO: move into util.c ?
 static inline int r_sys_rmkdir(char *dir) {
-        char *ptr, *path;
-	ptr = path = dir;
+        char *ptr = dir;
         if (*ptr==DIRSEP) ptr++;
         while ((ptr = strchr (ptr, DIRSEP))) {
                 *ptr = 0;
-                if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
+                if (!r_sys_mkdir (dir) && r_sys_mkdir_failed ()) {
                         fprintf (stderr, "r_sys_rmkdir: fail %s\n", dir);
-                        free (path);
+			*ptr = DIRSEP;
                         return 0;
                 }
                 *ptr = DIRSEP;
@@ -41,7 +40,8 @@ static inline int r_sys_rmkdir(char *dir) {
 SDB_API int sdb_disk_create (Sdb* s) {
 	int nlen;
 	char *str;
-	if (!s || !s->dir || s->fdump != -1) return 0; // cannot re-create
+	if (!s || !s->dir || s->fdump != -1)
+		return 0; // cannot re-create
 	nlen = strlen (s->dir);
 	str = malloc (nlen+5);
 	if (!str) return 0;
