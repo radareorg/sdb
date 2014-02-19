@@ -7,8 +7,8 @@ import core.stdc.string;
 extern (C) {
 	void* sdb_new (const char *dir, int lock);
 	char* sdb_get (void*, const char *key, uint* cas);
-	const (char*) sdb_getc (void*, const char *key, uint* cas);
-	int sdb_remove (void*, const char *key, uint cas);
+	const (char*) sdb_const_get (void*, const char *key, uint* cas);
+	int sdb_unset (void*, const char *key, uint cas);
 	int sdb_set (void*, const char *key, const char *data, uint cas);
 	void sdb_free (void* s);
 }
@@ -30,8 +30,8 @@ class Sdb {
 		writeln ("Hello World on file ", file);
 	}
 
-	public bool remove(string key, uint cas=0) {
-		return sdb_remove (db, cast(char*)key, cas) != 0;
+	public bool unset(string key, uint cas=0) {
+		return sdb_unset (db, cast(char*)key, cas) != 0;
 	}
 
 	public bool set(string key, string value, uint cas=0) {
@@ -39,7 +39,7 @@ class Sdb {
 	}
 
 	public string get(string key, uint* cas=null) {
-		auto s = sdb_getc (db, cast(char*)key, cas);
+		auto s = sdb_const_get (db, cast(char*)key, cas);
 		return s? to!string (s): null;
 	}
 }
@@ -53,7 +53,7 @@ int main() {
 	writeln ("output: ", s.get ("Hello"));
 	s.set ("Hello", "world");
 	writeln ("output: ", s.get ("Hello"));
-	s.remove ("Hello");
+	s.unset ("Hello");
 	writeln ("output: ", s.get ("Hello"));
 	return 0;
 }
