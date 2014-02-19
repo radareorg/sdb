@@ -122,7 +122,7 @@ class Sdb(Structure): #1
 	json_num_dec, sdb_json_num_dec = register('sdb_json_num_dec','c_void_p, c_char_p, c_char_p, c_int, c_uint','c_int')
 	json_indent, sdb_json_indent = register('sdb_json_indent','c_char_p','c_char_p')
 	json_unindent, sdb_json_unindent = register('sdb_json_unindent','c_char_p','c_char_p')
-	_del, sdb_del = register('sdb_del','c_void_p, c_char_p, c_int','c_bool')
+	unset, sdb_unset = register('sdb_unset','c_void_p, c_char_p, c_int','c_bool')
 	reset, sdb_reset = register('sdb_reset','c_void_p',None)
 	unlink, sdb_unlink = register('sdb_unlink','c_void_p',None)
 	expire_get, sdb_expire_get = register('sdb_expire_get','c_void_p, c_char_p','c_ulonglong')

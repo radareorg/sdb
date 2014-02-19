@@ -35,7 +35,7 @@ namespace SimpleDB {
 		public static string json_indent (string json);
 		public static string json_unindent (string json);
 		/* remove */
-		public bool del (string key, int cas=0);
+		public bool unset (string key, int cas=0);
 		public void reset ();
 		public void unlink ();
 		/* time */

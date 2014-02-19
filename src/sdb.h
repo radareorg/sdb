@@ -76,7 +76,7 @@ char *sdb_querysf (Sdb* s, char *buf, size_t buflen, const char *fmt, ...);
 int sdb_query_file(Sdb *s, const char* file);
 int sdb_exists (Sdb*, const char *key);
 int sdb_num_exists (Sdb*, const char *key);
-int sdb_del (Sdb*, const char *key, ut32 cas);
+int sdb_unset (Sdb*, const char *key, ut32 cas);
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
 const char *sdb_const_get (Sdb*, const char *key, ut32 *cas);
 int sdb_set (Sdb*, const char *key, const char *data, ut32 cas);

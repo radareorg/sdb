@@ -133,7 +133,7 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 			if (kv->expire) {
 				if (!now) now = sdb_now ();
 				if (now > kv->expire) {
-					sdb_del (s, key, 0);
+					sdb_unset (s, key, 0);
 					return NULL;
 				}
 			}
@@ -173,7 +173,7 @@ SDB_API char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 			if (kv->expire) {
 				if (!now) now = sdb_now ();
 				if (now > kv->expire) {
-					sdb_del (s, key, 0);
+					sdb_unset (s, key, 0);
 					return NULL;
 				}
 			}
@@ -199,7 +199,7 @@ SDB_API char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 	return buf;
 }
 
-SDB_API int sdb_del (Sdb* s, const char *key, ut32 cas) {
+SDB_API int sdb_unset (Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
@@ -374,7 +374,7 @@ SDB_API int sdb_sync (Sdb* s) {
 			sdb_disk_insert (s, kv->key, kv->value);
 		if (kv->expire == 0LL) {
 			it.n = iter->n;
-			sdb_del (s, kv->key, 0);
+			sdb_unset (s, kv->key, 0);
 			iter = &it;
 		}
 	}

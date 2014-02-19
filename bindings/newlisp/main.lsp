@@ -1,6 +1,6 @@
 #!/usr/bin/newlisp
 (load "sdb.lsp")
-(setq db (sdb:new "test.sdb" 0))
+(setq db (sdb:new 0 "test.sdb" 0))
 (sdb:get db "404")
 (println "Your old name is '" 
 	(sdb:get db "user.name") "'")
