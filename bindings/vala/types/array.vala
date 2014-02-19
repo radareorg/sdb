@@ -53,7 +53,7 @@ public class SdbTypes.Array : Iterable {
 			var idxs = idx.to_string ();
 			var item = si.get ("list."+name+"."+idxs);
 			if (item != null)
-				si.remove ("list."+name+"."+idxs);
+				si.unset ("list."+name+"."+idxs);
 		}
 		si.set ("list."+name+".lower", "0");
 		si.set ("list."+name+".upper", "0");
@@ -63,7 +63,7 @@ public class SdbTypes.Array : Iterable {
 		if (idx<0)
 			return null;
 		var old = si.get ("array."+name+"."+idx.to_string ());
-		si.remove ("array."+name+"."+idx.to_string ());
+		si.unset ("array."+name+"."+idx.to_string ());
 		update_limits (idx);
 		return old;
 	}

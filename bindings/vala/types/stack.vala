@@ -28,7 +28,7 @@ namespace SdbTypes {
 				return null;
 			string key = get_idx (idx-1);
 			string ret = si.get (key);
-			si.remove (key);
+			si.unset (key);
 			return ret;
 		}
 

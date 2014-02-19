@@ -69,10 +69,10 @@ namespace SdbTypes {
 		}
 		// TODO: add getn/setn?
 
-		public void remove(string key) {
+		public void unset(string key) {
 			if (m != null)
 				m.remove (key);
-			else s.remove (key);
+			else s.unset (key);
 		}
 
 		public uint64 incr (string key, uint64 delta=1) {

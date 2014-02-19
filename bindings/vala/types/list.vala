@@ -112,9 +112,9 @@ namespace SdbTypes {
 						si.set ("list."+name+".tail", prev);
 					if (get_head () == node)
 						si.set ("list."+name+".head", nodenext);
-					si.remove ("list."+name+"."+node+".value");
-					si.remove ("list."+name+"."+node+".next");
-					si.remove ("list."+name+"."+node+".prev");
+					si.unset ("list."+name+"."+node+".value");
+					si.unset ("list."+name+"."+node+".next");
+					si.unset ("list."+name+"."+node+".prev");
 					si.set ("list."+name+"."+prev+".next", nodenext);
 					si.set ("list."+name+"."+nodenext+".prev", prev);
 					dec ();
