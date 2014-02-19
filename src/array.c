@@ -70,7 +70,6 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 		if (!n) return NULL;
 		p = n+1;
 	}
-	if (!p) return NULL;
 	n = strchr (p, SDB_RS);
 	if (!n) return strdup (p);
 	len = n-p;
