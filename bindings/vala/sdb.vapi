@@ -27,8 +27,11 @@ namespace SimpleDB {
 		/* json */
 		public string json_get (string key, string path, uint32 *cas = null);
 		public string json_set (string key, string path, string val, uint32 cas);
-		public int json_inc (string key, string path, int n, uint32 cas=0);
-		public int json_dec (string key, string path, int n, uint32 cas=0);
+//TODO : st64? ut64 here too?
+		public int json_num_get (string key, string path, uint32 *cas = null);
+		public int json_num_set (string key, string path, int v, uint32 cas=0);
+		public int json_num_inc (string key, string path, int n, uint32 cas=0);
+		public int json_num_dec (string key, string path, int n, uint32 cas=0);
 		public static string json_indent (string json);
 		public static string json_unindent (string json);
 		/* remove */

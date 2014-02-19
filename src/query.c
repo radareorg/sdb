@@ -35,8 +35,8 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
 
 SDB_API char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
 	int i, d, ok, w, alength, bufset = 0, is_ref = 0;
-	const char *p, *q, *val = NULL;
 	char *eq, *tmp, *json, *next, *quot, *out = NULL;
+	const char *p, *q, *val = NULL;
 	ut64 n;
 	if (!s) return NULL;
 	if (!len || !buf) {
