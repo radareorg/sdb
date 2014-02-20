@@ -11,22 +11,60 @@ if [ ! -x $SDB ]; then
 	exit 1
 fi
 
+fail() {
+	if [ -n "$1" ]; then
+		rm -f $1
+		echo " ${RED}ERROR${RESET} - $2" >/dev/stderr
+	fi
+	FAILED=$((${FAILED}+1))
+}
+
+success() {
+	if [ -n "$1" ]; then
+		rm -f $1
+		echo "   ${GREEN}OK${RESET}  - $2" >/dev/stderr
+	fi
+	SUCCESS=$((${SUCCESS}+1))
+}
+
+GREEN=`printf "\033[32m"`
+RED=`printf "\033[31m"`
+RESET=`printf "\033[0m"`
+
 run() {
 	K="$1"
 	A=`echo "$K" | $SDB -`
 	B="`echo \"$2\"`"
-	GREEN="\x1b[32m"
-	GREEN=`printf "\033[32m"`
-	RED=`printf "\033[31m"`
-	RESET=`printf "\033[0m"`
 	if [ "$A" = "$B" ]; then
 		echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`\
 			" = "`printf -- "$K"`
-		SUCCESS=$((${SUCCESS}+1))
+		success >/dev/null
 	else
 		echo " ${RED}ERROR${RESET} - "`printf -- "$B"`" = "\
 			`printf -- "$K"`"  =>  "`printf -- "$A"`
-		FAILED=$((${FAILED}+1))
+		fail >/dev/null
+	fi
+}
+
+runsh() {
+	NAME="runsh"
+	rm -f .a
+	$SDB .a a=c
+	if [ "`$SDB .a`" = "c" ]; then
+		fail .a $NAME
+	else
+		success .a $NAME
+	fi
+}
+
+runsh2() {
+	NAME="runsh2"
+	rm -f .a
+	$SDB .a a=c a=b
+	if [ "`$SDB .a |wc -l`" = 1 ]; then
+		fail .a $NAME
+	else
+		success .a $NAME
 	fi
 }
 
@@ -126,12 +164,16 @@ run "..f" '' 2>/dev/null
 run "..t\n..t" "V\nV"
 rm -f .t .f
 
+title "Shell"
+runsh
+runsh2
+
 title "Results"
 
 TOTAL=$((${SUCCESS}+${FAILED}))
 #RATIO=`echo "100 ${FAILED} * ${TOTAL} / n" | dc`
 RATIO=$(((100*${FAILED})/${TOTAL}))
-echo "  TOTAL       ${TOTAL}" >/dev/stderr
-echo "  SUCCESS     ${SUCCESS}" >/dev/stderr
-echo "  FAILED      ${FAILED}" >/dev/stderr
-echo "  BROKENNESS  ${RATIO}%" > /dev/stderr
+echo "  TOTAL       ${TOTAL}"   > /dev/stderr
+echo "  SUCCESS     ${SUCCESS}" > /dev/stderr
+echo "  FAILED      ${FAILED}"  > /dev/stderr
+echo "  BROKENNESS  ${RATIO}%"  > /dev/stderr
