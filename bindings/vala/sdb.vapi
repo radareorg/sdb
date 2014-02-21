@@ -13,6 +13,9 @@ namespace SimpleDB {
 		public string @get (string key, out int? cas=null);
 		public bool @add (string key, string val, uint32 cas=0);
 		public bool @set (string key, string val, uint32 cas=0);
+		/* boolean */
+		public bool bool_get (string key, uint32 cas=0);
+		public bool bool_set (string key, bool v, uint32* cas=null);
 		/* arrays */
 		public int array_len (string key);
 		public string array_get (string key, int idx, uint32 *cas=null);

@@ -105,6 +105,8 @@ class Sdb(Structure): #1
 	get, sdb_get = register('sdb_get','c_void_p, c_char_p, POINTER(c_int)','c_char_p')
 	add, sdb_add = register('sdb_add','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
 	set, sdb_set = register('sdb_set','c_void_p, c_char_p, c_char_p, c_uint','c_bool')
+	bool_get, sdb_bool_get = register('sdb_bool_get','c_void_p, c_char_p, c_uint','c_bool')
+	bool_set, sdb_bool_set = register('sdb_bool_set','c_void_p, c_char_p, c_bool, POINTER(c_uint)','c_bool')
 	array_len, sdb_array_len = register('sdb_array_len','c_void_p, c_char_p','c_int')
 	array_get, sdb_array_get = register('sdb_array_get','c_void_p, c_char_p, c_int, POINTER(c_uint)','c_char_p')
 	array_set, sdb_array_set = register('sdb_array_set','c_void_p, c_char_p, c_int, c_char_p, POINTER(c_uint)','c_char_p')
