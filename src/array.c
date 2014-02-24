@@ -151,7 +151,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 	if (!str || !*str)
 		return sdb_set (s, key, val, cas);
 	len = sdb_alen (str);
-	if (idx<0 || idx>len) // append
+	if (idx<0 || idx>=len) // append
 		return sdb_array_ins (s, key, -1, val, cas);
 	nstr = malloc (strlen (str)+strlen (val)+2);
 	strcpy (nstr, str);

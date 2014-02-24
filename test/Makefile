@@ -1,5 +1,11 @@
-all: cas hook
+.PHONY: all stack cas hook hook2
+
+all: cas hook stack
 	@suite/run.sh
+
+stack:
+	${CC} -o stack stack.c -I ../src/ ../src/libsdb.a 
+	./stack
 
 cas:
 	${CC} -o cas cas.c -I ../src/ ../src/libsdb.a 

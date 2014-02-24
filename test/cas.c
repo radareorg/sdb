@@ -5,12 +5,12 @@ int main(int argc, char **argv) {
 	ut32 cas;
 	Sdb *s = sdb_new (NULL, NULL, 0);
 	r = sdb_set (s, "hello", "world", 1);
-	sdb_getc (s, "hello", &cas);
+	sdb_const_get (s, "hello", &cas);
 	printf ("r%d = c%u\n", r, cas);
 	if (r != cas) printf ("error\n");
 
 	r = sdb_set (s, "hello", "world", r);
-	sdb_getc (s, "hello", &cas);
+	sdb_const_get (s, "hello", &cas);
 	if (r != cas) printf ("error\n");
 
 	printf ("r%d = c%u\n", r, cas);
