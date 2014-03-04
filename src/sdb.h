@@ -20,6 +20,7 @@ extern "C" {
 #define SDB_RS ','
 #define SDB_SS ","
 #define SDB_MAX_PATH 256
+#define SDB_NUM_BASE 10
 
 #define SDB_OPTION_NONE 0
 #define SDB_OPTION_ALL 0xff
@@ -151,6 +152,7 @@ void sdb_ns_sync (Sdb* s);
 
 // array
 int sdb_array_exists (Sdb* s, const char *key, const char *val);
+SDB_API int sdb_array_exists_num(Sdb *s, const char *key, ut64 val);
 int sdb_array_add (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_array_add_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_array_set (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
