@@ -61,6 +61,7 @@ SDB_API char *sdb_encode(const ut8 *bin, int len) {
 	out = malloc (len);
 	if (!out)
 		return NULL;
+	memset (out, 0, len);
 	sdb_encode_raw (out, bin, len);
 	return out;
 }
