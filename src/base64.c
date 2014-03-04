@@ -39,6 +39,7 @@ SDB_API void sdb_encode_raw(char *bout, const ut8 *bin, int len) {
 	int in, out;
 	for (in=out=0; in<len; in+=3,out+=4)
 		b64_encode (bin+in, bout+out, len-in>3?3:len-in);
+	bout[out] = 0;
 }
 
 SDB_API int sdb_decode_raw(ut8 *bout, const char *bin, int len) {
@@ -61,7 +62,6 @@ SDB_API char *sdb_encode(const ut8 *bin, int len) {
 	out = malloc (len);
 	if (!out)
 		return NULL;
-	memset (out, 0, len);
 	sdb_encode_raw (out, bin, len);
 	return out;
 }
