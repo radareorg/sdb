@@ -33,7 +33,7 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
 // XXX: cmd is reused
 #define out_concat(x) if (x) { \
 	char *o =(void*)realloc((void*)out, 2+strlen(x)+(out?strlen(out):0)); \
-	if (o) { if (out) strcat (out, "\n"); else *o=0; out=o; strcat (out, x); } \
+	if (o) { if (*o) strcat (o, "\n"); else *o=0; out=o; strcat (o, x); } \
 }
 
 typedef struct {
