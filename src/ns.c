@@ -34,6 +34,18 @@ static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	return ns;
 }
 
+SDB_API void sdb_ns_set (Sdb *s, const char *name, Sdb *r) {
+	SdbNs *ns;
+	SdbListIter *it;
+	ut32 hash = sdb_hashstr (name);
+	ls_foreach (s->ns, it, ns) {
+		if (ns->hash == hash) {
+			ns->sdb = r;
+			break;
+		}
+	}
+}
+
 SDB_API Sdb *sdb_ns(Sdb *s, const char *name) {
 	SdbNs *ns;
 	SdbListIter *it;

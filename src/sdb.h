@@ -149,6 +149,7 @@ Sdb* sdb_ns (Sdb *s, const char *name);
 void sdb_ns_init (Sdb* s);
 void sdb_ns_free (Sdb* s);
 void sdb_ns_sync (Sdb* s);
+void sdb_ns_set (Sdb *s, const char *name, Sdb *r);
 
 // array
 int sdb_array_exists (Sdb* s, const char *key, const char *val);
