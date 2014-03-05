@@ -48,6 +48,7 @@ SDB_API int sdb_ns_set (Sdb *s, const char *name, Sdb *r) {
 		}
 	}
 	ns = malloc (sizeof (SdbNs));
+	ns->name = strdup (name);
 	ns->hash = hash;
 	ns->sdb = r;
 	ls_append (s->ns, ns);
