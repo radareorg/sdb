@@ -1,12 +1,5 @@
 /* sdb - LGPLv3 - Copyright 2014 - pancake */
 
-#if 0
- TODO
- ====
- - This is just a quick implementation
-
-#endif
-
 #include "sdb.h"
 
 // SLOW CONCAT
@@ -16,6 +9,7 @@
 }
 
 SDB_API char *sdb_fmt_tostr(void *stru, const char *fmt) {
+	const char *num;
 	char *out = NULL;
 	ut8 *p = stru;
 	char buf[128];
@@ -24,17 +18,35 @@ SDB_API char *sdb_fmt_tostr(void *stru, const char *fmt) {
 	for (; *fmt; fmt++) {
 		n = 4;
 		switch (*fmt) {
-		case 'b': 
-			snprintf (buf, sizeof (buf), "%d", *((ut8*)(p+len)));
-			out_concat (buf); break;
+		case 'b':
+			num = sdb_itoa ((ut64)*((ut8*)(p+len)), buf, 10);
+			out_concat (num);
+			break;
 		case 'h': 
-			snprintf (buf, sizeof (buf), "%d", *((short*)(p+len)));
-			out_concat (buf); break;
-		case 'd': snprintf (buf, sizeof (buf), "%u", *((int*)(p+len)));
-			out_concat (buf); break;
-		case 'q': eprintf ("FMT: q: todo\n"); n = 8; break;
-		case 's': out_concat (*((char**)(p+len))); break;
-		case 'p': eprintf ("FMT: p: todo\n"); break;
+			num = sdb_itoa ((ut64)*((short*)(p+len)), buf, 10);
+			out_concat (num);
+			break;
+		case 'd':
+			num = sdb_itoa ((ut64)*((int*)(p+len)), buf, 10);
+			out_concat (num);
+			break;
+		case 'q':
+			num = sdb_itoa (*((ut64*)(p+len)), buf, 10);
+			out_concat (num);
+			n = 8;
+			break;
+		case 's':
+			{
+			char *e_str = sdb_encode ((const ut8*)*((char**)(p+len)), 0);
+			out_concat (e_str);
+			free (e_str);
+			}
+			break;
+		case 'p':
+			num = sdb_itoa ((ut64)*((size_t*)(p+len)), buf, 16);
+			out_concat (num);
+			n = sizeof (size_t);
+			break;
 		}
 		len += R_MAX (sizeof (void*), n); // align
 	}
@@ -55,8 +67,15 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 		case 'q': *((ut64*)(stru + idx)) = sdb_atoi (word); n=8; break;
 		case 'h': *((short*)(stru + idx)) = (short)sdb_atoi (word); break;
 		case 'd': *((int*)(stru + idx)) = (int)sdb_atoi (word); break;
-		case 's': *((char**)(stru + idx)) = strdup (word); break;
-		case 'p': *((void**)(stru + idx)) = (void*)(size_t)sdb_atoi (word); break;
+		case 's':
+			{
+			ut8 *e_str = sdb_decode (word, 0);
+			if (!e_str) e_str = (ut8*)word;
+			*((char**)(stru + idx)) = (char*)e_str;
+			}
+			break;
+		case 'p': *((void**)(stru + idx)) = (void*)(size_t)sdb_atoi (word);
+			break;
 		default: eprintf ("WTF\n"); break;
 		}
 		idx += R_MAX(sizeof (void*), n); // align
@@ -95,17 +114,20 @@ main() {
 	typedef struct person {
 		int foo;
 		char *str;
+		ut64 fin;
+		int end;
 	} Person;
 
 	Person p;
 
-	sdb_fmt_init (&p, "ds");
-	sdb_fmt_tobin ("123,bar", "ds", &p);
+	sdb_fmt_init (&p, "dsqd");
+	sdb_fmt_tobin ("123,bar,321,1", "dsqd", &p);
 	eprintf ("--> %d,%s\n", p.foo, p.str);
+	eprintf ("--> %lld,%d\n", p.fin, p.end);
 
 	{
-		char *o = sdb_fmt_tostr (&p, "ds");
-		eprintf ("%s\n", o);
+		char *o = sdb_fmt_tostr (&p, "dsqd");
+		eprintf ("== %s\n", o);
 		free (o);
 	}
 	sdb_fmt_free (&p, "ds");

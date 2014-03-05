@@ -40,24 +40,25 @@ SDB_API ut32 sdb_hash(const char *s, int len) {
 	return h;
 }
 
+// assert (sizeof (s)>64)
 SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
 	static const char* lookup = "0123456789abcdef";
 	int i = 62;
 	if (!s) {
 		s = malloc (64);
+		if (!s) return NULL;
 		memset (s, 0, 64);
 	}
 	s[63] = '\0';
 	if (base==16) {
-		for (; i>=0; n/=16)
+		for (; n && i>0; n/=16)
 			s[i--] = lookup[(n % 16)];
-eprintf ("FUCK\n");
-		// is memcpy faster? compiler optimizes..
 		s[i--] = 'x';
 		s[i--] = '0';
-	} else 
-		for (; i>=0; n/=10)
+	} else {
+		for (; n && i>0; n/=10)
 			s[i--] = (n % 10) + '0';
+	}
 	return s+i+1;
 }
 
@@ -85,19 +86,21 @@ SDB_API int sdb_alen(const char *str) {
 }
 
 SDB_API ut64 sdb_now () {
-        struct timeval now;
-        gettimeofday (&now, NULL);
-	return now.tv_sec;
+	struct timeval now;
+	if (!gettimeofday (&now, NULL))
+		return now.tv_sec;
+	return 0LL;
 }
 
 SDB_API ut64 sdb_unow () {
 	ut64 x;
         struct timeval now;
-        gettimeofday (&now, NULL);
-	x = now.tv_sec;
-	x <<= 32;
-	x += now.tv_usec;
-        return x;
+        if (!gettimeofday (&now, NULL)) {
+		x = now.tv_sec;
+		x <<= 32;
+		x += now.tv_usec;
+	} else x = 0LL;
+	return x;
 }
 
 SDB_API int sdb_isnum (const char *s) {
