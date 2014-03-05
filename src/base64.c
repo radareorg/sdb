@@ -49,7 +49,8 @@ SDB_API int sdb_decode_raw(ut8 *bout, const char *bin, int len) {
 			break;
 		out += 3;
 	}
-	bout[out-1] = 0;
+	if (out>0)
+		bout[out-1] = 0;
 	return (in != out);
 }
 
@@ -59,10 +60,10 @@ SDB_API char *sdb_encode(const ut8 *bin, int len) {
 		len = strlen ((const char *)bin)+1;
 	if (len==0)
 		return strdup ("");
-	out = malloc (len*2);
+	out = malloc (8+(len*2));
 	if (!out)
 		return NULL;
-	memset (out, 0, len+8);
+	memset (out, 0, (len*2)+8);
 	sdb_encode_raw (out, bin, len);
 	return out;
 }
@@ -72,7 +73,7 @@ SDB_API ut8 *sdb_decode (const char *in, int *len) {
 	int olen, ilen = strlen (in);
 	if (ilen<1)
 		return NULL;
-	out = malloc (ilen*2);
+	out = malloc (16+(ilen*2));
 	if (!out)
 		return NULL;
 	memset (out, 0, ilen+8);
