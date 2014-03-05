@@ -38,6 +38,7 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
 
 typedef struct {
 	char **out;
+	int encode;
 } ForeachListUser;
 
 static int foreach_list_cb(void *user, const char *k, const char *v) {
@@ -46,6 +47,10 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	int klen, vlen;
 	out = *rlu->out;
 	klen = strlen (k);
+	if (rlu->encode) {
+		ut8 *v2 = sdb_decode (v, NULL);
+		if (v2) v = (const char *)v2;
+	}
 	vlen = strlen (v);
 	line = malloc (klen + vlen + 2);
 	memcpy (line, k, klen);
@@ -53,6 +58,9 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	memcpy (line+klen+1, v, vlen+1);
 	out_concat (line);
 	*(rlu->out) = out;
+	if (rlu->encode) {
+		free ((void *)v);
+	}
 	return 0;
 }
 
@@ -140,7 +148,7 @@ next_quote:
 		return out;
 	}
 	if (!strcmp (cmd, "*")) {
-		ForeachListUser user = { &out };
+		ForeachListUser user = { &out, encode };
 		sdb_foreach (s, foreach_list_cb, &user);
 		return out;
 	}
