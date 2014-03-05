@@ -4,8 +4,10 @@
 
 // XXX SLOW CONCAT
 #define concat(x) if (x) { \
-	char *o =(void*)realloc((void*)out, 2+strlen(x)+(out?strlen(out)+4:0)); \
-	if (o) { if (*o) strcat (o, ","); out=o; strcat (o, x); } \
+	int size = 2+strlen(x)+(out?strlen(out)+4:0); \
+	if (out) { char *o = realloc (out, size); \
+		if (o) { strcat (o, ","); strcat (o, x); out = o; } \
+	} else out = strdup (x); \
 }
 
 SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
@@ -71,6 +73,7 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 			break;
 		ptr = (char*)sdb_array_next (word);
 	}
+	free (str);
 	return 1;
 }
 
