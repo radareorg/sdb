@@ -18,22 +18,12 @@ SDB_API int sdb_check_value(const char *s) {
 }
 
 SDB_API int sdb_check_key(const char *s) {
+	const char *special_chars = "\"+-=[]:$;";
 	if (!s || !*s)
 		return 0;
-	for (; *s; s++) {
-		switch (*s) {
-		case '"':
-		case '+':
-		case '-':
-		case '=':
-		case '[':
-		case ']':
-		case ':':
-		case '$': // eval value of given key
-		case ';':
+	for (; *s; s++)
+		if (strchr (special_chars, *s))
 			return 0;
-		}
-	}
 	return 1;
 }
 
@@ -41,20 +31,17 @@ SDB_API int sdb_check_key(const char *s) {
 SDB_API ut32 sdb_hash(const char *s, int len) {
 	ut32 h = CDB_HASHSTART;
 	if (len<1) {
-		while (*s) {
-			h += (h<<5);
-			h ^= *s++;
-		}
+		while (*s)
+			h = (h+(h<<5))^*s++;
 	} else {
-		while (len--) {
-			h += (h<<5);
-			h ^= *s++;
-		}
+		while (len--)
+			h = (h+(h<<5))^*s++;
 	}
 	return h;
 }
 
 SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
+	static const char* lookup = "0123456789abcdef";
 	int i = 62;
 	if (!s) {
 		s = malloc (64);
@@ -62,19 +49,15 @@ SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
 	}
 	s[63] = '\0';
 	if (base==16) {
-		static const char* lookup = "0123456789abcdef";
-		do {
+		for (; i>=0; n/=16)
 			s[i--] = lookup[(n % 16)];
-			if (i==0) break;
-		} while(n/=16); 
+eprintf ("FUCK\n");
+		// is memcpy faster? compiler optimizes..
 		s[i--] = 'x';
 		s[i--] = '0';
-	} else {
-		do {
+	} else 
+		for (; i>=0; n/=10)
 			s[i--] = (n % 10) + '0';
-			if (i==0) break;
-		} while (n/=10); 
-	}
 	return s+i+1;
 }
 
