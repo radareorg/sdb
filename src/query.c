@@ -36,10 +36,31 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
 	if (o) { if (out) strcat (out, "\n"); else *o=0; out=o; strcat (out, x); } \
 }
 
-SDB_API char *sdb_querys (Sdb *s, char *buf, size_t len, const char *cmd) {
+typedef struct {
+	char **out;
+} ForeachListUser;
+
+static int foreach_list_cb(void *user, const char *k, const char *v) {
+	ForeachListUser *rlu = user;
+	char *line, *out;
+	int klen, vlen;
+	out = *rlu->out;
+	klen = strlen (k);
+	vlen = strlen (v);
+	line = malloc (klen + vlen + 2);
+	memcpy (line, k, klen);
+	line[klen] = '=';
+	memcpy (line+klen+1, v, vlen+1);
+	out_concat (line);
+	*(rlu->out) = out;
+	return 0;
+}
+
+SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *cmd) {
 	int i, d, ok, w, alength, bufset = 0, is_ref = 0, encode = 0;
-	char *eq, *tmp, *json, *next, *quot, *out = NULL;
+	char *eq, *tmp, *json, *next, *quot, *arroba, *out = NULL;
 	const char *p, *q, *val = NULL;
+	Sdb *s = r;
 	ut64 n;
 	if (!s) return NULL;
 	if (!len || !buf) {
@@ -95,6 +116,25 @@ next_quote:
 		next = strchr (val?val:cmd, ';');
 	}
 	if (next) *next = 0;
+	arroba = strchr (cmd, '@');
+	if (arroba) {
+	next_arroba:
+		*arroba = 0;
+		s = sdb_ns (s, cmd);
+		if (!s) {
+			eprintf ("Cant find namespace %s\n", cmd);
+			return NULL;
+		}
+		cmd = arroba+1;
+		arroba = strchr (cmd, '@');
+		if (arroba)
+			goto next_arroba;
+	}
+	if (!strcmp (cmd, "*")) {
+		ForeachListUser user = { &out };
+		sdb_foreach (s, foreach_list_cb, &user);
+		return out;
+	}
 	json = strchr (cmd, ':');
 	if (*cmd == '[') {
 		char *tp = strchr (cmd, ']');
