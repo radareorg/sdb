@@ -130,6 +130,15 @@ next_quote:
 		if (arroba)
 			goto next_arroba;
 	}
+	if (!strcmp (cmd, "**")) {
+		SdbListIter *it;
+		SdbNs *ns;
+		// list namespaces
+		ls_foreach (s->ns, it, ns) {
+			out_concat (ns->name);
+		}
+		return out;
+	}
 	if (!strcmp (cmd, "*")) {
 		ForeachListUser user = { &out };
 		sdb_foreach (s, foreach_list_cb, &user);

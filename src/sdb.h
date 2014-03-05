@@ -59,6 +59,7 @@ typedef struct sdb_t {
 } Sdb;
 
 typedef struct sdb_ns_t {
+	char *name;
 	ut32 hash;
 	Sdb *sdb;
 } SdbNs;
