@@ -45,10 +45,11 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	ForeachListUser *rlu = user;
 	char *line, *out;
 	int klen, vlen;
+	ut8 *v2 = NULL;
 	out = *rlu->out;
 	klen = strlen (k);
 	if (rlu->encode) {
-		ut8 *v2 = sdb_decode (v, NULL);
+		v2 = sdb_decode (v, NULL);
 		if (v2) v = (const char *)v2;
 	}
 	vlen = strlen (v);
@@ -58,9 +59,7 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	memcpy (line+klen+1, v, vlen+1);
 	out_concat (line);
 	*(rlu->out) = out;
-	if (rlu->encode) {
-		free ((void *)v);
-	}
+	free (v2);
 	return 0;
 }
 
