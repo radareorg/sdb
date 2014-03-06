@@ -84,6 +84,8 @@ repeat:
 	eq = NULL;
 	quot = NULL;
 	json = NULL;
+	encode = 0;
+	is_ref = 0;
 	p = cmd;
 	if (*p=='%') {
 		encode = 1;
@@ -91,7 +93,6 @@ repeat:
 		p++;
 	}
 	eq = strchr (p, '=');
-	is_ref = 0;
 	if (eq) {
 		*eq++ = 0;
 		if (*eq=='$') {
@@ -341,10 +342,7 @@ next_quote:
 				}
 				if (encode)
 					free (sval);
-				if (ok) {
-					*buf = 0;
-					return buf;
-				}
+				if (ok) *buf = 0;
 			} else {
 				/* [3]foo */
 				const char *sval = sdb_const_get (s, p, 0);
@@ -400,8 +398,9 @@ next_quote:
 				free ((void*)val);
 				val = NULL;
 			}
-			if (!ok)
+			if (!ok) {
 				goto fail;
+			}
 		} else {
 			// 0 1 kvpath?jspath
 			// 0 0 kvpath

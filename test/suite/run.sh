@@ -46,25 +46,51 @@ run() {
 	echo
 }
 
-runsh() {
-	NAME="runsh"
+test_create() {
+	NAME="create"
 	rm -f .a
-	$SDB .a a=c
-	if [ "`$SDB .a`" = "c" ]; then
-		fail .a $NAME
-	else
+	$SDB .a = <<EOF
+a=c
+b=d
+EOF
+	if [ "`$SDB .a a`" = "c" ]; then
 		success .a $NAME
+	else
+		fail .a $NAME
 	fi
 }
 
-runsh2() {
-	NAME="runsh2"
+test_store() {
+	NAME="store"
+	rm -f .a
+	$SDB .a a=c
+	if [ "`$SDB .a a`" = "c" ]; then
+		success .a $NAME
+	else
+		fail .a $NAME
+	fi
+}
+
+test_restore() {
+	NAME="restore"
+	rm -f .a
+	$SDB .a a=a
+	$SDB .a a=c
+	if [ "`$SDB .a a`" = "c" ]; then
+		success .a $NAME
+	else
+		fail .a $NAME
+	fi
+}
+
+test_store2() {
+	NAME="store2"
 	rm -f .a
 	$SDB .a a=c a=b
-	if [ "`$SDB .a |wc -l`" = 1 ]; then
-		fail .a $NAME
-	else
+	if [ "`$SDB .a |wc -l |awk '{print $1}'`" = 1 ]; then
 		success .a $NAME
+	else
+		fail .a $NAME
 	fi
 }
 
@@ -167,8 +193,9 @@ rm -f .t .f
 title "Base64"
 run "%a=Hello;a" SGVsbG8A
 run "%a=Hello;%a" Hello
-run "a=1,2,3;%[1]a=WIN;%a" WIN
-run "a=1,2,3\n%[1]a=WIN\n%a" WIN
+run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
+run "a=1,2,3;%[1]a=WIN;[1]a" V0lOAA==
+run "a=1,2,3\n%[1]a=WIN\n%[1]a" WIN
 
 title "Namespaces"
 run "a@a=3;*" ""
@@ -176,8 +203,10 @@ run "a@a=3;a@*" "a=3"
 run "a@a=3;a@a" "3"
 
 title "Shell"
-runsh
-runsh2
+test_create
+test_store
+test_store2
+test_restore
 
 title "Results"
 
