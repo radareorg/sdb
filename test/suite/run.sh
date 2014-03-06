@@ -36,14 +36,14 @@ run() {
 	A=`echo "$K" | $SDB -`
 	B="`echo \"$2\"`"
 	if [ "$A" = "$B" ]; then
-		echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`\
-			" = "`printf -- "$K"`
+		echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`" = $K"  | tr '\n' ' '
 		success >/dev/null
 	else
 		echo " ${RED}ERROR${RESET} - "`printf -- "$B"`" = "\
-			`printf -- "$K"`"  =>  "`printf -- "$A"`
+			"$K  =>  "`printf -- "$A"` | tr '\n' ' '
 		fail >/dev/null
 	fi
+	echo
 }
 
 runsh() {
@@ -163,6 +163,12 @@ run "..t" V
 run "..f" '' 2>/dev/null
 run "..t\n..t" "V\nV"
 rm -f .t .f
+
+title "Base64"
+run "%a=Hello;a" SGVsbG8A
+run "%a=Hello;%a" Hello
+run "a=1,2,3;%[1]a=WIN;%a" WIN
+run "a=1,2,3\n%[1]a=WIN\n%a" WIN
 
 title "Shell"
 runsh

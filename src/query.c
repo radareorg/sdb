@@ -434,6 +434,7 @@ next_quote:
 			bufset = 0;
 		}
 		cmd = next+1;
+		encode = 0;
 		goto repeat;
 	}
 	if (eq) *--eq = '=';
