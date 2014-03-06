@@ -80,6 +80,10 @@ SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *cmd) {
 		buf = NULL;
 	}
 repeat:
+	s = r;
+	eq = NULL;
+	quot = NULL;
+	json = NULL;
 	p = cmd;
 	if (*p=='%') {
 		encode = 1;

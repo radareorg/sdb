@@ -170,6 +170,11 @@ run "%a=Hello;%a" Hello
 run "a=1,2,3;%[1]a=WIN;%a" WIN
 run "a=1,2,3\n%[1]a=WIN\n%a" WIN
 
+title "Namespaces"
+run "a@a=3;*" ""
+run "a@a=3;a@*" "a=3"
+run "a@a=3;a@a" "3"
+
 title "Shell"
 runsh
 runsh2
