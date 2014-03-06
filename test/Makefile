@@ -1,26 +1,19 @@
-.PHONY: all stack cas hook hook2
+.PHONY: all
 
-all: cas hook stack
+BINS=fmt stack cas hook hook2
+CFLAGS=-I../src
+LDFLAGS=../src/libsdb.a
+
+
+all: $(BINS)
 	@suite/run.sh
 
-stack:
-	${CC} -o stack stack.c -I ../src/ ../src/libsdb.a 
-	./stack
-
-cas:
-	${CC} -o cas cas.c -I ../src/ ../src/libsdb.a 
-	./cas
-
-hook:
-	${CC} -o hook hook.c -I ../src/ ../src/libsdb.a 
-	./hook
-
-hook2:
-	${CC} -o hook2 hook2.c -I ../src/ ../src/libsdb.a 
-	./hook2
+$(BINS):
+	@$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
+	./$@
 
 add10k:
 	sh add10k.sh
 
 clean:
-	rm -f a test.db db a.gz cas hook a.out
+	rm -f a test.db db a.gz a.out $(BINS)
