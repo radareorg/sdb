@@ -61,7 +61,7 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	out_concat (line);
 	*(rlu->out) = out;
 	free (v2);
-	return 0;
+	return 1;
 }
 
 SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *cmd) {
