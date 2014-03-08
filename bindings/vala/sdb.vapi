@@ -1,4 +1,4 @@
-namespace SimpleDB {
+namespace SDB {
 	[Compact]
 	[CCode (cheader_filename="sdb.h", cname="struct sdb_t", cprefix="sdb_", free_function="sdb_free")]
 	public class Sdb {

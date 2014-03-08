@@ -1,4 +1,4 @@
-using SimpleDB;
+using SDB;
 using McSdb;
 
 // TODO: use single interface for mcsdb and sdb
