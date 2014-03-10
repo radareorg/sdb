@@ -397,7 +397,7 @@ SDB_API int sdb_sync (Sdb* s) {
 		}
 	}
 	sdb_disk_finish (s);
-	return 0;
+	return 1;
 }
 
 // TODO: optimize: do not use syscalls here
