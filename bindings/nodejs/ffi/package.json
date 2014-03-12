@@ -1,6 +1,6 @@
 {
   "name": "sdb",
-  "version": "0.5.0",
+  "version": "0.8.0",
   "url": "http://www.github.com/radare/sdb",
   "description": "simple keyvalue database with native json support",
   "dependencies": {
@@ -8,6 +8,7 @@
   },
   "files": [
     "index.js",
+    "slist.js",
     "test.js"
   ],
   "keywords": [

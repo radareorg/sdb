@@ -4,7 +4,7 @@ var FFI = require ("node-ffi");
 
 // TODO: this is not CAS-safe yet
 var SDB = new FFI.Library ("libsdb", {
-        "sdb_new": [ "pointer", ["string", "int32"]]
+        "sdb_new": [ "pointer", ["string", "string", "int32"]]
 ,	"sdb_disk_create": [ "int", ["pointer"]]
 //,	"malloc": [ "pointer", ["int"]]
 ,	"sdb_disk_insert": [ "int", ["pointer", "string", "string"]]
@@ -15,7 +15,9 @@ var SDB = new FFI.Library ("libsdb", {
 ,	"sdb_get": [ "string", ["pointer", "string", "pointer"]]
 ,	"sdb_set": [ "int", ["pointer", "string", "string", "uint32"]]
 ,	"sdb_add": [ "int", ["pointer", "string", "string", "uint32"]]
-,	"sdb_num_inc": [ "int", ["pointer", "string", "int64"]]
+,	"sdb_decode": [ "string", ["string", "pointer"]]
+,	"sdb_encode": [ "string", ["string"]]
+,	"sdb_num_inc": [ "int", ["pointer", "string", "int64", "uint32"]]
 ,	"sdb_num_dec": [ "int", ["pointer", "string", "int64"]]
 ,	"sdb_num_get": [ "int64", ["pointer", "string", "pointer"]]
 ,	"sdb_num_set": [ "int", ["pointer", "string", "int64"]]
@@ -36,7 +38,7 @@ var SDB = new FFI.Library ("libsdb", {
 });
 
 exports.open = function (file) {
-	this.o = SDB.sdb_new (file, 0);
+	this.o = SDB.sdb_new (null, file, 0);
 	this.json_get = function (key, path) { return SDB.sdb_json_get (this.o, key, path, null); }
 	this.json_set = function (key, path, val) { return SDB.sdb_json_set (this.o, key, path, val, 0); }
 	this.json_indent = function (str) { return SDB.sdb_json_indent (str); }
@@ -46,8 +48,10 @@ exports.open = function (file) {
 	this.add = function (x, y) { return SDB.sdb_add (this.o, x, y, 0); }
 	this.unset = function (x, y) { return SDB.sdb_unset (this.o, x, y); }
 	//this.malloc = function (x){ return SDB.malloc (x); }
-	this.exists = function (key) { return SDB.exists (this.o, key); }
-	this.num_inc = function (x, y) { return SDB.sdb_num_inc (this.o, x, y, 0); }
+	this.exists = function (key) { return SDB.sdb_exists (this.o, key); }
+	this.encode = function (key) { return SDB.sdb_encode(key); }
+	this.decode = function (key) { return SDB.sdb_decode(key, null); }
+	this.num_inc = function (x, y) { return SDB.sdb_num_inc (this.o, x, y?y:1, 0); }
 	this.num_dec = function (x, y) { return SDB.sdb_num_dec (this.o, x, y, 0); }
 	this.num_set = function (x, y) { return SDB.sdb_num_set (this.o, x, y, 0); }
 	this.num_get = function (x) { return SDB.sdb_num_get (this.o, x); }
