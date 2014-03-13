@@ -198,9 +198,9 @@ run "a=1,2,3;%[1]a=WIN;[1]a" V0lOAA==
 run "a=1,2,3\n%[1]a=WIN\n%[1]a" WIN
 
 title "Namespaces"
-run "a_a=3;*" ""
-run "a_a=3;a_*" "a=3"
-run "a_a=3;a_a" "3"
+run "a/a=3;*" ""
+run "a/a=3;a/*" "a=3"
+run "a/a=3;a/a" "3"
 
 title "Shell"
 test_create
