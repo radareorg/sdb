@@ -70,12 +70,12 @@ SDB_API char *sdb_encode(const ut8 *bin, int len) {
 
 SDB_API ut8 *sdb_decode (const char *in, int *len) {
 	ut8 *out;
-	int olen, ilen = strlen (in);
-	if (!in || ilen<1)
-		return NULL;
+	int olen, ilen;
+	if (!in) return NULL;
+	ilen = strlen (in);
+	if (ilen<1) return NULL;
 	out = malloc (16+(ilen*2));
-	if (!out)
-		return NULL;
+	if (!out) return NULL;
 	memset (out, 0, ilen+8);
 	olen = sdb_decode_raw (out, in, ilen);
 	if (!olen) {
