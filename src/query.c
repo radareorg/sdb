@@ -229,7 +229,7 @@ next_quote:
 		// [?] - count elements of array
 		if (cmd[1]=='?') {
 			// if (!eq) { ...
-			alength = sdb_array_len (s, p);
+			alength = sdb_array_length (s, p);
 			w = snprintf (buf, len, "%d", alength);
 			if (w<0 || (size_t)w>len) {
 				buf = malloc (32);

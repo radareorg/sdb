@@ -3,6 +3,7 @@
 #include "sdb.h"
 #include <sys/time.h>
 
+// XXX deprecate or wtf? who uses this??
 SDB_API int sdb_check_value(const char *s) {
 	if (!s || *s=='$')
 		return 0;
@@ -71,6 +72,11 @@ SDB_API ut64 sdb_atoi(const char *s) {
 	return strtoull (s, &p, 10);
 }
 
+SDB_API char *sdb_aslice(const char *p, int from, int to) {
+	// TODO: implement
+	return NULL;
+}
+
 // TODO: find better name for it
 SDB_API int sdb_alen(const char *str) {
 	int len = 1;
@@ -83,6 +89,16 @@ SDB_API int sdb_alen(const char *str) {
 	}
 	if (*p) len++;
 	return len;
+}
+
+// TODO: nxt can be a pointer to the string, not a bool and we can get ird of array_next()
+// TODO: move to utils
+// sdb_anext() ??
+SDB_API char *sdb_array_string(char *str, char **next) {
+	char *nxt, *p = strchr (str, SDB_RS);
+	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;
+	if (next) *next = nxt;
+	return str;
 }
 
 SDB_API ut64 sdb_now () {

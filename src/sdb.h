@@ -160,8 +160,8 @@ void sdb_ns_sync (Sdb* s);
 int sdb_ns_set (Sdb *s, const char *name, Sdb *r);
 
 // array
-int sdb_array_exists (Sdb* s, const char *key, const char *val);
-SDB_API int sdb_array_exists_num(Sdb *s, const char *key, ut64 val);
+int sdb_array_contains (Sdb* s, const char *key, const char *val);
+SDB_API int sdb_array_contains_num(Sdb *s, const char *key, ut64 val);
 int sdb_array_add (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_array_add_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_array_set (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
@@ -176,10 +176,12 @@ int sdb_array_del_num (Sdb* s, const char *key, ut64 val, ut32 cas);
 int sdb_array_del_str (Sdb *s, const char *key, const char *val, ut32 cas);
 // helpers
 char *sdb_array_string(char *str, char **next);
+// TODO: clarify that thing
 int sdb_alen(const char *str);
-int sdb_array_len(Sdb* s, const char *key);
+int sdb_array_size(Sdb* s, const char *key);
+int sdb_array_length(Sdb* s, const char *key);
+
 int sdb_array_list(Sdb* s, const char *key);
-const char *sdb_array_index(const char *str, int idx);
 int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas);
 char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas);
 

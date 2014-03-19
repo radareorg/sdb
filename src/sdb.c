@@ -302,7 +302,7 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 			free (kv->value);
 			kv->value = malloc (vl);
 			memcpy (kv->value, val, vl);
-		} else ht_del_entry (s->ht, e);
+		} else ht_delete_entry (s->ht, e);
 		sdb_hook_call (s, key, val);
 		return cas;
 	}
@@ -380,9 +380,9 @@ SDB_API int sdb_sync (Sdb* s) {
 				sdb_disk_insert (s, kv->key, kv->value);
 			// XXX: This fails if key is dupped
 			//else printf ("remove (%s)\n", kv->key);
-			ls_del (s->ht->list, hte->iter);
+			ls_delete (s->ht->list, hte->iter);
 			hte->iter = NULL;
-			ht_del_entry (s->ht, hte);
+			ht_delete_entry (s->ht, hte);
 		} else if (*v)
 			sdb_disk_insert (s, k, v);
 		free (k);
@@ -546,8 +546,8 @@ SDB_API int sdb_unhook(Sdb* s, SdbHook h) {
 	ls_foreach (s->hooks, iter, hook) {
 		if (!(i%2) && (hook == h)) {
 			iter2 = iter->n;
-			ls_del (s->hooks, iter);
-			ls_del (s->hooks, iter2);
+			ls_delete (s->hooks, iter);
+			ls_delete (s->hooks, iter2);
 			return 1;
 		}
 		i++;

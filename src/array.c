@@ -15,13 +15,17 @@ static char *sdb_array_index_nc(char *str, int idx) {
 	return NULL;
 }
 
-// TODO: nxt can be a pointer to the string, not a bool and we can get ird of array_next()
-// TODO: move to utils
-SDB_API char *sdb_array_string(char *str, char **next) {
-	char *nxt, *p = strchr (str, SDB_RS);
-	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;
-	if (next) *next = nxt;
-	return str;
+static const char *sdb_array_index(const char *str, int idx) {
+	int len = 0;
+	const char *n, *p = str;
+	for (len=0; ; len++) {
+		if (len == idx)
+			return p;
+		n = strchr (p, SDB_RS);
+		if (n) p = n+1;
+		else break;
+	}
+	return NULL;
 }
 
 SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, int idx, ut32 *cas) {
@@ -132,15 +136,19 @@ SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 c
 
 SDB_API int sdb_array_add_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[64], *vs = sdb_itoa (val, valstr, SDB_NUM_BASE);
-	if (sdb_array_exists (s, key, vs))
+	if (sdb_array_contains (s, key, vs))
 		return 0;
 	return sdb_array_add (s, key, idx, vs, cas);
 }
 
 SDB_API int sdb_array_add(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
-	if (sdb_array_exists (s, key, val))
+	if (sdb_array_contains (s, key, val))
 		return 0;
 	return sdb_array_set (s, key, idx, val, cas);
+}
+
+SDB_API int sdb_array_unset(Sdb *s, const char *key, int idx, ut32 cas) {
+	return sdb_array_set (s, key, idx, "", cas);
 }
 
 SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
@@ -202,6 +210,7 @@ static int astrcmp (const char *a, const char *b) {
 }
 
 /* get array index of given value */
+// Deprecate? Used in setHint() but maybe sdb_array_replace will be better
 SDB_API int sdb_array_get_idx(Sdb *s, const char *key, const char *val, ut32 cas) {
 	const char *str = sdb_const_get (s, key, 0);
 	const char *n, *p = str;
@@ -217,7 +226,8 @@ SDB_API int sdb_array_get_idx(Sdb *s, const char *key, const char *val, ut32 cas
 	return -1;
 }
 
-SDB_API int sdb_array_del_str(Sdb *s, const char *key, const char *val, ut32 cas) {
+// previously named del_str... pair with _add
+SDB_API int sdb_array_remove(Sdb *s, const char *key, const char *val, ut32 cas) {
 	const char *str = sdb_const_get (s, key, 0);
 	const char *n, *p = str;
 	int idx;
@@ -266,26 +276,14 @@ SDB_API int sdb_array_del(Sdb *s, const char *key, int idx, ut32 cas) {
 	return 1;
 }
 
-SDB_API const char *sdb_array_index(const char *str, int idx) {
-	int len = 0;
-	const char *n, *p = str;
-	for (len=0; ; len++) {
-		if (len == idx)
-			return p;
-		n = strchr (p, SDB_RS);
-		if (n) p = n+1;
-		else break;
-	}
-	return NULL;
-}
-
-SDB_API int sdb_array_exists_num(Sdb *s, const char *key, ut64 num) {
+// XXX Doesnt works if numbers are stored in different base
+SDB_API int sdb_array_contains_num(Sdb *s, const char *key, ut64 num) {
 	char val[64];
 	char *nval = sdb_itoa (num, val, SDB_NUM_BASE);
-	return sdb_array_exists (s, key, nval);
+	return sdb_array_contains (s, key, nval);
 }
 
-SDB_API int sdb_array_exists(Sdb *s, const char *key, const char *val) {
+SDB_API int sdb_array_contains(Sdb *s, const char *key, const char *val) {
 	int found = 0;
 	char *list = sdb_get (s, key, 0);
 	char *next, *ptr = list;
@@ -303,9 +301,13 @@ SDB_API int sdb_array_exists(Sdb *s, const char *key, const char *val) {
 	return found;
 }
 
-SDB_API int sdb_array_len(Sdb *s, const char *key) {
-	const char *str = sdb_const_get (s, key, 0);
-	return sdb_alen (str);
+SDB_API int sdb_array_size(Sdb *s, const char *key) {
+	return sdb_alen (sdb_const_get (s, key, 0));
+}
+
+// TODO: ignore empty buckets
+SDB_API int sdb_array_length(Sdb *s, const char *key) {
+	return sdb_alen (sdb_const_get (s, key, 0));
 }
 
 SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
