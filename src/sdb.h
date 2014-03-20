@@ -171,9 +171,10 @@ ut64 sdb_array_get_num (Sdb* s, const char *key, int idx, ut32 *cas);
 int sdb_array_get_idx (Sdb *s, const char *key, const char *val, ut32 cas); // agetv
 int sdb_array_ins (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_array_ins_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
-int sdb_array_del (Sdb* s, const char *key, int n, ut32 cas);
+int sdb_array_unset (Sdb* s, const char *key, int n, ut32 cas);
+int sdb_array_delete (Sdb* s, const char *key, int n, ut32 cas);
 int sdb_array_del_num (Sdb* s, const char *key, ut64 val, ut32 cas);
-int sdb_array_del_str (Sdb *s, const char *key, const char *val, ut32 cas);
+int sdb_array_remove (Sdb *s, const char *key, const char *val, ut32 cas);
 // helpers
 char *sdb_array_string(char *str, char **next);
 // TODO: clarify that thing

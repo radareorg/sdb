@@ -251,7 +251,7 @@ next_quote:
 						sdb_array_add (s, p, -1, val, 0);
 					} else {
 						// [-]K= = remove first element
-						sdb_array_del_str (s, p, val, 0);
+						sdb_array_remove (s, p, val, 0);
 					}
 					//return NULL;
 				} else {
@@ -262,13 +262,13 @@ next_quote:
 						ret = sdb_array_get (s, p, 0, 0);
 						out_concat (ret);
 						// (+)foo :: remove first element
-						sdb_array_del (s, p, 0, 0);
+						sdb_array_delete (s, p, 0, 0);
 					} else {
 						// [-]K = remove last element
 						ret = sdb_array_get (s, p, -1, 0);
 						out_concat (ret);
 						// (-)foo :: remove last element
-						sdb_array_del (s, p, -1, 0);
+						sdb_array_delete (s, p, -1, 0);
 					}
 					free (ret);
 				}
@@ -289,7 +289,7 @@ next_quote:
 							}
 							ok = 0;
 							out_concat (tmp);
-							sdb_array_del (s, p, -i, 0);
+							sdb_array_delete (s, p, -i, 0);
 							free (tmp);
 						} else goto fail;
 					} else {
@@ -298,7 +298,7 @@ next_quote:
 						ok = cmd[1]? ((cmd[1]=='+')?
 							sdb_array_ins (s, p, i, val, 0):
 							sdb_array_set (s, p, i, val, 0)
-							): sdb_array_del (s, p, i, 0);
+							): sdb_array_delete (s, p, i, 0);
 						if (encode) {
 							free ((void*)val);
 							val = NULL;
@@ -310,7 +310,7 @@ next_quote:
 					if (i==0) {
 						/* [-b]foo */
 						if (cmd[1]=='-') {
-							sdb_array_del_str (s, p, cmd+2, 0);
+							sdb_array_remove (s, p, cmd+2, 0);
 						} else {
 							fprintf (stderr, "TODO: [b]foo -> get index of b key inside foo array\n");
 						//	sdb_array_dels (s, p, cmd+1, 0);
@@ -321,7 +321,7 @@ next_quote:
 						char *tmp = sdb_array_get (s, p, -i, NULL);
 						out_concat (tmp);
 						free (tmp);
-						sdb_array_del (s, p, -i, 0);
+						sdb_array_delete (s, p, -i, 0);
 					} else {
 						/* [+3]foo */
 						char *tmp = sdb_array_get (s, p, i, NULL);

@@ -185,7 +185,7 @@ SDB_API int sdb_array_del_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	for (p=str; ; idx++) {
 		num = sdb_atoi (p);
 		if (num == val)
-			return sdb_array_del (s, key, idx, cas);
+			return sdb_array_delete (s, key, idx, cas);
 		n = strchr (p, SDB_RS);
 		if (!n) break;
 		p = n+1;
@@ -234,7 +234,7 @@ SDB_API int sdb_array_remove(Sdb *s, const char *key, const char *val, ut32 cas)
 	for (idx=0; ; idx++) {
 		if (!p) break;
 		if (!astrcmp (p, val))
-			return sdb_array_del (s, key, idx, cas);
+			return sdb_array_delete (s, key, idx, cas);
 		n = strchr (p, SDB_RS);
 		if (!n) break;
 		p = n+1;
@@ -242,7 +242,7 @@ SDB_API int sdb_array_remove(Sdb *s, const char *key, const char *val, ut32 cas)
 	return 0;
 }
 
-SDB_API int sdb_array_del(Sdb *s, const char *key, int idx, ut32 cas) {
+SDB_API int sdb_array_delete(Sdb *s, const char *key, int idx, ut32 cas) {
 	int i;
 	char *p, *n, *str = sdb_get (s, key, 0);
 	p = str;
