@@ -169,7 +169,7 @@ int sdb_array_set_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 char *sdb_array_get (Sdb* s, const char *key, int idx, ut32 *cas);
 ut64 sdb_array_get_num (Sdb* s, const char *key, int idx, ut32 *cas);
 int sdb_array_get_idx (Sdb *s, const char *key, const char *val, ut32 cas); // agetv
-int sdb_array_ins (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
+int sdb_array_insert (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_array_ins_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_array_unset (Sdb* s, const char *key, int n, ut32 cas);
 int sdb_array_delete (Sdb* s, const char *key, int n, ut32 cas);

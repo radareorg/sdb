@@ -82,12 +82,12 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 
 SDB_API int sdb_array_ins_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[64];
-	return sdb_array_ins (s, key, idx,
+	return sdb_array_insert (s, key, idx,
 		sdb_itoa (val, valstr, SDB_NUM_BASE), cas);
 }
 
 // TODO: done, but there's room for improvement
-SDB_API int sdb_array_ins(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	const char *str = sdb_const_get (s, key, 0);
 	int lnstr, lstr, lval, ret;
 	char *x, *ptr;
@@ -159,7 +159,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 		return sdb_set (s, key, val, cas);
 	len = sdb_alen (str);
 	if (idx<0 || idx>=len) // append
-		return sdb_array_ins (s, key, -1, val, cas);
+		return sdb_array_insert (s, key, -1, val, cas);
 	nstr = malloc (strlen (str)+strlen (val)+2);
 	strcpy (nstr, str);
 	ptr = sdb_array_index_nc (nstr, idx);

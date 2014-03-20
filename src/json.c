@@ -147,6 +147,7 @@ SDB_API char *sdb_json_indent(const char *s) {
 	return O;
 }
 
+// TODO: move to utils?
 SDB_API char *sdb_json_unindent(const char *s) {
 	int instr = 0;
 	int len = strlen (s);

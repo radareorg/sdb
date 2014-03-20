@@ -1,13 +1,19 @@
+/* sdb api testsuite - Copyright 2014 - pancake */
+
 #include <sdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+
+#define OK "\x1b[32mOK\x1b[0m"
+#define ER "\x1b[31mER\x1b[0m"
+static int failed = 0;
 static Sdb *s = NULL;
 typedef int TestFcn(const char **name);
 
 static int iseq(const char *a, const char *b) {
 	int ret = !a || !b;
-	if (ret) return 0;
+	if (ret) return b==0;
 	ret = !!! strcmp (a, b);
 	if (!ret) eprintf (".-- (%s) vs (%s)\n", a, b);
 	return ret;
@@ -16,90 +22,169 @@ static int iseq(const char *a, const char *b) {
 static int test(TestFcn tf) {
 	const char *name = NULL;
 	int ret = tf (&name);
-	printf ("%s  %s\n", ret?"OK":"ER", name);
+	printf ("%s  %s\n", ret? OK:ER, name);
+	failed += ret;
 	return ret;
 }
 
-static int test_array_set(const char **name) {
+/* --- testsuite --- */
+#define TEST(x) static int test_array_##x (const char **name) {\
 	*name = __FUNCTION__;
+#define EXPECT(x) return iseq (sdb_const_get (s, "key", 0), x); }
+
+TEST(get)
+	sdb_set (s, "key", "foo,bar", 0);
+	char *k = sdb_array_get (s, "key", 1, 0);
+	sdb_set (s, "key", k, 0);
+	free (k);
+	EXPECT("bar")
+
+TEST(get2)
+	sdb_set (s, "key", "foo,bar", 0);
+	char *k = sdb_array_get (s, "key", 2, 0);
+	sdb_set (s, "key", k, 0);
+	free (k);
+	EXPECT(NULL)
+
+TEST(getneg)
+	sdb_set (s, "key", "foo,bar", 0);
+	char *k = sdb_array_get (s, "key", -1, 0);
+	sdb_set (s, "key", k, 0);
+	free (k);
+	EXPECT("bar")
+
+TEST(ins)
+	sdb_set (s, "key", "foo,bar", 0);
+	sdb_array_insert (s, "key", 1, "lol", 0);
+	EXPECT("foo,lol,bar")
+
+TEST(ins2)
+	sdb_set (s, "key", "foo,bar", 0);
+	sdb_array_insert (s, "key", 2, "lol", 0);
+	EXPECT("foo,bar,lol")
+
+TEST(ins3)
+	sdb_set (s, "key", "foo,bar", 0);
+	sdb_array_set (s, "key", 0, "lol", 0);
+	EXPECT("lol,foo,bar")
+
+TEST(insneg)
+	sdb_set (s, "key", "foo,bar", 0);
+	sdb_array_insert (s, "key", -1, "lol", 0);
+	EXPECT("foo,lol,bar")
+
+TEST(set)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_set (s, "key", 1, "lol", 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,lol");
-}
+	EXPECT("foo,lol")
 
-static int test_array_set2(const char **name) {
-	*name = __FUNCTION__;
+TEST(set2)
 	sdb_unset (s, "key", 0);
 	sdb_array_set (s, "key", 0, "foo", 0);
 	sdb_array_set (s, "key", 1, "lol", 0);
 	sdb_array_set (s, "key", 2, "wow", 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,lol,wow");
-}
+	EXPECT("foo,lol,wow");
 
-static int test_array_set3(const char **name) {
-	*name = __FUNCTION__;
+TEST(set3)
 	sdb_unset (s, "key", 0);
 	sdb_array_set (s, "key", 0, "foo", 0);
 	sdb_array_set (s, "key", 2, "lol", 0);
 	sdb_array_set (s, "key", 1, "wow", 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,lol,wow");
-}
+	EXPECT("foo,lol,wow")
 
-static int test_array_set4(const char **name) {
-	*name = __FUNCTION__;
+TEST(set4)
 	sdb_unset (s, "key", 0);
 	sdb_array_set (s, "key", 0, "foo", 0);
 	sdb_array_set (s, "key", 3, "lol", 0);
 	sdb_array_set (s, "key", 1, "wow", 0);
 	sdb_array_set (s, "key", 2, "two", 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,wow,two,lol");
-}
+	EXPECT("foo,wow,two,lol");
 
-static int test_array_unset(const char **name) {
-	*name = __FUNCTION__;
+TEST(setneg)
+	sdb_set (s, "key", "foo,bar", 0);
+	sdb_array_set (s, "key", -1, "lol", 0);
+	EXPECT("foo,bar,lol")
+
+
+TEST(unset)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_unset (s, "key", 1, 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo");
-}
+	EXPECT("foo")
 
-static int test_array_unset2(const char **name) {
-	*name = __FUNCTION__;
+TEST(unset2)
 	sdb_set (s, "key", "foo,bar,cow", 0);
 	sdb_array_unset (s, "key", 1, 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,,cow");
-}
+	EXPECT("foo,,cow")
 
-static int test_array_delete(const char **name) {
-	*name = __FUNCTION__;
+TEST(delete)
 	sdb_set (s, "key", "foo,bar,cow", 0);
 	sdb_array_delete (s, "key", 1, 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,cow");
-}
+	EXPECT("foo,cow")
 
-static int test_array_push (const char **name) {
-	*name = __FUNCTION__;
+TEST(delete2)
+	sdb_set (s, "key", "foo,bar,cow", 0);
+	sdb_array_delete (s, "key", 0, 0);
+	EXPECT("bar,cow")
+
+TEST(push)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_push (s, "key", "cow", 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,bar,cow");
-}
+	EXPECT("foo,bar,cow")
 
-static int test_array_push2 (const char **name) {
-	*name = __FUNCTION__;
+TEST(push2)
 	sdb_set (s, "key", "foo,bar,", 0);
 	sdb_array_push (s, "key", "cow", 0);
-	return iseq (sdb_const_get (s, "key", 0), "foo,bar,cow");
-}
+	EXPECT("foo,bar,cow")
+
+TEST(pop)
+	sdb_set (s, "key", "foo,bar", 0);
+	free (sdb_array_pop (s, "key", 0));
+	EXPECT("foo")
+
+TEST(pop2)
+	sdb_set (s, "key", "foo,bar,", 0);
+	free (sdb_array_pop (s, "key", 0));
+	EXPECT("foo,bar")
+
+TEST(num)
+	sdb_set (s, "key", "1,2", 0);
+	sdb_array_set_num (s, "key", 1, 123, 0);
+	EXPECT("1,0x7b")
+
+TEST(num2)
+	sdb_set (s, "key", "1,2", 0);
+	sdb_array_set_num (s, "key", 3, 123, 0);
+	EXPECT("1,2,,0x7b")
+
+TEST(num3)
+	sdb_set (s, "key", "1,2,", 0);
+	sdb_array_set_num (s, "key", 1, 123, 0);
+	sdb_array_set_num (s, "key", 1, 123, 0);
+	EXPECT("1,0x7b,")
 
 static TestFcn *tests[] = {
+	test_array_get,
+	test_array_get2,
+	test_array_getneg,
+	test_array_ins,
+	test_array_ins2,
+	test_array_insneg,
 	test_array_set,
 	test_array_set2,
 	test_array_set3,
 	test_array_set4,
+	test_array_setneg,
 	test_array_unset,
 	test_array_unset2,
 	test_array_delete,
+	test_array_delete2,
 	test_array_push,
 	test_array_push2,
+	test_array_pop,
+	test_array_pop2,
+	test_array_num,
+	test_array_num2,
+	test_array_num3,
 	NULL
 };
 
@@ -109,5 +194,9 @@ int main() {
 	for (i = 0; tests[i]; i++)
 		res |= !! test (tests[i]);
 	sdb_free (s);
+	printf ("TOTAL   %d\n", i);
+	printf ("SUCCESS %d\n", i-failed);
+	printf ("FAILED  %d\n", failed);
+	printf ("RATIO   %d%%\n", 100-(100*failed/i));
 	return res;
 }

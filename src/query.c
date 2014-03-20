@@ -296,7 +296,7 @@ next_quote:
 						if (encode)
 							val = sdb_encode ((const ut8*)val, 0);
 						ok = cmd[1]? ((cmd[1]=='+')?
-							sdb_array_ins (s, p, i, val, 0):
+							sdb_array_insert (s, p, i, val, 0):
 							sdb_array_set (s, p, i, val, 0)
 							): sdb_array_delete (s, p, i, 0);
 						if (encode) {
