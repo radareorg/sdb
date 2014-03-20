@@ -162,6 +162,41 @@ TEST(num3)
 	sdb_array_set_num (s, "key", 1, 123, 0);
 	EXPECT("1,0x7b,")
 
+TEST(add)
+	sdb_set (s, "key", "foo,bar",0);
+	sdb_array_add (s, "key", -1, "foo", 0);
+	EXPECT("foo,bar");
+
+TEST(add2)
+	sdb_set (s, "key", "foo,bar",0);
+	sdb_array_add (s, "key", -1, "cow", 0);
+	EXPECT("foo,bar,cow");
+
+TEST(add_num)
+	sdb_set (s, "key", "1,2",0);
+	sdb_array_add_num (s, "key", -1, 1, 0);
+	EXPECT("1,2");
+
+TEST(add_num2)
+	sdb_set (s, "key", "0x1,0x2",0);
+	sdb_array_add_num (s, "key", -1, 1, 0);
+	EXPECT("0x1,0x2");
+
+TEST(add_num3)
+	sdb_set (s, "key", "0x1,0x2",0);
+	sdb_array_add_num (s, "key", -1, 1, 0);
+	EXPECT("0x1,0x2");
+
+TEST(add_num4)
+	sdb_set (s, "key", "0x1,0x2",0);
+	sdb_array_add_num (s, "key", -1, 3, 0);
+	EXPECT("0x1,0x2,0x3");
+
+TEST(add_num5)
+	sdb_set (s, "key", "1,2",0);
+	sdb_array_add_num (s, "key", -1, 3, 0);
+	EXPECT("0x1,0x2,0x3");
+
 static TestFcn *tests[] = {
 	test_array_get,
 	test_array_get2,
@@ -185,6 +220,12 @@ static TestFcn *tests[] = {
 	test_array_num,
 	test_array_num2,
 	test_array_num3,
+	test_array_add,
+	test_array_add2,
+	test_array_add_num,
+	test_array_add_num2,
+	test_array_add_num3,
+	test_array_add_num4,
 	NULL
 };
 

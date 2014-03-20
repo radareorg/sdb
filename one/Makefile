@@ -1,3 +1,8 @@
+HASOVR=$(shell clang -Wno-initializer-overrides -E -</dev/null 2>&1| grep unknown)
+ifeq ($(HASOVR),)
+CFLAGS+=-Wno-initializer-overrides
+endif
+
 INCFILES=types.h
 INCFILES+=json/rangstr.h
 INCFILES+=buffer.h
@@ -34,8 +39,8 @@ SFILES=$(addprefix ../src/,$(SRCFILES))
 
 all:
 	cat $(IFILES) | grep -v 'include "' > sdb-one.h
-	(echo '#include "sdb-one.h"'; cat $(SFILES) | grep -v 'include "') > sdb-one.c
-	$(CC) a.c -I.
+	(echo '#include "sdb-one.h"'; cat  $(SFILES) | grep -v 'include "') > sdb-one.c
+	$(CC) $(CFLAGS) a.c -I.
 
 clean:
 	rm -f a.out sdb-one.c sdb-one.h

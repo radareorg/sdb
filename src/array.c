@@ -80,7 +80,7 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 	return o;
 }
 
-SDB_API int sdb_array_ins_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+SDB_API int sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[64];
 	return sdb_array_insert (s, key, idx,
 		sdb_itoa (val, valstr, SDB_NUM_BASE), cas);
@@ -135,12 +135,18 @@ SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 c
 }
 
 SDB_API int sdb_array_add_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
-	char valstr[64], *vs = sdb_itoa (val, valstr, SDB_NUM_BASE);
-	if (sdb_array_contains (s, key, vs))
+	char valstr10[64], valstr16[64];
+	char *v10 = sdb_itoa (val, valstr10, 10);
+	char *v16 = sdb_itoa (val, valstr16, 16);
+	// TODO: optimize
+	if (sdb_array_contains (s, key, v10))
 		return 0;
-	return sdb_array_add (s, key, idx, vs, cas);
+	if (sdb_array_contains (s, key, v16))
+		return 0;
+	return sdb_array_add (s, key, idx, v16, cas); // TODO: v10 or v16
 }
 
+// XXX: index should be supressed here? if its a set we shouldnt change the index
 SDB_API int sdb_array_add(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	if (sdb_array_contains (s, key, val))
 		return 0;
@@ -177,7 +183,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 	return ret;
 }
 
-SDB_API int sdb_array_del_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
+SDB_API int sdb_array_delete_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	const char *n, *p, *str = sdb_const_get (s, key, 0);
 	int idx = 0;
 	ut64 num;
@@ -210,8 +216,7 @@ static int astrcmp (const char *a, const char *b) {
 }
 
 /* get array index of given value */
-// Deprecate? Used in setHint() but maybe sdb_array_replace will be better
-SDB_API int sdb_array_get_idx(Sdb *s, const char *key, const char *val, ut32 cas) {
+SDB_API int sdb_array_indexof(Sdb *s, const char *key, const char *val, ut32 cas) {
 	const char *str = sdb_const_get (s, key, 0);
 	const char *n, *p = str;
 	int idx;
@@ -289,7 +294,7 @@ SDB_API int sdb_array_contains(Sdb *s, const char *key, const char *val) {
 	char *next, *ptr = list;
 	if (list && *list) {
 		do {
-			char *str = sdb_array_string (ptr, &next);
+			char *str = sdb_array_next (ptr, &next);
 			if (!strcmp (str, val)) {
 				found = 1;
 				break;
