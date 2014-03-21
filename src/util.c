@@ -65,11 +65,19 @@ SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
 
 SDB_API ut64 sdb_atoi(const char *s) {
 	char *p;
+	ut64 ret;
 	if (!s || *s=='-')
 		return 0LL;
-	if (!strncmp (s, "0x", 2))
-		return strtoull (s+2, &p, 16);
-	return strtoull (s, &p, 10);
+	ret = !strncmp (s, "0x", 2)?
+		strtoull (s+2, &p, 16):
+		strtoull (s, &p, 10);
+	if (!p) return 0LL;
+	return ret;
+}
+
+SDB_API char *sdb_achop(const char *p, int from, int to) {
+	// remove empty elements
+	return NULL;
 }
 
 SDB_API char *sdb_aslice(const char *p, int from, int to) {
@@ -91,9 +99,7 @@ SDB_API int sdb_alen(const char *str) {
 	return len;
 }
 
-// TODO: nxt can be a pointer to the string, not a bool and we can get ird of array_next()
-// TODO: move to utils
-// sdb_anext() ??
+// TODO: move to utils and rename to sdb_anext()?
 SDB_API char *sdb_array_next(char *str, char **next) {
 	char *nxt, *p = strchr (str, SDB_RS);
 	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;

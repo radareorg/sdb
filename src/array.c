@@ -2,7 +2,9 @@
 
 #include "sdb.h"
 
-static char *sdb_array_index_nc(char *str, int idx) {
+// TODO: missing num_{inc/dec} functions
+
+static char *Aindexof(char *str, int idx) {
 	int len = 0;
 	char *n, *p = str;
 	for (len=0; ; len++) {
@@ -15,7 +17,7 @@ static char *sdb_array_index_nc(char *str, int idx) {
 	return NULL;
 }
 
-static const char *sdb_array_index(const char *str, int idx) {
+static const char *Aconst_index(const char *str, int idx) {
 	int len = 0;
 	const char *n, *p = str;
 	for (len=0; ; len++) {
@@ -26,6 +28,22 @@ static const char *sdb_array_index(const char *str, int idx) {
 		else break;
 	}
 	return NULL;
+}
+
+static int astrcmp (const char *a, const char *b) {
+	for (;;) {
+		if (*a == '\0' || *a == SDB_RS) {
+			if (*b == '\0' || *b == SDB_RS)
+				return 0;
+			return 1;
+		}
+		if (*b == '\0' || *b == SDB_RS)
+			return 1;
+		if (*a != *b) return 1;
+		a++;
+		b++;
+	}
+	return 1;
 }
 
 SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, int idx, ut32 *cas) {
@@ -106,7 +124,7 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 		memcpy (x+lval+1, str, lstr+1);
 	} else {
 		char *nstr = strdup (str);
-		ptr = sdb_array_index_nc (nstr, idx);
+		ptr = Aindexof (nstr, idx);
 		if (ptr) {
 			*(ptr-1) = 0;
 			lnstr = strlen (nstr);
@@ -168,11 +186,11 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 		return sdb_array_insert (s, key, -1, val, cas);
 	nstr = malloc (strlen (str)+strlen (val)+2);
 	strcpy (nstr, str);
-	ptr = sdb_array_index_nc (nstr, idx);
+	ptr = Aindexof (nstr, idx);
 	if (ptr) {
 		lval = strlen (val);
 		memcpy (ptr, val, lval+1);
-		usr = sdb_array_index (str, idx+1);
+		usr = Aconst_index (str, idx+1);
 		if (usr) {
 			ptr[lval] = SDB_RS;
 			strcpy (ptr+lval+1, usr);
@@ -197,22 +215,6 @@ SDB_API int sdb_array_delete_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 		p = n+1;
 	}
 	return 0;
-}
-
-static int astrcmp (const char *a, const char *b) {
-	for (;;) {
-		if (*a == '\0' || *a == SDB_RS) {
-			if (*b == '\0' || *b == SDB_RS)
-				return 0;
-			return 1;
-		}
-		if (*b == '\0' || *b == SDB_RS)
-			return 1;
-		if (*a != *b) return 1;
-		a++;
-		b++;
-	}
-	return 1;
 }
 
 /* get array index of given value */

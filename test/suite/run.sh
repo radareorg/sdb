@@ -125,7 +125,7 @@ run "K=10\n-K=4\nK" 6
 run "K=0\n-K=10\nK" 0
 run "K=-1\n+K" 1
 run "K=-2\n+K" 1
-run "K=0\n+-+-+K\nK" "1\n0"
+run "K=0\n+-+-+K\nK" "0x1\n0"
 run "K=18446744073709551615\n+K\n" 0
 
 title "Arrays"
@@ -163,6 +163,7 @@ run "a=-2\n+a=4\na" 4
 run "a=0\n-a" 0
 run "a=0\n-a=4\na" 0
 run "a=0\n+a=-4\na" 0
+run "a=1\n+a=-4\na" 0
 run "a=0\n-a=4\na" 0
 
 title "Quoted strings"
@@ -201,6 +202,7 @@ title "Namespaces"
 run "a/a=3;*" ""
 run "a/a=3;a/*" "a=3"
 run "a/a=3;a/a" "3"
+run "a/b/c=3;a/c/b=4;a/**" "b\nc"
 
 title "Shell"
 test_create

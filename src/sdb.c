@@ -123,12 +123,10 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 	ut32 hash, pos, len, keylen;
 	ut64 now = 0LL;
 	SdbKv *kv;
-
 	if (cas) *cas = 0;
 	if (!s||!key) return NULL;
 	keylen = strlen (key)+1;
 	hash = sdb_hash (key, 0); //keylen-1);
-
 	/* search in memory */
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {

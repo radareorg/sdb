@@ -190,8 +190,12 @@ next_quote:
 		*buf = 0;
 		if (val) {
 			if (sdb_isnum (val)) {
-				d = sdb_atoi (val);
-				if (*cmd=='+')
+				int op = *cmd;
+				if (*val=='-') {
+					op = '-';
+					d = sdb_atoi (val+1);
+				} else d = sdb_atoi (val);
+				if (op=='+')
 					sdb_num_inc (s, cmd+1, d, 0);
 				else
 					sdb_num_dec (s, cmd+1, d, 0);
@@ -201,6 +205,7 @@ next_quote:
 		} else {
 			int base = sdb_num_base (sdb_const_get (s, cmd+1, 0));
 			if (json) {
+				base = 10; // NOTE: json is base10 only
 				*json = 0;
 				if (*cmd=='+') n = sdb_json_num_inc (s, cmd+1, json+1, d, 0);
 				else n = sdb_json_num_dec (s, cmd+1, json+1, d, 0);
@@ -209,7 +214,7 @@ next_quote:
 				if (*cmd=='+') n = sdb_num_inc (s, cmd+1, d, 0);
 				else n = sdb_num_dec (s, cmd+1, d, 0);
 			}
-			// TODO: keep base here
+			// keep base
 			if (base==16) {
 				w = snprintf (buf, len-1, "0x%"ULLFMT"x", n);
 				if (w<0 || (size_t)w>len) {

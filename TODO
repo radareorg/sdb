@@ -1,6 +1,7 @@
+*** = list recursively all namespaces
+
 BUGS
 ----
-* empty keys can be used wtf.
 * expire time may be affected by timezone and system time change (NOTE)
 * verify return 0/1 everywhere
 
