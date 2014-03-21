@@ -99,6 +99,7 @@ SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *cmd) {
 		cmd = buf;
 		buf = NULL;
 	}
+	next = NULL;
 repeat:
 	s = r;
 	eq = NULL;
@@ -107,6 +108,7 @@ repeat:
 	encode = 0;
 	is_ref = 0;
 	p = cmd;
+	if (next) *next = ';';
 	if (*p=='%') {
 		encode = 1;
 		cmd++;
@@ -116,10 +118,16 @@ repeat:
 	if (eq) {
 		*eq++ = 0;
 		if (*eq=='$') {
+			next = strchr (eq+1, ';');
+			if (next)*next = 0;
 			val = sdb_const_get (s, eq+1, 0);
+			if (next)*next = ';';
 			is_ref = 1; // protect readonly buffer from being processed
 		} else val = eq;
 	} else val = NULL;
+	if (!is_ref) {
+		next = strchr (val?val:cmd, ';'); //val?val:cmd, ';');
+	}
 	//if (!val) val = eq;
 	if (!is_ref && val && *val == '"') {
 		val++;
@@ -147,7 +155,6 @@ next_quote:
 		next = strchr (quot, ';');
 	} else {
 		quot = NULL;
-		next = strchr (val?val:cmd, ';');
 	}
 	if (next) *next = 0;
 	arroba = strchr (cmd, '/');
@@ -204,8 +211,11 @@ next_quote:
 		*tp++ = 0;
 		p = (const char *)tp;
 	} else p = cmd;
-	if (*cmd=='$')
+
+// USELESS
+	if (*cmd=='$') {
 		cmd = sdb_const_get (s, cmd+1, 0);
+	}
 	// cmd = val
 	// cmd is key and val is value
 	if (*cmd == '.') {
@@ -404,8 +414,12 @@ next_quote:
 				} else {
 					if (!sval) goto fail;
 					wl = strlen (sval);
-					if (wl>len) {
+					if (!buf || wl>len) {
 						buf = malloc (wl+2);
+						if (!buf) {
+							printf ("CANNOT MALLOC\n");
+							return NULL;
+						}
 						bufset = 1;
 					}
 					for (i=0; sval[i]; i++) {

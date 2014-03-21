@@ -33,8 +33,11 @@ RESET=`printf "\033[0m"`
 
 run() {
 	K="$1"
-	A=`echo "$K" | $SDB -`
-	B="`echo \"$2\"`"
+	#A="`echo "$K" | $SDB -`"
+	A="`${SDB} - \"$K\"`"
+	#A="`printf -- "$K" | $SDB -`"
+	#A="`printf -- \"$K\" | $SDB -`"
+	B="`printf -- \"$2\n\"`"
 	if [ "$A" = "$B" ]; then
 		echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`" = $K"  | tr '\n' ' '
 		success >/dev/null
@@ -102,82 +105,86 @@ title() {
 }
 
 title "Strings"
-run "K=V\nK\nV" V
-run "K=V\n+K=Y\nK" VY
-run "K=V\nK=Y\nK" Y
-run "K=Hello\nK" Hello
-run "K=V\n+K= Y\nK" 'V Y'
+run "K=V;K;V" V
+run "K=V;+K=Y;K" VY
+run "K=V;K=Y;K" Y
+run "K=Hello;K" Hello
+run "K=V;+K= Y;K" 'V Y'
 
 title "References"
-run 'K=V\nV=$K\nV' V
-run 'K=V\n$K=$K\nV' V
-run 'K=V\nY=$K\nY' V
-run 'K=V\n$K=$K\n$K' V
-run 'V=$K\nV' ''
+run 'K=V;V=3;$K' 3
+run 'K=V;V=$K;V' V
+run 'K=V;$K=$K;V' V
+run 'K=V;Y=$K;Y' V
+run 'K=V;$K=$K;$K' V
+run 'V=$K;V' ''
 
 title "Numbers"
-run "K=0\n+K" 1
-run "K=1\n-K" 0
-run "K=0\n-K" 0
-run "K=0\n+K=1\nK" 1
-run "K=0\n+K=2\nK" 2
-run "K=10\n-K=4\nK" 6
-run "K=0\n-K=10\nK" 0
-run "K=-1\n+K" 1
-run "K=-2\n+K" 1
-run "K=0\n+-+-+K\nK" "0x1\n0"
-run "K=18446744073709551615\n+K\n" 0
+run "K=0;+K" 1
+run "K=1;-K" 0
+run "K=0;-K" 0
+run "K=0;+K=1;K" 1
+run "K=0;+K=2;K" 2
+run "K=10;-K=4;K" 6
+run "K=0;-K=10;K" 0
+run "K=-1;+K" 1
+run "K=-2;+K" 1
+run "K=0;+-+-+K;K" "0x1\n0"
+run "K=18446744073709551615;+K;" 0
 
 title "Arrays"
-run "[]K=1,2,3\n[2]K=a,b\n[2]K" a
-run "[]K=1,2,3\n[?]K" 3
-run "[]K=1,2,3\n[1]K=9\n[]K" "1\n9\n3"
-run "[]K=1,2,3\n[1]K" 2
-run "[]K=1,2,3\n[-]K\n[]K" "3\n1\n2"
-run "[]K=1,2,3\n[+]K\n[]K" "1\n2\n3"
-run "[]K=1,2,3\n[-1]K" "2"
-run "[]K=1,2,3\n[-1]K\n[?]K" "2\n2"
-run "[]K=1,2,3\n[-1]K=\n[]K" "2\n1\n3"
-run "[]K=1,2,3\n[+1]K=a\n[]K" "1\na\n2\n3"
-run "[]K=1,2,3\n[0]K" 1
-run "[]K=1,2,3\n[4]K" ''
-run "[]K=1\n[1]K=2\nK" '1,2'
-run "[]K=1,2\n[+]K=3\n[]K" '1\n2\n3'
-run "[]K=a,b,c\n[-b]K\nK" "a,c"
-# XXX run "[]K=a,b,c\n[b]K" "1"
-run "[]K=a,b,c\n[-]K=b\n[]K" "a\nc"
+run "[]K=1,2,3;[2]K=a,b;[2]K" a
+run "[]K=1,2,3;[?]K" 3
+run "[]K=1,2,3;[1]K=9;[]K" "1\n9\n3"
+run "[]K=1,2,3;[1]K" 2
+run "[]K=1,2,3;[-]K;[]K" "3\n1\n2"
+run "[]K=1,2,3;[+]K;[]K" "1\n2\n3"
+run "[]K=1,2,3;[-1]K" "2"
+run "[]K=1,2,3;[-1]K;[?]K" "2\n2"
+run "[]K=1,2,3;[-1]K=;[]K" "2\n1\n3"
+run "[]K=1,2,3;[+1]K=a;[]K" "1\na\n2\n3"
+run "[]K=1,2,3;[0]K" 1
+run "[]K=1,2,3;[4]K" ''
+run "[]K=1;[1]K=2;K" '1,2'
+run "[]K=1,2;[+]K=3;[]K" '1\n2\n3'
+run "[]K=a,b,c;[-b]K;K" "a,c"
+# XXX run "[]K=a,b,c;[b]K" "1"
+run "[]K=a,b,c;[-]K=b;[]K" "a\nc"
 run "[b]b" "" # crash test
 
 title "Stack"
-run "[]K=\n[+]K=1\nK" 1
-run "[]K=\n[+]K=1\n[+]K=2\n[]K" "1\n2"
-run "[]K=1,2,3\n[-]K\n[?]K" "3\n2"
-run "[]K=1,2,3\n[-]K\n[]K" "3\n1\n2" # XXX
-run "[]K=1,2,3\n[-]K\n[+]K=4\n[]K" "3\n1\n2\n4"
+run "[]K=;[+]K=1;K" 1
+run "[]K=;[+]K=1;[+]K=2;[]K" "1\n2"
+run "[]K=1,2,3;[-]K;[?]K" "3\n2"
+run "[]K=1,2,3;[-]K;[]K" "3\n1\n2" # XXX
+
+title "Wrong parsing "
+run "[]K=1,2,3;[-]K;[+]K=4;[]K" "3\n1\n2\n4"
+#run "[]K=1,2,3\n[-]K\n[+]K=4\n[]K" "3\n1\n2\n4"
 
 title "Negative"
-run "a=-2\na" -2
-run "a=-3\n+a" 1
-run "a=-2\n+a=1\na" 1
-run "a=-2\n+a=4\na" 4
-run "a=0\n-a" 0
-run "a=0\n-a=4\na" 0
-run "a=0\n+a=-4\na" 0
-run "a=1\n+a=-4\na" 0
-run "a=0\n-a=4\na" 0
+run "a=-2;a" -2
+run "a=-3;+a" 1
+run "a=-2;+a=1;a" 1
+run "a=-2;+a=4;a" 4
+run "a=0;-a" 0
+run "a=0;-a=4;a" 0
+run "a=0;+a=-4;a" 0
+run "a=1;+a=-4;a" 0
+run "a=0;-a=4;a" 0
 
 title "Quoted strings"
 run "c=3;a=\"b;c\";a" "b;c"
 run "c=3;a=\"b\\\"c\";a" "b\"c"
 
 title "JSON"
-run 'foo=[1,2,3]\nfoo:[1]' 2
-run 'foo=[1,2,3]\n+foo:[1]\nfoo:[1]' "3\n3"
-run 'foo=[1,2,3]\nfoo:[1]=999\nfoo' '[1,999,3]'
-run 'foo={"bar":"V"}\nfoo:bar' V
-run 'foo={"bar":123}\nfoo:bar' 123
-run 'foo={"bar":123}\nfoo:bar=69\nfoo:bar' 69
-run 'foo={"bar":[1,2]}\nfoo:bar[0]' 1
+run 'foo=[1,2,3];foo:[1]' 2
+run 'foo=[1,2,3];+foo:[1];foo:[1]' "3\n3"
+run 'foo=[1,2,3];foo:[1]=999;foo' '[1,999,3]'
+run 'foo={"bar":"V"};foo:bar' V
+run 'foo={"bar":123};foo:bar' 123
+run 'foo={"bar":123};foo:bar=69;foo:bar' 69
+run 'foo={"bar":[1,2]};foo:bar[0]' 1
 
 title "Limits"
 run "a=0x8000000000000001;a" 0x8000000000000001
@@ -188,7 +195,7 @@ title "Slurp"
 printf "K=V\nK\n" > .t
 run "..t" V
 run "..f" '' 2>/dev/null
-run "..t\n..t" "V\nV"
+run "..t;..t" "V\nV"
 rm -f .t .f
 
 title "Base64"
@@ -196,7 +203,7 @@ run "%a=Hello;a" SGVsbG8A
 run "%a=Hello;%a" Hello
 run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
 run "a=1,2,3;%[1]a=WIN;[1]a" V0lOAA==
-run "a=1,2,3\n%[1]a=WIN\n%[1]a" WIN
+run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
 
 title "Namespaces"
 run "a/a=3;*" ""
