@@ -219,3 +219,9 @@ echo "  TOTAL       ${TOTAL}"   > /dev/stderr
 echo "  SUCCESS     ${SUCCESS}" > /dev/stderr
 echo "  FAILED      ${FAILED}"  > /dev/stderr
 echo "  BROKENNESS  ${RATIO}%"  > /dev/stderr
+
+if [ "${FAILED}" = 0 ]; then
+	exit 0
+else
+	exit 1
+fi

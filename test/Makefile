@@ -7,7 +7,7 @@ LDFLAGS=../src/libsdb.a
 
 all: $(BINS) reset
 	@suite/run.sh
-	cd api && $(MAKE)
+	-cd api && $(MAKE)
 
 $(BINS):
 	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
