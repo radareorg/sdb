@@ -30,7 +30,7 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
         return ret;
 }
 
-#define out_concat(x) if (x) { \
+#define out_concat(x) if (out&&*out) { \
 	int size = 2+strlen(x)+(out?strlen(out)+4:0); \
 	if (out) { char *o = realloc (out, size); \
 		if (o) { strcat (o, "\n"); strcat (o, x); out = o; } \
