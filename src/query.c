@@ -30,7 +30,7 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
         return ret;
 }
 
-#define out_concat(x) if (out&&*out) { \
+#define out_concat(x) if (x&&*x) { \
 	int size = 2+strlen(x)+(out?strlen(out)+4:0); \
 	if (out) { char *o = realloc (out, size); \
 		if (o) { strcat (o, "\n"); strcat (o, x); out = o; } \
@@ -165,32 +165,34 @@ next_quote:
 		if (arroba)
 			goto next_arroba;
 	}
-	if (!strcmp (cmd, "***")) {
-		SdbListIter *it;
-		SdbNs *ns;
-		char root[1024]; // XXX overlfow. 
-		// limit namespace length? stupid limit
-		ls_foreach (s->ns, it, ns) {
-			strcpy (root, ns->name);
-			out_concat (root);
-			walk_namespace (&out, root,
-				root+strlen(root), ns);
+	if (*cmd=='*') {
+		if (!strcmp (cmd, "***")) {
+			SdbListIter *it;
+			SdbNs *ns;
+			char root[1024]; // XXX overlfow. 
+			// limit namespace length? stupid limit
+			ls_foreach (s->ns, it, ns) {
+				strcpy (root, ns->name);
+				out_concat (root);
+				walk_namespace (&out, root,
+					root+strlen(root), ns);
+			}
+			return out;
 		}
-		return out;
-	}
-	if (!strcmp (cmd, "**")) {
-		SdbListIter *it;
-		SdbNs *ns;
-		// list namespaces
-		ls_foreach (s->ns, it, ns) {
-			out_concat (ns->name);
+		if (!strcmp (cmd, "**")) {
+			SdbListIter *it;
+			SdbNs *ns;
+			// list namespaces
+			ls_foreach (s->ns, it, ns) {
+				out_concat (ns->name);
+			}
+			return out;
 		}
-		return out;
-	}
-	if (!strcmp (cmd, "*")) {
-		ForeachListUser user = { &out, encode };
-		sdb_foreach (s, foreach_list_cb, &user);
-		return out;
+		if (!strcmp (cmd, "*")) {
+			ForeachListUser user = { &out, encode };
+			sdb_foreach (s, foreach_list_cb, &user);
+			return out;
+		}
 	}
 	json = strchr (cmd, ':');
 	if (*cmd == '[') {
@@ -264,7 +266,7 @@ next_quote:
 	} else if (*cmd == '[') {
 		// [?] - count elements of array
 		if (cmd[1]=='?') {
-			// if (!eq) { ...
+			// if (!eq) ...
 			alength = sdb_array_length (s, p);
 			w = snprintf (buf, len, "%d", alength);
 			if (w<0 || (size_t)w>len) {

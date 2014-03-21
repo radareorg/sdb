@@ -76,7 +76,7 @@ SDB_API ut64 sdb_atoi(const char *s) {
 }
 
 // NOTE: Reuses memory. probably not bindings friendly..
-SDB_API char *sdb_array_compact(char *p, int from, int to) {
+SDB_API char *sdb_array_compact(char *p) {
 	char *e;
 	// remove empty elements
 	while (*p) {

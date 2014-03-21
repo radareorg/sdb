@@ -2,6 +2,7 @@
 
 #include "sdb.h"
 
+#define PUSH_PREPENDS 1
 // TODO: missing num_{inc/dec} functions
 
 static char *Aindexof(char *str, int idx) {
@@ -312,12 +313,17 @@ SDB_API int sdb_array_size(Sdb *s, const char *key) {
 	return sdb_alen (sdb_const_get (s, key, 0));
 }
 
-// TODO: ignore empty buckets
+// NOTE: ignore empty buckets
 SDB_API int sdb_array_length(Sdb *s, const char *key) {
-	return sdb_alen (sdb_const_get (s, key, 0));
+	int ret = 0;
+	char *val = sdb_get (s, key, 0);
+	if (val && *val) {
+		sdb_array_compact (val);
+		ret = sdb_alen (val);
+	}
+	free (val);
+	return ret;
 }
-
-#define PUSH_PREPENDS 1
 
 SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
 	ut32 kas = cas;

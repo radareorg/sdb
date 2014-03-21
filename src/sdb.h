@@ -214,7 +214,7 @@ int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru);
 char *sdb_fmt_tostr(void *stru, const char *fmt);
 
 // raw array helpers
-char *sdb_array_compact(char *p, int from, int to);
+char *sdb_array_compact(char *p);
 char *sdb_aslice(char *out, int from, int to);
 
 #ifdef __cplusplus
