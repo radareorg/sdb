@@ -317,6 +317,8 @@ SDB_API int sdb_array_length(Sdb *s, const char *key) {
 	return sdb_alen (sdb_const_get (s, key, 0));
 }
 
+#define PUSH_PREPENDS 1
+
 SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
 	ut32 kas = cas;
 	const char *str = sdb_const_get (s, key, &kas);
@@ -324,6 +326,17 @@ SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
 		return 0;
 	cas = kas;
 	if (str && *str) {
+#if PUSH_PREPENDS
+		int str_len = strlen (str);
+		int val_len = strlen (val);
+		char *newval = malloc (str_len + val_len + 2);
+		memcpy (newval, val, val_len);
+		newval[val_len] = SDB_RS;
+		memcpy (newval+val_len+1, str, str_len);
+		newval[str_len+val_len+1] = 0;
+		sdb_set (s, key, newval, cas);
+		free (newval);
+#else
 		int str_len = strlen (str);
 		int val_len = strlen (val);
 		char *newval = malloc (str_len + val_len + 2);
@@ -333,6 +346,7 @@ SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
 		newval[str_len+val_len+1] = 0;
 		sdb_set (s, key, newval, cas);
 		free (newval);
+#endif
 	} else {
 		sdb_set (s, key, val, cas);
 	}
@@ -348,11 +362,23 @@ SDB_API char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas) {
 	}
 	if (cas && *cas != kas)
 		*cas = kas;
+#if PUSH_PREPENDS
+	end = strchr (str, SDB_RS);
+	if (end) {
+		*end = 0;
+		ret = strdup (end);
+		sdb_set (s, key, end+1, 0);
+	} else {
+		ret = strdup (str);
+		sdb_unset (s, key, 0);
+	}
+#else
 	for (end = str+strlen(str)-1;
 		end>str && *end!=SDB_RS; end--);
 	if (*end==SDB_RS) *end++ = 0;
 	ret = strdup (end);
 	sdb_set (s, key, str, 0);
+#endif
 	free (str);
 	return ret;
 }
