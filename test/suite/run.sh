@@ -203,6 +203,7 @@ run "a/a=3;*" ""
 run "a/a=3;a/*" "a=3"
 run "a/a=3;a/a" "3"
 run "a/b/c=3;a/c/b=4;a/**" "b\nc"
+run "a/b/c=3;a/c/b=4;***" "a\na/b\na/c"
 
 title "Shell"
 test_create
