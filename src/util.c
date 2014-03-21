@@ -75,13 +75,47 @@ SDB_API ut64 sdb_atoi(const char *s) {
 	return ret;
 }
 
-SDB_API char *sdb_achop(const char *p, int from, int to) {
+// NOTE: Reuses memory. probably not bindings friendly..
+SDB_API char *sdb_array_compact(char *p, int from, int to) {
+	char *e;
 	// remove empty elements
-	return NULL;
+	while (*p) {
+		if (!strncmp (p, ",,", 2)) {
+			p++;
+			for (e=p+1; *e==','; e++) {};
+			memmove (p, e, strlen (e)+1);
+		} else p++;
+	}
+	return p;
 }
 
-SDB_API char *sdb_aslice(const char *p, int from, int to) {
-	// TODO: implement
+// NOTE: Reuses memory. probably not bindings friendly..
+SDB_API char *sdb_aslice(char *out, int from, int to) {
+	int len, idx = 0;
+	char *str = NULL;
+	char *end = NULL;
+	char *p = out;
+	if (from>=to)
+		return NULL;
+	while (*p) {
+		if (idx == from)
+			if (!str) str = p;
+		if (idx == to) {
+			end = p;
+			break;
+		}
+		if (*p == ',')
+			idx++;
+		p++;
+	}
+	if (str) {
+		if (!end)
+			end = str + strlen (str);
+		len = (size_t)(end-str);
+		memcpy (out, str, len);
+		out[len] = 0;
+		return out;
+	}
 	return NULL;
 }
 

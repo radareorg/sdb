@@ -1,16 +1,16 @@
 .PHONY: all reset
 
-BINS=fmt stack cas hook hook2 reset
+BINS=fmt stack cas hook hook2 verypush
 CFLAGS=-I../src
 LDFLAGS=../src/libsdb.a
 
 
-all: $(BINS)
+all: $(BINS) reset
 	@suite/run.sh
 	cd api && $(MAKE)
 
 $(BINS):
-	@$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
+	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
 	./$@
 
 reset:

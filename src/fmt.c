@@ -2,6 +2,7 @@
 
 #include "sdb.h"
 
+// TODO: Add 'a' format for array of pointers null terminated??
 // XXX SLOW CONCAT
 #define concat(x) if (x) { \
 	int size = 2+strlen(x)+(out?strlen(out)+4:0); \
