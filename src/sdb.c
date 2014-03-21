@@ -179,7 +179,7 @@ SDB_API char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
 				}
 			}
 			if (cas) *cas = kv->cas;
-			return strdup (kv->value); // XXX too many mallocs
+			return strdup (kv->value);
 		}
 		return NULL;
 	}

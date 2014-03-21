@@ -66,6 +66,24 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	return 1;
 }
 
+static void walk_namespace (char **_out, char *root, char *p, SdbNs *ns) {
+	SdbListIter *it;
+	char *out = *_out;
+	SdbNs *n;
+	if (!root) out_concat (ns->name);
+	// TODO: check overflow if ((size_t)(p-root) > 1000)
+	if (ns->sdb) {
+		ls_foreach (ns->sdb->ns, it, n) {
+			p[0] = '/';
+			strcpy (p+1, n->name);
+			out_concat (root);
+			*_out = out;
+			walk_namespace (_out, root,
+				root+strlen (root), n);
+		}
+	}
+}
+
 SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *cmd) {
 	int i, d, ok, w, alength, bufset = 0, is_ref = 0, encode = 0;
 	char *eq, *tmp, *json, *next, *quot, *arroba, *out = NULL;
@@ -146,6 +164,19 @@ next_quote:
 		arroba = strchr (cmd, '/');
 		if (arroba)
 			goto next_arroba;
+	}
+	if (!strcmp (cmd, "***")) {
+		SdbListIter *it;
+		SdbNs *ns;
+		char root[1024]; // XXX overlfow. 
+		// limit namespace length? stupid limit
+		ls_foreach (s->ns, it, ns) {
+			strcpy (root, ns->name);
+			out_concat (root);
+			walk_namespace (&out, root,
+				root+strlen(root), ns);
+		}
+		return out;
 	}
 	if (!strcmp (cmd, "**")) {
 		SdbListIter *it;

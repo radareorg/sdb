@@ -1,4 +1,5 @@
 *** = list recursively all namespaces
+* do we want to specify the maximum depth of nested namespaces?
 
 BUGS
 ----
