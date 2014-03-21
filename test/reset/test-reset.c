@@ -14,7 +14,7 @@ int main() {
 	printf ("%s\n", sdb_const_get (s, "foo", 0));
 	sdb_reset (s);
 	res = sdb_const_get (s, "foo", 0);
-	printf ("%s\n", res);
+	printf ("%p\n", res);
 	if (res) {
 		printf ("\nOops. sdb_reset didnt ignored the disk key\n");
 	} else printf ("\nIt Works!\n");
