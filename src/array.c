@@ -154,7 +154,7 @@ SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 c
 		sdb_itoa (val, valstr, SDB_NUM_BASE), cas);
 }
 
-SDB_API int sdb_array_add_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+SDB_API int sdb_array_add_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	char valstr10[64], valstr16[64];
 	char *v10 = sdb_itoa (val, valstr10, 10);
 	char *v16 = sdb_itoa (val, valstr16, 16);
@@ -163,14 +163,14 @@ SDB_API int sdb_array_add_num(Sdb *s, const char *key, int idx, ut64 val, ut32 c
 		return 0;
 	if (sdb_array_contains (s, key, v16))
 		return 0;
-	return sdb_array_add (s, key, idx, v16, cas); // TODO: v10 or v16
+	return sdb_array_add (s, key, v16, cas); // TODO: v10 or v16
 }
 
 // XXX: index should be supressed here? if its a set we shouldnt change the index
-SDB_API int sdb_array_add(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+SDB_API int sdb_array_add(Sdb *s, const char *key, const char *val, ut32 cas) {
 	if (sdb_array_contains (s, key, val))
 		return 0;
-	return sdb_array_set (s, key, idx, val, cas);
+	return sdb_array_set (s, key, -1, val, cas);
 }
 
 SDB_API int sdb_array_unset(Sdb *s, const char *key, int idx, ut32 cas) {

@@ -158,8 +158,10 @@ run "[]K=;[+]K=1;[+]K=2;[]K" "1\n2"
 run "[]K=1,2,3;[-]K;[?]K" "3\n2"
 run "[]K=1,2,3;[-]K;[]K" "3\n1\n2" # XXX
 
-title "Wrong parsing "
-run "[]K=1,2,3;[-]K;[+]K=4;[]K" "3\n1\n2\n4"
+
+# [+] and [-] is wrongly defined. mixes stack and set concepts
+#title "Wrong parsing "
+#run "[]K=1,2,3;[-]K;[+]K=4;[]K" "3\n1\n2\n4"
 #run "[]K=1,2,3\n[-]K\n[+]K=4\n[]K" "3\n1\n2\n4"
 
 title "Negative"

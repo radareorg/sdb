@@ -288,7 +288,7 @@ next_quote:
 		} else
 		if (cmd[1]=='+'||cmd[1]=='-') {
 			// [+]foo        remove first element */
-			// [+]foo=bar    PUSH */
+			// [+]foo=bar    ADD */
 			// [-]foo        POP */
 			// [-]foo=xx     POP  (=xx ignored) */
 			if (!cmd[2] || cmd[2] ==']') {
@@ -296,7 +296,7 @@ next_quote:
 				if (eq) {
 					if (cmd[1]=='+') {
 						// [+]K=1
-						sdb_array_add (s, p, -1, val, 0);
+						sdb_array_add (s, p, val, 0);
 					} else {
 						// [-]K= = remove first element
 						sdb_array_remove (s, p, val, 0);

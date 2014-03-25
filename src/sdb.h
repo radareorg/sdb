@@ -163,8 +163,8 @@ int sdb_ns_set (Sdb *s, const char *name, Sdb *r);
 // array
 int sdb_array_contains (Sdb* s, const char *key, const char *val);
 SDB_API int sdb_array_contains_num(Sdb *s, const char *key, ut64 val);
-int sdb_array_add (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
-int sdb_array_add_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
+int sdb_array_add (Sdb* s, const char *key, const char *val, ut32 cas);
+int sdb_array_add_num (Sdb* s, const char *key, ut64 val, ut32 cas);
 int sdb_array_set (Sdb* s, const char *key, int idx, const char *val, ut32 cas);
 int sdb_array_set_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 char *sdb_array_get (Sdb* s, const char *key, int idx, ut32 *cas);
