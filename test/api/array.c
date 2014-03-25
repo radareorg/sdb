@@ -68,6 +68,11 @@ TEST(ins3)
 	sdb_array_set (s, "key", 0, "lol", 0);
 	EXPECT("lol,foo,bar")
 
+TEST(ins4)
+	sdb_set (s, "key", "foo", 0);
+	sdb_array_insert (s, "key", 4, "bar", 0);
+	EXPECT("foo,,,,bar")
+
 TEST(insneg)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_insert (s, "key", -1, "lol", 0);
@@ -203,6 +208,8 @@ static TestFcn *tests[] = {
 	test_array_getneg,
 	test_array_ins,
 	test_array_ins2,
+	test_array_ins3,
+	test_array_ins4,
 	test_array_insneg,
 	test_array_set,
 	test_array_set2,
