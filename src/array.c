@@ -138,7 +138,8 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 		} else {
 			free (nstr);
 			free (x);
-			return 0;
+			// fallback for empty buckets
+			return sdb_array_set (s, key, idx, val, cas);
 		}
 		free (nstr);
 	}

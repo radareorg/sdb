@@ -7,7 +7,7 @@
 
 #define OK "\x1b[32mOK\x1b[0m"
 #define ER "\x1b[31mER\x1b[0m"
-static int failed = 0;
+static int success = 0;
 static Sdb *s = NULL;
 typedef int TestFcn(const char **name);
 
@@ -15,7 +15,7 @@ static int iseq(const char *a, const char *b) {
 	int ret = !a || !b;
 	if (ret) return b==0;
 	ret = !!! strcmp (a, b);
-	if (!ret) eprintf (".-- (%s) vs (%s)\n", a, b);
+	if (!ret) eprintf (".-- (%s) expected (%s)\n", a, b);
 	return ret;
 }
 
@@ -23,7 +23,7 @@ static int test(TestFcn tf) {
 	const char *name = NULL;
 	int ret = tf (&name);
 	printf ("%s  %s\n", ret? OK:ER, name);
-	failed += ret;
+	success += ret;
 	return ret;
 }
 
@@ -65,8 +65,9 @@ TEST(ins2)
 
 TEST(ins3)
 	sdb_set (s, "key", "foo,bar", 0);
-	sdb_array_set (s, "key", 0, "lol", 0);
+	sdb_array_insert (s, "key", 0, "lol", 0);
 	EXPECT("lol,foo,bar")
+
 
 TEST(ins4)
 	sdb_set (s, "key", "foo", 0);
@@ -76,7 +77,7 @@ TEST(ins4)
 TEST(insneg)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_insert (s, "key", -1, "lol", 0);
-	EXPECT("foo,lol,bar")
+	EXPECT("foo,bar,lol")
 
 TEST(set)
 	sdb_set (s, "key", "foo,bar", 0);
@@ -95,7 +96,7 @@ TEST(set3)
 	sdb_array_set (s, "key", 0, "foo", 0);
 	sdb_array_set (s, "key", 2, "lol", 0);
 	sdb_array_set (s, "key", 1, "wow", 0);
-	EXPECT("foo,lol,wow")
+	EXPECT("foo,wow,lol")
 
 TEST(set4)
 	sdb_unset (s, "key", 0);
@@ -105,21 +106,31 @@ TEST(set4)
 	sdb_array_set (s, "key", 2, "two", 0);
 	EXPECT("foo,wow,two,lol");
 
+TEST(set5)
+	sdb_set (s, "key", "foo,bar", 0);
+	sdb_array_set (s, "key", 0, "lol", 0);
+	EXPECT("lol,bar")
+
 TEST(setneg)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_set (s, "key", -1, "lol", 0);
 	EXPECT("foo,bar,lol")
 
-
 TEST(unset)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_unset (s, "key", 1, 0);
-	EXPECT("foo")
+	EXPECT("foo,")
 
 TEST(unset2)
 	sdb_set (s, "key", "foo,bar,cow", 0);
 	sdb_array_unset (s, "key", 1, 0);
 	EXPECT("foo,,cow")
+
+TEST(unset3)
+	sdb_set (s, "key", "foo,bar,cow", 0);
+	sdb_array_unset (s, "key", 1, 0);
+	sdb_array_unset (s, "key", 2, 0);
+	EXPECT("foo,,")
 
 TEST(delete)
 	sdb_set (s, "key", "foo,bar,cow", 0);
@@ -131,23 +142,24 @@ TEST(delete2)
 	sdb_array_delete (s, "key", 0, 0);
 	EXPECT("bar,cow")
 
+// push prepends
 TEST(push)
 	sdb_set (s, "key", "foo,bar", 0);
 	sdb_array_push (s, "key", "cow", 0);
-	EXPECT("foo,bar,cow")
+	EXPECT("cow,foo,bar")
 
 TEST(push2)
-	sdb_set (s, "key", "foo,bar,", 0);
+	sdb_set (s, "key", ",foo,bar,", 0);
 	sdb_array_push (s, "key", "cow", 0);
-	EXPECT("foo,bar,cow")
+	EXPECT("cow,,foo,bar,")
 
 TEST(pop)
 	sdb_set (s, "key", "foo,bar", 0);
 	free (sdb_array_pop (s, "key", 0));
-	EXPECT("foo")
+	EXPECT("bar")
 
 TEST(pop2)
-	sdb_set (s, "key", "foo,bar,", 0);
+	sdb_set (s, "key", ",foo,bar", 0);
 	free (sdb_array_pop (s, "key", 0));
 	EXPECT("foo,bar")
 
@@ -215,9 +227,11 @@ static TestFcn *tests[] = {
 	test_array_set2,
 	test_array_set3,
 	test_array_set4,
+	test_array_set5,
 	test_array_setneg,
 	test_array_unset,
 	test_array_unset2,
+	test_array_unset3,
 	test_array_delete,
 	test_array_delete2,
 	test_array_push,
@@ -243,8 +257,8 @@ int main() {
 		res |= !! test (tests[i]);
 	sdb_free (s);
 	printf ("TOTAL   %d\n", i);
-	printf ("SUCCESS %d\n", i-failed);
-	printf ("FAILED  %d\n", failed);
-	printf ("RATIO   %d%%\n", 100-(100*failed/i));
+	printf ("SUCCESS %d\n", success);
+	printf ("FAILED  %d\n", i-success);
+	printf ("RATIO   %d%%\n", (100*success)/i);
 	return res;
 }
