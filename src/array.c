@@ -308,7 +308,7 @@ SDB_API int sdb_array_contains(Sdb *s, const char *key, const char *val) {
 	char *next, *ptr = list;
 	if (list && *list) {
 		do {
-			char *str = sdb_array_next (ptr, &next);
+			char *str = sdb_anext (ptr, &next);
 			if (!strcmp (str, val)) {
 				found = 1;
 				break;

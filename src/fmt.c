@@ -52,7 +52,7 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 	char *next, *str, *ptr, *word, *e_str;
 	str = ptr = strdup (_str);
 	for (; *fmt; fmt++) {
-		word = sdb_array_next (ptr, &next);
+		word = sdb_anext (ptr, &next);
 		if (!word || !*word)
 			break;
 		n = 4; // ALIGN

@@ -133,8 +133,7 @@ SDB_API int sdb_alen(const char *str) {
 	return len;
 }
 
-// TODO: move to utils and rename to sdb_anext()?
-SDB_API char *sdb_array_next(char *str, char **next) {
+SDB_API char *sdb_anext(char *str, char **next) {
 	char *nxt, *p = strchr (str, SDB_RS);
 	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;
 	if (next) *next = nxt;
