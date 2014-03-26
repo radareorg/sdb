@@ -38,26 +38,25 @@ static int b64_decode(const char in[4], ut8 out[3]) {
 SDB_API void sdb_encode_raw(char *bout, const ut8 *bin, int len) {
 	int in, out;
 	for (in=out=0; in<len; in+=3,out+=4)
-		b64_encode (bin+in, bout+out, len-in>3?3:len-in);
+		b64_encode (bin+in, bout+out,
+			(len-in)>3?3:(len-in));
 	bout[out] = 0;
 }
 
 SDB_API int sdb_decode_raw(ut8 *bout, const char *bin, int len) {
 	int in, out, ret;
-	for (in=out=0; in<len-1; in+=4) {
+	for (in=out=0; in<len; in+=4) {
 		if ((ret = b64_decode (bin+in, bout+out))<1)
 			break;
 		out += 3;
 	}
-	if (out>0)
-		bout[out-1] = 0;
-	return (in != out);
+	return (in != out)? out: 0;
 }
 
 SDB_API char *sdb_encode(const ut8 *bin, int len) {
 	char *out;
 	if (!bin) return NULL;
-	if (len<1) len = strlen ((const char *)bin)+1;
+	if (len<1) len = strlen ((const char *)bin);
 	if (len==0) return strdup ("");
 	out = malloc (8+(len*2));
 	if (!out) return NULL;
@@ -80,6 +79,7 @@ SDB_API ut8 *sdb_decode (const char *in, int *len) {
 		free (out);
 		return NULL;
 	}
+	out[olen+1] = 0;
 	if (len)
 		*len = olen;
 	return out;
