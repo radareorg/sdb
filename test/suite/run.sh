@@ -201,10 +201,10 @@ run "..t;..t" "V\nV"
 rm -f .t .f
 
 title "Base64"
-run "%a=Hello;a" SGVsbG8A
+run "%a=Hello;a" SGVsbG8=
 run "%a=Hello;%a" Hello
 run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
-run "a=1,2,3;%[1]a=WIN;[1]a" V0lOAA==
+run "a=1,2,3;%[1]a=WIN;[1]a" V0lO
 run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
 
 title "Namespaces"

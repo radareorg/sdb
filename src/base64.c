@@ -48,7 +48,7 @@ SDB_API int sdb_decode_raw(ut8 *bout, const char *bin, int len) {
 	for (in=out=0; in<len; in+=4) {
 		if ((ret = b64_decode (bin+in, bout+out))<1)
 			break;
-		out += 3;
+		out += ret;
 	}
 	return (in != out)? out: 0;
 }
@@ -79,7 +79,7 @@ SDB_API ut8 *sdb_decode (const char *in, int *len) {
 		free (out);
 		return NULL;
 	}
-	out[olen+1] = 0;
+	out[olen] = 0;
 	if (len)
 		*len = olen;
 	return out;
