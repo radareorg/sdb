@@ -181,37 +181,37 @@ TEST(num3)
 
 TEST(add)
 	sdb_set (s, "key", "foo,bar",0);
-	sdb_array_add (s, "key", -1, "foo", 0);
+	sdb_array_add (s, "key", "foo", 0);
 	EXPECT("foo,bar");
 
 TEST(add2)
 	sdb_set (s, "key", "foo,bar",0);
-	sdb_array_add (s, "key", -1, "cow", 0);
+	sdb_array_add (s, "key", "cow", 0);
 	EXPECT("foo,bar,cow");
 
 TEST(add_num)
 	sdb_set (s, "key", "1,2",0);
-	sdb_array_add_num (s, "key", -1, 1, 0);
+	sdb_array_add_num (s, "key", 1, 0);
 	EXPECT("1,2");
 
 TEST(add_num2)
 	sdb_set (s, "key", "0x1,0x2",0);
-	sdb_array_add_num (s, "key", -1, 1, 0);
+	sdb_array_add_num (s, "key", 1, 0);
 	EXPECT("0x1,0x2");
 
 TEST(add_num3)
 	sdb_set (s, "key", "0x1,0x2",0);
-	sdb_array_add_num (s, "key", -1, 1, 0);
+	sdb_array_add_num (s, "key", 1, 0);
 	EXPECT("0x1,0x2");
 
 TEST(add_num4)
 	sdb_set (s, "key", "0x1,0x2",0);
-	sdb_array_add_num (s, "key", -1, 3, 0);
+	sdb_array_add_num (s, "key", 3, 0);
 	EXPECT("0x1,0x2,0x3");
 
 TEST(add_num5)
 	sdb_set (s, "key", "1,2",0);
-	sdb_array_add_num (s, "key", -1, 3, 0);
+	sdb_array_add_num (s, "key", 3, 0);
 	EXPECT("0x1,0x2,0x3");
 
 static TestFcn *tests[] = {
@@ -253,12 +253,14 @@ static TestFcn *tests[] = {
 int main() {
 	int i, res = 0;
 	s = sdb_new (NULL, NULL, 0);
-	for (i = 0; tests[i]; i++)
-		res |= !! test (tests[i]);
+	for (i = 0; tests[i]; i++) {
+		res |= !!! test (tests[i]);
+}
 	sdb_free (s);
 	printf ("TOTAL   %d\n", i);
 	printf ("SUCCESS %d\n", success);
 	printf ("FAILED  %d\n", i-success);
 	printf ("RATIO   %d%%\n", (100*success)/i);
-	return res;
+eprintf ("RES = %d\n", res);
+	return !! res;
 }

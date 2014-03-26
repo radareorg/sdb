@@ -287,10 +287,26 @@ next_quote:
 			out_concat (buf);
 		} else
 		if (cmd[1]=='+'||cmd[1]=='-') {
+			if (cmd[1] == cmd[2]) {
+				// stack
+#if 0
+				[++]foo=33 # push
+				[++]foo    # <invalid>
+				[--]foo    # pop
+				[--]foo=b  # <invalid>
+#endif
+				if (eq) {
+					sdb_array_push (s, p, val, 0);
+				} else {
+					char *ret = sdb_array_pop (s, p, 0);
+					out_concat (ret);
+					free (ret);
+				}
+			} else
 			// [+]foo        remove first element */
 			// [+]foo=bar    ADD */
 			// [-]foo        POP */
-			// [-]foo=xx     POP  (=xx ignored) */
+			// [-]foo=xx     REMOVE (=xx ignored) */
 			if (!cmd[2] || cmd[2] ==']') {
 				// insert
 				if (eq) {

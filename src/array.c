@@ -383,7 +383,7 @@ SDB_API char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas) {
 	end = strchr (str, SDB_RS);
 	if (end) {
 		*end = 0;
-		ret = strdup (end);
+		ret = strdup (str);
 		sdb_set (s, key, end+1, 0);
 	} else {
 		ret = strdup (str);
