@@ -17,10 +17,12 @@ namespace SDB {
 		public bool bool_get (string key, uint32 cas=0);
 		public bool bool_set (string key, bool v, uint32* cas=null);
 		/* arrays */
-		public int array_len (string key);
+		public int array_length (string key);
 		public string array_get (string key, int idx, uint32 *cas=null);
 		public string array_set (string key, int idx, string val, uint32 *cas=null);
-		public bool array_del (string key, int idx, uint32 cas=0);
+		public bool array_delete (string key, int idx, uint32 cas=0);
+		public bool array_remove (string key, int idx, uint32 cas=0);
+		public bool array_contains (string key, string val);
 		/* numeric */
 		public bool num_exists (string key);
 		public bool num_set (string key, uint64 num, uint32 cas=0);

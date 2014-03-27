@@ -135,28 +135,36 @@ run "K=18446744073709551615;+K;" 0
 title "Arrays"
 run "[]K=1,2,3;[2]K=a,b;[2]K" a
 run "[]K=1,2,3;[?]K" 3
-run "[]K=1,2,3;[1]K=9;[]K" "1\n9\n3"
+run "K=1,2,3;[1]K=9;[]K" "1\n9\n3"
 run "[]K=1,2,3;[1]K" 2
-run "[]K=1,2,3;[-]K;[]K" "3\n1\n2"
+run "K=1,2,3;[-]K;[]K" "3\n1\n2"
 run "[]K=1,2,3;[+]K;[]K" "1\n2\n3"
-run "[]K=1,2,3;[-1]K" "2"
+run "K=1,2,3;[-1]K" "2"
 run "[]K=1,2,3;[-1]K;[?]K" "2\n2"
-run "[]K=1,2,3;[-1]K=;[]K" "2\n1\n3"
+run "K=1,2,3;[-1]K=;[]K" "2\n1\n3"
 run "[]K=1,2,3;[+1]K=a;[]K" "1\na\n2\n3"
-run "[]K=1,2,3;[0]K" 1
+run "K=1,2,3;[0]K" 1
 run "[]K=1,2,3;[4]K" ''
-run "[]K=1;[1]K=2;K" '1,2'
+run "K=1;[1]K=2;K" '1,2'
 run "[]K=1,2;[+]K=3;[]K" '1\n2\n3'
-run "[]K=a,b,c;[-b]K;K" "a,c"
+run "K=a,b,c;[-b]K;K" "a,c"
 # XXX run "[]K=a,b,c;[b]K" "1"
 run "[]K=a,b,c;[-]K=b;[]K" "a\nc"
 run "[b]b" "" # crash test
 
+title "Set"
+run "K=;[+]K=1;[+]K=1;K" 1
+run "K=;[+]K=a;[+]K=b;K" "a,b"
+run "K=;[+]K=a;[+]K=b;[+]K=a;K" "a,b"
+run "K=;[+]K=a;[+]K=b;[-]K=a;K" "b"
+run "K=;[+]K=a;[+]K=b;[-]K=a;[-]K=b;K" ""
+
 title "Stack"
-run "[]K=;[+]K=1;K" 1
-run "[]K=;[+]K=1;[+]K=2;[]K" "1\n2"
-run "[]K=1,2,3;[-]K;[?]K" "3\n2"
-run "[]K=1,2,3;[-]K;[]K" "3\n1\n2" # XXX
+run "K=;[++]K=1;K" 1
+run "[]K=;[++]K=1;K" 1
+run "[]K=;[++]K=1;[++]K=2;K" "2,1"
+run "K=1,2,3;[--]K;[?]K" "1\n2"
+run "K=1,2,3;[--]K;[]K" "1\n2\n3"
 
 
 # [+] and [-] is wrongly defined. mixes stack and set concepts
@@ -203,6 +211,9 @@ rm -f .t .f
 title "Base64"
 run "%a=Hello;a" SGVsbG8=
 run "%a=Hello;%a" Hello
+run "%a=bar;%a" bar
+run "%a=bu;%a" bu
+run "%a=;%a" ""
 run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
 run "a=1,2,3;%[1]a=WIN;[1]a" V0lO
 run "a=1,2,3;%[1]a=WIN;%[1]a" WIN
@@ -213,6 +224,7 @@ run "a/a=3;a/*" "a=3"
 run "a/a=3;a/a" "3"
 run "a/b/c=3;a/c/b=4;a/**" "b\nc"
 run "a/b/c=3;a/c/b=4;***" "a\na/b\na/c"
+# TODO: How to delete a namespace? do we want to permit this?
 
 title "Shell"
 test_create
