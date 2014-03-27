@@ -358,7 +358,7 @@ next_quote:
 						} else goto fail;
 					} else {
 						if (encode)
-							val = sdb_encode ((const ut8*)val, 0);
+							val = sdb_encode ((const ut8*)val, -1);
 						ok = cmd[1]? ((cmd[1]=='+')?
 							sdb_array_insert (s, p, i, val, 0):
 							sdb_array_set (s, p, i, val, 0)
@@ -399,7 +399,7 @@ next_quote:
 				/* [3]foo=bla */
 				char *sval = (char*)val;
 				if (encode) {
-					sval = sdb_encode ((const ut8*)val, 0);
+					sval = sdb_encode ((const ut8*)val, -1);
 				}
 				if (cmd[1]) {
 					int idx = atoi (cmd+1);
@@ -460,7 +460,7 @@ next_quote:
 			// 1 0 kvpath=value
 			// 1 1 kvpath:jspath=value
 			if (encode)
-				val = sdb_encode ((const ut8*)val, 0);
+				val = sdb_encode ((const ut8*)val, -1);
 			if (json>eq) json = NULL;
 			if (json) {
 				*json++ = 0;
