@@ -1,5 +1,5 @@
-#ifndef _INCLUDE_SDB_H_
-#define _INCLUDE_SDB_H_
+#ifndef SDB_H
+#define SDB_H
 
 #ifndef O_BINARY
 #define O_BINARY 0
