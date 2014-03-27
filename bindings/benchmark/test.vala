@@ -1,4 +1,4 @@
-using SimpleDB;
+using SDB;
 
 void main() {
 	Sdb s = new Sdb ();

@@ -112,6 +112,7 @@ class Sdb(Structure): #1
 	array_set, sdb_array_set = register('sdb_array_set','c_void_p, c_char_p, c_int, c_char_p, POINTER(c_uint)','c_char_p')
 	array_delete, sdb_array_delete = register('sdb_array_delete','c_void_p, c_char_p, c_int, c_uint','c_bool')
 	array_remove, sdb_array_remove = register('sdb_array_remove','c_void_p, c_char_p, c_int, c_uint','c_bool')
+	array_contains, sdb_array_contains = register('sdb_array_contains','c_void_p, c_char_p, c_char_p','c_bool')
 	num_exists, sdb_num_exists = register('sdb_num_exists','c_void_p, c_char_p','c_bool')
 	num_set, sdb_num_set = register('sdb_num_set','c_void_p, c_char_p, c_ulonglong, c_uint','c_bool')
 	num_get, sdb_num_get = register('sdb_num_get','c_void_p, c_char_p, POINTER(c_uint)','c_ulonglong')
