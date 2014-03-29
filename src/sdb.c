@@ -109,6 +109,8 @@ static void sdb_fini(Sdb* s, int donull) {
 	free (s->tmpkv.value);
 
 	if (donull) {
+		s->name = NULL;
+		s->path = NULL;
 		s->ns = NULL;
 		s->ht = NULL;
 		s->dir = NULL;
