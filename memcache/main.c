@@ -88,12 +88,11 @@ static int mcsdb_client_state(McSdbClient *c) {
 	}
 	switch (c->mode) {
 	case 0: // read until newline
-		rlen = MCSDB_MAX_BUFFER - c->idx;
+		rlen = MCSDB_MAX_BUFFER-1 - c->idx;
 		r = c->next? 0: read (c->fd, c->buf+c->idx, rlen);
 		if (r<0) {
-			printf ("ignored error\n");
+			fprintf (stderr, "ignored error\n");
 			return 1;
-			//return 0;
 		}
 		c->buf[c->idx+r] = 0;
 		if ((p = strchr (c->buf+c->idx, '\n'))) {
@@ -198,7 +197,7 @@ struct udphdr_t {
 #pragma pack()
 struct udphdr_t h;
 	char buf[32768];
-	int ret = read (fd, buf, 32768);
+	int ret = read (fd, buf, sizeof (buf)-1);
 	if (ret<1) return 0;
 	buf[ret] = 0;
 	memcpy (&h, buf, 8);
