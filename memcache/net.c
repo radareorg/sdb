@@ -1,4 +1,4 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
 #include "types.h"
 #include "mcsdb.h"
@@ -58,8 +58,10 @@ int net_printf (int fd, const char *fmt, ...) {
 void net_sockopt (int fd) {
 	struct linger ling = {0, 0};
 	int flags = 1;
-        setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, (void *)&flags, sizeof (flags));
-	setsockopt (fd, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof (ling));
+        (void)setsockopt (fd, SOL_SOCKET, SO_REUSEADDR,
+		(void *)&flags, sizeof (flags));
+	(void)setsockopt (fd, SOL_SOCKET, SO_LINGER,
+		(void *)&ling, sizeof (ling));
 }
 
 int net_listen (int port) {
@@ -78,7 +80,7 @@ int net_listen (int port) {
                 close (fd);
                 return -1;
         }
-        fcntl (fd, F_SETFL, O_NONBLOCK, 0); // //!block);
+        (void)fcntl (fd, F_SETFL, O_NONBLOCK, 0);
         signal (SIGPIPE, SIG_IGN);
         if (listen (fd, 1) != -1)
 		return fd;

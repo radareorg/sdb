@@ -94,8 +94,10 @@ char *mcsdb_client_get (McSdbClient *ms, const char *key, ut64 *exptime) {
 	if (slen<1)
 		return NULL;
 	buf = malloc (slen+2);
-	read (ms->fd, buf, slen+2);
-	buf[slen] = 0;
+	if (buf) {
+		read (ms->fd, buf, slen+2);
+		buf[slen] = 0;
+	}
 	free (net_readnl (ms->fd)); // read END
 	return buf;
 }

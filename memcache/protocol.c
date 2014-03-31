@@ -1,4 +1,4 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
 #include "mcsdb.h"
 #include <ctype.h>
@@ -103,6 +103,10 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 		handle_get (ms, fd, key, 1);
 		break;
 	case MCSDB_CMD_TOUCH: /* key exptime [noreply] */
+		if (!key || !p) {
+			net_printf (fd, "ERROR\r\n");
+			return 0;
+		}
 		sscanf (p, "%llu", &n);
 		net_printf (fd, mcsdb_touch (ms, key, n)?
 			"TOUCHED\r\n": "NOT_TOUCHED\r\n");

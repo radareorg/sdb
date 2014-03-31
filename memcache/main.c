@@ -1,4 +1,4 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
 #include <signal.h>
 #include "mcsdb.h"
@@ -119,7 +119,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 				c->idx = 0;
 				// shift internal buffer for bulk writes
 				if (0 == r) {
-					strcpy (c->buf, c->buf+c->len);
+					strncpy (c->buf, c->buf+c->len, sizeof (c->buf)-1);
 					c->len = strlen (c->buf);
 					return 1;
 				}
@@ -209,18 +209,17 @@ struct udphdr_t h;
 6-7 Reserved for future use; must be 0
 #endif
 	//printf ("UDP (%s)\n", buf+8); // TODO
-	if (!memcmp(buf+8, "set ", 4)) {
-		char *p = strchr (buf+12, ' ');
+	if (!memcmp (buf+8, "set ", 4)) {
+		int a, b, l;
+		char *n, *p = strchr (buf+12, ' ');
 		if (p) {
-			int a,b,l;
-			char *n = strchr (p, '\n');
-			*p=0;
-			*n=0;
+			n = strchr (p, '\n');
+			*p = 0;
+			if (n) *n++ = 0;
 			sscanf (p+1, "%d %d %d", &a, &b, &l);
-			n++;
-			n[l] =0 ;
-		//	printf ("KEY %s\n", buf+12);
-		//	printf ("SET %s\n", n);
+			if (n) n[l] = 0;
+			//	printf ("KEY %s\n", buf+12);
+			//	printf ("SET %s\n", n);
 			mcsdb_set (ms, buf+12, n, 0, 0);
 		}
 	}
