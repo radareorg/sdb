@@ -182,6 +182,9 @@ run "a=0;-a=4;a" 0
 run "a=0;+a=-4;a" 0
 run "a=1;+a=-4;a" 0
 run "a=0;-a=4;a" 0
+run "a=-4;+a=1;a" 1
+run "a=-4;-a=1;a" 0
+run "a=-4;+a=-1;a" 0
 
 title "Quoted strings"
 run "c=3;a=\"b;c\";a" "b;c"
