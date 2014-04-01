@@ -209,17 +209,19 @@ struct udphdr_t h;
 #endif
 	//printf ("UDP (%s)\n", buf+8); // TODO
 	if (!memcmp (buf+8, "set ", 4)) {
-		int a, b, l;
+		int a, b, l = 0;
 		char *n, *p = strchr (buf+12, ' ');
 		if (p) {
 			n = strchr (p, '\n');
-			*p = 0;
-			if (n) *n++ = 0;
-			sscanf (p+1, "%d %d %d", &a, &b, &l);
-			if (n) n[l] = 0;
-			//	printf ("KEY %s\n", buf+12);
-			//	printf ("SET %s\n", n);
-			mcsdb_set (ms, buf+12, n, 0, 0);
+			if (n != p) {
+				*p = 0;
+				if (n) *n++ = 0;
+				sscanf (p+1, "%d %d %d", &a, &b, &l);
+				if (n) n[l] = 0;
+				//	printf ("KEY %s\n", buf+12);
+				//	printf ("SET %s\n", n);
+				mcsdb_set (ms, buf+12, n, 0, 0);
+			}
 		}
 	}
 #if 0
