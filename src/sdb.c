@@ -429,7 +429,7 @@ SDB_API SdbKv *sdb_dump_next (Sdb* s) {
 }
 
 SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
-	ut32 vlen, klen;
+	ut32 vlen = 0, klen = 0;
 	if (s->fd==-1)
 		return 0;
 	if (!cdb_getkvlen (s->fd, &klen, &vlen))
@@ -450,7 +450,7 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 	}
 	if (value) {
 		*value = 0;
-		if (vlen>0) {
+		if (vlen>0 && vlen<0xffffff) {
 			*value = malloc (vlen+10);
 			if (!*value) {
 				if (key) {

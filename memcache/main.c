@@ -114,7 +114,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 		rlen = c->len-c->idx;
 		if (rlen>0 && c->len>0) {
 			r = read (c->fd, c->buf+c->idx, rlen);
-			if (r<1) {
+			if (r != rlen) {
 				c->idx = 0;
 				// shift internal buffer for bulk writes
 				if (0 == r) {
@@ -199,7 +199,7 @@ struct udphdr_t h;
 	char buf[32768];
 	int ret = read (fd, buf, sizeof (buf)-1);
 	if (ret<1) return 0;
-	buf[ret] = 0;
+	buf[ret-1] = 0;
 	memcpy (&h, buf, 8);
 #if 0
 0-1 Request ID
