@@ -192,6 +192,8 @@ next_quote:
 						root+len, ns);
 				} else eprintf ("TODO: Namespace too long\n");
 			}
+			if (bufset)
+				free (buf);
 			return out;
 		}
 		if (!strcmp (cmd, "**")) {
@@ -200,11 +202,15 @@ next_quote:
 			ls_foreach (s->ns, it, ns) {
 				out_concat (ns->name);
 			}
+			if (bufset)
+				free (buf);
 			return out;
 		}
 		if (!strcmp (cmd, "*")) {
 			ForeachListUser user = { &out, encode };
 			sdb_foreach (s, foreach_list_cb, &user);
+			if (bufset)
+				free (buf);
 			return out;
 		}
 	}
