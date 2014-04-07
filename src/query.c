@@ -293,7 +293,8 @@ next_quote:
 			}
 			w = snprintf (buf, len, "%d", alength);
 			if (w<0 || (size_t)w>len) {
-				free (buf);
+				if (bufset)
+					free (buf);
 				buf = malloc (64);
 				bufset = 1;
 				snprintf (buf, 63, "%d", alength);

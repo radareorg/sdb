@@ -115,10 +115,12 @@ static int mcsdb_client_state(McSdbClient *c) {
 		if (rlen>0 && c->len>0) {
 			r = read (c->fd, c->buf+c->idx, rlen);
 			if (r != rlen) {
+				c->buf[c->idx+r] = 0;
 				c->idx = 0;
 				// shift internal buffer for bulk writes
 				if (0 == r) {
-					strncpy (c->buf, c->buf+c->len, sizeof (c->buf)-1);
+					strncpy (c->buf, c->buf+c->len,
+						sizeof (c->buf)-1);
 					c->len = strlen (c->buf);
 					return 1;
 				}
