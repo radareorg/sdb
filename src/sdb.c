@@ -445,7 +445,7 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
 		return 0;
 	if (key) {
 		*key = 0;
-		if (klen>0) {
+		if (klen>0 && klen<0xff) {
 			*key = malloc (klen+1);
 			if (getbytes (s, *key, klen) == -1) {
 				free (*key);

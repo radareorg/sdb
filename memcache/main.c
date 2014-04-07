@@ -219,7 +219,13 @@ struct udphdr_t h;
 				*p = 0;
 				if (n) *n++ = 0;
 				sscanf (p+1, "%d %d %d", &a, &b, &l);
-				if (n) n[l] = 0;
+				if (n) {
+					int nlen = sizeof (buf)-1;
+					int left = nlen - (size_t)(n-p);
+					if (l<left)
+						n[l] = 0;
+					else buf[sizeof(buf)-1] = 0;
+				}
 				//	printf ("KEY %s\n", buf+12);
 				//	printf ("SET %s\n", n);
 				mcsdb_set (ms, buf+12, n, 0, 0);
