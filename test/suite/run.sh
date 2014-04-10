@@ -3,6 +3,8 @@
 TOTAL=0
 SUCCESS=0
 FAILED=0
+FIXED=0
+BROKEN=0
 
 SDB=`dirname $0`/../../src/sdb
 
@@ -28,8 +30,16 @@ success() {
 }
 
 GREEN=`printf "\033[32m"`
+YELLOW=`printf "\033[33m"`
 RED=`printf "\033[31m"`
 RESET=`printf "\033[0m"`
+BRKMOD=0
+
+brk() {
+	BRKMOD=1
+	run $@
+	BRKMOD=0
+}
 
 run() {
 	K="$1"
@@ -39,11 +49,24 @@ run() {
 	#A="`printf -- \"$K\" | $SDB -`"
 	B="`printf -- \"$2\n\"`"
 	if [ "$A" = "$B" ]; then
-		echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`" = $K"  | tr '\n' ' '
+		if [ 1 = "${BRKMOD}" ]; then
+			echo " ${YELLOW}FIXED${RESET} - "`printf -- "$B"`" = $K"  | tr '\n' ' '
+			FIXED=$((${FIXED}+1))
+		else
+			echo "   ${GREEN}OK${RESET}  - "`printf -- "$B"`" = $K"  | tr '\n' ' '
+		fi
 		success >/dev/null
 	else
-		echo " ${RED}ERROR${RESET} - "`printf -- "$B"`" = "\
+		if [ 1 = "${BRKMOD}" ]; then
+			echo " ${RED}BROKEN${RESET} - "`printf -- "$B"`" = "\
 			"$K  =>  "`printf -- "$A"` | tr '\n' ' '
+			BROKEN=$((${BROKEN}+1))
+		else
+			echo " ${RED}ERROR${RESET} - "`printf -- "$B"`" = "\
+			"$K  =>  "`printf -- "$A"` | tr '\n' ' '
+		fi
+		FAILED=$((${FAILED}-1))
+	
 		fail >/dev/null
 	fi
 	echo
@@ -191,13 +214,26 @@ run "c=3;a=\"b;c\";a" "b;c"
 run "c=3;a=\"b\\\"c\";a" "b\"c"
 
 title "JSON"
+run 'foo={"bar":123};foo:bar=pop;foo:bar=cow;foo:bar' cow
+run 'foo={"bar":123};foo:bar=3;foo:bar' 3
+run 'foo={"bar":123};foo:bar=pop;foo:bar' 'pop'
+run 'foo={"bar":123};foo:bar=true;foo:bar' 'true'
 run 'foo=[1,2,3];foo:[1]' 2
 run 'foo=[1,2,3];+foo:[1];foo:[1]' "3\n3"
 run 'foo=[1,2,3];foo:[1]=999;foo' '[1,999,3]'
 run 'foo={"bar":"V"};foo:bar' V
+run 'a={"a":1,"b":2};a:a=;a:b=;a' '{}'
+run 'a={"a":1,"b":2};a:b=;a' '{"a":1}'
 run 'foo={"bar":123};foo:bar' 123
 run 'foo={"bar":123};foo:bar=69;foo:bar' 69
+run 'foo={"bar":"pop"};foo:bar="jiji";foo:bar' jiji
 run 'foo={"bar":[1,2]};foo:bar[0]' 1
+
+run 'foo={"bar":"pop"};foo:bar="jiji";foo' '{"bar":"jiji"}'
+run 'foo={"pop":123,"bar":"cow"};foo:pop=;foo' '{"bar":"cow"}'
+run'foo={"pop":123,"bar":"cow"};foo:pop=;foo:pop=123;foo' '{"pop":123,"bar":"cow"}'
+run 'foo={};foo:pop=123;foo' '{"pop":123}'
+run 'foo=;foo:pop=123;foo' '{"pop":123}'
 
 title "Limits"
 run "a=0x8000000000000001;a" 0x8000000000000001
@@ -243,6 +279,8 @@ RATIO=$(((100*${FAILED})/${TOTAL}))
 echo "  TOTAL       ${TOTAL}"   > /dev/stderr
 echo "  SUCCESS     ${SUCCESS}" > /dev/stderr
 echo "  FAILED      ${FAILED}"  > /dev/stderr
+echo "  FIXED       ${FIXED}"  > /dev/stderr
+echo "  BROKEN      ${BROKEN}"  > /dev/stderr
 echo "  BROKENNESS  ${RATIO}%"  > /dev/stderr
 
 if [ "${FAILED}" = 0 ]; then
