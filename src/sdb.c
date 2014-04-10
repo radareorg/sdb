@@ -134,7 +134,7 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 	if (cas) *cas = 0;
 	if (!s||!key) return NULL;
 	keylen = strlen (key)+1;
-	hash = sdb_hash (key, 0); //keylen-1);
+	hash = sdb_hash (key, -1); //keylen-1);
 	/* search in memory */
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
@@ -327,7 +327,7 @@ SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbKv *kv;
 	sdb_dump_begin (s);
 	while (sdb_dump_dupnext (s, &k, &v)) {
-		ut32 hash = sdb_hash (k, 0);
+		ut32 hash = sdb_hash (k, -1);
 		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
 			free (k);
@@ -378,7 +378,7 @@ SDB_API int sdb_sync (Sdb* s) {
 // TODO: use sdb_foreach here
 	sdb_dump_begin (s);
 	while (sdb_dump_dupnext (s, &k, &v)) {
-		ut32 hash = sdb_hash (k, 0);
+		ut32 hash = sdb_hash (k, -1);
 		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
 			kv = (SdbKv*)hte->data;
@@ -496,7 +496,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire) {
 		s->expire = parse_expire (expire);
 		return 1;
 	}
-	hash = sdb_hash (key, 0);
+	hash = sdb_hash (key, -1);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
 		if (*kv->value) {
@@ -525,7 +525,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire) {
 
 SDB_API ut64 sdb_expire_get(Sdb* s, const char *key) {
 	SdbKv *kv;
-	ut32 hash = sdb_hash (key, 0);
+	ut32 hash = sdb_hash (key, -1);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv && *kv->value)
 		return kv->expire;
