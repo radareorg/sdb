@@ -269,6 +269,8 @@ SDB_API void sdb_reset (Sdb* s) {
 // TODO: too many allocs here. use slices
 SDB_API SdbKv* sdb_kv_new (const char *k, const char *v) {
 	int vl = strlen (v)+1;
+	if (!sdb_check_key (k))
+		return NULL;
 	SdbKv *kv = R_NEW (SdbKv);
 	strncpy (kv->key, k, sizeof (kv->key)-1);
 	kv->value = malloc (vl);
