@@ -136,6 +136,7 @@ title() {
 }
 
 title "Strings"
+run2 "K=V;K=" "K" ''
 run "K=V;K;V" V
 run "K=V;+K=Y;K" VY
 run "K=V;K=Y;K" Y
