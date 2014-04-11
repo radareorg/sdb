@@ -82,7 +82,6 @@ SDB_API int sdb_disk_finish (Sdb* s) {
 }
 
 SDB_API void sdb_disk_unlink (Sdb *s) {
-	if (s->dir) {
+	if (s->dir && *(s->dir))
 		unlink (s->dir);
-	}
 }

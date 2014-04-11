@@ -605,7 +605,8 @@ SDB_API void sdb_config(Sdb *s, int options) {
 }
 
 SDB_API void sdb_unlink (Sdb* s) {
+	// nullify Sdb
 	sdb_fini (s, 1);
-	if (s->dir && *(s->dir))
-		unlink (s->dir);
+	// remove from disk
+	sdb_disk_unlink (s);
 }

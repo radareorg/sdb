@@ -125,6 +125,7 @@ ut64 sdb_num_dec (Sdb* s, const char *key, ut64 n, ut32 cas);
 int sdb_lock(const char *s);
 const char *sdb_lockfile(const char *f);
 void sdb_unlock(const char *s);
+SDB_API void sdb_unlink (Sdb* s);
 
 /* expiration */
 int sdb_expire_set(Sdb* s, const char *key, ut64 expire);
