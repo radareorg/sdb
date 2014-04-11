@@ -80,3 +80,9 @@ SDB_API int sdb_disk_finish (Sdb* s) {
 	s->ndump = NULL;
 	return ret;
 }
+
+SDB_API void sdb_disk_unlink (Sdb *s) {
+	if (s->dir) {
+		unlink (s->dir);
+	}
+}

@@ -16,11 +16,28 @@ int main() {
 	sdb_array_push (s, "array", "end2", 0);
 
 	printf ("--> POP <--\n");
-	printf ("POP %s\n", sdb_array_pop (s, "array", 0));
+	p = sdb_array_pop (s, "array", 0);
+	if (p) {
+		printf ("POP %s\n", p);
+		free (p);
+	}
+
 	printf ("POP REST %s\n", sdb_const_get (s, "array", 0));
-	printf ("POP %s\n", sdb_array_pop (s, "array", 0));
+
+	p = sdb_array_pop (s, "array", 0);
+	if (p) {
+		printf ("POP %s\n", p);
+		free (p);
+	}
+
 	printf ("POP REST %s\n", sdb_const_get (s, "array", 0));
-	printf ("POP %s\n", sdb_array_pop (s, "array", 0));
+
+	p = sdb_array_pop (s, "array", 0);
+	if (p) {
+		printf ("POP %s\n", p);
+		free (p);
+	}
+
 	printf ("POP REST %s\n", sdb_const_get (s, "array", 0));
 	sdb_free (s);
 	return 0;
