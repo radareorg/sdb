@@ -16,7 +16,6 @@ int main() {
 	printf ("\n");
 	free (nums);
 
-
 	/* test array of strings */
 
 	char **strs = sdb_fmt_array ("foo,bar,cow,low,mem,,jiji");
