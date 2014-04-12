@@ -1,4 +1,4 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
 #include "mcsdb.h"
 

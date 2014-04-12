@@ -222,9 +222,9 @@ struct udphdr_t h;
 				if (n) {
 					int nlen = sizeof (buf)-1;
 					int left = nlen - (size_t)(n-p);
-					if (l<left)
+					if (l>=0 && l<left)
 						n[l] = 0;
-					else buf[sizeof(buf)-1] = 0;
+					else buf[sizeof (buf)-1] = 0;
 				}
 				//	printf ("KEY %s\n", buf+12);
 				//	printf ("SET %s\n", n);
