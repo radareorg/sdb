@@ -144,6 +144,7 @@ SDB_API char *sdb_anext(char *str, char **next) {
 	return str;
 }
 
+
 SDB_API ut64 sdb_now () {
 	struct timeval now;
 	if (!gettimeofday (&now, NULL))
