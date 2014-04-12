@@ -218,6 +218,8 @@ int sdb_fmt_init (void *p, const char *fmt);
 void sdb_fmt_free (void *p, const char *fmt);
 int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru);
 char *sdb_fmt_tostr(void *stru, const char *fmt);
+SDB_API char** sdb_fmt_array(const char *list);
+SDB_API ut64* sdb_fmt_array_num(const char *list);
 
 // raw array helpers
 char *sdb_array_compact(char *p);

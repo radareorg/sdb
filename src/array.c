@@ -414,3 +414,4 @@ SDB_API char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas) {
 	free (str);
 	return ret;
 }
+

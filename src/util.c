@@ -177,3 +177,4 @@ SDB_API int sdb_num_base (const char *s) {
 	if (*s=='0' && s[1]) return 8;
 	return 10;
 }
+

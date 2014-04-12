@@ -109,3 +109,55 @@ SDB_API int sdb_fmt_init (void *p, const char *fmt) {
 	if (p) memset (p, 0, len);
 	return len;
 }
+
+// TODO: move this into fmt?
+SDB_API ut64* sdb_fmt_array_num(const char *cstr) {
+	ut64 *retp, *ret = NULL;
+	char *list = strdup (cstr); // unnecessary for numbers?
+	char *next, *ptr = list;
+	if (list && *list) {
+		int len = sdb_alen (list);
+		retp = ret = (ut64*) malloc (sizeof(ut64)*(len+1));
+		if (!ret) {
+			free (list);
+			return NULL;
+		}
+		*retp++ = len;
+		do {
+			char *str = sdb_anext (ptr, &next);
+			ut64 n = sdb_atoi (str);
+			*retp++ = n;
+			ptr = next;
+		} while (next);
+	}
+	free (list);
+	return ret;
+}
+
+SDB_API char** sdb_fmt_array(const char *clist) {
+	char *list = strdup (clist); // unnecessary. we are alredy copying
+	char **retp, **ret = NULL;
+	char *next, *ptr = list;
+	char *_s;
+	if (list && *list) {
+		int len = sdb_alen (list);
+		retp = ret = (char**) malloc (2*strlen (clist) +
+			((len+1)*sizeof(char*)));
+		_s = (char*)ret + ((len+1)*sizeof(char*));
+		if (!ret) {
+			free (list);
+			return NULL;
+		}
+		do {
+			char *str = sdb_anext (ptr, &next);
+			int slen = strlen (str)+1;
+			memcpy (_s, str, slen);
+			*retp++ = _s;
+			_s += slen;
+			ptr = next;
+		} while (next);
+		*retp = NULL;
+	}
+	free (list);
+	return ret;
+}
