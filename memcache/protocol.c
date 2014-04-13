@@ -32,6 +32,7 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 			net_printf (fd, "%s\r\n", s);
 			free (s);
 			n++;
+//break;
 		}
 		if (k) K = k + 1;
 	} while (k);
@@ -44,7 +45,7 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 	char *b, *p, *q, *cmd = buf, *key = NULL;
 	int flags = 0, bytes = 0;
 	ut64 n = 0;
-	ut32 cmdhash;
+	ut32 cmdhash = 0;
 
 	if (!c || !*buf) { // never happenz
 		//net_printf (fd, "ERROR\r\n");
@@ -83,7 +84,7 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 	}
 	strtolower (cmd);
 
-	cmdhash = sdb_hash (cmd, 0);
+	cmdhash = sdb_hash (cmd, -1);
 	switch (cmdhash) {
 	case MCSDB_CMD_FLUSH_ALL:
 		mcsdb_flush (ms);

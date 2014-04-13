@@ -3,6 +3,8 @@
 #include <signal.h>
 #include "mcsdb.h"
 #include "../src/types.h"
+#include <netinet/in.h>
+#include <fcntl.h>
 #if WINDOWS
 #include <windows.h>
 #else
@@ -99,7 +101,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 			*p--=0;
 			if (p>c->buf && *p=='\r')
 				*p = 0;
-			int restlen = (int)(size_t)(p-c->buf);
+			const int restlen = (int)(size_t)(p-c->buf);
 			c->next = restlen+2;
 			c->idx += r;
 			return 1;
@@ -114,8 +116,15 @@ static int mcsdb_client_state(McSdbClient *c) {
 		rlen = c->len-c->idx;
 		if (rlen>0 && c->len>0) {
 			r = read (c->fd, c->buf+c->idx, rlen);
+			if (r==-1) {
+			// 	perror ("read");
+			}
+//if (r == -1) r = rlen;
 			if (r != rlen) {
-				c->buf[c->idx+r] = 0;
+// XXX Uncommenting this line have two different effects:
+// * breaks code
+// * makes covertity happy
+			//	c->buf[c->idx+r] = 0;
 				c->idx = 0;
 				// shift internal buffer for bulk writes
 				if (0 == r) {
@@ -125,7 +134,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 					return 1;
 				}
 				return 0;
-			}
+			}// else eprintf ("Invalid %d read wtf\n", r);
 		} 
 		c->idx += r;
 		c->buf[c->idx+1] = 0;
@@ -166,8 +175,6 @@ static int fds_del (McSdbClient *c) {
 	return 1;
 }
 
-#include <netinet/in.h>
-#include <fcntl.h>
 static int udp_listen (int port) {
 	struct sockaddr_in si_me;
 	int s;
@@ -219,6 +226,7 @@ struct udphdr_t h;
 				*p = 0;
 				if (n) *n++ = 0;
 				sscanf (p+1, "%d %d %d", &a, &b, &l);
+#if 1
 				if (n) {
 					int nlen = sizeof (buf)-1;
 					int left = nlen - (size_t)(n-p);
@@ -226,6 +234,9 @@ struct udphdr_t h;
 						n[l] = 0;
 					else buf[sizeof (buf)-1] = 0;
 				}
+#else
+				if (n) n[l] = 0;
+#endif
 				//	printf ("KEY %s\n", buf+12);
 				//	printf ("SET %s\n", n);
 				mcsdb_set (ms, buf+12, n, 0, 0);
