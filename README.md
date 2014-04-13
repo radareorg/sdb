@@ -10,6 +10,10 @@ It is distributed as a standalone binary and a library.
 There's also the sdbtypes: a vala library that implements
 several data structures on top of an sdb or a memcache instance.
 
+[![Build Status](http://ci.rada.re/buildStatus/icon?job=sdb)](http://ci.rada.re/job/sdb/)
+
+[![Build Status](https://scan.coverity.com/projects/1651/badge.svg)](https://scan.coverity.com/projects/1651)
+
 Author
 ------
 pancake <pancake@nopcode.org>
