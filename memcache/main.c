@@ -119,12 +119,8 @@ static int mcsdb_client_state(McSdbClient *c) {
 			if (r==-1) {
 			// 	perror ("read");
 			}
-//if (r == -1) r = rlen;
 			if (r != rlen) {
-// XXX Uncommenting this line have two different effects:
-// * breaks code
-// * makes covertity happy
-			//	c->buf[c->idx+r] = 0;
+				c->buf[sizeof (c->buf)-1] = 0;
 				c->idx = 0;
 				// shift internal buffer for bulk writes
 				if (0 == r) {
