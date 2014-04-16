@@ -79,6 +79,7 @@ void sdb_free (Sdb* s);
 void sdb_file (Sdb* s, const char *dir);
 void sdb_reset (Sdb* s);
 void sdb_setup (Sdb* s, int options);
+void sdb_drain (Sdb*, Sdb*);
 
 int sdb_query (Sdb* s, const char *cmd);
 int sdb_queryf (Sdb* s, const char *fmt, ...);

@@ -624,5 +624,8 @@ SDB_API void sdb_unlink (Sdb* s) {
 }
 
 SDB_API void sdb_drain(Sdb *s, Sdb *f) {
-	// TODO: copy contents of 'f' inside 's', and free the 's' pointer
+	f->refs = s->refs;
+	sdb_fini (s, 1);
+	*s = *f;
+	free (f);
 }
