@@ -126,10 +126,11 @@ int sdb_lock(const char *s);
 const char *sdb_lockfile(const char *f);
 void sdb_unlock(const char *s);
 SDB_API void sdb_unlink (Sdb* s);
+SDB_API int sdb_lock_wait(const char *s UNUSED);
 
 /* expiration */
-int sdb_expire_set(Sdb* s, const char *key, ut64 expire);
-ut64 sdb_expire_get(Sdb* s, const char *key);
+int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas);
+ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas);
 ut64 sdb_now (void);
 ut64 sdb_unow (void);
 ut32 sdb_hash (const char *key, int klen);

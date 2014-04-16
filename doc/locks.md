@@ -17,10 +17,19 @@ this is a sample program that locks a database:
 	retry:
 	Sdb *s = sdb_new (NULL, DBNAME, 1);
 	if (!s) {
-		printf ("Waiting for lock\n");
-		sdb_lock_wait (DBNAME);
+		const char *lf = sdb_lockfile (DBNAME);
+		sdb_lock_wait (lf);
+		sdb_unlock (lf); // race condition
 		goto retry;
 	}
 	sdb_free (s);
 
+
+Another solution would be to use '2' as 3rd parameter of `sdb_new` to make it wait until the lock is stale.
+
+	#define DBNAME "test.sdb"
+	retry:
+	Sdb *s = sdb_new (NULL, DBNAME, 2);
+	...
+	sdb_free (s);
 

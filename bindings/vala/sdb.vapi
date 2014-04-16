@@ -44,8 +44,8 @@ namespace SDB {
 		public void reset ();
 		public void unlink ();
 		/* time */
-		public uint64 expire_get (string key);
-		public bool expire_set (string key, uint64 time);
+		public uint64 expire_get (string key, out uint32? cas = null);
+		public bool expire_set (string key, uint64 time, uint32 cas=0);
 		public static uint64 now ();
 	}
 }
