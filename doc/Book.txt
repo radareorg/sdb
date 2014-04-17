@@ -1,9 +1,14 @@
 intro.md
 basic.md
-types.md
 namespaces.md
+types.md
+strings.md
+array.md
+query.md
+json.md
 refs.md
 locks.md
 cas.md
 expire.md
+bindings.md
 backups.md

@@ -31,6 +31,8 @@ success() {
 
 GREEN=`printf "\033[32m"`
 YELLOW=`printf "\033[33m"`
+BLUE=`printf "\033[34m"`
+LILA=`printf "\033[35m"`
 RED=`printf "\033[31m"`
 RESET=`printf "\033[0m"`
 BRKMOD=0
@@ -67,7 +69,7 @@ run() {
 		success >/dev/null
 	else
 		if [ 1 = "${BRKMOD}" ]; then
-			echo " ${RED}BROKEN${RESET} - "`printf -- "$B"`" = "\
+			echo " ${LILA}BROKEN${RESET} - "`printf -- "$B"`" = "\
 			"$K  =>  "`printf -- "$A"` | tr '\n' ' '
 			BROKEN=$((${BROKEN}+1))
 			FAILED=$((${FAILED}-1))
@@ -183,6 +185,8 @@ run "K=a,b,c;[-b]K;K" "a,c"
 # XXX run "[]K=a,b,c;[b]K" "1"
 run "[]K=a,b,c;[-]K=b;[]K" "a\nc"
 run "[b]b" "" # crash test
+
+brk "foo=1,2,3,4;+[1]foo=1;foo" "1,3,3,4"
 
 title "Set"
 run "K=;[+]K=1;[+]K=1;K" 1

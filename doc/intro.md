@@ -1,14 +1,31 @@
 Introduction
 ============
 
-sdb is a simple string key/value database based on djb's cdb
-disk storage and supports JSON and arrays introspection.
+When an application needs to store data it usually makes use an embedded SQLite, text-based configuration files, json or xml. All of them are pretty different in essence and depend on specific parsers to serialize/deserialize the contents from disk to memory.
 
-mcsdbd is a memcache server with disk storage based on sdb.
-It is distributed as a standalone binary and a library.
+The added complexity and duplicated data structures creates some issues from the development stage (which may lead to bugs) and in memory usage because the application will be using different data structures to hold the information in ram.
 
-There's also the sdbtypes: a vala library that implements
-several data structures on top of an sdb or a memcache instance.
+Sdb was born with the aim to address those issues by simplifing the core design and providing a rich api to work with it in different forms.
+
+In SDB the only type is the string. All supported data types are converted into strings, which makes data serialization a first class citizen. You can use this serialization for network syncronization, human-friendly reading or data storage.
+
+The database is composed by a double linked list and a hashtable. Those data structures are supported for both disk and memory. This allows the database to query a huge data file without taking more memory because the file is mmaped and strings are nullterminated so it can just use pointers.
+
+The hashtable stores 'key' and 'value' pairs. This is the most basic way to store information, keys are uniques and values can contain any kind of data serialized into a string. This is, you can get arrays by using comma separated format in the value.
+
+Description
+-----------
+
+This is the short description that comes from the README.md:
+
+    sdb is a simple string key/value database based on djb's cdb
+    disk storage and supports JSON and arrays introspection.
+    
+    mcsdbd is a memcache server with disk storage based on sdb.
+    It is distributed as a standalone binary and a library.
+    
+    There's also the sdbtypes: a vala library that implements
+    several data structures on top of an sdb or a memcache instance.
 
 Contains
 --------
