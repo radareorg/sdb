@@ -1,6 +1,6 @@
 .PHONY: all reset
 
-BINS=fmt stack cas hook hook2 verypush stress1 fmtarr
+BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain
 CFLAGS=-I../src
 LDFLAGS=../src/libsdb.a
 
