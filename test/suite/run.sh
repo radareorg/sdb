@@ -226,6 +226,7 @@ run "c=3;a=\"b;c\";a" "b;c"
 run "c=3;a=\"b\\\"c\";a" "b\"c"
 
 title "JSON"
+brk 'foo={"bar":[1,2,3]};foo:bar[1]=;foo' '{"bar":[1,3]}'
 run 'foo={"bar":123};foo:bar=pop;foo:bar=cow;foo:bar' cow
 run 'foo={"bar":123};foo:bar=3;foo:bar' 3
 run 'foo={"bar":123};foo:bar=pop;foo:bar' 'pop'
@@ -243,7 +244,7 @@ run 'foo={"bar":[1,2]};foo:bar[0]' 1
 
 run 'foo={"bar":"pop"};foo:bar="jiji";foo' '{"bar":"jiji"}'
 run 'foo={"pop":123,"bar":"cow"};foo:pop=;foo' '{"bar":"cow"}'
-run'foo={"pop":123,"bar":"cow"};foo:pop=;foo:pop=123;foo' '{"pop":123,"bar":"cow"}'
+run 'foo={"pop":123,"bar":"cow"};foo:pop=;foo:pop=123;foo' '{"pop":123,"bar":"cow"}'
 run 'foo={};foo:pop=123;foo' '{"pop":123}'
 run 'foo=;foo:pop=123;foo' '{"pop":123}'
 
