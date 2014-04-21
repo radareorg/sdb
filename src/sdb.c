@@ -142,7 +142,7 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 	if (cas) *cas = 0;
 	if (!s||!key) return NULL;
 	keylen = strlen (key)+1;
-	hash = sdb_hash (key, -1); //keylen-1);
+	hash = sdb_hash (key, keylen-1);
 	/* search in memory */
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
@@ -248,8 +248,8 @@ SDB_API int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas) {
 SDB_API int sdb_exists (Sdb* s, const char *key) {
 	char ch;
 	SdbKv *kv;
-	int klen = strlen (key);
-	ut32 pos, hash = sdb_hash (key, klen);
+	int klen = strlen (key)+1;
+	ut32 pos, hash = sdb_hash (key, klen-1);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) return (*kv->value)? 1: 0;
 	if (s->fd == -1)
@@ -520,7 +520,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	if (s->fd == -1)
 		return 0;
 	cdb_findstart (&s->db);
-	if (!cdb_findnext (&s->db, hash, key, strlen (key)))
+	if (!cdb_findnext (&s->db, hash, key, strlen (key)+1))
 		return 0;
 	pos = cdb_datapos (&s->db);
 	len = cdb_datalen (&s->db);
