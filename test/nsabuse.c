@@ -17,6 +17,8 @@ int main () {
 	sdb_ns_set (s, "food", n);
 
 	sdb_ns_set (sdb_ns (s, "food"), "penis", n); //sdb_new0());
+	sdb_ns_set (sdb_ns (s, "food"), "ponis", n); //sdb_new0());
+	sdb_ns_set (sdb_ns (s, "food"), "powns", n); //sdb_new0());
 	//sdb_ns (sdb_ns (s, "food"), "penis");
 //	sdb_ns_sync (s);
 // if "bar" file exists = WIN //

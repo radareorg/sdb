@@ -34,7 +34,7 @@ static void ns_free(Sdb *s, SdbList *list) {
 		if (!in_list (list, ns)) {
 			ls_append (list, ns);
 			if (ns->sdb->refs>0)
-				sdb_ns_free (ns->sdb);
+				ns_free (ns->sdb, list);
 			if (sdb_free (ns->sdb)) {
 				ns->sdb = NULL;
 				free (ns->name);
