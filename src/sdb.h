@@ -75,7 +75,7 @@ typedef struct sdb_ns_t {
 #define sdb_new0() sdb_new(NULL,NULL,0)
 Sdb* sdb_new (const char *path, const char *file, int lock);
 void sdb_config (Sdb *s, int options);
-void sdb_free (Sdb* s);
+int sdb_free (Sdb* s);
 void sdb_file (Sdb* s, const char *dir);
 void sdb_reset (Sdb* s);
 void sdb_setup (Sdb* s, int options);

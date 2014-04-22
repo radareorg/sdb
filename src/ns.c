@@ -13,23 +13,63 @@ SDB_API void sdb_ns_lock(Sdb *s, int lock, int depth) {
 	}
 }
 
-SDB_API void sdb_ns_free(Sdb *s) {
+static int in_list(SdbList *list, SdbNs *item) {
+	SdbNs *ns;
+	SdbListIter *it;
+	ls_foreach (list, it, ns) {
+		if (item == ns)
+			return 1;
+	}
+	return 0;
+}
+
+static void ns_free(Sdb *s, SdbList *list) {
 	SdbListIter next;
 	SdbListIter *it;
 	SdbNs *ns;
+	if (!s) return;
+	// TODO: Implement and use ls_foreach_safe
+	ls_foreach (s->ns, it, ns) {
+		next.n = it->n;
+		if (!in_list (list, ns)) {
+			ls_append (list, ns);
+			if (ns->sdb->refs>0)
+				sdb_ns_free (ns->sdb);
+			if (sdb_free (ns->sdb)) {
+				ns->sdb = NULL;
+				free (ns->name);
+				ns->name = NULL;
+			}
+		}
+		ls_delete (s->ns, it); // free (it)
+		it = &next;
+	}
+}
+
+SDB_API void sdb_ns_free(Sdb *s) {
+	SdbList *list = ls_new ();
+	SdbListIter next;
+	SdbListIter *it;
+	SdbNs *ns;
+	list->free = NULL;
 	if (s)
 	ls_foreach (s->ns, it, ns) {
 	// TODO: Implement and use ls_foreach_safe
 		next.n = it->n;
-		sdb_ns_free (ns->sdb);
-		sdb_free (ns->sdb);
-		ns->sdb = NULL;
-
-		free (ns->name);
-		ns->name = NULL;
+		if (!in_list (list, ns)) {
+			ls_append (list, ns);
+			if (ns->sdb->refs>0)
+				ns_free (ns->sdb, list);
+			if (sdb_free (ns->sdb)) {
+				ns->sdb = NULL;
+				free (ns->name);
+				ns->name = NULL;
+			}
+		}
 		ls_delete (s->ns, it); // free (it)
 		it = &next;
 	}
+	ls_free (list);
 }
 
 static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
@@ -74,8 +114,9 @@ SDB_API int sdb_ns_set (Sdb *s, const char *name, Sdb *r) {
 			// implicit?
 			//sdb_free (ns->sdb);
 			r->refs++; // sdb_ref / sdb_unref //
-			if (ns->sdb != r)
+			if (ns->sdb != r) {
 				sdb_free (ns->sdb);
+			}
 			ns->sdb = r;
 			return 1;
 		}
@@ -109,12 +150,31 @@ SDB_API Sdb *sdb_ns(Sdb *s, const char *name) {
 	return ns->sdb;
 }
 
-SDB_API void sdb_ns_sync (Sdb *s) {
+static void ns_sync (Sdb *s, SdbList *list) {
 	SdbNs *ns;
 	SdbListIter *it;
 	ls_foreach (s->ns, it, ns) {
-		sdb_ns_sync (ns->sdb);
+		if (in_list (list, ns))
+			continue;
+		ls_append (list, ns);
+		ns_sync (ns->sdb, list);
 		sdb_sync (ns->sdb);
 	}
 	sdb_sync (s);
+}
+
+SDB_API void sdb_ns_sync (Sdb *s) {
+	SdbNs *ns;
+	SdbListIter *it;
+	SdbList *list = ls_new ();
+	list->free = NULL;
+	ls_foreach (s->ns, it, ns) {
+		if (in_list (list, ns))
+			continue;
+		ls_append (list, ns);
+		ns_sync (ns->sdb, list);
+		sdb_sync (ns->sdb);
+	}
+	sdb_sync (s);
+	ls_free (list);
 }

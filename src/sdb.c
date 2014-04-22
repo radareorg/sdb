@@ -75,6 +75,7 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	s->fdump = -1;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
+	s->ns->free = NULL;
 	s->ns_lock = 0;
 	if (!s->ns) goto fail;
 	s->hooks = NULL;
@@ -128,7 +129,7 @@ static void sdb_fini(Sdb* s, int donull) {
 		memset (s, 0, sizeof (Sdb));
 }
 
-SDB_API void sdb_free (Sdb* s) {
+SDB_API int sdb_free (Sdb* s) {
 	if (s && s->ht) {
 		if (s->refs>0)
 			s->refs--;
@@ -136,8 +137,10 @@ SDB_API void sdb_free (Sdb* s) {
 			sdb_fini (s, 1);
 			s->ht = NULL;
 			free (s);
+			return 1;
 		}
 	}
+	return 0;
 }
 
 SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {

@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 		printf ("FAIL IN VERY PUSH\n");
 		return 1;
 	}
-	eprintf ("--%d\n", strlen (sdb_const_get (s, "key", 0)));
+	eprintf ("--%d\n", (int)strlen (sdb_const_get (s, "key", 0)));
 #endif
 	for (i=0;i<N;i++)
 		free (sdb_array_pop (s, "key", 0));
