@@ -48,7 +48,20 @@ static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	if (!ns) return NULL;
 	ns->hash = hash;
 	ns->name = name? strdup (name): NULL;
-	ns->sdb = sdb_new (dir, ns->name, 0);
+	//ns->sdb = sdb_new (dir, ns->name, 0);
+	ns->sdb = sdb_new0 ();
+	// TODO: generate path
+	if (!ns->sdb) {
+		free (ns->name);
+		free (ns);
+		ns = NULL;
+	}
+	free (ns->sdb->path);
+	if (dir && *dir)
+		ns->sdb->path = dir;
+	free (ns->sdb->name);
+	if (name && *name)
+		ns->sdb->name = strdup (name);
 	return ns;
 }
 
@@ -78,10 +91,10 @@ SDB_API int sdb_ns_set (Sdb *s, const char *name, Sdb *r) {
 }
 
 SDB_API Sdb *sdb_ns(Sdb *s, const char *name) {
-	SdbNs *ns;
 	SdbListIter *it;
+	SdbNs *ns;
 	ut32 hash;
-	if (!name || !*name)
+	if (!s || !name || !*name)
 		return NULL;
 	hash = sdb_hashstr (name);
 	ls_foreach (s->ns, it, ns) {

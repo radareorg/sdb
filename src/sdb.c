@@ -28,6 +28,8 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	Sdb* s = R_NEW (Sdb);
 	if (!s) return NULL;
 	s->refs = 1;
+	if (path && !*path)
+		path = NULL;
 	if (name && *name) {
 		if (path && *path) {
 			int plen = strlen (path);
@@ -36,7 +38,7 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 			memcpy (s->dir, path, plen);
 			s->dir[plen] = '/';
 			memcpy (s->dir+plen+1, name, nlen+1);
-		} else s->dir = strdup (name);
+		}
 		switch (lock) {
 		case 1:
 			if (!sdb_lock (sdb_lockfile (s->dir)))
@@ -47,7 +49,10 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 				goto fail;
 			break;
 		}
-		s->fd = open (s->dir, O_RDONLY|O_BINARY);
+		s->dir = (name&&*name)? strdup (name): NULL;
+		if (s->dir) 
+			s->fd = open (s->dir, O_RDONLY|O_BINARY);
+		else s->fd = -1;
 		if (s->fd != -1) {
 			if (fstat (s->fd, &st) != -1)
 				if ((S_IFREG & st.st_mode)!=S_IFREG)
