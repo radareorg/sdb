@@ -13,9 +13,10 @@ SDB_API void sdb_ns_lock(Sdb *s, int lock, int depth) {
 	}
 }
 
-static int in_list(SdbList *list, SdbNs *item) {
+static int in_list(SdbList *list, void *item) {
 	SdbNs *ns;
 	SdbListIter *it;
+	if (list && item)
 	ls_foreach (list, it, ns) {
 		if (item == ns)
 			return 1;
@@ -26,49 +27,48 @@ static int in_list(SdbList *list, SdbNs *item) {
 static void ns_free(Sdb *s, SdbList *list) {
 	SdbListIter next;
 	SdbListIter *it;
+	SdbList *ons;
+	int deleted;
 	SdbNs *ns;
-	if (!s) return;
+	if (!list || !s) return;
 	// TODO: Implement and use ls_foreach_safe
+	if (in_list (list, s))
+		return;
+	ls_append (list, s);
 	ls_foreach (s->ns, it, ns) {
+		deleted = 0;
 		next.n = it->n;
 		if (!in_list (list, ns)) {
 			ls_append (list, ns);
-			if (ns->sdb->refs>0)
-				ns_free (ns->sdb, list);
+			ls_append (list, ns->sdb);
+			ns_free (ns->sdb, list);
+			if (s->ns)
+				s->ns->free = NULL;
+			ls_delete (s->ns, it); // free (it)
+			deleted = 1;
+			if (ns->sdb && ns->sdb->ns)
+			ons = ns->sdb->ns;
+			ns->sdb->ns = NULL;
 			if (sdb_free (ns->sdb)) {
 				ns->sdb = NULL;
 				free (ns->name);
 				ns->name = NULL;
 			}
+			if (ns && ns->sdb)
+				ns->sdb->ns = ons;
 		}
-		ls_delete (s->ns, it); // free (it)
+		if (!deleted) {
+			s->ns->free = NULL;
+			ls_delete (s->ns, it); // free (it)
+		}
 		it = &next;
 	}
 }
 
+
 SDB_API void sdb_ns_free(Sdb *s) {
 	SdbList *list = ls_new ();
-	SdbListIter next;
-	SdbListIter *it;
-	SdbNs *ns;
-	list->free = NULL;
-	if (s)
-	ls_foreach (s->ns, it, ns) {
-	// TODO: Implement and use ls_foreach_safe
-		next.n = it->n;
-		if (!in_list (list, ns)) {
-			ls_append (list, ns);
-			if (ns->sdb->refs>0)
-				ns_free (ns->sdb, list);
-			if (sdb_free (ns->sdb)) {
-				ns->sdb = NULL;
-				free (ns->name);
-				ns->name = NULL;
-			}
-		}
-		ls_delete (s->ns, it); // free (it)
-		it = &next;
-	}
+	ns_free (s, NULL);
 	ls_free (list);
 }
 
@@ -98,7 +98,7 @@ static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	}
 	free (ns->sdb->path);
 	if (dir && *dir)
-		ns->sdb->path = dir;
+		ns->sdb->path = strdup (dir);
 	free (ns->sdb->name);
 	if (name && *name)
 		ns->sdb->name = strdup (name);
@@ -111,19 +111,17 @@ SDB_API int sdb_ns_set (Sdb *s, const char *name, Sdb *r) {
 	ut32 hash = sdb_hashstr (name);
 	ls_foreach (s->ns, it, ns) {
 		if (ns->hash == hash) {
-			// implicit?
-			//sdb_free (ns->sdb);
+			if (ns->sdb == r)
+				return 0;
+			sdb_free (ns->sdb);
 			r->refs++; // sdb_ref / sdb_unref //
-			if (ns->sdb != r) {
-				sdb_free (ns->sdb);
-			}
 			ns->sdb = r;
 			return 1;
 		}
 	}
 	if (s->ns_lock)
 		return 0;
-	ns = malloc (sizeof (SdbNs));
+	ns = R_NEW (SdbNs);
 	ns->name = strdup (name);
 	ns->hash = hash;
 	ns->sdb = r;
@@ -164,17 +162,7 @@ static void ns_sync (Sdb *s, SdbList *list) {
 }
 
 SDB_API void sdb_ns_sync (Sdb *s) {
-	SdbNs *ns;
-	SdbListIter *it;
 	SdbList *list = ls_new ();
-	list->free = NULL;
-	ls_foreach (s->ns, it, ns) {
-		if (in_list (list, ns))
-			continue;
-		ls_append (list, ns);
-		ns_sync (ns->sdb, list);
-		sdb_sync (ns->sdb);
-	}
-	sdb_sync (s);
+	ns_sync (s, list);
 	ls_free (list);
 }
