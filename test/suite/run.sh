@@ -153,6 +153,10 @@ run 'K=V;Y=$K;Y' V
 run 'K=V;$K=$K;$K' V
 run 'V=$K;V' ''
 
+title "Matching"
+run "KAI=foo;KAE=bar;~KA;*" ''
+run "KAI=foo;KEE=bar;~KA;*" 'KEE=bar'
+
 title "Numbers"
 run "K=0;+K" 1
 run "K=1;-K" 0

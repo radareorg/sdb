@@ -637,3 +637,20 @@ SDB_API void sdb_drain(Sdb *s, Sdb *f) {
 	*s = *f;
 	free (f);
 }
+
+typedef struct {
+	Sdb *sdb;
+	const char *key;
+} UnsetCallbackData;
+
+static int unset_cb(void *user, const char *k, const char *v) {
+	UnsetCallbackData *ucd = user;
+	if (sdb_match (k, ucd->key))
+		sdb_unset (ucd->sdb, k, 0);
+	return 1;
+}
+
+SDB_API int sdb_unset_matching(Sdb *s, const char *k) {
+	UnsetCallbackData ucd = { s, k };
+	return sdb_foreach (s, unset_cb, &ucd);
+}
