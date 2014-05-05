@@ -27,6 +27,7 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
         struct stat st = {0};
 	Sdb* s = R_NEW (Sdb);
 	if (!s) return NULL;
+	s->dir = NULL;
 	s->refs = 1;
 	if (path && !*path)
 		path = NULL;
@@ -75,6 +76,8 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	s->fdump = -1;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
+	if (!s->ns)
+		goto fail;
 	s->ns->free = NULL;
 	s->ns_lock = 0;
 	if (!s->ns) goto fail;
