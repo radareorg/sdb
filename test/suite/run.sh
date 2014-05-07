@@ -133,9 +133,10 @@ test_store2() {
 test_remove() {
 	NAME="remove"
 	rm -f .a
-	$SDB .a alpha=beta teta=omega "~alp" omega=upsilon
-    $SDB .a "~omega"
-	if [ "`$SDB .a alpha`" = "" -a "`$SDB .a teta`" = "omega" -a "`$SDB .a omega`" = "" ]; then
+	$SDB .a alpha=beta teta=omega al=pha "~alp" omega=upsilon
+	$SDB .a "~omega"
+	$SDB .a "teta="
+	if [ "`$SDB .a`" = "al=pha" ]; then
 		success .a $NAME
 	else
 		fail .a $NAME
@@ -174,8 +175,8 @@ run "KAI=foo;KEE=bar;~KA;*" 'KEE=bar'
 title "Deletion"
 run "FOO=bar;FOO=;*" ''
 run "FOO=bar;~bar;*" 'FOO=bar'
-run "FOO=bar;g='{"foo":1,"bar":{"cow":3}}';~g;*" 'FOO=bar'
-run "FOO=bar;~g='{"foo":1,"bar":{"cow":3}}';*" 'FOO=bar'
+run 'FOO=bar;g={"foo":1,"bar":{"cow":3}};~g;*' 'FOO=bar'
+run 'FOO=bar;~g={"foo":1,"bar":{"cow":3}};*' 'FOO=bar'
 
 title "Numbers"
 run "K=0;+K" 1
