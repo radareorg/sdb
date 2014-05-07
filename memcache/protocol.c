@@ -84,7 +84,7 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 	}
 	strtolower (cmd);
 
-	cmdhash = sdb_hash (cmd, -1);
+	cmdhash = sdb_hash (cmd);
 	switch (cmdhash) {
 	case MCSDB_CMD_FLUSH_ALL:
 		mcsdb_flush (ms);

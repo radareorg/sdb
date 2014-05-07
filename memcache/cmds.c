@@ -9,7 +9,7 @@ static void cmdhash(const char *s) {
 	for (i=0; s[i]; i++)
 		su[i] = toupper (s[i]);
 	su[i] = 0;
-	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s, -1));
+	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s));
 }
 
 int main(void) {
