@@ -130,6 +130,20 @@ test_store2() {
 	fi
 }
 
+test_remove() {
+	NAME="remove"
+	rm -f .a
+	$SDB .a alpha=beta teta=omega "~alp" omega=upsilon
+    $SDB .a "~omega"
+	if [ "`$SDB .a alpha`" = "" -a "`$SDB .a teta`" = "omega" -a "`$SDB .a omega`" = "" ]; then
+		success .a $NAME
+	else
+		fail .a $NAME
+	fi
+}
+
+
+
 title() {
 	echo "------------------------------------------------"
 	printf "|                                              |\r"
@@ -156,6 +170,12 @@ run 'V=$K;V' ''
 title "Matching"
 run "KAI=foo;KAE=bar;~KA;*" ''
 run "KAI=foo;KEE=bar;~KA;*" 'KEE=bar'
+
+title "Deletion"
+run "FOO=bar;FOO=;*" ''
+run "FOO=bar;~bar;*" 'FOO=bar'
+run "FOO=bar;g='{"foo":1,"bar":{"cow":3}}';~g;*" 'FOO=bar'
+run "FOO=bar;~g='{"foo":1,"bar":{"cow":3}}';*" 'FOO=bar'
 
 title "Numbers"
 run "K=0;+K" 1
@@ -299,6 +319,7 @@ test_create
 test_store
 test_store2
 test_restore
+test_remove
 
 title "Results"
 
