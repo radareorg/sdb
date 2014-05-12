@@ -267,7 +267,11 @@ next_quote:
 				else
 					sdb_num_dec (s, cmd+1, d, 0);
 			} else {
-				sdb_concat (s, cmd+1, val, 0);
+				if (*cmd=='+') {
+					sdb_concat (s, cmd+1, val, 0);
+				} else {
+					sdb_uncat (s, cmd+1, val, 0);
+				}
 			}
 		} else {
 			int base = sdb_num_base (sdb_const_get (s, cmd+1, 0));

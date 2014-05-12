@@ -159,6 +159,7 @@ run "K=V;+K=Y;K" VY
 run "K=V;K=Y;K" Y
 run "K=Hello;K" Hello
 run "K=V;+K= Y;K" 'V Y'
+run "K=AB;-K=B;K" "A"
 
 title "References"
 run 'K=V;V=3;$K' 3
