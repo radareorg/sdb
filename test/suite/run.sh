@@ -195,6 +195,7 @@ run "K=2;+K=-1;K" 1
 run "K=2;+K=+1;K" 3
 run "K=2;-K=+1;K" 1
 run "K=2;-K=-1;K" 3
+run "-0=-0;0" 0
 
 title "Arrays"
 run "[]K=1,2,3;[2]K=a,b;[2]K" a
