@@ -140,6 +140,13 @@ SDB_API char *sdb_anext(char *str, char **next) {
 	return str;
 }
 
+SDB_API const char *sdb_const_anext(const char *str, const char **next) {
+	char *nxt, *p = strchr (str, SDB_RS);
+	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;
+	if (next) *next = nxt;
+	return str;
+}
+
 SDB_API ut64 sdb_now () {
 	struct timeval now;
 	if (!gettimeofday (&now, NULL))

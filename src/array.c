@@ -304,21 +304,21 @@ SDB_API int sdb_array_contains_num(Sdb *s, const char *key, ut64 num, ut32 *cas)
 }
 
 SDB_API int sdb_array_contains(Sdb *s, const char *key, const char *val, ut32 *cas) {
-	int found = 0;
-	char *list = sdb_get (s, key, cas);
-	char *next, *ptr = list;
+	const char *list = sdb_const_get (s, key, cas);
+	const char *next, *ptr = list;
+	const int vlen = strlen (val);
 	if (list && *list) {
 		do {
-			char *str = sdb_anext (ptr, &next);
-			if (!strcmp (str, val)) {
-				found = 1;
-				break;
+			const char *str = sdb_const_anext (ptr, &next);
+			int len = next? (int)(size_t)(next-str) : strlen (str);
+			if (len == vlen) {
+				if (!memcmp (str, val, len))
+					return 1;
 			}
 			ptr = next;
 		} while (next);
 	}
-	free (list);
-	return found;
+	return 0;
 }
 
 SDB_API int sdb_array_size(Sdb *s, const char *key) {
