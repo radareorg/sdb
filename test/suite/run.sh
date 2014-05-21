@@ -212,6 +212,7 @@ run "K=1,2,3;[0]K" 1
 run "[]K=1,2,3;[4]K" ''
 run "K=1;[1]K=2;K" '1,2'
 run "[]K=1,2;[+]K=3;[]K" '1\n2\n3'
+run "[]K=1,2;[+]K=2;[]K" '1\n2'
 run "K=a,b,c;[-b]K;K" "a,c"
 # XXX run "[]K=a,b,c;[b]K" "1"
 run "[]K=a,b,c;[-]K=b;[]K" "a\nc"

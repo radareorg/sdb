@@ -167,7 +167,7 @@ SDB_API int sdb_array_add_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 
 // XXX: index should be supressed here? if its a set we shouldnt change the index
 SDB_API int sdb_array_add(Sdb *s, const char *key, const char *val, ut32 cas) {
-	if (sdb_array_contains (s, key, val, NULL))
+	if (sdb_array_contains (s, key, val, cas))
 		return 0;
 	return sdb_array_set (s, key, -1, val, cas);
 }
@@ -310,10 +310,11 @@ SDB_API int sdb_array_contains(Sdb *s, const char *key, const char *val, ut32 *c
 	if (list && *list) {
 		do {
 			const char *str = sdb_const_anext (ptr, &next);
-			int len = next? (int)(size_t)(next-str) : strlen (str);
+			int len = next? (int)(size_t)(next-str)-1 : strlen (str);
 			if (len == vlen) {
-				if (!memcmp (str, val, len))
+				if (!memcmp (str, val, len)) {
 					return 1;
+}
 			}
 			ptr = next;
 		} while (next);

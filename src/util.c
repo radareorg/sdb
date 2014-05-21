@@ -141,8 +141,8 @@ SDB_API char *sdb_anext(char *str, char **next) {
 }
 
 SDB_API const char *sdb_const_anext(const char *str, const char **next) {
-	char *nxt, *p = strchr (str, SDB_RS);
-	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;
+	const char *p = strchr (str, SDB_RS);
+	const char *nxt = p? p+1: NULL;
 	if (next) *next = nxt;
 	return str;
 }
