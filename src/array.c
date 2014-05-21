@@ -162,8 +162,6 @@ SDB_API int sdb_array_add_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	// TODO: check cas vs mycas
 	if (sdb_array_contains (s, key, v10, NULL))
 		return 0;
-	if (sdb_array_contains (s, key, v16, NULL))
-		return 0;
 	return sdb_array_add (s, key, v16, cas); // TODO: v10 or v16
 }
 
