@@ -4,6 +4,8 @@ namespace SDB {
 	public class Sdb {
 		/* lifecycle */
 		public Sdb (string? path=null, string? file=null, bool locked=false);
+		public Sdb ns(string str);
+		public Sdb ns_path(string str);
 		public bool sync ();
 		/* query */
 		public bool query(string cmd);
