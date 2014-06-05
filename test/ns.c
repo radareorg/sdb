@@ -7,7 +7,7 @@ int main () {
 		eprintf ("SDB FAIL\n");
 	}
 // TODO: unlink bar file"
-	Sdb *n = sdb_ns (s, "bar");
+	Sdb *n = sdb_ns (s, "bar", 1);
 	if (n == NULL) {
 		eprintf ("n = NULL!\n");
 		return 1;
