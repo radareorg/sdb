@@ -205,7 +205,6 @@ int sdb_unhook(Sdb* s, SdbHook h);
 int sdb_hook_call(Sdb *s, const char *k, const char *v);
 void sdb_hook_free(Sdb *s);
 /* Util.c */
-int sdb_check_value (const char *s);
 int sdb_check_key (const char *s);
 int sdb_isnum (const char *s);
 int sdb_num_base (const char *s);

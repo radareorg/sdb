@@ -330,7 +330,7 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	if (!sdb_check_key (key))
 		return 0;
 	if (!val) val = "";
-	if (!sdb_check_value (val))
+	if (val[0] =='$')
 		return 0;
 	klen = strlen (key)+1;
 	hash = sdb_hash (key);
