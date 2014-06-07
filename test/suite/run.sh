@@ -301,7 +301,7 @@ title "Slurp"
 printf "K=V\nK\n" > .t
 run "..t" V
 run "..f" '' 2>/dev/null
-run "..t;..t" "V\nV"
+run "..t;..t" "V\n\nV\n\n"
 rm -f .t .f
 
 title "Base64"

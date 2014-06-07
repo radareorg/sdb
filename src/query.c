@@ -23,11 +23,13 @@ static StrBuf* strbuf_append(StrBuf *sb, const char *str) {
 	if ((sb->len + len+1)>=sb->size) {
 		int newsize = sb->size+len+256;
 		char *b = realloc (sb->buf, newsize);
+		/// TODO perform free and force all callers to update the ref?
 		if (!b) return NULL;
 		sb->buf = b;
 	}
-	memcpy (sb->buf+sb->len, str, len+1);
-	sb->len += len;
+	memcpy (sb->buf+sb->len, str, len);
+	memcpy (sb->buf+sb->len+len, "\n", 2);
+	sb->len += len+1;
 	return sb;
 }
 
