@@ -3,9 +3,14 @@ basic.md
 namespaces.md
 types.md
 strings.md
-array.md
+rray.md
 query.md
 json.md
+binary.md
+binary-data.md
+binary-arrays.md
+binary-pointers.md
+binary-struct.md
 refs.md
 locks.md
 cas.md
