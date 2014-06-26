@@ -1,4 +1,4 @@
-Usage example
+Usage Example
 =============
 
 Let's create a database!

@@ -4,6 +4,9 @@ Bindings
 D
 -
 
+Go
+--
+
 CSharp
 ------
 

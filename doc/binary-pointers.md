@@ -1,4 +1,4 @@
-Saving pointers
+Saving Pointers
 ===============
 
 Sometimes you just want to store in Sdb a reference to a native data structure which is allocated by the application. This is useful for using Sdb at runtime.

@@ -1,4 +1,4 @@
-Binary structs
+Binary Structs
 ==============
 
 Applications use to need some kind of data persistence between runs, Sdb supports data serialization and allows the application to save binary data structures to disk for later recovery.

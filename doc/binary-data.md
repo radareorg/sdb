@@ -1,5 +1,5 @@
-Binary data
-===========
+Base64
+======
 
 The standarized way to store binary data in Sdb keys-pairs is by using base64 encoding/decoding. Sdb already provides an API for doing this.
 
@@ -11,14 +11,16 @@ The Sdb.Encode and Sdb.Decode static functions are the ones responsible for doin
 	int i, abc_len = 'z'-'a'+1;
 	char *str, abc[abc_len];
 	for (i=0; i<abc_len;i++)
-		abc[i] = 'a'+i;
+	    abc[i] = 'a'+i;
 	abc[i] = 0;
 	str = sdb_encode (abc, abc_len);
 	sdb_set (DB, "abc", str, 0);
 	free (str);
 
-	str = sdb_decode (sdb_const_get (DB, "abc", 0), -1);
-	printf ("--> %s\n", str);
+	str = sdb_decode (
+	    sdb_const_get (
+	        DB, "abc", 0), -1);
+	printf ("> %s\n", str);
 
 Note that if we pass -1 to Sdb.Decode it will perform an strlen() to the first argument to determine its length. If the value is >=0, then it asumes that size to be read from the pointer passed as first argument.
 

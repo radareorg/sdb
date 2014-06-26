@@ -1,4 +1,4 @@
-Binary data
+Binary Data
 ===========
 
 One of the benefits of using an embedded database for your apps is the ability to integrate it with native data structures to get the benefits of both worlds.
