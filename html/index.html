@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Sdb.JS</title>
+    <style>
+      body {
+        font-family: arial;
+        margin: 0;
+	background-color:black;
+	border:0;
+        padding: none;
+overflow:hidden;
+      }
+
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      div.emscripten { text-align: center; }      
+      div.emscripten_border { border: 1px solid black; }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten { border: 0px none; }
+
+      #input {
+        width: 100%;
+        margin: 0 auto;
+        display: block;
+	spacing-left:10px;
+	border:0;
+	height:24px;
+        background-color: #c0c0c0;
+        color: black;
+        font-family: 'Lucida Console', Monaco, monospace;
+        outline: none;
+      }
+      #output {
+    resize: none;
+        width: 100%;
+	padding:0;
+	border:0;
+        margin: 0 auto;
+        display: block;
+        background-color: black;
+        color: white;
+        font-family: 'Lucida Console', Monaco, monospace;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+
+<textarea id="output">
+Sdb.JS v0.9.0
+</textarea>
+<input type="" id="input"></input>
+
+    <script type='text/javascript'>
+      var Module = {
+        preRun: [],
+        postRun: [],
+        print: (function() {
+          var element = document.getElementById('output');
+          element.value = ''; // clear browser cache
+          return function(text) {
+            text = Array.prototype.slice.call(arguments).join(' ');
+            // These replacements are necessary if you render to raw HTML
+            //text = text.replace(/&/g, "&amp;");
+            //text = text.replace(/</g, "&lt;");
+            //text = text.replace(/>/g, "&gt;");
+            //text = text.replace('\n', '<br>', 'g');
+            element.value += text + "\n";
+            element.scrollTop = element.scrollHeight; // focus on bottom
+          };
+        })(),
+        printErr: function(text) {
+          text = Array.prototype.slice.call(arguments).join(' ');
+          if (0) { // XXX disabled for safety typeof dump == 'function') {
+            dump(text + '\n'); // fast, straight to the real console
+          } else {
+            console.log(text);
+          }
+        },
+        canvas: document.getElementById('canvas'),
+        setStatus: function(text) {
+          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+          if (text === Module.setStatus.text) return;
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          var now = Date.now();
+          if (m && now - Date.now() < 30) return; // if this is a progress update, skip it if too soon
+          if (m)
+            text = m[1];
+          //statusElement.innerHTML = text;
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+      };
+      Module.setStatus('Downloading...');
+    </script>
+    <script async type="text/javascript" src="sdb.js"></script>
+<script>
+function ready(event) {
+    // your code here
+setTimeout ( onload, 1000);
+    // clean up event binding
+    window.removeEventListener('DOMContentLoaded', ready);
+}
+
+// bind to the load event
+window.addEventListener('DOMContentLoaded', ready);
+
+var input = document.getElementById('input');
+var output = document.getElementById('output');
+function fitWidgets() {
+	output.scrollTop = output.scrollHeight;
+	output.style.height=window.innerHeight-24+'px';
+}
+
+function outputHelp() {
+	// TODO: this is hardcoded we want a way to retrieve this
+	output.value = ""
+	+"===============================================\n"
+	+"Sdb.JS v0.9.0 - compiled with emcc-fastcomp -O2\n"
+	+"===============================================\n"
+	+"\n"
+	+"Some valid expressions are:\n"
+	+" a=b;a                  # set+get\n"
+	+" a=41;+a                # increment\n"
+	+" a=1,2,42,4;[3]a        # get 2nd array element\n"
+	+" a=1,2,3,4;[?]a         # get array length\n"
+	+" a={\"b\":[41,42]};a:b[1] # json get\n"
+	+"\n> "
+}
+
+function outputClear() {
+	output.value = Array(40).join('\n');
+}
+
+function onload() {
+	var sdb_new0 = Module.cwrap('sdb_new0','number',[])
+	var sdb_querys = Module.cwrap('sdb_querys','string',['number','string'])
+	var DB = sdb_new0();
+
+	outputHelp();
+	input.onkeypress = function (e) {
+		if (!e) e = window.event;
+		var keyCode = e.keyCode || e.which;
+		if (keyCode == '13'){
+			var txt = input.value;
+			switch (txt) {
+			case '':
+				return outputClear();
+			case '?':
+				return outputHelp();
+			default:
+				// Enter pressed
+				var out = sdb_querys (DB, txt);
+				input.value = "";
+				if (!output.value)
+					outputClear();
+				output.value += txt+"\n";
+				output.value += out;
+				output.value += "\n> ";
+				fitWidgets();
+				return false;
+			}
+		}
+	}
+}
+window.onresize = fitWidgets;
+fitWidgets();
+</script>
+  </body>
+</html>
