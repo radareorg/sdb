@@ -2,10 +2,20 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
+	<meta content="yes" name="apple-mobile-web-app-capable" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=false" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Sdb.JS</title>
     <style>
+      html {
+overflow:hidden;
+      }
       body {
+top:0px;
+left:0px;
+position:absolute;
+width:100%;
         font-family: arial;
         margin: 0;
 	background-color:black;
@@ -22,13 +32,16 @@ overflow:hidden;
 
       #input {
         width: 100%;
+    border-radius: 0;
+    -webkit-appearance: none;
         margin: 0 auto;
         display: block;
 	spacing-left:10px;
 	border:0;
 	height:24px;
-        background-color: #c0c0c0;
-        color: black;
+        background-color: #303030;
+  background: linear-gradient(to bottom,#303030,#303030); 
+        color: white;
         font-family: 'Lucida Console', Monaco, monospace;
         outline: none;
       }
@@ -37,21 +50,22 @@ overflow:hidden;
         width: 100%;
 	padding:0;
 	border:0;
+font-size:0.8em;
         margin: 0 auto;
         display: block;
-        background-color: black;
+  background: linear-gradient(to bottom,black,black); 
         color: white;
         font-family: 'Lucida Console', Monaco, monospace;
         outline: none;
       }
     </style>
   </head>
-  <body>
+  <body id="body">
 
-<textarea id="output">
+<textarea readonly id="output">
 Sdb.JS v0.9.0
 </textarea>
-<input type="" id="input"></input>
+<input type="" id="input" autocorrect="off" autocapitalize="off"></input>
 
     <script type='text/javascript'>
       var Module = {
@@ -110,9 +124,12 @@ setTimeout ( onload, 1000);
 // bind to the load event
 window.addEventListener('DOMContentLoaded', ready);
 
+var body= document.getElementById('body');
 var input = document.getElementById('input');
 var output = document.getElementById('output');
 function fitWidgets() {
+	body.scrollTop = 0;
+body.height = window.innerHeight;
 	output.scrollTop = output.scrollHeight;
 	output.style.height=window.innerHeight-24+'px';
 }
@@ -120,21 +137,19 @@ function fitWidgets() {
 function outputHelp() {
 	// TODO: this is hardcoded we want a way to retrieve this
 	output.value = ""
-	+"===============================================\n"
 	+"Sdb.JS v0.9.0 - compiled with emcc-fastcomp -O2\n"
-	+"===============================================\n"
 	+"\n"
 	+"Some valid expressions are:\n"
 	+" a=b;a                  # set+get\n"
 	+" a=41;+a                # increment\n"
-	+" a=1,2,42,4;[3]a        # get 2nd array element\n"
+	+" a=1,2,42,4;[3]a        # get 2nd element\n"
 	+" a=1,2,3,4;[?]a         # get array length\n"
 	+" a={\"b\":[41,42]};a:b[1] # json get\n"
 	+"\n> "
 }
 
 function outputClear() {
-	output.value = Array(40).join('\n');
+	output.value = "> ";
 }
 
 function onload() {
@@ -167,6 +182,22 @@ function onload() {
 			}
 		}
 	}
+}
+
+input.onfocus = function () {
+	setTimeout (fitWidgets,100);
+}
+
+input.onblur = function() {
+	setTimeout (fitWidgets,100);
+}
+
+window.onscroll = function() {
+	body.scrollTop = 0
+}
+
+output.onclick = function () {
+	input.focus();
 }
 window.onresize = fitWidgets;
 fitWidgets();
