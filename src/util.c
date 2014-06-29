@@ -3,22 +3,6 @@
 #include "sdb.h"
 #include <sys/time.h>
 
-// XXX deprecate or wtf? who uses this??
-SDB_API int sdb_check_value(const char *s) {
-	if (!s || *s=='$')
-		return 0;
-	// TODO: check value length
-#if 0
-	for (; *s; s++) {
-		switch (*s) {
-		case ';':
-			return 0;
-		}
-	}
-#endif
-	return 1;
-}
-
 SDB_API int sdb_check_key(const char *s) {
 	const char *special_chars = "\"+-=[]:$;";
 	if (!s || !*s)
