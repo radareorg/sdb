@@ -100,12 +100,12 @@ static void walk_namespace (StrBuf *sb, char *root, int left, char *p, SdbNs *ns
 	SdbListIter *it;
 	char *_out, *out = sb->buf;
 	SdbNs *n;
+	ForeachListUser user = { sb, encode };
 	char *roote = root + strlen (root);
 	if (!ns->sdb)
 		return;
 
 	/*Pick all key=value in the local ns*/
-	ForeachListUser user = { sb, encode };
 	sdb_foreach (ns->sdb, foreach_list_cb, &user);
 
 	/*Pick "sub"-ns*/
@@ -116,7 +116,7 @@ static void walk_namespace (StrBuf *sb, char *root, int left, char *p, SdbNs *ns
 			memcpy (p+1, n->name, len+1);
 			left -= len+2;
 		}
-		strbuf_append (sb, "");
+		strbuf_append (sb, "");/*Print a new line after the "whole" ns*/
 		strbuf_append (sb, root);
 		_out = out;
 		walk_namespace (sb, root, left,
