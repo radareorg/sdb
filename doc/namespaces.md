@@ -15,7 +15,7 @@ The three asterisks is a magic key used to retrieve a list of all the namespaces
 
 - `*` list all keys in selected ns
 - `**` list all namespaces on selected ns
-- `***` same as above but recursively
+- `***` list recursively all keys in selected ns
 
 Namespaces can be created or defined from an already existing Sdb instance.
 

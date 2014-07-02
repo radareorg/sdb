@@ -319,7 +319,8 @@ run "a/a=3;*" ""
 run "a/a=3;a/*" "a=3"
 run "a/a=3;a/a" "3"
 run "a/b/c=3;a/c/b=4;a/**" "b\nc"
-run "a/b/c=3;a/c/b=4;***" "a\na/b\na/c"
+run "a/b/c=3;a/c/b=4;***" "a\n\na/b\nc=3\n\na/c\nb=4"
+run "foo/bar/cow=3;foo/plop=2;foo/ra/re=4;foo/bar/meuh=1;***" "foo\nplop=2\n\nfoo/bar\ncow=3\nmeuh=1\n\nfoo/ra\nre=4"
 # TODO: How to delete a namespace? do we want to permit this?
 
 title "Shell"
