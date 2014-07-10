@@ -363,7 +363,7 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	return kv->cas;
 }
 
-SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user, char *root) {
+SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbListIter *iter;
 	char *k, *v;
 	SdbKv *kv;
@@ -379,10 +379,10 @@ SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user, char *root) 
 				// deleted = 1;
 				continue;
 			}
-			if (!cb (user, kv->key, kv->value, root))
+			if (!cb (user, kv->key, kv->value))
 				return 0;
 		} else {
-			int ret = cb (user, k, v, root);
+			int ret = cb (user, k, v);
 			free (k);
 			free (v);
 			if (!ret) return 0;
@@ -391,7 +391,7 @@ SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user, char *root) 
 	ls_foreach (s->ht->list, iter, kv) {
 		if (!kv->value || !*kv->value)
 			continue;
-		if (!cb (user, kv->key, kv->value, root))
+		if (!cb (user, kv->key, kv->value))
 			return 0;
 	}
 	return 1;
@@ -669,7 +669,7 @@ typedef struct {
 	const char *key;
 } UnsetCallbackData;
 
-static int unset_cb(void *user, const char *k, const char *v, const char *r) {
+static int unset_cb(void *user, const char *k, const char *v) {
 	UnsetCallbackData *ucd = user;
 	if (sdb_match (k, ucd->key))
 		sdb_unset (ucd->sdb, k, 0);
@@ -679,5 +679,5 @@ static int unset_cb(void *user, const char *k, const char *v, const char *r) {
 // TODO: rename to sdb_unset_similar ?
 SDB_API int sdb_unset_matching(Sdb *s, const char *k) {
 	UnsetCallbackData ucd = { s, k };
-	return sdb_foreach (s, unset_cb, &ucd, NULL);
+	return sdb_foreach (s, unset_cb, &ucd);
 }

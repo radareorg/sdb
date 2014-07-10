@@ -76,12 +76,13 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
 typedef struct {
 	StrBuf *out;
 	int encode;
+	char *root;
 } ForeachListUser;
 
-static int foreach_list_cb(void *user, const char *k, const char *v, const char *root) {
+static int foreach_list_cb(void *user, const char *k, const char *v) {
 	ForeachListUser *rlu = user;
-	char *line;
-	int klen, vlen;
+	char *line, *root = rlu->root;
+	int rlen, klen, vlen;
 	ut8 *v2 = NULL;
 	if (!rlu) return 0;
 	klen = strlen (k);
@@ -90,16 +91,15 @@ static int foreach_list_cb(void *user, const char *k, const char *v, const char 
 		if (v2) v = (const char *)v2;
 	}
 	vlen = strlen (v);
-	if(root) {
-		int rlen;
-		rlen = strlen(root);
+	if (root) {
+		rlen = strlen (root);
 		line = malloc (klen + vlen + rlen + 2);
-		memcpy(line, root, rlen);
+		memcpy (line, root, rlen);
 		line[rlen]='/'; /*append the '/' at the end of the namespace */
 		memcpy (line+rlen+1, k, klen);
 		line[rlen+klen+1] = '=';
 		memcpy (line+rlen+klen+2, v, vlen+1);
-	}else{
+	} else {
 		line = malloc (klen + vlen +2);
 		memcpy (line, k, klen);
 		line[klen] = '=';
@@ -116,13 +116,13 @@ static void walk_namespace (StrBuf *sb, char *root, int left, char *p, SdbNs *ns
 	SdbListIter *it;
 	char *_out, *out = sb->buf;
 	SdbNs *n;
-	ForeachListUser user = { sb, encode };
+	ForeachListUser user = { sb, encode, root };
 	char *roote = root + strlen (root);
 	if (!ns->sdb)
 		return;
 
 	/*Pick all key=value in the local ns*/
-	sdb_foreach (ns->sdb, foreach_list_cb, &user, root);
+	sdb_foreach (ns->sdb, foreach_list_cb, &user);
 
 	/*Pick "sub"-ns*/
 	ls_foreach (ns->sdb->ns, it, n) {
@@ -275,7 +275,7 @@ next_quote:
 		}
 		if (!strcmp (cmd, "*")) {
 			ForeachListUser user = { out, encode };
-			sdb_foreach (s, foreach_list_cb, &user, NULL);
+			sdb_foreach (s, foreach_list_cb, &user);
 			if (bufset)
 				free (buf);
 			res = out->buf;

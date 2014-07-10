@@ -108,8 +108,8 @@ int  sdb_num_set (Sdb* s, const char *key, ut64 v, ut32 cas);
 ut64 sdb_num_inc (Sdb* s, const char *key, ut64 n, ut32 cas);
 ut64 sdb_num_dec (Sdb* s, const char *key, ut64 n, ut32 cas);
 
-typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v, const char *root);
-int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user, char *root);
+typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
+int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
 
 /* create db */
 int sdb_disk_create (Sdb* s);
