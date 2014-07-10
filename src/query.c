@@ -18,7 +18,7 @@ static StrBuf* strbuf_new() {
 	return calloc (sizeof(StrBuf),1);
 }
 
-static StrBuf* strbuf_append(StrBuf *sb, const char *str) {
+static StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl) {
 	int len = strlen (str);
 	if ((sb->len + len+2)>=sb->size) {
 		int newsize = sb->size+len+256;
@@ -29,8 +29,14 @@ static StrBuf* strbuf_append(StrBuf *sb, const char *str) {
 		sb->size = newsize;
 	}
 	memcpy (sb->buf+sb->len, str, len);
-	memcpy (sb->buf+sb->len+len, "\n", 2);
-	sb->len += len+1;
+
+	/*nl != 0 -> newline at the end*/
+	if(nl!=0)
+	{
+		memcpy (sb->buf+sb->len+len, "\n", 2);
+		len+=1;
+	}
+	sb->len += len;
 	return sb;
 }
 
@@ -39,8 +45,6 @@ static StrBuf *strbuf_free(StrBuf *sb) {
 	free (sb);
 	return NULL;
 }
-
-/*******/
 
 SDB_API int sdb_queryf (Sdb *s, const char *fmt, ...) {
         char string[4096];
@@ -66,7 +70,7 @@ SDB_API char *sdb_querysf (Sdb *s, char *buf, size_t buflen, const char *fmt, ..
 
 // TODO: Reimplement as a function with optimized concat
 #define out_concat(x) if (x&&*x) { \
-	strbuf_append (out, x); \
+	strbuf_append (out, x, 1); \
 }
 
 typedef struct {
@@ -74,10 +78,10 @@ typedef struct {
 	int encode;
 } ForeachListUser;
 
-static int foreach_list_cb(void *user, const char *k, const char *v) {
+static int foreach_list_cb(void *user, const char *k, const char *v, const char *root) {
 	ForeachListUser *rlu = user;
 	char *line;
-	int klen, vlen;
+	int klen, vlen, rlen;
 	ut8 *v2 = NULL;
 	if (!rlu) return 0;
 	klen = strlen (k);
@@ -86,11 +90,14 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 		if (v2) v = (const char *)v2;
 	}
 	vlen = strlen (v);
-	line = malloc (klen + vlen + 2);
-	memcpy (line, k, klen);
-	line[klen] = '=';
-	memcpy (line+klen+1, v, vlen+1);
-	strbuf_append (rlu->out, line);
+	rlen = strlen(root);
+	line = malloc (klen + vlen + rlen + 2);
+	memcpy(line, root, rlen);
+	line[rlen]='/'; /*append the '/' at the end of the namespace */
+	memcpy (line+rlen+1, k, klen);
+	line[rlen+klen+1] = '=';
+	memcpy (line+rlen+klen+1, v, vlen+1);
+	strbuf_append (rlu->out, line, 1);
 	free (v2);
 	free (line);
 	return 1;
@@ -107,7 +114,7 @@ static void walk_namespace (StrBuf *sb, char *root, int left, char *p, SdbNs *ns
 		return;
 
 	/*Pick all key=value in the local ns*/
-	sdb_foreach (ns->sdb, foreach_list_cb, &user);
+	sdb_foreach (ns->sdb, foreach_list_cb, &user, root);
 
 	/*Pick "sub"-ns*/
 	ls_foreach (ns->sdb->ns, it, n) {
@@ -117,8 +124,7 @@ static void walk_namespace (StrBuf *sb, char *root, int left, char *p, SdbNs *ns
 			memcpy (p+1, n->name, len+1);
 			left -= len+2;
 		}
-		strbuf_append (sb, "");/*Print a new line after the "whole" ns*/
-		strbuf_append (sb, root);
+
 		_out = out;
 		walk_namespace (sb, root, left,
 			roote+len+1, n, encode);
@@ -231,7 +237,6 @@ next_quote:
 				int len = strlen (ns->name);
 				if (len<sizeof (root)) {
 					memcpy (root, ns->name, len+1);
-					out_concat (root);
 					walk_namespace (out, root,
 						sizeof (root)-len,
 						root+len, ns, encode);
@@ -257,7 +262,7 @@ next_quote:
 		}
 		if (!strcmp (cmd, "*")) {
 			ForeachListUser user = { out, encode };
-			sdb_foreach (s, foreach_list_cb, &user);
+			sdb_foreach (s, foreach_list_cb, &user, "");
 			if (bufset)
 				free (buf);
 			res = out->buf;
