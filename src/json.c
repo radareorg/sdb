@@ -7,40 +7,6 @@
 #include "json/path.c"
 #include "json/rangstr.c"
 
-// TODO: check if open and closed bracket/parenthesis matches
-// TODO: check all the values
-SDB_API int sdb_isjson (const char *k) {
-	int level = 0;
-	int quotes = 0;
-	if (*k!='{' && *k != '[')
-		return 0;
-	if (k)
-	for (; *k; k++) {
-		if (quotes) {
-			if (*k == '"')
-				quotes = 0;
-			continue;
-		}
-		switch (*k) {
-		case '"':
-			if (quotes) quotes = 0;
-			else quotes = 1;
-			break;
-		case '[':
-		case '{':
-			level++;
-			break;
-		case ']':
-		case '}':
-			level--;
-			break;
-		}
-	}
-	if (quotes || level)
-		return 0;
-	return 1;
-}
-
 SDB_API char *sdb_json_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
 	Rangstr rs;
 	char *u, *v = sdb_get (s, k, cas);
