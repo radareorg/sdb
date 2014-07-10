@@ -81,7 +81,7 @@ typedef struct {
 static int foreach_list_cb(void *user, const char *k, const char *v, const char *root) {
 	ForeachListUser *rlu = user;
 	char *line;
-	int klen, vlen, rlen;
+	int klen, vlen;
 	ut8 *v2 = NULL;
 	if (!rlu) return 0;
 	klen = strlen (k);
@@ -90,13 +90,21 @@ static int foreach_list_cb(void *user, const char *k, const char *v, const char 
 		if (v2) v = (const char *)v2;
 	}
 	vlen = strlen (v);
-	rlen = strlen(root);
-	line = malloc (klen + vlen + rlen + 2);
-	memcpy(line, root, rlen);
-	line[rlen]='/'; /*append the '/' at the end of the namespace */
-	memcpy (line+rlen+1, k, klen);
-	line[rlen+klen+1] = '=';
-	memcpy (line+rlen+klen+1, v, vlen+1);
+	if(root) {
+		int rlen;
+		rlen = strlen(root);
+		line = malloc (klen + vlen + rlen + 2);
+		memcpy(line, root, rlen);
+		line[rlen]='/'; /*append the '/' at the end of the namespace */
+		memcpy (line+rlen+1, k, klen);
+		line[rlen+klen+1] = '=';
+		memcpy (line+rlen+klen+2, v, vlen+1);
+	}else{
+		line = malloc (klen + vlen +2);
+		memcpy (line, k, klen);
+		line[klen] = '=';
+		memcpy (line+klen+1,v,vlen+1);
+	}
 	strbuf_append (rlu->out, line, 1);
 	free (v2);
 	free (line);
@@ -262,7 +270,7 @@ next_quote:
 		}
 		if (!strcmp (cmd, "*")) {
 			ForeachListUser user = { out, encode };
-			sdb_foreach (s, foreach_list_cb, &user, "");
+			sdb_foreach (s, foreach_list_cb, &user, NULL);
 			if (bufset)
 				free (buf);
 			res = out->buf;

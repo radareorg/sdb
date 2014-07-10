@@ -679,5 +679,5 @@ static int unset_cb(void *user, const char *k, const char *v, const char *r) {
 // TODO: rename to sdb_unset_similar ?
 SDB_API int sdb_unset_matching(Sdb *s, const char *k) {
 	UnsetCallbackData ucd = { s, k };
-	return sdb_foreach (s, unset_cb, &ucd, "");
+	return sdb_foreach (s, unset_cb, &ucd, NULL);
 }
