@@ -235,6 +235,11 @@ next_quote:
 		if (arroba)
 			goto next_arroba;
 	}
+	if (*cmd=='?') {
+		const char *val = sdb_const_get (s, cmd+1, 0);
+		const char *type = sdb_type (val);
+		out_concat (type);
+	} else
 	if (*cmd=='*') {
 		char *res;
 		if (!strcmp (cmd, "***")) {
@@ -568,21 +573,28 @@ next_quote:
 				val = NULL;
 			}
 		} else {
-			// 0 1 kvpath?jspath
+			// 0 1 kvpath:jspath
 			// 0 0 kvpath
 			if (json) {
 				*json++ = 0;
-				// TODO: not optimized to reuse 'buf'
-				if ((tmp = sdb_json_get (s, cmd, json, 0))) {
-					if (encode) {
-						char *newtmp = (void*)sdb_decode (tmp, NULL);
-						if (!newtmp)
-							goto fail;
+				if (*json) {
+					// TODO: not optimized to reuse 'buf'
+					if ((tmp = sdb_json_get (s, cmd, json, 0))) {
+						if (encode) {
+							char *newtmp = (void*)sdb_decode (tmp, NULL);
+							if (!newtmp)
+								goto fail;
+							free (tmp);
+							tmp = newtmp;
+						}
+						out_concat (tmp);
 						free (tmp);
-						tmp = newtmp;
 					}
-					out_concat (tmp);
-					free (tmp);
+				} else {
+					// kvpath:  -> show indented json
+					char *o = sdb_json_indent (sdb_const_get (s, cmd, 0));
+					out_concat (o);
+					free (o);
 				}
 			} else {
 				// sdbget
