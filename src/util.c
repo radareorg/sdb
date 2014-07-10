@@ -206,12 +206,11 @@ SDB_API const char *sdb_type(const char *k) {
 		return "undefined";
 	if (sdb_isnum (k))
 		return "number";
+	if (sdb_isjson (k))
+		return "json";
 	if (strchr (k, ','))
 		return "array";
 	if (!strcmp (k, "true") || !strcmp (k, "false"))
 		return "boolean";
-	if (sdb_isjson (k)) {
-		return "json";
-	}
 	return "string";
 }

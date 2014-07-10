@@ -259,7 +259,18 @@ title "Quoted strings"
 run "c=3;a=\"b;c\";a" "b;c"
 run "c=3;a=\"b\\\"c\";a" "b\"c"
 
+title "Types"
+run "c=-1;?c" "number"
+run "c=1;?c" "number"
+run "c=0;?c" "number"
+run "c=a;?c" "string"
+run "c=true;?c" "boolean"
+run 'c={"foo":1,"bar":[1,2,3]};?c' "json"
+run 'c=;?c' 'undefined'
+
 title "JSON"
+# indent is broken because run() doesnt handle multiline outputs, but it works :P
+brk 'foo={"bar":[1,2,3]};foo:' '{\n\t"bar": [\n\t\t1,\n\t\t2,\n\t\t3\n\t]\n}\n'
 brk 'foo={"bar":[1,2,3]};foo:bar[1]=;foo' '{"bar":[1,3]}'
 run 'foo={"bar":123};foo:bar=pop;foo:bar=cow;foo:bar' cow
 run 'foo={"bar":123};foo:bar=3;foo:bar' 3
