@@ -81,10 +81,10 @@ typedef struct {
 
 static int foreach_list_cb(void *user, const char *k, const char *v) {
 	ForeachListUser *rlu = user;
+	if (!rlu) return 0;
 	char *line, *root = rlu->root;
 	int rlen, klen, vlen;
 	ut8 *v2 = NULL;
-	if (!rlu) return 0;
 	klen = strlen (k);
 	if (rlu->encode) {
 		v2 = sdb_decode (v, NULL);
