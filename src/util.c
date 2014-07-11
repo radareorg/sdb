@@ -224,11 +224,6 @@ SDB_API int sdb_isjson (const char *k) {
 	if (*k!='{' && *k != '[')
 		return 0;
 	for (; *k; k++) {
-		if (quotes) {
-			if (*k == '"')
-				quotes = 0;
-			continue;
-		}
 		switch (*k) {
 		case '"':
 			if (quotes) quotes = 0;
