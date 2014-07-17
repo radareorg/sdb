@@ -166,7 +166,7 @@ void ht_free(SdbHash *ht) {
 
 void *ht_lookup(SdbHash *ht, ut32 hash) {
 	SdbHashEntry *entry;
-	if (!ht->list->head) return NULL;
+	if (!ht || !ht->list || !ht->list->head) return NULL;
 	entry = ht_search (ht, hash);
 	return entry? entry->data : NULL;
 }
