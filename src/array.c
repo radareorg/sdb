@@ -107,13 +107,14 @@ SDB_API int sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val, ut3
 
 // TODO: done, but there's room for improvement
 SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
-	const char *str = sdb_const_get (s, key, 0);
 	int lnstr, lstr, lval, ret;
+	const char *str = sdb_const_get_len (s, key, &lstr, 0);
 	char *x, *ptr;
 	if (!str || !*str)
 		return sdb_set (s, key, val, cas);
 	lval = strlen (val);
-	lstr = strlen (str); // we can optimize this by caching value len in memory . add sdb_const_get_size()
+	lstr--;
+	//lstr = strlen (str); // we can optimize this by caching value len in memory . add sdb_const_get_size()
 	x = malloc (lval + lstr + 2);
 	if (idx==-1) {
 		memcpy (x, str, lstr);
@@ -180,31 +181,32 @@ SDB_API int sdb_array_unset(Sdb *s, const char *key, int idx, ut32 cas) {
 
 SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	char *nstr, *ptr;
-	const char *usr, *str = sdb_const_get (s, key, 0);
-	int lval, len, ret = 0;
+	int lstr, lval, len, ret = 0;
+	const char *usr, *str = sdb_const_get_len (s, key, &lstr, 0);
 	if (!str || !*str)
 		return sdb_set (s, key, val, cas);
 	len = sdb_alen (str);
+	lstr--;
 	if (idx<0 || idx==len) // append
 		return sdb_array_insert (s, key, -1, val, cas);
+	lval = strlen (val);
 	if (idx>len) {
 		int ret, i, ilen = idx-len;
-		char *newkey = malloc (ilen+strlen (val)+1);
+		char *newkey = malloc (ilen+lval+1);
 		if (!newkey)
 			return 0;
 		for (i=0; i<ilen; i++)
 			newkey [i]=',';
-		strcpy (newkey+i, val);
+		memcpy (newkey+i, val, lval+1);
 		ret = sdb_array_insert (s, key, -1, newkey, cas);
 		free (newkey);
 		return ret;
 	}
-	lstr = strlen (str);
-	nstr = malloc (lstr+strlen (val)+2);
+	//lstr = strlen (str);
+	nstr = malloc (lstr+lval+2);
 	memcpy (nstr, str, lstr+1);
 	ptr = Aindexof (nstr, idx);
 	if (ptr) {
-		lval = strlen (val);
 		memcpy (ptr, val, lval+1);
 		usr = Aconst_index (str, idx+1);
 		if (usr) {
@@ -348,14 +350,13 @@ SDB_API int sdb_array_push_num(Sdb *s, const char *key, ut64 num, ut32 cas) {
 }
 
 SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
+	int str_len = 0;
 	ut32 kas = cas;
-	// cache key length with sdb_const_get_len
-	const char *str = sdb_const_get (s, key, &kas);
+	const char *str = sdb_const_get_len (s, key, &str_len, &kas);
 	if (cas && cas != kas)
 		return 0;
 	cas = kas;
 	if (str && *str) {
-		int str_len = strlen (str);
 		int val_len = strlen (val);
 		char *newval = malloc (str_len + val_len + 2);
 #if PUSH_PREPENDS

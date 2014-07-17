@@ -90,6 +90,7 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	s->lock = lock;
 	s->expire = 0LL;
 	s->tmpkv.value = NULL;
+	s->tmpkv.value_len = 0;
 	//s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
 	if (global_hook)
@@ -132,6 +133,7 @@ static void sdb_fini(Sdb* s, int donull) {
 	free (s->ndump);
 	free (s->dir);
 	free (s->tmpkv.value);
+	s->tmpkv.value_len = 0;
 	if (donull)
 		memset (s, 0, sizeof (Sdb));
 }
@@ -150,12 +152,13 @@ SDB_API int sdb_free (Sdb* s) {
 	return 0;
 }
 
-SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
+SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas) {
 	ut32 hash, pos, len, keylen;
 	ut64 now = 0LL;
 	SdbKv *kv;
 	if (cas) *cas = 0;
 	if (!s||!key) return NULL;
+	// TODO: optimize, iterate once
 	keylen = strlen (key)+1;
 	hash = sdb_hash (key);
 	/* search in memory */
@@ -170,6 +173,7 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 				}
 			}
 			if (cas) *cas = kv->cas;
+			if (vlen) *vlen = kv->value_len;
 			return kv->value;
 		}
 		return NULL;
@@ -183,8 +187,14 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 	len = cdb_datalen (&s->db);
 	if (len == 0)
 		return NULL;
+	if (vlen)
+		*vlen = len;
 	pos = cdb_datapos (&s->db);
 	return s->db.map+pos;
+}
+
+SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
+	return sdb_const_get_len (s, key, NULL, cas);
 }
 
 SDB_API char *sdb_get (Sdb* s, const char *key, /*OUT*/ut32 *cas) {
@@ -258,9 +268,10 @@ SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	char *o;
 	if (!s || !key || !*key || !value || !*value)
 		return 0;
-	p = sdb_const_get (s, key, 0);
+	p = sdb_const_get_len (s, key, &kl, 0);
 	if (!p) return sdb_set (s, key, value, cas);
-	kl = strlen (p);
+	kl--;
+	//kl = strlen (p);
 	vl = strlen (value);
 	o = malloc (kl+vl+1);
 	memcpy (o, p, kl);
@@ -314,6 +325,7 @@ SDB_API SdbKv* sdb_kv_new (const char *k, const char *v) {
 	SdbKv *kv = R_NEW (SdbKv);
 	strncpy (kv->key, k, sizeof (kv->key)-1);
 	kv->value = malloc (vl);
+	kv->value_len = vl;
 	memcpy (kv->value, v, vl);
 	kv->cas = nextcas ();
 	kv->expire = 0LL;
@@ -347,8 +359,11 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 			if (cas && kv->cas != cas)
 				return 0;
 			kv->cas = cas = nextcas ();
-			free (kv->value);
-			kv->value = malloc (vl);
+			if (vl>kv->value_len) {
+				free (kv->value);
+				kv->value = malloc (vl);
+			}
+			kv->value_len = vl;
 			memcpy (kv->value, val, vl);
 		} else ht_delete_entry (s->ht, e);
 		sdb_hook_call (s, key, val);
@@ -368,7 +383,7 @@ SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	char *k, *v;
 	SdbKv *kv;
 	sdb_dump_begin (s);
-	while (sdb_dump_dupnext (s, &k, &v)) {
+	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		ut32 hash = sdb_hash (k);
 		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
@@ -419,7 +434,7 @@ SDB_API int sdb_sync (Sdb* s) {
 		return 0;
 // TODO: use sdb_foreach here
 	sdb_dump_begin (s);
-	while (sdb_dump_dupnext (s, &k, &v)) {
+	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		ut32 hash = sdb_hash (k);
 		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
@@ -453,7 +468,7 @@ SDB_API int sdb_sync (Sdb* s) {
 	return 1;
 }
 
-// TODO: optimize: do not use syscalls here
+// TODO: optimize: do not use syscalls here. we can just do mmap and pointer arithmetics
 static int getbytes(Sdb *s, char *b, int len) {
 	if (read (s->fd, b, len) != len)
 		return -1;
@@ -468,25 +483,34 @@ SDB_API void sdb_dump_begin (Sdb* s) {
 }
 
 SDB_API SdbKv *sdb_dump_next (Sdb* s) {
+	int vl = 0;
 	char *k = NULL, *v = NULL;
-	if (!sdb_dump_dupnext (s, &k, &v))
+	// we dont need to malloc, because all values are null terminated in memory.
+	if (!sdb_dump_dupnext (s, &k, &v, &vl))
 		return NULL;
+	vl--;
 	strncpy (s->tmpkv.key, k, SDB_KSZ-1);
 	s->tmpkv.key[SDB_KSZ-1] = '\0';
 	free (k);
 	free (s->tmpkv.value);
 	s->tmpkv.value = v;
+	s->tmpkv.value_len = vl;
 	return &s->tmpkv;
 }
 
-SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value) {
+// TODO: make it static? internal api?
+SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 	ut32 vlen = 0, klen = 0;
+	if (_vlen)
+		*_vlen = 0;
 	if (s->fd==-1)
 		return 0;
 	if (!cdb_getkvlen (s->fd, &klen, &vlen))
 		return 0;
 	if (klen<1 || vlen<1)
 		return 0;
+	if (_vlen)
+		*_vlen = vlen;
 	if (key) {
 		*key = 0;
 		if (klen>0 && klen<0xff) {
