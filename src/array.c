@@ -314,7 +314,7 @@ SDB_API int sdb_array_contains(Sdb *s, const char *key, const char *val, ut32 *c
 			if (len == vlen) {
 				if (!memcmp (str, val, len)) {
 					return 1;
-}
+				}
 			}
 			ptr = next;
 		} while (next);

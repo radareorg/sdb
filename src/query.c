@@ -29,14 +29,12 @@ static StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl) {
 		sb->size = newsize;
 	}
 	memcpy (sb->buf+sb->len, str, len);
-
-	/*nl != 0 -> newline at the end*/
-	if(nl!=0)
-	{
-		memcpy (sb->buf+sb->len+len, "\n", 2);
-		len+=1;
-	}
 	sb->len += len;
+	if (nl) {
+		sb->buf[sb->len++] = '\n';
+		len++;
+	}
+	sb->buf[sb->len] = 0;
 	return sb;
 }
 
