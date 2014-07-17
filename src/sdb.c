@@ -329,7 +329,7 @@ SDB_API void sdb_kv_free (SdbKv *kv) {
 	free (kv);
 }
 
-SDB_API int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas) {
+static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32 cas) {
 	ut32 hash, klen;
 	int vlen;
 	SdbHashEntry *e;
@@ -352,12 +352,16 @@ SDB_API int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas) {
 			if (cas && kv->cas != cas)
 				return 0;
 			kv->cas = cas = nextcas ();
-			if (vlen>kv->value_len) {
-				free (kv->value);
-				kv->value = malloc (vlen);
-			}
 			kv->value_len = vlen;
-			kv->value = val; // owned
+			if (owned) {
+				if (vlen>kv->value_len) {
+					free (kv->value);
+					kv->value = malloc (vlen);
+				}
+				kv->value = val; // owned
+			} else {
+				memcpy (kv->value, val, vlen);
+			}
 		} else ht_delete_entry (s->ht, e);
 		sdb_hook_call (s, key, val);
 		return cas;
@@ -372,46 +376,15 @@ SDB_API int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas) {
 	sdb_hook_call (s, key, val);
 	return kv->cas;
 }
-SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
-	ut32 hash, klen;
-	SdbHashEntry *e;
-	SdbKv *kv;
-	if (!s || !key)
-		return 0;
-	if (!sdb_check_key (key))
-		return 0;
-	if (!val) val = "";
-	if (!sdb_check_value (val))
-		return 0;
-	klen = strlen (key)+1;
-	hash = sdb_hash (key);
-	cdb_findstart (&s->db);
-	e = ht_search (s->ht, hash);
-	if (e) {
-		if (cdb_findnext (&s->db, hash, key, klen)) {
-			int vl = strlen (val)+1;
-			kv = e->data;
-			if (cas && kv->cas != cas)
-				return 0;
-			kv->cas = cas = nextcas ();
-			if (vl>kv->value_len) {
-				free (kv->value);
-				kv->value = malloc (vl);
-			}
-			kv->value_len = vl;
-			memcpy (kv->value, val, vl);
-		} else ht_delete_entry (s->ht, e);
-		sdb_hook_call (s, key, val);
-		return cas;
-	}
-	// empty values are also stored
-	// TODO store only the ones that are in the CDB
-	kv = sdb_kv_new (key, val);
-	kv->cas = nextcas ();
-	ht_insert (s->ht, hash, kv, NULL);
-	sdb_hook_call (s, key, val);
-	return kv->cas;
+
+SDB_API int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas) {
+	return sdb_set_internal (s, key, val, 1, cas);
 }
+
+SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
+	return sdb_set_internal (s, key, (char*)val, 0, cas);
+}
+
 
 SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbListIter *iter;
