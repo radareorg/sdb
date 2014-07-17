@@ -262,7 +262,7 @@ SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 }
 
 SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
-	int ret, kl, vl;
+	int kl, vl;
 	const char *p;
 	char *o;
 	if (!s || !key || !*key || !value || !*value)
