@@ -113,7 +113,7 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 	if (!str || !*str)
 		return sdb_set (s, key, val, cas);
 	lval = strlen (val);
-	lstr = strlen (str);
+	lstr = strlen (str); // we can optimize this by caching value len in memory . add sdb_const_get_size()
 	x = malloc (lval + lstr + 2);
 	if (idx==-1) {
 		memcpy (x, str, lstr);
@@ -124,15 +124,17 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 		x[lval] = SDB_RS;
 		memcpy (x+lval+1, str, lstr+1);
 	} else {
-		char *nstr = strdup (str);
+		char *nstr = malloc (lstr+1);
+		memcpy (nstr, str, lstr+1);
 		ptr = Aindexof (nstr, idx);
 		if (ptr) {
 			*(ptr-1) = 0;
-			lnstr = strlen (nstr);
+			lnstr = ptr-nstr-1;
 			memcpy (x, nstr, lnstr);
 			x[lnstr] = SDB_RS;
 			memcpy (x+lnstr+1, val, lval);
 			x[lnstr+lval+1] = SDB_RS;
+			// TODO: this strlen hurts performance
 			memcpy (x+lval+2+lnstr, ptr, strlen (ptr)+1);
 			ret = 1;
 		} else {
@@ -197,8 +199,9 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 		free (newkey);
 		return ret;
 	}
-	nstr = malloc (strlen (str)+strlen (val)+2);
-	strcpy (nstr, str);
+	lstr = strlen (str);
+	nstr = malloc (lstr+strlen (val)+2);
+	memcpy (nstr, str, lstr+1);
 	ptr = Aindexof (nstr, idx);
 	if (ptr) {
 		lval = strlen (val);
@@ -346,33 +349,29 @@ SDB_API int sdb_array_push_num(Sdb *s, const char *key, ut64 num, ut32 cas) {
 
 SDB_API int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) {
 	ut32 kas = cas;
+	// cache key length with sdb_const_get_len
 	const char *str = sdb_const_get (s, key, &kas);
 	if (cas && cas != kas)
 		return 0;
 	cas = kas;
 	if (str && *str) {
-#if PUSH_PREPENDS
 		int str_len = strlen (str);
 		int val_len = strlen (val);
 		char *newval = malloc (str_len + val_len + 2);
+#if PUSH_PREPENDS
 		memcpy (newval, val, val_len);
 		newval[val_len] = SDB_RS;
 		memcpy (newval+val_len+1, str, str_len);
 		newval[str_len+val_len+1] = 0;
 		// TODO: optimize this because we already have allocated and strlened everything
-		sdb_set (s, key, newval, cas);
-		free (newval);
 #else
-		int str_len = strlen (str);
-		int val_len = strlen (val);
-		char *newval = malloc (str_len + val_len + 2);
 		memcpy (newval, str, str_len);
 		newval[str_len] = SDB_RS;
 		memcpy (newval+str_len+1, val, val_len);
 		newval[str_len+val_len+1] = 0;
+#endif
 		sdb_set (s, key, newval, cas);
 		free (newval);
-#endif
 	} else {
 		sdb_set (s, key, val, cas);
 	}
