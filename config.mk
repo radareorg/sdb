@@ -33,6 +33,7 @@ CFLAGS+=-Wall
 #CFLAGS+=-O3
 #CFLAGS+=-ggdb -g -Wall -O0
 CFLAGS+=-g
+LDFLAGS+=-g
 
 HAVE_VALA=$(shell valac --version 2> /dev/null)
 # This is hacky
