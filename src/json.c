@@ -94,8 +94,7 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 			int is_str = isstring (v);
 			const char *q = is_str?"\"":"";
 			sprintf (b, "{\"%s\":%s%s%s}", p, q,v, q);
-			sdb_set (s, k, b, cas);
-			free (b);
+			sdb_set_owned (s, k, b, cas);
 			free (js);
 			return 1;
 		}
@@ -118,8 +117,7 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 			sprintf (b, "{\"%s\":%s%s%s%s", p, q,v, q, e);
 			// TODO: verify ending }
 			strcat (b, js+1);
-			sdb_set (s, k, b, cas);
-			free (b);
+			sdb_set_owned (s, k, b, cas);
 			free (js);
 			return 1;
 		}
@@ -194,8 +192,7 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 		memcpy (str+len[0], beg[2], len[2]+1);
 	}
 
-	sdb_set (s, k, str, cas);
-	free (str);
+	sdb_set_owned (s, k, str, cas);
 	free (js);
 	return 1;
 }

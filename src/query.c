@@ -506,11 +506,13 @@ next_quote:
 					int idx = atoi (cmd+1);
 					ok = sdb_array_set (s, p, idx, sval, 0);
 // TODO: handle when idx > sdb_alen
+					if (encode)
+						free (sval);
 				} else {
-					ok = sdb_set (s, p, sval, 0);
+					if (encode) ok = sdb_set_owned (s, p, sval, 0);
+					else ok = sdb_set (s, p, sval, 0);
+
 				}
-				if (encode)
-					free (sval);
 				if (ok) *buf = 0;
 			} else {
 				/* [3]foo */

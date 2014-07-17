@@ -256,9 +256,8 @@ SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 		memmove (p, p+vlen, strlen (p+vlen)+1);
 		mod = 1;
 	}
-	if (mod)
-		sdb_set (s, key, v, 0);
-	free (v);
+	if (mod) sdb_set_owned (s, key, v, 0);
+	else free (v);
 	return 0;
 }
 
@@ -276,9 +275,7 @@ SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	o = malloc (kl+vl+1);
 	memcpy (o, p, kl);
 	memcpy (o+kl, value, vl+1);
-	ret = sdb_set (s, key, o, cas);
-	free (o);
-	return ret;
+	return sdb_set_owned (s, key, o, cas);
 }
 
 // set if not defined
@@ -319,14 +316,19 @@ SDB_API void sdb_reset (Sdb* s) {
 
 // TODO: too many allocs here. use slices
 SDB_API SdbKv* sdb_kv_new (const char *k, const char *v) {
-	int vl = strlen (v)+1;
+	SdbKv *kv;
+	int vl = v?strlen (v)+1:0;
 	if (!sdb_check_key (k))
 		return NULL;
-	SdbKv *kv = R_NEW (SdbKv);
+	if (!sdb_check_value (v))
+		return NULL;
+	kv = R_NEW (SdbKv);
 	strncpy (kv->key, k, sizeof (kv->key)-1);
-	kv->value = malloc (vl);
 	kv->value_len = vl;
-	memcpy (kv->value, v, vl);
+	if (vl) {
+		kv->value = malloc (vl);
+		memcpy (kv->value, v, vl);
+	} else kv->value = NULL;
 	kv->cas = nextcas ();
 	kv->expire = 0LL;
 	return kv;
@@ -337,6 +339,49 @@ SDB_API void sdb_kv_free (SdbKv *kv) {
 	free (kv);
 }
 
+SDB_API int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas) {
+	ut32 hash, klen;
+	int vlen;
+	SdbHashEntry *e;
+	SdbKv *kv;
+	if (!s || !key)
+		return 0;
+	if (!sdb_check_key (key))
+		return 0;
+	if (!val) val = "";
+	if (!sdb_check_value (val))
+		return 0;
+	klen = strlen (key)+1;
+	vlen = strlen (val)+1;
+	hash = sdb_hash (key);
+	cdb_findstart (&s->db);
+	e = ht_search (s->ht, hash);
+	if (e) {
+		if (cdb_findnext (&s->db, hash, key, klen)) {
+			kv = e->data;
+			if (cas && kv->cas != cas)
+				return 0;
+			kv->cas = cas = nextcas ();
+			if (vlen>kv->value_len) {
+				free (kv->value);
+				kv->value = malloc (vlen);
+			}
+			kv->value_len = vlen;
+			kv->value = val; // owned
+		} else ht_delete_entry (s->ht, e);
+		sdb_hook_call (s, key, val);
+		return cas;
+	}
+	// empty values are also stored
+	// TODO store only the ones that are in the CDB
+	kv = sdb_kv_new (key, NULL);
+	kv->value = val; // owned
+	kv->value_len = vlen; // owned
+	kv->cas = nextcas ();
+	ht_insert (s->ht, hash, kv, NULL);
+	sdb_hook_call (s, key, val);
+	return kv->cas;
+}
 SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	ut32 hash, klen;
 	SdbHashEntry *e;
@@ -588,8 +633,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 		return 0;
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
-	sdb_set (s, key, buf, cas);
-	free (buf);
+	sdb_set_owned (s, key, buf, cas);
 	return sdb_expire_set (s, key, expire, cas); // recursive
 }
 
