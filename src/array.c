@@ -138,6 +138,7 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 			x[lnstr+lval+1] = SDB_RS;
 			// TODO: this strlen hurts performance
 			memcpy (x+lval+2+lnstr, ptr, lptr); //strlen (ptr)+1);
+			free (nstr);
 		} else {
 			// this is not efficient
 			free (nstr);
@@ -145,7 +146,6 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 			// fallback for empty buckets
 			return sdb_array_set (s, key, idx, val, cas);
 		}
-		free (nstr);
 	}
 	return sdb_set_owned (s, key, x, cas);
 }
@@ -184,6 +184,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 	const char *usr, *str = sdb_const_get_len (s, key, &lstr, 0);
 	if (!str || !*str)
 		return sdb_set (s, key, val, cas);
+	// XXX: should we cache sdb_alen value inside kv?
 	len = sdb_alen (str);
 	lstr--;
 	if (idx<0 || idx==len) // append
@@ -195,7 +196,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 		if (!newkey)
 			return 0;
 		for (i=0; i<ilen; i++)
-			newkey [i]=',';
+			newkey [i] = SDB_RS;
 		memcpy (newkey+i, val, lval+1);
 		ret = sdb_array_insert (s, key, -1, newkey, cas);
 		free (newkey);
@@ -415,9 +416,9 @@ SDB_API char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas) {
 	for (end = str+strlen (str)-1;
 		end>str && *end!=SDB_RS; end--);
 	if (*end==SDB_RS) *end++ = 0;
-	end = strdup (end);
 	sdb_set_owned (s, key, str, 0);
-	return end;
+	// XXX: probably wrong
+	return strdup (end);
 #endif
 }
 
