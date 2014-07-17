@@ -412,13 +412,13 @@ SDB_API char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas) {
 	}
 	return str;
 #else
-	for (end = str+strlen(str)-1;
+	for (end = str+strlen (str)-1;
 		end>str && *end!=SDB_RS; end--);
 	if (*end==SDB_RS) *end++ = 0;
-	ret = strdup (end);
+	end = strdup (end);
 	sdb_set (s, key, str, 0);
 	free (str);
-	return ret;
+	return end;
 #endif
 }
 
