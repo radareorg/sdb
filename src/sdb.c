@@ -29,7 +29,7 @@ SDB_API Sdb* sdb_new0 () {
 
 SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
         struct stat st = {0};
-	Sdb* s = R_NEW (Sdb);
+	Sdb* s = R_NEW0 (Sdb);
 	if (!s) return NULL;
 	s->dir = NULL;
 	s->refs = 1;
@@ -70,33 +70,23 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 		s->name = strdup (name);
 		s->path = path? strdup (path): NULL;
 	} else {
-		s->dir = NULL;
 		s->last = sdb_now ();
-		s->name = NULL;
-		s->path = NULL;
 		s->fd = -1;
 	}
-	s->options = 0;
 	s->fdump = -1;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
 	if (!s->ns)
 		goto fail;
 	s->ns->free = NULL;
-	s->ns_lock = 0;
 	if (!s->ns) goto fail;
-	s->hooks = NULL;
 	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 	s->lock = lock;
-	s->expire = 0LL;
-	s->tmpkv.value = NULL;
-	s->tmpkv.value_len = 0;
 	//s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
 	if (global_hook)
 		sdb_hook (s, global_hook, global_user);
 	cdb_init (&s->db, s->fd);
-	cdb_findstart (&s->db);
 	return s;
 fail:
 	free (s->dir);
@@ -143,7 +133,7 @@ SDB_API int sdb_free (Sdb* s) {
 		if (s->refs>0)
 			s->refs--;
 		if (!s->refs) {
-			sdb_fini (s, 1);
+			sdb_fini (s, 0);
 			s->ht = NULL;
 			free (s);
 			return 1;

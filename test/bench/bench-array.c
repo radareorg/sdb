@@ -20,11 +20,11 @@ int main(int argc, char **argv) {
 	arradd (100);
 	arradd (1000);
 	arradd (10000);
+	arradd (17000);
 #if 0
-	arradd (20000);
 	arradd (40000);
+	arradd (100000);
 	// ETOOSLOW //
-	arradd (1000000);
 	arradd (10000000);
 	arradd (100000000);
 #endif
