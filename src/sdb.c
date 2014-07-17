@@ -331,9 +331,9 @@ SDB_API void sdb_kv_free (SdbKv *kv) {
 
 static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32 cas) {
 	ut32 hash, klen;
-	int vlen;
 	SdbHashEntry *e;
 	SdbKv *kv;
+	int vlen;
 	if (!s || !key)
 		return 0;
 	if (!sdb_check_key (key))
@@ -368,9 +368,13 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	}
 	// empty values are also stored
 	// TODO store only the ones that are in the CDB
-	kv = sdb_kv_new (key, NULL);
-	kv->value = val; // owned
-	kv->value_len = vlen; // owned
+	if (owned) {
+		kv = sdb_kv_new (key, NULL);
+		kv->value = val; // owned
+		kv->value_len = vlen; // owned
+	} else {
+		kv = sdb_kv_new (key, val);
+	}
 	kv->cas = nextcas ();
 	ht_insert (s->ht, hash, kv, NULL);
 	sdb_hook_call (s, key, val);
