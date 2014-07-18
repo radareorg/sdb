@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 static void cmdhash(const char *s) {
-	int i;
+	unsigned int i;
 	char su[100];
 	for (i=0; s[i]; i++)
 		su[i] = toupper (s[i]);
