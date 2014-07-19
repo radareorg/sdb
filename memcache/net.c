@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <signal.h>
 #include <stdio.h>
+#include <sys/socket.h>
 #include <stdarg.h>
 
 static char netbuf[MCSDB_MAX_BUFFER];
@@ -56,12 +57,16 @@ int net_printf (int fd, const char *fmt, ...) {
 }
 
 void net_sockopt (int fd) {
+#if __linux__
 	struct linger ling = {0, 0};
+#endif
 	int flags = 1;
         (void)setsockopt (fd, SOL_SOCKET, SO_REUSEADDR,
 		(void *)&flags, sizeof (flags));
+#if __linux__
 	(void)setsockopt (fd, SOL_SOCKET, SO_LINGER,
 		(void *)&ling, sizeof (ling));
+#endif
 }
 
 int net_listen (int port) {
