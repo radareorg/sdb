@@ -360,7 +360,8 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 				}
 				kv->value = val; // owned
 			} else {
-				memcpy (kv->value, val, vlen);
+				free (kv->value);
+				kv->value = strdup (val);
 			}
 		} else ht_delete_entry (s->ht, e);
 		sdb_hook_call (s, key, val);
