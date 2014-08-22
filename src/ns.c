@@ -67,7 +67,9 @@ static void ns_free(Sdb *s, SdbList *list) {
 }
 
 SDB_API void sdb_ns_free(Sdb *s) {
-	SdbList *list = ls_new ();
+	SdbList *list;
+	if (!s) return;
+	list = ls_new ();
 	list->free = NULL;
 	ns_free (s, list);
 	ls_free (list);
