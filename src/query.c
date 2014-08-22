@@ -139,15 +139,16 @@ static void walk_namespace (StrBuf *sb, char *root, int left, char *p, SdbNs *ns
 	}
 }
 
-SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *cmd) {
+SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *_cmd) {
 	int i, d, ok, w, alength, bufset = 0, is_ref = 0, encode = 0;
-	char *eq, *tmp, *json, *next, *quot, *arroba, *res;
+	char *eq, *tmp, *json, *next, *quot, *arroba, *res, *cmd, *newcmd;
 	const char *p, *q, *val = NULL;
 	StrBuf *out;
 	Sdb *s = r;
 	ut64 n;
-	if (!s || (!cmd && !buf)) return NULL;
+	if (!s || (!_cmd && !buf)) return NULL;
 	out = strbuf_new ();
+	cmd = newcmd = strdup (_cmd);
 	if (cmd) {
 		if (len<1 || !buf) {
 			bufset = 1;
@@ -225,9 +226,7 @@ next_quote:
 		if (!s) {
 			eprintf ("Cant find namespace %s\n", cmd);
 			strbuf_free (out);
-			if (bufset)
-				free (buf);
-			return NULL;
+			goto fin;
 		}
 		cmd = arroba+1;
 		arroba = strchr (cmd, '/');
@@ -240,7 +239,6 @@ next_quote:
 		out_concat (type);
 	} else
 	if (*cmd=='*') {
-		char *res;
 		if (!strcmp (cmd, "***")) {
 			char root[1024]; // limit namespace length?
 			SdbListIter *it;
@@ -254,32 +252,20 @@ next_quote:
 						root+len, ns, encode);
 				} else eprintf ("TODO: Namespace too long\n");
 			}
-			if (bufset)
-				free (buf);
-			res = out->buf;
-			free (out);
-			return res;
-		}
+			goto fail;
+		} else
 		if (!strcmp (cmd, "**")) {
 			SdbListIter *it;
 			SdbNs *ns;
 			ls_foreach (s->ns, it, ns) {
 				out_concat (ns->name);
 			}
-			if (bufset)
-				free (buf);
-			res = out->buf;
-			free (out);
-			return res;
-		}
+			goto fail;
+		} else
 		if (!strcmp (cmd, "*")) {
 			ForeachListUser user = { out, encode };
 			sdb_foreach (s, foreach_list_cb, &user);
-			if (bufset)
-				free (buf);
-			res = out->buf;
-			free (out);
-			return res;
+			goto fail;
 		}
 	}
 	json = strchr (cmd, ':');
@@ -293,10 +279,11 @@ next_quote:
 		p = (const char *)tp;
 	} else p = cmd;
 
-// USELESS
 	if (*cmd=='$') {
-		cmd = sdb_const_get (s, cmd+1, 0);
-		if (!cmd) cmd = "";
+		char *nc = sdb_get (s, cmd+1, 0);
+		free (newcmd);
+		cmd = newcmd = nc;
+		if (!cmd) cmd = strdup ("");
 	}
 	// cmd = val
 	// cmd is key and val is value
@@ -535,8 +522,9 @@ next_quote:
 					if (!buf || wl>len) {
 						buf = malloc (wl+2);
 						if (!buf) {
-							printf ("CANNOT MALLOC\n");
-							return NULL;
+							free (out->buf);
+							out->buf = NULL;
+							goto fail;
 						}
 						bufset = 1;
 					}
@@ -625,7 +613,13 @@ fail:
 		free (buf);
 	res = out->buf;
 	free (out);
+	free (newcmd);
 	return res;
+fin:
+	free (newcmd);
+	if (bufset)
+		free (buf);
+	return NULL;
 }
 
 SDB_API int sdb_query (Sdb *s, const char *cmd) {
