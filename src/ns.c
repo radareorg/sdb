@@ -25,7 +25,6 @@ static int in_list(SdbList *list, void *item) {
 }
 
 static void ns_free(Sdb *s, SdbList *list) {
-	SdbList *ons = NULL;
 	SdbListIter next;
 	SdbListIter *it;
 	int deleted;
