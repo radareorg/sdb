@@ -18,7 +18,9 @@ int main (int argc, char **argv) {
 		if (c>3)
 			sdb_ns_set (s, "food", n);
 		if (c>4)
-			sdb_ns_set (sdb_ns (s, "food", 1), "penis", n); //sdb_new0());
+			sdb_ns_set (sdb_ns (s, "food", 1), "penis", n);
+		if (c>5)
+			sdb_ns_set (sdb_ns (s, "flood", 1), "penis", n);
 	}
 	sdb_free (s);
 	return 0;
