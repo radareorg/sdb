@@ -6,6 +6,7 @@ int main (int argc, char **argv) {
 	Sdb *s = sdb_new0 ();
 	if (!s) {
 		eprintf ("SDB FAIL\n");
+		return 1;
 	}
 	if (c>0) {
 		sdb_query (s, "a=b");
