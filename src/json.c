@@ -143,7 +143,10 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 	// TODO: accelerate with small buffer in stack for small jsons
 	if (*v) {
 		int is_str = isstring (v);
-		str = malloc (len[0]+len[1]+len[2]+1);
+		int msz = len[0]+len[1]+len[2]+1;
+		if (msz<1)
+			return 0;
+		str = malloc (msz);
 		idx = len[0];
 		memcpy (str, beg[0], idx);
 		if (is_str) {
@@ -156,7 +159,6 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 				idx--;
 			}
 		}
-
 		l = len[1];
 		memcpy (str+idx, beg[1], l);
 		idx += len[1];
@@ -190,7 +192,6 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 			beg[2]--;
 		memcpy (str+len[0], beg[2], len[2]+1);
 	}
-
 	sdb_set_owned (s, k, str, cas);
 	free (js);
 	return 1;
