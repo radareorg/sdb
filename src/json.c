@@ -111,7 +111,7 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 	}
 	rs = json_get (js, p);
 	if (!rs.p) {
-		char *b = malloc (strlen (js)+strlen(k)+strlen (v)+5);
+		char *b = malloc (strlen (js)+strlen(k)+strlen (v)+32);
 		if (b) {
 			int is_str = isstring (v);
 			const char *q = is_str?"\"":"";
@@ -149,7 +149,7 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 	// TODO: accelerate with small buffer in stack for small jsons
 	if (*v) {
 		int is_str = isstring (v);
-		int msz = len[0]+len[1]+len[2]+1;
+		int msz = len[0]+len[1]+len[2]+strlen (v);
 		if (msz<1)
 			return 0;
 		str = malloc (msz);
