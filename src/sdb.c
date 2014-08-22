@@ -129,10 +129,10 @@ static void sdb_fini(Sdb* s, int donull) {
 }
 
 SDB_API int sdb_free (Sdb* s) {
-	if (s && s->ht) {
-		if (s->refs>0)
-			s->refs--;
-		if (!s->refs) {
+	if (s && s->ht && s->refs) {
+		s->refs--;
+		if (s->refs<1) {
+			s->refs = 0;
 			sdb_fini (s, 0);
 			s->ht = NULL;
 			free (s);
