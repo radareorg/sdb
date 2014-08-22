@@ -39,23 +39,24 @@ static void ns_free(Sdb *s, SdbList *list) {
 		deleted = 0;
 		next.n = it->n;
 		if (!in_list (list, ns)) {
-			ls_append (list, ns);
-			ls_append (list, ns->sdb);
+			ls_delete (s->ns, it); // free (it)
 			free (ns->name);
 			ns->name = NULL;
-			ns_free (ns->sdb, list);
-			ls_delete (s->ns, it); // free (it)
 			deleted = 1;
 			if (ns->sdb) {
-				ns->sdb->ns = NULL;
 				if (sdb_free (ns->sdb)) {
 					ns->sdb = NULL;
 					free (ns->name);
 					ns->name = NULL;
 				}
 			}
+			ls_append (list, ns);
+			ls_append (list, ns->sdb);
+			ns_free (ns->sdb, list);
+			sdb_free (ns->sdb);
 		}
 		if (!deleted) {
+			sdb_free (ns->sdb);
 			s->ns->free = NULL;
 			ls_delete (s->ns, it); // free (it)
 		}
@@ -95,8 +96,6 @@ static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	ns->sdb = sdb_new0 ();
 	// TODO: generate path
 
-	//ls_free (ns->sdb->ns);
-	//ns->sdb->ns = NULL;
 	if (ns->sdb) {
 		free (ns->sdb->path);
 		ns->sdb->path = NULL;

@@ -12,3 +12,5 @@ LIBS+=$(SDBPATH)/libsdb.a
 
 chk: chk.o
 	${CC} chk.o -o chk ${LIBS}
+
+.PHONY: chk
