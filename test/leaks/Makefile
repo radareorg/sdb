@@ -1,5 +1,6 @@
 all: chk qry jsn
 	@echo JSN
+	@./leak.sh ./jsn 6
 	@./leak.sh ./jsn 5
 	@./leak.sh ./jsn 4
 	@./leak.sh ./jsn 3

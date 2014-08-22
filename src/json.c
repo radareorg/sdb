@@ -94,7 +94,13 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 			int is_str = isstring (v);
 			const char *q = is_str?"\"":"";
 			sprintf (b, "{\"%s\":%s%s%s}", p, q, v, q);
+#if 0
+			/* disabled because it memleaks */
 			sdb_set_owned (s, k, b, cas);
+#else
+			sdb_set (s, k, b, cas);
+			free (b);
+#endif
 			return 1;
 		}
 		return 0;

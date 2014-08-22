@@ -353,15 +353,16 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 				return 0;
 			kv->cas = cas = nextcas ();
 			if (owned) {
-				free (kv->value);
 				kv->value_len = vlen;
+				free (kv->value);
 				kv->value = val; // owned
 			} else {
 				if (vlen>kv->value_len) {
 					free (kv->value);
 					kv->value = strdup (val);
+				} else {
+					memcpy (kv->value, val, vlen);
 				}
-				memcpy (kv->value, val, vlen);
 				kv->value_len = vlen;
 			}
 		} else ht_delete_entry (s->ht, e);
@@ -373,8 +374,8 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	if (owned) {
 		kv = sdb_kv_new (key, NULL);
 		if (kv) {
-			kv->value = val; // owned
-			kv->value_len = vlen; // owned
+			kv->value = val;
+			kv->value_len = vlen;
 		}
 	} else {
 		kv = sdb_kv_new (key, val);
@@ -385,6 +386,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 		sdb_hook_call (s, key, val);
 		return kv->cas;
 	}
+	sdb_hook_call (s, key, val);
 	return 0;
 }
 
