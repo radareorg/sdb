@@ -148,13 +148,17 @@ SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *_cmd) {
 	ut64 n;
 	if (!s || (!_cmd && !buf)) return NULL;
 	out = strbuf_new ();
-	cmd = newcmd = strdup (_cmd);
-	if (cmd) {
+	if (_cmd) {
+		cmd = newcmd = strdup (_cmd);
+		if (!cmd)
+			return NULL;
+	} else {
 		if (len<1 || !buf) {
 			bufset = 1;
 			buf = malloc ((len=64));
 		}
-	} else cmd = buf;
+		cmd = buf;
+	}
 	// if cmd is null, we take buf as cmd
 	next = NULL;
 repeat:
