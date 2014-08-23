@@ -212,10 +212,8 @@ next_quote:
 		} else {
 			eprintf ("Missing quote\n");
 			*eq++ = 0;
-			if (bufset)
-				free (buf);
-			strbuf_free (out);
-			return NULL;
+			out = strbuf_free (out);
+			goto fail;
 		}
 		next = strchr (quot, ';');
 	} else {
@@ -621,8 +619,12 @@ next_quote:
 fail:
 	if (bufset)
 		free (buf);
-	res = out->buf;
-	free (out);
+	if (out) {
+		res = out->buf;
+		free (out);
+	} else {
+		res = NULL;
+	}
 	free (newcmd);
 	return res;
 fin:
