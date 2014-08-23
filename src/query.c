@@ -227,8 +227,8 @@ next_quote:
 		s = sdb_ns (s, cmd, eq?1:0);
 		if (!s) {
 			eprintf ("Cant find namespace %s\n", cmd);
-			strbuf_free (out);
-			goto fin;
+			out = strbuf_free (out);
+			goto fail;
 		}
 		cmd = arroba+1;
 		arroba = strchr (cmd, '/');
@@ -627,11 +627,6 @@ fail:
 	}
 	free (newcmd);
 	return res;
-fin:
-	free (newcmd);
-	if (bufset)
-		free (buf);
-	return NULL;
 }
 
 SDB_API int sdb_query (Sdb *s, const char *cmd) {
