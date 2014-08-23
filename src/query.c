@@ -345,14 +345,20 @@ next_quote:
 			if (base==16) {
 				w = snprintf (buf, len-1, "0x%"ULLFMT"x", n);
 				if (w<0 || (size_t)w>len) {
-					buf = malloc (0xff);
+					if (bufset && len<0xff) {
+						free (buf);
+						buf = malloc (0xff);
+					}
 					bufset = 1;
 					snprintf (buf, 0xff, "0x%"ULLFMT"x", n);
 				}
 			} else {
 				w = snprintf (buf, len-1, "%"ULLFMT"d", n);
 				if (w<0 || (size_t)w>len) {
-					buf = malloc (0xff);
+					if (bufset && len<0xff) {
+						free (buf);
+						buf = malloc (0xff);
+					}
 					bufset = 1;
 					snprintf (buf, 0xff, "%"ULLFMT"d", n);
 				}
