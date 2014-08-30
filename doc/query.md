@@ -69,3 +69,11 @@ Encoding strings work like this:
 
 Namespaces
 ----------
+
+Accessing namespaces with an sdb query is done by the '/' char in the 'key' part. It will recursively walk inside each namespace. For example:
+
+    foo/bar=3    ; sdb_num_set(DB, "bar", sdb_ns(DB, "foo"), 3);
+
+The use of slashes dynamically creates new Sdb instances under the given namespace. And it also permits to use the array, encoding, numeric prefixes:
+
+    %foo/bar=Hello

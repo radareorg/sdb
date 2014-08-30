@@ -1,7 +1,7 @@
 References
 ==========
 
-Sdb databases use reference counting to destroy itselfs. In the most common case that would not be used, see the following example:
+The Sdb databases uses a reference counting system to identify which Sdb instances must be freed from the namespaces (SdbNs). When you create a new instance it comes with the reference counter variable set to 1. And everytime you add a new reference to it from another place it will increase that counter. In the most common case that would not be used, see the following example:
 
 	Sdb* s = sdb_new (NULL, NULL, 0);
 	sdb_free (s);
@@ -12,13 +12,13 @@ That's not really useful in this situation but we may probably fall into issues 
 
 The second scenario will look like this:
 
-	Sdb* s = sdb_new0 ();
-	Sdb* r = sdb_new0 ();
-	sdb_ns_set (s, "r", r);
-	sdb_free (s);
-	sdb_free (r);
+	Sdb* s = sdb_new0 ();   // s->refs = 1
+	Sdb* r = sdb_new0 ();   // r->refs = 1
+	sdb_ns_set (s, "r", r); // r->refs = 2
+	sdb_free (s);           // s->refs = 0 r->refs = 1
+	sdb_free (r);           // s->refs = 0
 
-Normal Namespace usage (without referencing other databases doesnt requires refcounting:
+Most common sdb namespace usage (without referencing other databases doesnt requires refcounting:
 
 	Sdb* s = sdb_new0 ();
 	Sdb* r = sdb_ns (s, "r");
