@@ -3,11 +3,11 @@
 #include <signal.h>
 #include "mcsdb.h"
 #include "../src/types.h"
-#include <netinet/in.h>
 #include <fcntl.h>
 #if WINDOWS
 #include <windows.h>
 #else
+#include <netinet/in.h>
 #include <sys/socket.h>
 #endif
 

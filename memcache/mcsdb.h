@@ -2,7 +2,9 @@
 #define _INCLUDE_SDB_MCSDB_H_
 
 #include "sdb.h"
+#if !__WINDOWS__
 #include <poll.h>
+#endif
 
 /* "mcsdb.sdb" */
 #define MCSDB_FILE NULL
