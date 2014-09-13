@@ -88,6 +88,8 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 	Rangstr rs;
 	ut32 c;
 
+	if (!s || !k)
+		return 0; 
 	js = sdb_get (s, k, &c);
 	if (!js) {
 		b = malloc (strlen (p)+strlen (v)+8);
