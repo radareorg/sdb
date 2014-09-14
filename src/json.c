@@ -216,13 +216,19 @@ SDB_API char *sdb_json_indent(const char *s) {
 	char *o, *O, *OE, *tmp;
 	if (!s) return NULL;
 	osz = (1+strlen (s)) * 20;
+	if (osz<1) return NULL;
 	O = malloc (osz);
+	if (!O) return NULL;
 	OE = O+osz;
 	if (!O) return NULL;
 	for (o=O; *s; s++) {
 		if (o + indent + 10 > OE) {
 			int delta = o-O;
 			osz += 0x1000+indent;
+			if (osz<1) {
+				free (O);
+				return NULL;
+			}
 			tmp = realloc (O, osz);
 			if (!O) {
 				free (tmp);
