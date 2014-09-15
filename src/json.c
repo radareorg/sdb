@@ -220,7 +220,6 @@ SDB_API char *sdb_json_indent(const char *s) {
 	O = malloc (osz);
 	if (!O) return NULL;
 	OE = O+osz;
-	if (!O) return NULL;
 	for (o=O; *s; s++) {
 		if (o + indent + 10 > OE) {
 			int delta = o-O;
