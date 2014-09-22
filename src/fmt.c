@@ -18,6 +18,9 @@ SDB_API char *sdb_fmt(int n, const char *fmt, ...) {
         va_list ap;
         if (n<0 || n>15)
                 return NULL;
+	if (fmt == NULL) {
+		return Key[n];
+	}
         va_start (ap, fmt);
         *Key[n] = 0;
         vsnprintf (Key[n], 255, fmt, ap);
