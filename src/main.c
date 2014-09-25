@@ -22,7 +22,8 @@ static void terminate(int sig UNUSED) {
 
 static char *stdin_gets() {
 	static char buf[96096];
-	fgets (buf, sizeof (buf)-1, stdin);
+	if (!fgets (buf, sizeof (buf)-1, stdin))
+		return NULL;;
 	if (feof (stdin)) return NULL;
 	buf[strlen (buf)-1] = 0;
 	return strdup (buf);
