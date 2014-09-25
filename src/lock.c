@@ -33,8 +33,10 @@ SDB_API int sdb_lock(const char *s) {
 		return 0;
 	pid = sdb_itoa (getpid(), pidstr, 10);
 	if (pid) {
-		write (fd, pid, strlen (pid));
-		write (fd, "\n", 1);
+		if (write (fd, pid, strlen (pid)) < 0)
+			return 0;
+		if (write (fd, "\n", 1) < 0)
+			return 0;
 	}
 	close (fd);
 	return 1;
