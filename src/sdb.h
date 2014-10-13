@@ -78,7 +78,10 @@ typedef struct sdb_ns_t {
 
 SDB_API Sdb* sdb_new0 ();
 Sdb* sdb_new (const char *path, const char *file, int lock);
-void sdb_close (Sdb *s, int fd);
+
+int sdb_open (Sdb *s, const char *file);
+void sdb_close (Sdb *s);
+
 void sdb_config (Sdb *s, int options);
 int  sdb_free (Sdb* s);
 void sdb_file (Sdb* s, const char *dir);

@@ -54,11 +54,8 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 				goto fail;
 			break;
 		}
-		s->dir = (name&&*name)? strdup (name): NULL;
-		if (s->dir) 
-			s->fd = open (s->dir, O_RDONLY|O_BINARY);
-		else s->fd = -1;
-		if (s->fd != -1) {
+		s->dir = strdup (name);
+		if (sdb_open (s, s->dir) != -1) {
 			if (fstat (s->fd, &st) != -1)
 				if ((S_IFREG & st.st_mode)!=S_IFREG)
 					goto fail;
@@ -89,6 +86,8 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	cdb_init (&s->db, s->fd);
 	return s;
 fail:
+	close (s->fd);
+	s->fd = -1;
 	free (s->dir);
 	free (s);
 	return NULL;
@@ -293,21 +292,25 @@ SDB_API int sdb_exists (Sdb* s, const char *key) {
 	return 0;
 }
 
-/* sdb_close
- * close current fd and set a new one.
- * this is useful to disable the disk cache setting it to -1
- * */
-SDB_API void sdb_close (Sdb *s, int fd) {
-	if (s->fd != -1)
+SDB_API int sdb_open (Sdb *s, const char *file) {
+	sdb_close (s);
+	if (s->dir)
+		s->fd = open (file, O_RDONLY|O_BINARY);
+	return s->fd;
+}
+
+SDB_API void sdb_close (Sdb *s) {
+	if (s->fd != -1) {
 		close (s->fd);
-	s->fd = fd;
+		s->fd = -1;
+	}
 }
 
 SDB_API void sdb_reset (Sdb* s) {
 	if (!s) return;
 	/* ignore disk cache, file is not removed, but we will ignore
 	 * its values when syncing again */
-	sdb_close (s, -1);
+	sdb_close (s);
 	/* empty memory hashtable */
 	if (s->ht)
 		ht_free (s->ht);
