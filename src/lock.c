@@ -28,7 +28,7 @@ SDB_API int sdb_lock(const char *s) {
 	int fd;
 	char *pid, pidstr[64];
 	if (!s) return 0;
-	fd = open (s, O_CREAT | O_TRUNC | O_WRONLY | O_EXCL, 0644);
+	fd = open (s, O_CREAT | O_TRUNC | O_WRONLY | O_EXCL, SDB_MODE);
 	if (fd==-1)
 		return 0;
 	pid = sdb_itoa (getpid(), pidstr, 10);

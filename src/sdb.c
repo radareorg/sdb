@@ -293,13 +293,21 @@ SDB_API int sdb_exists (Sdb* s, const char *key) {
 	return 0;
 }
 
+/* sdb_close
+ * close current fd and set a new one.
+ * this is useful to disable the disk cache setting it to -1
+ * */
+SDB_API void sdb_close (Sdb *s, int fd) {
+	if (s->fd != -1)
+		close (s->fd);
+	s->fd = fd;
+}
+
 SDB_API void sdb_reset (Sdb* s) {
 	if (!s) return;
-	/* disable disk cache */
-	if (s->fd != -1) {
-		close (s->fd);
-		s->fd = -1;
-	}
+	/* ignore disk cache, file is not removed, but we will ignore
+	 * its values when syncing again */
+	sdb_close (s, -1);
 	/* empty memory hashtable */
 	if (s->ht)
 		ht_free (s->ht);
