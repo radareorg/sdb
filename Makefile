@@ -60,6 +60,7 @@ INCFILES+=src/ls.h src/cdb_make.h src/buffer.h src/config.h
 install: install-dirs
 	$(INSTALL_MAN) src/sdb.1 ${MANDIR}
 	$(INSTALL_LIB) src/libsdb.${SOEXT} ${PFX}/lib
+	$(INSTALL_DATA) src/libsdb.a ${PFX}/lib
 	-if [ "$(SOEXT)" != "$(SOVER)" ]; then \
 	cd $(PFX)/lib ; \
 	mv libsdb.$(SOEXT) libsdb.$(SOVER) ; \
