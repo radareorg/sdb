@@ -7,5 +7,5 @@ Name: sdb
 Description: Simple DataBase
 Version: 0.6.4
 Requires:
-Libs: ${libdir}/libsdb.a
+Libs: -L${libdir} -lsdb
 Cflags: -I${includedir}
