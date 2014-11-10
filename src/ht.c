@@ -137,7 +137,7 @@ rehash = 0;
 }
 
 SdbHash* ht_new(SdbListFree f) {
-	SdbHash *ht = R_NEW (SdbHash);
+	SdbHash *ht = malloc (sizeof(SdbHash));
 	if (!ht) return NULL;
 	// TODO: use slices here
 	ht->list = ls_new ();
