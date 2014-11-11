@@ -1,11 +1,11 @@
-prefix=/usr
+prefix=@@PREFIX@@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include/sdb
 
 Name: mcsdb
 Description: Memcache on Simple DataBase
-Version: 0.2
+Version: @@VERSION@@
 Requires:
-Libs: ${libdir}/libmcsdb.a
+Libs: -L${libdir} -lmcsdb
 Cflags: -I${includedir}
