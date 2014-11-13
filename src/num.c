@@ -62,20 +62,32 @@ SDB_API int sdb_bool_get(Sdb *db, const char *str, ut32 *cas) {
 	return (!strcmp (b, "1") || !strcmp (b, "true"))? 1: 0;
 }
 
-SDB_API int sdb_num_min(Sdb *db, const char *key, ut64 v, ut32 cas) {
-	ut64 val;
-	if (!(val = sdb_num_get(db, key, &cas)))
-		return 0;
-	if (v < val)
-		return sdb_num_set(db, key, v, cas);
-	return 1;
+SDB_API int sdb_num_min(Sdb *db, const char*k, ut64 n) {
+    const char* a;
+    ut64 val;
+
+    if ((a = sdb_const_get(db, k, NULL)) == NULL)
+        return 0;
+
+    val = sdb_atoi(a);
+    if (n<val) {
+        sdb_num_set(db, k, n, 0);
+        return 1;
+    }
+    return -1;
 }
 
-SDB_API int sdb_num_max(Sdb *db, const char *key, ut64 v, ut32 cas) {
-	ut64 val;
-	if (!(val = sdb_num_get(db, key, &cas)))
-		return 0;
-	if (v > val)
-		return sdb_num_set(db, key, v, cas);
-	return 1;
+SDB_API int sdb_num_max(Sdb *db, const char*k, ut64 n) {
+    const char* a;
+    ut64 val;
+
+    if ((a = sdb_const_get(db, k, NULL)) == NULL)
+        return 0;
+
+    val = sdb_atoi(a);
+    if (n>val) {
+        sdb_num_set(db, k, n, 0);
+        return 1;
+    }
+    return -1;
 }
