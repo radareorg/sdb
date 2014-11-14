@@ -21,7 +21,7 @@ test:
 	${MAKE} -C test
 
 pkgconfig:
-	${MAKE} -C pkgconfig
+	-${MAKE} -C pkgconfig
 
 src/sdb-version.h:
 	echo '#define SDB_VERSION "${SDBVER}"' > src/sdb-version.h
