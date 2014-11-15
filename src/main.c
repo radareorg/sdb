@@ -210,7 +210,7 @@ int main(int argc, const char **argv) {
 	if (!strcmp (argv[1], "-h")) showusage (2);
 	if (!strcmp (argv[1], "-j")) {
 		if (argc>2)
-			return sdb_dump (argv[db0], MODE_JSON);
+			return sdb_dump (argv[db0+1], MODE_JSON);
 		eprintf ("Missing database filename after -j\n");
 		return 1;
 	}
