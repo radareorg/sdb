@@ -19,7 +19,8 @@ void main () {
 	s = null;
 
 	// open database with lock
-	var s2 = new Sdb (null, "uuid.sdb", true);
+	//var s2 = new Sdb (null, "uuid.sdb", true);
+	var s2 = new Sdb (null, "uuid.sdb", false);
 	if (s2 != null) {
 		var uuid = s2.num_inc ("uuid", 1);
 		print (@"UUID: $uuid\n");
