@@ -229,8 +229,8 @@ SDB_API char *sdb_json_indent(const char *s) {
 				return NULL;
 			}
 			tmp = realloc (O, osz);
-			if (!O) {
-				free (tmp);
+			if (!tmp) {
+				free (O);
 				return NULL;
 			}
 			O = tmp;
