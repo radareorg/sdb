@@ -1,11 +1,11 @@
 namespace SDB {
 	[Compact]
-	[CCode (name="Sdb", cheader_filename="sdb.h", cname="struct sdb_t", cprefix="sdb_", free_function="sdb_free")]
+	[CCode (name="Sdb", cheader_filename="sdb.h", cname="Sdb", cprefix="sdb_", free_function="sdb_free")]
 	public class Sdb {
 		/* lifecycle */
 		public Sdb (string? path=null, string? file=null, bool locked=false);
-		public Sdb ns(string str);
-		public Sdb ns_path(string str);
+		public Sdb ns(string path, bool create);
+		public Sdb ns_path(string path, bool create);
 		public bool sync ();
 		/* query */
 		public bool query(string cmd);
@@ -16,15 +16,16 @@ namespace SDB {
 		public bool @add (string key, string val, uint32 cas=0);
 		public bool @set (string key, string val, uint32 cas=0);
 		/* boolean */
-		public bool bool_get (string key, uint32 cas=0);
-		public bool bool_set (string key, bool v, out uint32? cas = null);
+		public bool bool_get (string key, ref uint32? cas = null);
+		public bool bool_set (string key, bool v, uint32 cas = 0);
 		/* arrays */
 		public int array_length (string key);
 		public string array_get (string key, int idx, out uint32? cas = null);
-		public string array_set (string key, int idx, string val, out uint32? cas = null);
+		public string array_set (string key, int idx, string val, uint32 cas = 0);
 		public bool array_delete (string key, int idx, uint32 cas = 0);
-		public bool array_remove (string key, int idx, uint32 cas = 0);
-		public bool array_contains (string key, string val);
+		public bool array_remove (string key, string val, uint32 cas = 0);
+		public bool array_remove_num (string key, uint64 val, uint32 cas = 0);
+		public bool array_contains (string key, string val, out uint32 cas = null);
 		/* numeric */
 		public bool num_exists (string key);
 		public bool num_set (string key, uint64 num, uint32 cas = 0);
@@ -32,7 +33,7 @@ namespace SDB {
 		public uint64 num_inc (string key, uint64 n, uint32 cas = 0);
 		public uint64 num_dec (string key, uint64 n, uint32 cas = 0);
 		/* json */
-		public string json_get (string key, string path, uint32 *cas = null);
+		public string json_get (string key, string path, out uint32? cas = null);
 		public string json_set (string key, string path, string val, uint32 cas);
 //TODO : st64? ut64 here too?
 		public int json_num_get (string key, string path, uint32 *cas = null);
