@@ -21,8 +21,8 @@ namespace SDB {
 		/* arrays */
 		public int array_length (string key);
 		public string array_get (string key, int idx, out uint32? cas = null);
-		public string array_set (string key, int idx, string val, uint32 cas = 0);
-		public string array_set_num (string key, int idx, uint64 val, uint32 cas = 0);
+		public bool array_set (string key, int idx, string val, uint32 cas = 0);
+		public bool array_set_num (string key, int idx, uint64 val, uint32 cas = 0);
 		public bool array_delete (string key, int idx, uint32 cas = 0);
 		public bool array_remove (string key, string val, uint32 cas = 0);
 		public bool array_remove_num (string key, uint64 val, uint32 cas = 0);
@@ -35,7 +35,7 @@ namespace SDB {
 		public uint64 num_dec (string key, uint64 n, uint32 cas = 0);
 		/* json */
 		public string json_get (string key, string path, out uint32? cas = null);
-		public string json_set (string key, string path, string val, uint32 cas);
+		public bool json_set (string key, string path, string val, uint32 cas);
 //TODO : st64? ut64 here too?
 		public int json_num_get (string key, string path, uint32 *cas = null);
 		public int json_num_set (string key, string path, int v, uint32 cas = 0);
