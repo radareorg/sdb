@@ -20,6 +20,10 @@ endif
 test:
 	${MAKE} -C test
 
+asan:
+	${MAKE} clean
+	${MAKE} CC="gcc -fsanitize=address" LDFLAGS=-lasan all
+
 pkgconfig:
 	[ -d pkgconfig ] && ${MAKE} -C pkgconfig || true
 
