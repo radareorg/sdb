@@ -287,6 +287,7 @@ next_quote:
 
 	if (*cmd=='$') {
 		char *nc = sdb_get (s, cmd+1, 0);
+		free (oldcmd);
 		oldcmd = newcmd; // keep pointer for eq
 		cmd = newcmd = nc;
 //		eq = newcmd; //strchr (newcmd, '=');
