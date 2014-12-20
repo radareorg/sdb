@@ -431,7 +431,6 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 	return sdb_set_internal (s, key, (char*)val, 0, cas);
 }
 
-
 SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbListIter *iter;
 	char *k, *v;
