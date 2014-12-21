@@ -190,6 +190,8 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 	return sdb_const_get_len (s, key, NULL, cas);
 }
 
+// TODO: add sdb_getf?
+
 SDB_API char *sdb_get (Sdb* s, const char *key, /*OUT*/ut32 *cas) {
 	ut32 hash, pos, len, keylen;
 	ut64 now = 0LL;
@@ -737,11 +739,23 @@ SDB_API int sdb_unlink (Sdb* s) {
 }
 
 SDB_API void sdb_drain(Sdb *s, Sdb *f) {
+	if (!s || !f) return;
 	f->refs = s->refs;
 	sdb_fini (s, 1);
 	*s = *f;
 	free (f);
 }
+
+#if 0
+SDB_API void sdb_drain(Sdb *s, Sdb *f) {
+	// drain f contents into s
+	sdb_fini (s, 0);
+	memcpy (s, f, sizeof (Sdb));
+	// invalidates f, but doenst free's
+	// invalidate = close fd, free'd mem hashtable
+	memset (f, 0, sizeof (Sdb));
+}
+#endif
 
 typedef struct {
 	Sdb *sdb;
