@@ -289,11 +289,13 @@ next_quote:
 
 	if (*cmd=='$') {
 		char *nc = sdb_get (s, cmd+1, 0);
-		free (oldcmd);
-		oldcmd = newcmd; // keep pointer for eq
-		cmd = newcmd = nc;
-//		eq = newcmd; //strchr (newcmd, '=');
-		if (!cmd) cmd = strdup ("");
+		if (nc) {
+			free (oldcmd);
+			oldcmd = newcmd;
+			cmd = newcmd = nc;
+		} else {
+			cmd = newcmd = strdup ("");
+		}
 	}
 	// cmd = val
 	// cmd is key and val is value
