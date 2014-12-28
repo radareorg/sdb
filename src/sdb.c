@@ -559,6 +559,8 @@ SDB_API SdbKv *sdb_dump_next (Sdb* s) {
 // TODO: make it static? internal api?
 SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 	ut32 vlen = 0, klen = 0;
+	if (key) *key = NULL;
+	if (value) *value = NULL;
 	if (_vlen)
 		*_vlen = 0;
 	if (s->fd==-1)
