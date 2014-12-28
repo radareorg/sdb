@@ -496,7 +496,7 @@ SDB_API int sdb_sync (Sdb* s) {
 		SdbHashEntry *hte = ht_search (s->ht, hash);
 		if (hte) {
 			kv = (SdbKv*)hte->data;
-			if (*kv->value) {
+			if (kv && *kv->value) {
 				/* asume k = kv->key */
 				sdb_disk_insert (s, k, kv->value);
 			}
