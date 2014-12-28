@@ -505,7 +505,7 @@ SDB_API int sdb_sync (Sdb* s) {
 			ls_delete (s->ht->list, hte->iter);
 			hte->iter = NULL;
 			ht_delete_entry (s->ht, hte);
-		} else if (*v) {
+		} else if (v && *v) {
 			sdb_disk_insert (s, k, v);
 		}
 		free (k);
