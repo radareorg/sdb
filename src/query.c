@@ -154,8 +154,10 @@ SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *_cmd) {
 	out = strbuf_new ();
 	if (_cmd) {
 		cmd = newcmd = strdup (_cmd);
-		if (!cmd)
+		if (!cmd) {
+			free (out);
 			return NULL;
+		}
 	} else {
 		if (len<1 || !buf) {
 			bufset = 1;
