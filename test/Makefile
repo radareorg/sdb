@@ -1,6 +1,7 @@
 .PHONY: all reset
 
 BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain ns nsabuse
+BINS+=bench-expire expire
 CFLAGS=-I../src
 LDFLAGS=../src/libsdb.a
 

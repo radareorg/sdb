@@ -15,9 +15,9 @@ This is an usage example:
 	sdb_set (s, "key", "val", 0);
 	sdb_expire_set (s, "key", 10, 0);
 	sleep (3);
-	assert (sdb_const_get (s, "key") != NULL);
+	assert (sdb_const_get (s, "key", 0) != NULL);
 	sleep (7);
-	assert (sdb_const_get (s, "key") == NULL);
+	assert (sdb_const_get (s, "key", 0) == NULL);
 	sdb_free (s);
 
 The available APIs are:
