@@ -1,13 +1,11 @@
 /* sdb - LGPLv3 - Copyright 2011-2015 - pancake */
 
-#define GETTIMEOFDAY 0
-
 #include "sdb.h"
-
-#if GETTIMEOFDAY
+#if __WINDOWS__
+#define GETTIMEOFDAY 1
 #include <sys/time.h>
 #else
-// use monotonic clock
+#define GETTIMEOFDAY 0
 #include <time.h>
 #endif
 
