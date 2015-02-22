@@ -1,10 +1,9 @@
 .PHONY: all reset
 
 BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain ns nsabuse
-BINS+=bench-expire expire
+BINS+=bench-expire expire dumptwice
 CFLAGS=-I../src
 LDFLAGS=../src/libsdb.a
-
 
 all: $(BINS) reset
 	@suite/run.sh

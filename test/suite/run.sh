@@ -218,7 +218,9 @@ run "K=a,b,c;[-b]K;K" "a,c"
 run "[]K=a,b,c;[-]K=b;[]K" "a\nc"
 run "[b]b" "" # crash test
 
-brk "foo=1,2,3,4;+[1]foo=1;foo" "1,3,3,4"
+run "foo=1,2,3,4;+[1]foo=1;foo" "1,0x3,3,4"
+run "foo=1,2,3,4;+[1]foo" "3"
+run "foo=1,2,3,4;-[1]foo" "1"
 
 title "Set"
 run "K=;[+]K=1;[+]K=1;K" 1
