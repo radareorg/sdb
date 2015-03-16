@@ -1,9 +1,11 @@
 /* sdb - LGPLv3 - Copyright 2012-2014 - pancake */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include "sdb.h"
 #if WINDOWS
 #include <windows.h>
@@ -60,7 +62,19 @@ SDB_API int sdb_lock_wait(const char *s) {
 
 SDB_API void sdb_unlock(const char *s) {
 	//flock (fd, LOCK_UN);
-	unlink (s);
+	if (s && unlink (s) < 0) {
+		char buf[256];
+		strerror_r(errno, buf, sizeof(buf));
+		eprintf ("sdb_unlock: unlink(%s): %s\n", s, buf);
+		if (errno != ENOENT && errno != EISDIR) {
+			// other error type means that the lockfile could not
+			// be removed, so if anyone tries to fetch this lock a
+			// deadlock will happen -- abortion is not an option
+			// (at least without changing the API).
+			eprintf ("sdb_unlock: unlink(%s): aborting for avoiding dead-locks.\n", s);
+			exit (1);
+		}
+	}
 }
 
 #if TEST
