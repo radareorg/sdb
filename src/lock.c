@@ -49,6 +49,11 @@ SDB_API int sdb_lock_wait(const char *s) {
 	// TODO use flock() here
 	// wait forever here?
  	while (!sdb_lock (s)) {
+		// if an error has ocurred, is better to abort this function
+		// without handing the lock over
+		if (errno)
+			return 0;
+
 		// TODO: if waiting too much return 0
 #if WINDOWS
 	 	Sleep (500); // hack
