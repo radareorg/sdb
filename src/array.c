@@ -18,33 +18,72 @@ static const char *Aindexof(const char *str, int idx) {
 	return NULL;
 }
 
-static const char *Aconst_index(const char *str, int idx) {
-	int len = 0;
-	const char *n, *p = str;
-	for (len=0; ; len++) {
-		if (len == idx)
-			return p;
-		n = strchr (p, SDB_RS);
-		if (n) p = n+1;
-		else break;
-	}
-	return NULL;
-}
-
 static int astrcmp (const char *a, const char *b) {
 	for (;;) {
 		if (*a == '\0' || *a == SDB_RS) {
 			if (*b == '\0' || *b == SDB_RS)
 				return 0;
-			return 1;
+			return -1;
 		}
 		if (*b == '\0' || *b == SDB_RS)
 			return 1;
-		if (*a != *b) return 1;
+		if (*a != *b) return (*a-*b > 0) - (*a-*b < 0);
 		a++;
 		b++;
 	}
 	return 1;
+}
+
+static void swap_num(ut64 *a, ut64 *b) {
+	ut64 t = *a;
+	*a = *b;
+	*b = t;
+}
+
+static void swap_ptr(char **a, char **b) {
+	char *t = *a;
+	*a = *b;
+	*b = t;
+}
+
+static void sort_num(ut64 array[], int len) {
+	if (len <= 1) return;
+	swap_num(array+len/2, array+len-1);
+	int low = 0, high = len;
+	while (1) {
+		while (low < high && array[low] < array[len-1])
+			++low;
+		if (low == high--)
+			break;
+		while (low < high && array[high] >= array[len-1])
+			--high;
+		if (low == high)
+			break;
+		swap_num(array+low++, array+high);
+	}
+	swap_num(array+low, array+len-1);
+	sort_num(array, low++);
+	sort_num(array+low, len-low);
+}
+
+static void sort(char *array[], int len) {
+	if (len <= 1) return;
+	swap_ptr(array+len/2, array+len-1);
+	int low = 0, high = len;
+	while (1) {
+		while (low < high && astrcmp(array[low], array[len-1]) < 0)
+			++low;
+		if (low == high--)
+			break;
+		while (low < high && astrcmp(array[high], array[len-1]) >= 0)
+			--high;
+		if (low == high)
+			break;
+		swap_ptr(array+low++, array+high);
+	}
+	swap_ptr(array+low, array+len-1);
+	sort(array, low++);
+	sort(array+low, len-low);
 }
 
 SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, int idx, ut32 *cas) {
@@ -211,7 +250,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 		//memcpy (nstr, str, lstr+1);
 		memcpy (nstr, str, diff);
 		memcpy (ptr, val, lval+1);
-		usr = Aconst_index (str, idx+1);
+		usr = Aindexof (str, idx+1);
 		if (usr) {
 			ptr[lval] = SDB_RS;
 			strcpy (ptr+lval+1, usr);
@@ -420,5 +459,79 @@ SDB_API char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas) {
 	// XXX: probably wrong
 	return strdup (end);
 #endif
+}
+
+SDB_API void sdb_array_sort(Sdb *s, const char *key, ut32 cas) {
+	int lstr, lval, j, i = 0;
+	char *str = sdb_get_len (s, key, &lstr, 0);
+	if (!str || !*str)
+		return;
+	lval = sdb_alen(str);
+	if (lval < 2)
+		return;
+	char *hol[lval], *p = str;
+	hol[i] = p;
+	for (i=1; i<lval; i++) {
+		p = strchr(p, SDB_RS);
+		*p = '\0';
+		p++;
+		hol[i] = p;
+	}
+	sort(hol, lval);
+	char *nval = malloc(lstr);
+	char *q = nval;
+	if (!nval) return;
+	for (i=0; i<lval; i++) {
+		for(j=0; hol[i][j] != '\0'; j++) {
+			*nval = hol[i][j];
+			nval++;
+		}
+		*nval=SDB_RS;
+		nval++;
+	}
+	*(--nval)='\0';
+	sdb_set_owned (s, key, q, cas);
+	free (str);
+	return;
+}
+
+SDB_API void sdb_array_sort_num(Sdb *s, const char *key, ut32 cas) {
+	int lstr, lval, i;
+	const char *str = sdb_const_get_len (s, key, &lstr, 0);
+	if (!str || !*str)
+		return;
+	lval = sdb_alen(str);
+	if (lval < 2)
+		return;
+	ut64 h[lval];
+	const char *p = str;
+	for (i=0; i<lval; i++) {
+		h[i] = sdb_atoi(p);
+		p = strchr(p, SDB_RS)+1;
+	}
+	sort_num(h, lval);
+
+	char b[lval][64];
+	char *bp[lval];
+	size_t la[lval];
+	size_t l = 0;
+	for(i=0; i<lval; i++) {
+		bp[i] = sdb_itoa (h[i], b[i], SDB_NUM_BASE);
+		la[i] = strlen(bp[i]);
+		l += la[i];
+	}
+	// radix change can cause longer val
+	char *nval = malloc(l + lval);
+	if(!nval) return;
+	char *q = nval;
+	for(i=0; i<lval; i++){
+		memcpy(nval, bp[i], la[i]);
+		nval += la[i];
+		*nval = SDB_RS;
+		nval++;
+	}
+	*(--nval)='\0';
+	sdb_set_owned (s, key, q, cas);
+	return;
 }
 

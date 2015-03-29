@@ -105,6 +105,7 @@ int  sdb_exists (Sdb*, const char *key);
 int  sdb_unset (Sdb*, const char *key, ut32 cas);
 int  sdb_unset_matching(Sdb *s, const char *k);
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
+char *sdb_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas);
 const char *sdb_const_get (Sdb*, const char *key, ut32 *cas);
 const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas);
 int  sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
@@ -203,6 +204,8 @@ int sdb_array_insert (Sdb* s, const char *key, int idx, const char *val, ut32 ca
 int sdb_array_insert_num (Sdb* s, const char *key, int idx, ut64 val, ut32 cas);
 int sdb_array_unset (Sdb* s, const char *key, int n, ut32 cas); // leaves empty bucket
 int sdb_array_delete (Sdb* s, const char *key, int n, ut32 cas);
+void sdb_array_sort (Sdb* s, const char *key, ut32 cas);
+void sdb_array_sort_num (Sdb* s, const char *key, ut32 cas);
 // set
 int sdb_array_add (Sdb* s, const char *key, const char *val, ut32 cas);
 int sdb_array_add_num (Sdb* s, const char *key, ut64 val, ut32 cas);

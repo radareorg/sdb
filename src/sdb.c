@@ -195,7 +195,7 @@ SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
 
 // TODO: add sdb_getf?
 
-SDB_API char *sdb_get (Sdb* s, const char *key, /*OUT*/ut32 *cas) {
+SDB_API char *sdb_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas) {
 	ut32 hash, pos, len, keylen;
 	ut64 now = 0LL;
 	SdbKv *kv;
@@ -218,6 +218,7 @@ SDB_API char *sdb_get (Sdb* s, const char *key, /*OUT*/ut32 *cas) {
 				}
 			}
 			if (cas) *cas = kv->cas;
+			if (vlen) *vlen = kv->value_len;
 			return strdup (kv->value);
 		}
 		return NULL;
@@ -231,12 +232,18 @@ SDB_API char *sdb_get (Sdb* s, const char *key, /*OUT*/ut32 *cas) {
 		return NULL;
 	if ((len = cdb_datalen (&s->db))<1)
 		return NULL;
+	if (vlen)
+		*vlen = len;
 	if (!(buf = malloc (len+1))) // XXX too many mallocs
 		return NULL;
 	pos = cdb_datapos (&s->db);
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
 	return buf;
+}
+
+SDB_API char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
+	return sdb_get_len (s, key, NULL, cas);
 }
 
 SDB_API int sdb_unset (Sdb* s, const char *key, ut32 cas) {
