@@ -207,8 +207,7 @@ SDB_API int sdb_match (const char *str, const char *glob) {
 	if (*glob=='^') {
 		if (!strncmp (str, glob+1, strlen (glob+1)))
 			return 1;
-	} else
-	if (glob[strlen(glob)-1]=='$') {
+	} else if (glob[strlen(glob)-1]=='$') {
 		int glob_len = strlen (glob)-1;
 		int str_len = strlen (str);
 		if (str_len > glob_len) {
@@ -216,9 +215,9 @@ SDB_API int sdb_match (const char *str, const char *glob) {
 			if (!strncmp (str + n, glob, glob_len))
 				return 1;
 		}
-	} else
-	if (strstr (str, glob))
+	} else if (strstr (str, glob)) {
 		return 1;
+	}
 	return 0;
 }
 
@@ -267,4 +266,3 @@ SDB_API int sdb_isjson (const char *k) {
 		return 0;
 	return 1;
 }
-

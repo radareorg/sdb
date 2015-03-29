@@ -21,6 +21,12 @@ extern "C" {
 #undef r_offsetof
 #define r_offsetof(type, member) ((unsigned long) &((type*)0)->member)
 
+/* Key value sizes */
+#define SDB_MIN_VALUE 1
+#define SDB_MAX_VALUE 0xffffff
+#define SDB_MIN_KEY 1
+#define SDB_MAX_KEY 0xff
+
 #define SDB_MODE 0644
 //#define SDB_MODE 0600
 

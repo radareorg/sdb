@@ -66,8 +66,8 @@ int cdb_make_addend(struct cdb_make *c, ut32 keylen, ut32 datalen, ut32 h) {
 }
 
 static int pack_kvlen(ut8 *buf, ut32 klen, ut32 vlen) {
-	if (klen>0xff) return 0; // 0xff = 254 chars+trailing zero
-	if (vlen>0xffffff) return 0;
+	if (klen > SDB_MAX_KEY) return 0; // 0xff = 254 chars+trailing zero
+	if (vlen > SDB_MAX_VALUE) return 0;
 	buf[0] = (ut8)klen;
 	buf[1] = (ut8)((vlen    ) & 0xff);
 	buf[2] = (ut8)((vlen>>8 ) & 0xff);
