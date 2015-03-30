@@ -5,6 +5,8 @@
 #define PUSH_PREPENDS 1
 // TODO: missing num_{inc/dec} functions
 
+typedef int (*SdbArrayComparator)(void *a, void *b);
+
 static const char *Aindexof(const char *str, int idx) {
 	int len = 0;
 	const char *n, *p = str;
@@ -45,6 +47,40 @@ static int astrcmp (const char *a, const char *b) {
 		b++;
 	}
 	return 1;
+}
+
+SDB_API void sdb_array_sort (Sdb *s, const char *key, SdbArrayComparator cmp){
+	int length, i, j;
+	char  *act, *prev;
+	length = sdb_array_length (s, key);
+	for (i=0; i < length ; i++){
+		act = sdb_array_get (s, key, i, 0);
+		for (j = i; j > 0 ; j--){
+			prev = sdb_array_get (s, key, j-1, 0);
+			if (cmp (act, prev)){
+				sdb_array_set (s, key, j, prev, 0);
+				sdb_array_set (s, key, j-1, act, 0);
+			}
+			free (prev);
+		}
+		free (act);
+	}
+}
+
+SDB_API void sdb_array_sort_num (Sdb *s, const char *key, SdbArrayComparator cmp){
+	int length, i, j;
+	ut64 act, prev;
+	length = sdb_array_length (s, key);
+	for (i=0; i< length ;i++){
+		act = sdb_array_get_num (s, key, i, 0);
+		for (j = i ; j > 0 ; j--){
+			prev = sdb_array_get_num (s, key, j-1, 0);
+			if (cmp (&act, &prev)){
+				sdb_array_set_num (s, key, j, prev, 0);
+				sdb_array_set_num (s, key, j-1, act, 0);
+			}
+		}
+	}
 }
 
 SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, int idx, ut32 *cas) {
