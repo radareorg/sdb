@@ -188,11 +188,8 @@ SDB_API ut64 sdb_unow () {
 }
 
 SDB_API int sdb_isnum (const char *s) {
-	if (*s=='-' || *s=='+')
-		return 1;
-	if (*s>='0' && *s<='9')
-		return 1;
-	return 0;
+	const char vs = *s;
+	return ((vs=='-' || vs=='+') || (vs>='0' && vs<='9'));
 }
 
 SDB_API int sdb_num_base (const char *s) {

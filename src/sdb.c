@@ -303,27 +303,24 @@ SDB_API int sdb_exists (Sdb* s, const char *key) {
 
 SDB_API int sdb_open (Sdb *s, const char *file) {
 	if (!s) return -1;
+	sdb_close (s);
 	if (file) {
-		char *realfile = strdup (file);
-		sdb_close (s);
-		s->fd = open (realfile, O_RDONLY|O_BINARY);
+		s->fd = open (file, O_RDONLY|O_BINARY);
 		free (s->dir);
-		s->dir = realfile;
-	} else {
-		if (s->fd != -1) {
-			close (s->fd);
-			s->fd = -1;
-		}
-		if (s->dir) {
-			free (s->dir);
-			s->dir = NULL;
-		}
+		s->dir = strdup (file);
 	}
 	return s->fd;
 }
 
 SDB_API void sdb_close (Sdb *s) {
-	(void)sdb_open (s, NULL);
+	if (s->fd != -1) {
+		close (s->fd);
+		s->fd = -1;
+	}
+	if (s->dir) {
+		free (s->dir);
+		s->dir = NULL;
+	}
 }
 
 SDB_API void sdb_reset (Sdb* s) {

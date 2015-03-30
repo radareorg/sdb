@@ -1,4 +1,4 @@
-/* sdb - LGPLv3 - Copyright 2012-2014 - pancake */
+/* sdb - LGPLv3 - Copyright 2012-2015 - pancake */
 
 #include <stdarg.h>
 #include "sdb.h"
@@ -90,7 +90,7 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 	ut32 c;
 
 	if (!s || !k)
-		return 0; 
+		return 0;
 	js = sdb_get (s, k, &c);
 	if (!js) {
 		b = malloc (strlen (p)+strlen (v)+8);
@@ -157,6 +157,8 @@ SDB_API int sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, u
 		if (msz<1)
 			return 0;
 		str = malloc (msz);
+		if (!str)
+			return 0;
 		idx = len[0];
 		memcpy (str, beg[0], idx);
 		if (is_str) {
