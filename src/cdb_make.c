@@ -7,8 +7,8 @@
 #include "cdb.h"
 #include "cdb_make.h"
 
-#if 0
 #define ALIGNMENT sizeof (void*)
+#if 0
 #define SPACE 16384*128 /* must be multiple of ALIGNMENT */
 
 typedef union { char irrelevant[ALIGNMENT]; double d; } aligned;
@@ -32,11 +32,14 @@ void cdb_alloc_free(void *x) {
 #else
 //5.2
 char *cdb_alloc(ut32 n) {
+	return malloc (n);
 #if __APPLE__
 	void *ret = NULL;
-	if (!posix_memalign (&ret, sizeof (void*), n))
+	if (!posix_memalign (&ret, ALIGNMENT, n))
 		return ret;
 	return NULL;
+#elif __WINDOWS__
+	return _aligned_malloc (n, ALIGNMENT);
 #else
 	return malloc (n);
 #endif
