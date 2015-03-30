@@ -55,7 +55,7 @@ SDB_API void sdb_array_sort (Sdb *s, const char *key, SdbArrayComparator cmp){
 	length = sdb_array_length (s, key);
 	for (i=0; i < length ; i++){
 		act = sdb_array_get (s, key, i, 0);
-		for	(j = i; j > 0 ; j--){
+		for (j = i; j > 0 ; j--){
 			prev = sdb_array_get (s, key, j-1, 0);
 			if (cmp (act, prev)){
 				sdb_array_set (s, key, j, prev, 0);
@@ -71,7 +71,7 @@ SDB_API void sdb_array_sort_num (Sdb *s, const char *key, SdbArrayComparator cmp
 	int length, i, j;
 	ut64 act, prev;
 	length = sdb_array_length (s, key);
-	for	(i=0; i< length ;i++){
+	for (i=0; i< length ;i++){
 		act = sdb_array_get_num (s, key, i, 0);
 		for (j = i ; j > 0 ; j--){
 			prev = sdb_array_get_num (s, key, j-1, 0);
