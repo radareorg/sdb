@@ -159,7 +159,8 @@ static void showusage(int o) {
 }
 
 static void showversion(void) {
-	printf ("sdb "SDB_VERSION"\n");
+	printf ("sdb "SDB_VERSION" %d git.%s\ncommit: %s build: %s\n",
+			SDB_VERSION_COMMIT, SDB_GITTAP, SDB_GITTIP, SDB_BIRTH);
 	exit (0);
 }
 

@@ -16,6 +16,7 @@ test/verypush
 src/libsdb.so*
 src/sdb
 src/sdb-version.h
+src/sdb-version.c
 memcache/cmds
 memcache/cmds.h
 memcache/mcsdbc
