@@ -105,6 +105,7 @@ int  sdb_exists (Sdb*, const char *key);
 int  sdb_unset (Sdb*, const char *key, ut32 cas);
 int  sdb_unset_matching(Sdb *s, const char *k);
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
+char *sdb_get_len (Sdb*, const char *key, int *vlen, ut32 *cas);
 const char *sdb_const_get (Sdb*, const char *key, ut32 *cas);
 const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas);
 int  sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
