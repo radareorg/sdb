@@ -139,6 +139,22 @@ SDB_API int sdb_alen(const char *str) {
 	return len;
 }
 
+SDB_API int sdb_alen_ignore_empty(const char *str) {
+	int len = 1;
+	const char *n, *p = str;
+	if (!p || !*p) return 0;
+	while (*p == SDB_RS) p++;
+	for (len=0; ; ) {
+		n = strchr (p, SDB_RS);
+		if (!n) break;
+		p = n+1;
+		if (*(p) == SDB_RS) continue;
+		len++;
+	}
+	if (*p) len++;
+	return len;
+}
+
 SDB_API char *sdb_anext(char *str, char **next) {
 	char *nxt, *p = strchr (str, SDB_RS);
 	if (p) { *p = 0; nxt = p+1; } else nxt = NULL;
