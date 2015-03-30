@@ -32,10 +32,10 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	Sdb* s = R_NEW0 (Sdb);
 	if (!s) return NULL;
 	s->fd = -1;
-	s->dir = NULL;
 	s->refs = 1;
 	if (path && !*path)
 		path = NULL;
+
 	if (name && *name && strcmp (name, "-")) {
 		if (path && *path) {
 			int plen = strlen (path);
@@ -310,11 +310,16 @@ SDB_API int sdb_exists (Sdb* s, const char *key) {
 
 SDB_API int sdb_open (Sdb *s, const char *file) {
 	if (!s) return -1;
-	sdb_close (s);
 	if (file) {
+		if (s->fd != -1) {
+			close (s->fd);
+			s->fd = -1;
+		}
 		s->fd = open (file, O_RDONLY|O_BINARY);
-		free (s->dir);
-		s->dir = strdup (file);
+		if (file != s->dir) {
+			free (s->dir);
+			s->dir = strdup (file);
+		}
 	}
 	return s->fd;
 }
