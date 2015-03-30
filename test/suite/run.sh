@@ -197,6 +197,13 @@ run "K=2;-K=+1;K" 1
 run "K=2;-K=-1;K" 3
 run "-0=-0;0" 0
 
+title "Hash"
+run "#a" "0x0002b5c4"
+run "#a;#b" "0x0002b5c4
+
+0x0002b5c7
+
+"
 title "Arrays"
 run "[]K=1,2,3;[2]K=a,b;[2]K" a
 run "[]K=1,2,3;[?]K" 3
