@@ -325,6 +325,7 @@ SDB_API int sdb_open (Sdb *s, const char *file) {
 }
 
 SDB_API void sdb_close (Sdb *s) {
+	if (!s) return;
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
