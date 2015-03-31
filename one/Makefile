@@ -33,6 +33,7 @@ SRCFILES+=query.c
 SRCFILES+=util.c
 SRCFILES+=json/api.c
 SRCFILES+=json/rangstr.c
+SRCFILES+=json/indent.c
 SRCFILES+=json/js0n.c
 SRCFILES+=json/path.c
 SFILES=$(addprefix ../src/,$(SRCFILES))
