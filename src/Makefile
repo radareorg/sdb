@@ -22,7 +22,7 @@ install:
 sdb-version.h:
 	cd .. ; ${MAKE} src/sdb-version.h
 
-sdb-version.c: ../.git/HEAD ../.git/index
+sdb-version.c:
 	cd .. ; ${MAKE} src/sdb-version.c
 
 shared: sdb-version.h
