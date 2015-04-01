@@ -1,0 +1,22 @@
+language: c
+compiler:
+  - gcc
+  #- clang
+  # With this scarry double quotation the strings will be passed to the shell
+  # still quoted, which is necessary here.
+  #- '"clang -fsanitize=address"'
+  #- '"clang -fsanitize=memory -fsanitize-memory-track-origins"'
+  #- '"clang -fsanitize=thread"'
+
+env:
+  - TESTS=test
+  
+script:
+  # Limit the stack size (to 32MiB) to make ThreadSanitizer happy.
+  - ulimit -s 32768
+  # Now on to actually building stuff...
+  - make clean
+  - make
+  # Run the tests, report only regressions as errors.
+  - VERBOSE=1 make $TESTS
+  - sudo make install
