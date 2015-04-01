@@ -229,6 +229,15 @@ run "foo=1,2,3,4;+[1]foo=1;foo" "1,0x3,3,4"
 run "foo=1,2,3,4;+[1]foo" "3"
 run "foo=1,2,3,4;-[1]foo" "1"
 
+title "Sorted arrays"
+run "[]K=cd,bc,ab;[!]K;K" "ab,bc,cd"
+run "[]K=aa,bb,yy;[!+]K=xx,qq,aa;K" "aa,aa,bb,qq,xx,yy"
+run "[!+]K=xx,qq,aa;[!+]K=ff,bb,zz;K" "aa,bb,ff,qq,xx,zz"
+run "[]K=,x,a, ;[!]K;K" ", ,a,x"
+run "[]K=9,9,8,5,1,10;[#]K;K" "1,5,8,9,9,10"
+run "[]K=0x1,0x5,0xf;[#+]K=0xa;K" "0x1,0x5,0xa,0xf"
+run "[#+]K=0x1;[#+]K=0xa;[#+]K=0x5;K" "0x1,0x5,0xa"
+
 title "Set"
 run "K=;[+]K=1;[+]K=1;K" 1
 run "K=;[+]K=a;[+]K=b;K" "a,b"
