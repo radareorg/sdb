@@ -2,7 +2,7 @@ include ../config.mk
 
 CFLAGS+= -g -ggdb
 OBJ=cdb.o buffer.o cdb_make.o ls.o ht.o sdb.o num.o base64.o
-OBJ+=json.o ns.o lock.o util.o disk.o query.o array.o fmt.o
+OBJ+=json.o ns.o lock.o util.o disk.o query.o array.o fmt.o sdb-version.o
 
 SOBJ=$(subst .o,._o,${OBJ})
 
@@ -21,6 +21,9 @@ install:
 
 sdb-version.h:
 	cd .. ; ${MAKE} src/sdb-version.h
+
+sdb-version.c:
+	cd .. ; ${MAKE} src/sdb-version.c
 
 shared: sdb-version.h
 	${MAKE} libsdb.${SOVER}

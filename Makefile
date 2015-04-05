@@ -8,7 +8,7 @@ VAPIDIR=$(PFX)/share/vala/vapi/
 MANDIR=${PFX}/share/man/man1
 MKDIR=mkdir
 
-all: pkgconfig src/sdb-version.h
+all: pkgconfig src/sdb-version.h src/sdb-version.c
 	${MAKE} -C src
 	${MAKE} -C memcache
 ifneq (${HAVE_VALA},)
@@ -29,6 +29,21 @@ pkgconfig:
 
 src/sdb-version.h:
 	echo '#define SDB_VERSION "${SDBVER}"' > src/sdb-version.h
+	echo 'extern const char *SDB_GITTIP;' >> src/sdb-version.h
+	echo 'extern const char *SDB_GITTAP;' >> src/sdb-version.h
+	echo 'extern const char *SDB_BIRTH;' >> src/sdb-version.h
+	echo 'extern const int SDB_VERSION_COMMIT;' >> src/sdb-version.h
+
+src/sdb-version.c: .git/HEAD .git/index
+	echo 'const char *SDB_GITTIP = "$(shell git rev-parse HEAD 2>/dev/null)";' > src/sdb-version.c
+	echo 'const char *SDB_GITTAP = "$(shell git describe --tags 2>/dev/null)";' >> src/sdb-version.c
+	echo 'const int SDB_VERSION_COMMIT = $(shell git rev-list --all | wc -l);' >> src/sdb-version.c
+	echo 'const char *SDB_BIRTH = "$(shell date +%Y-%m-%d)";' >> src/sdb-version.c
+
+.INTERMEDIATE: .git/HEAD .git/index
+
+.git/HEAD: ;
+.git/index: ;
 
 CFILES=cdb.c buffer.c cdb_make.c ls.c ht.c sdb.c num.c base64.c
 CFILES+=json.c ns.c lock.c util.c disk.c query.c array.c fmt.c main.c
@@ -50,6 +65,8 @@ dist:
 	rm -f sdb-${SDBVER}.tar.gz
 	rm -rf sdb-${SDBVER}
 	git clone . sdb-${SDBVER}
+	cd sdb-${SDBVER} && ${MAKE} src/sdb-version.h
+	cd sdb-${SDBVER} && ${MAKE} src/sdb-version.c
 	rm -rf sdb-${SDBVER}/.git*
 	tar czvf sdb-${SDBVER}.tar.gz sdb-${SDBVER}
 	pub sdb-${SDBVER}.tar.gz
