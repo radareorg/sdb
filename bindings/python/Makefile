@@ -1,2 +1,5 @@
 all:
-	valabind --ctypes --module SimpleDB -l sdb ../vala/sdb.vapi
+	valabind --ctypes --module sdb -l sdb ../vala/sdb.vapi
+
+pub publish:
+	LC_CTYPE=C python setup.py sdist upload

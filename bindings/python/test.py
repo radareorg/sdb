@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from SimpleDB import *
+from sdb import *
 
 db = Sdb(None, "test.sdb", False)
 db.set("foo", "World",0)
