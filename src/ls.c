@@ -15,16 +15,16 @@ SDB_API SdbList *ls_new() {
 }
 
 SDB_API void ls_sort(SdbList *list, SdbListComparator cmp) {
-        SdbListIter *it, *it2;
-        for (it = list->head; it && it->data; it = it->n) {
-                for (it2 = it->n; it2 && it2->data; it2 = it2->n) {
-                        if (cmp (it->data, it2->data)>0) {
-                                void *t = it->data;
-                                it->data = it2->data;
-                                it2->data = t;
-                        }
-                }
-        }
+	SdbListIter *it, *it2;
+	for (it = list->head; it && it->data; it = it->n) {
+		for (it2 = it->n; it2 && it2->data; it2 = it2->n) {
+			if (cmp (it->data, it2->data)>0) {
+				void *t = it->data;
+				it->data = it2->data;
+				it2->data = t;
+			}
+		}
+	}
 }
 
 SDB_API void ls_delete (SdbList *list, SdbListIter *iter) {
@@ -98,4 +98,31 @@ SDB_API SdbListIter *ls_prepend(SdbList *list, void *data) {
 		list->tail = it;
 	list->length++;
 	return it;
+}
+
+SDB_API void *ls_pop(SdbList *list) {
+	void *data = NULL;
+	SdbListIter *iter;
+	if (list){
+		if (list->tail) {
+			iter = list->tail;
+			if (list->head == list->tail) {
+				list->head = list->tail = NULL;
+			} else {
+				list->tail = iter->p;
+				list->tail->n = NULL;
+			}
+			data = iter->data;
+			free (iter);
+			list->length--;
+		}
+		return data;
+	}
+	return NULL;
+}
+
+SDB_API int ls_length(SdbList *list) {
+	if (!list)
+		return 0;
+	return list->length;
 }
