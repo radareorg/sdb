@@ -7,6 +7,7 @@ sdb=../src/sdb
 SIZE=10000
 SIZE=100000
 #SIZE=1000
+SIZE=30000
 
 makekeys() {
 	 i=0
@@ -17,15 +18,34 @@ makekeys() {
 	 done
 }
 
-echo "[**] Generating keyvalues..."
+echo "[**] Generating $SIZE keyvalues..."
 makekeys > a
-echo "========="
+echo "[**] Verifying keys..."
+NUM=$((0+`wc -l< a`))
+if [ $NUM != $SIZE ]; then
+	echo "Failed at generating the keyvalues"
+	exit 1
+fi
+# TODO test if count matches
 rm -f test.db
 
-echo "[**] Bundling database of ${SIZE} keyvalues..."
+echo "[**] Bundling = database of ${SIZE} keyvalues..."
 time cat a | $sdb test.db =
 
-echo "[**] Creating database of ${SIZE} keyvalues..."
+echo "[**] Counting keys..."
+time $sdb test.db | wc -l | tee test.count
+COUNT=$((0+`cat test.count`))
+if [ ${COUNT} -ne ${SIZE} ]; then
+	echo "Database storage is wrong: $SIZE vs ${COUNT}"
+	rm -f test.count
+	exit 1
+fi
+
+echo "[**] Creating - database of ${SIZE} keyvalues..."
+rm -f test.db
+time cat a | $sdb test.db -
+
+echo "[**] Updating - database of ${SIZE} keyvalues..."
 time cat a | $sdb test.db -
 
 printf "[**] Database size: "
@@ -41,4 +61,12 @@ echo "[**] Fetching a single key..."
 time $sdb test.db key999
 
 echo "[**] Counting stored keyvalues..."
-time $sdb test.db |wc -l
+time $sdb test.db | wc -l | tee test.count
+COUNT=$((0+`cat test.count`))
+if [ ${COUNT} -ne ${SIZE} ]; then
+	echo "Database storage is wrong: $SIZE vs ${COUNT}"
+	rm -f test.count
+	exit 1
+fi
+rm -f test.count
+exit 0

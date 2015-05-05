@@ -43,9 +43,10 @@ extern "C" {
 
 #define SDB_OPTION_NONE 0
 #define SDB_OPTION_ALL 0xff
-#define SDB_OPTION_SYNC 1
-#define SDB_OPTION_NOSTAMP 2
-#define SDB_OPTION_FS 4
+#define SDB_OPTION_SYNC    (1<<0)
+#define SDB_OPTION_NOSTAMP (1<<1)
+#define SDB_OPTION_FS      (1<<2)
+#define SDB_OPTION_JOURNAL (1<<3)
 
 // This size implies trailing zero terminator, this is 254 chars + 0
 #define SDB_KSZ 0xff
@@ -65,6 +66,7 @@ typedef struct sdb_t {
 	int fd;
 	int refs; // reference counter
 	int lock;
+	int journal;
 	struct cdb db;
 	struct cdb_make m;
 	SdbHash *ht;

@@ -96,6 +96,20 @@ EOF
 	fi
 }
 
+test_create2() {
+	NAME="create2"
+	rm -f .a
+	$SDB .a = <<EOF
+a=c
+b=d
+EOF
+	if [ "`$SDB .a b`" = "d" ]; then
+		success .a $NAME
+	else
+		fail .a $NAME
+	fi
+}
+
 test_store() {
 	NAME="store"
 	rm -f .a
@@ -354,6 +368,7 @@ run "foo/bar/cow=3;foo/plop=2;foo/ra/re=4;foo/bar/meuh=1;***" "foo/plop=2\nfoo/b
 
 title "Shell"
 test_create
+test_create2
 test_store
 test_store2
 test_restore

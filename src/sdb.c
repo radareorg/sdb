@@ -742,6 +742,10 @@ SDB_API void sdb_config(Sdb *s, int options) {
 	if (options & SDB_OPTION_SYNC) {
 		// sync on every query
 	}
+	if (options & SDB_OPTION_JOURNAL) {
+		// sync on every query
+		s->journal = sdb_journal_new (s);
+	}
 	if (options & SDB_OPTION_NOSTAMP) {
 		// sync on every query
 		s->last = 0LL;
