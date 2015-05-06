@@ -1,47 +1,44 @@
 /* sdb - LGPLv3 - Copyright 2011-2015 - pancake */
 
 #include "sdb.h"
-int sdb_journal_new(Sdb *s) {
-	return -1;
-}
-#if 0
+#include <unistd.h>
+#include <fcntl.h>
 
-const char *sdb_journal_filename (Sdb *s) {
+static const char *sdb_journal_filename (Sdb *s) {
 	if (!s || !s->name)
 		return NULL;
 	return sdb_fmt (0, "%s.journal", s->name);
 }
 
-int sdb_journal_close(Sdb *s) {
+SDB_API int sdb_journal_close(Sdb *s) {
+	const char *filename;
 	if (s->journal == -1) {
 		return 0;
 	}
 	close (s->journal);
 	s->journal = -1;
+	filename = sdb_journal_filename (s);
 	unlink (filename);
 	return 1;
 }
 
-int sdb_journal_open(Sdb *s) {
+SDB_API int sdb_journal_open(Sdb *s) {
 	const char *filename;
 	if (!s || !s->name) {
-		return 0;
+		return -1;
 	}
 	filename = sdb_journal_filename (s);
-	sdb_journal_close (s);
 	if (!filename) {
-		return 0;
+		return -1;
 	}
-	s->journal = open (filename, O_RDWR | O_APPEND, 0600);
-	if (s->journal == -1) {
-		return 0;
-	}
-	return 1;
+	close (s->journal);
+	s->journal = -1;
+	return s->journal = open (filename, O_CREAT | O_RDWR | O_APPEND, 0600);
 }
 
-int sdb_journal_load(Sdb *s) {
-	int fd, changes = 0;
-	char *eq, *str;
+SDB_API int sdb_journal_load(Sdb *s) {
+	int rr, sz, fd, changes = 0;
+	char *eq, *str, *cur, *ptr = NULL;
 	if (!s) {
 		return 0;
 	}
@@ -50,14 +47,16 @@ int sdb_journal_load(Sdb *s) {
 		return 0;
 	}
 	sz = lseek (fd, 0, SEEK_END);
+	if (fd<1) {
+		return 0;
+	}
 	lseek (fd, 0, SEEK_SET);
 	str = malloc (sz+1);
 	if (!str)
 		return 0;
 	rr = read (fd, str, sz);
 	str[sz] = 0;
-	printf ("%d %d\n", rr, sz);
-	for (cur = str;;) {
+	for (cur = str; ;) {
 		ptr = strchr (cur, '\n');
 		if (ptr) {
 			*ptr = 0;
@@ -68,12 +67,12 @@ int sdb_journal_load(Sdb *s) {
 				changes ++;
 			}
 			cur = ptr+1;
-		}
+		} else break;
 	}
 	return changes;
 }
 
-int sdb_journal_log(Sdb *s, const char *key, const char *val) {
+SDB_API int sdb_journal_log(Sdb *s, const char *key, const char *val) {
 	const char *str;
 	if (s->journal == -1) {
 		return 0;
@@ -84,7 +83,15 @@ int sdb_journal_log(Sdb *s, const char *key, const char *val) {
 	return 1;
 }
 
-int sdb_journal_clear(Sdb *s) {
+SDB_API int sdb_journal_clear(Sdb *s) {
+	if (s->journal != -1) {
+		ftruncate (s->journal, 0);
+		return 1;
+	}
+	return 1;
+}
+
+SDB_API int sdb_journal_unlink(Sdb *s) {
 	const char *filename = sdb_journal_filename (s);
 	sdb_journal_close (s);
 	if (filename) {
@@ -92,4 +99,3 @@ int sdb_journal_clear(Sdb *s) {
 	}
 	return 0;
 }
-#endif

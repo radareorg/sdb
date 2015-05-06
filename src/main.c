@@ -13,6 +13,7 @@
 
 static int save = 0;
 static Sdb *s = NULL;
+static ut32 options = SDB_OPTION_FS | SDB_OPTION_NOSTAMP;
 
 static void terminate(int sig UNUSED) {
 	if (!s) return;
@@ -124,13 +125,13 @@ static char *stdin_slurp(int *sz) {
 }
 
 #if USE_MMAN
-static void syncronize(int sig UNUSED) {
+static void synchronize(int sig UNUSED) {
 	// TODO: must be in sdb_sync() or wat?
 	Sdb *n;
 	sdb_sync (s);
 	n = sdb_new (s->path, s->name, s->lock);
 	if (n) {
-		sdb_config (n, SDB_OPTION_FS | SDB_OPTION_NOSTAMP);
+		sdb_config (n, options);
 		sdb_free (s);
 		s = n;
 	}
@@ -142,7 +143,7 @@ static int sdb_dump (const char *db, int fmt) {
 	const char *comma = "";
 	Sdb *s = sdb_new (NULL, db, 0);
 	if (!s) return 1;
-	sdb_config (s, SDB_OPTION_FS | SDB_OPTION_NOSTAMP);
+	sdb_config (s, options);
 	sdb_dump_begin (s);
 	if (fmt==MODE_JSON)
 		printf ("{");
@@ -226,7 +227,7 @@ static int createdb(const char *f, const char **args, int nargs) {
 		return 1;
 	}
 	insertkeys (s, args, nargs, '=');
-	sdb_config (s, SDB_OPTION_FS | SDB_OPTION_NOSTAMP);
+	sdb_config (s, options);
 	for (;(line = stdin_slurp (NULL));) {
 		if ((eq = strchr (line, '='))) {
 			*eq++ = 0;
@@ -332,7 +333,6 @@ int main(int argc, const char **argv) {
 	int i, ret, fmt = MODE_DFLT;
 	int db0 = 1, argi = 1;
 	int interactive = 0;
-	ut32 options = SDB_OPTION_FS | SDB_OPTION_NOSTAMP;
 
 	/* terminate flags */
 	if (argc<2) {
@@ -380,8 +380,8 @@ int main(int argc, const char **argv) {
 		}
 	}
 
-	/* flags */
-	if (!strcmp (argv[argi], "-")) {
+	/* sdb - */
+	if (argi == 1 && !strcmp (argv[argi], "-")) {
 		/* no database */
 		argv[argi] = "";
 		if (argc == db0+1) {
@@ -392,18 +392,19 @@ int main(int argc, const char **argv) {
 			argi++;
 		}
 	}
+	/* sdb dbname */
 	if (argc-1 == db0) {
 		return sdb_dump (argv[db0], fmt);
 	}
 #if USE_MMAN
 	signal (SIGINT, terminate);
-	signal (SIGHUP, syncronize);
+	signal (SIGHUP, synchronize);
 #endif
 	ret = 0;
 	if (interactive || !strcmp (argv[db0+1], "-")) {
 		if ((s = sdb_new (NULL, argv[db0], 0))) {
-			save |= insertkeys (s, argv+3, argc-3, '-');
 			sdb_config (s, options);
+			save |= insertkeys (s, argv+3, argc-3, '-');
 			for (;(line = stdin_slurp (NULL));) {
 				save |= sdb_query (s, line);
 				if (fmt) {

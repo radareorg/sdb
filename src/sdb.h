@@ -149,6 +149,14 @@ void sdb_dump_begin (Sdb* s);
 SdbKv *sdb_dump_next (Sdb* s);
 int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen);
 
+/* journaling */
+int sdb_journal_close(Sdb *s);
+int sdb_journal_open(Sdb *s);
+int sdb_journal_load(Sdb *s);
+int sdb_journal_log(Sdb *s, const char *key, const char *val);
+int sdb_journal_clear(Sdb *s);
+int sdb_journal_unlink(Sdb *s);
+
 /* numeric */
 char *sdb_itoa (ut64 n, char *s, int base);
 ut64  sdb_atoi (const char *s);
