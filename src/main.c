@@ -27,15 +27,15 @@ static void terminate(int sig UNUSED) {
 }
 
 #define BS 128
+#define USE_SLURPIN 1
 static char *stdin_slurp(int *sz) {
 	int blocksize = BS;
 	static int bufsize = BS;
 	static char *next = NULL;
 	static int nextlen = 0;
 	int len, rr, rr2;
-	char *nl, *tmp;
-	char *buf;
-#if 1
+	char *buf, *tmp;
+#if USE_SLURPIN
         if (!sz) {
 		/* this is faster but have limits */
 		/* must optimize the code below before reomving this */
@@ -48,7 +48,7 @@ static char *stdin_slurp(int *sz) {
                 return strdup (buf);
         }
 #endif
-	buf = malloc (BS+1);
+	buf = calloc (BS+1, 1);
 	if (buf == NULL) {
 		return NULL;
 	}
@@ -78,8 +78,9 @@ static char *stdin_slurp(int *sz) {
 		}
 		len += rr;
 		//buf[len] = 0;
+#if !USE_SLURPIN
 		if (!sz) {
-			nl = strchr (buf, '\n');
+			char *nl = strchr (buf, '\n');
 			if (nl) {
 				*nl++ = 0;
 				int nlen = (nl-buf);
@@ -103,6 +104,7 @@ static char *stdin_slurp(int *sz) {
 				break;
 			}
 		}
+#endif
 		bufsize += blocksize;
 		tmp = realloc (buf, bufsize+1);
 		if (!tmp) {
