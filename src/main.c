@@ -242,13 +242,14 @@ static int createdb(const char *f, const char **args, int nargs) {
 }
 
 static int showusage(int o) {
-	printf ("usage: sdb [-0edhjv|-D A B] [-|db] "
+	printf ("usage: sdb [-0dehjJv|-D A B] [-|db] "
 		"[.file]|[-=]|[-+][(idx)key[:json|=value] ..]\n");
 	if (o==2) {
 		printf ("  -0      terminate results with \\x00\n"
+			"  -d      decode base64 from stdin\n"
 			"  -D      diff two databases\n"
 			"  -e      encode stdin as base64\n"
-			"  -d      decode base64 from stdin\n"
+			"  -h      show this help\n"
 			"  -j      output in json\n"
 			"  -J      enable journaling\n"
 			"  -v      show version information\n");
@@ -260,6 +261,23 @@ static int showusage(int o) {
 static int showversion(void) {
 	printf ("sdb "SDB_VERSION"\n");
 	fflush (stdout);
+	return 0;
+}
+
+static int jsonIndent() {
+	int len;
+	char *in;
+	char *out;
+	in = stdin_slurp (&len);
+	if (!in) return 0;
+	out = sdb_json_indent (in);
+	if (!out) {
+		free (in);
+		return 1;
+	}
+	puts (out);
+	free (out);
+	free (in);
 	return 0;
 }
 
@@ -374,8 +392,7 @@ int main(int argc, const char **argv) {
 		case 'j':
 			if (argc>2)
 				return sdb_dump (argv[db0+1], MODE_JSON);
-			eprintf ("Missing database filename after -j\n");
-			return 1;
+			return jsonIndent();
 		default:
 			eprintf ("Invalid flag %s\n", arg);
 			break;
