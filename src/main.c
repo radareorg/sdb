@@ -406,7 +406,10 @@ int main(int argc, const char **argv) {
 	if (interactive || !strcmp (argv[db0+1], "-")) {
 		if ((s = sdb_new (NULL, argv[db0], 0))) {
 			sdb_config (s, options);
-			save |= insertkeys (s, argv+3, argc-3, '-');
+			int kvs = db0+2;
+			if (kvs < argc) {
+				save |= insertkeys (s, argv+argi+2, argc-kvs, '-');
+			}
 			for (;(line = stdin_slurp (NULL));) {
 				save |= sdb_query (s, line);
 				if (fmt) {
