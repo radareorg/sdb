@@ -67,7 +67,7 @@
 #undef R_MAX
 #define R_MAX(x,y) (((x)>(y))?(x):(y))
 #undef R_MIN
-#define R_MIN(x,y) (((x)<(y))?(x):(y))
+#define R_MIN(x,y) (((x)>(y))?(y):(x))
 
 #include "config.h"
 
