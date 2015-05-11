@@ -65,6 +65,10 @@
 #define UT32_MAX ((ut32)0xffffffff)
 #define UT64_MAX ((ut64)(0xffffffffffffffffLL))
 #endif
+#undef R_MAX
+#define R_MAX(x,y) (((x)>(y))?(x):(y))
+#undef R_MIN
+#define R_MIN(x,y) (((x)<(y))?(x):(y))
 
 #include "config.h"
 

@@ -16,8 +16,6 @@ extern "C" {
 #include "cdb_make.h"
 #include "sdb-version.h"
 
-#undef R_MAX
-#define R_MAX(x,y) (((x)>(y))?(x):(y))
 #undef r_offsetof
 #define r_offsetof(type, member) ((unsigned long) &((type*)0)->member)
 
