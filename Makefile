@@ -127,8 +127,10 @@ ifneq (${HAVE_VALA},)
 endif
 
 # windows compiler prefix
+# travis/debian
 WCP=i386-mingw32
-WCP=i686-pc-mingw32
+# mxe
+#WCP=i686-pc-mingw32
 
 w32: src/sdb-version.h
 	cd src ; \
