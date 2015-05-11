@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include "sdb.h"
 
-#if __WINDOWS__
+#if __SDB_WINDOWS__
 #define r_sys_mkdir(x) (CreateDirectory(x,NULL)!=0)
 #ifndef ERROR_ALREADY_EXISTS
 #define ERROR_ALREADY_EXISTS 183
@@ -84,7 +84,7 @@ SDB_API int sdb_disk_finish (Sdb* s) {
 		s->fd = -1;
 		reopen = 1;
 	}
-#if __WINDOWS__
+#if __SDB_WINDOWS__
 	if (MoveFileEx (s->ndump, s->dir, MOVEFILE_REPLACE_EXISTING)) {
 		//eprintf ("Error 0x%02x\n", GetLastError ());
 	}

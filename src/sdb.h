@@ -25,7 +25,7 @@ extern "C" {
 #define SDB_MIN_KEY 1
 #define SDB_MAX_KEY 0xff
 
-#if __WINDOWS__ && !__CYGWIN__
+#if __SDB_WINDOWS__ && !__CYGWIN__
 #include <windows.h>
 #include <fcntl.h>
 #include <sys/types.h>
