@@ -33,7 +33,7 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
-extern void *_aligned_malloc(int n, int a);
+extern void *_aligned_malloc(size_t, size_t);
 extern char *strdup (const char *);
 //#define SDB_MODE 0
 #define SDB_MODE _S_IWRITE | _S_IREAD
