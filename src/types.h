@@ -20,24 +20,25 @@
 #define __MINGW__ 1
 #endif
 
-#if __CYGWIN__
-#define ULLFMT "ll"
-#define USE_MMAN 1
-#elif __WIN32__ || __MINGW__
-#define ULLFMT "I64"
-#define USE_MMAN 0
-#else
-#define ULLFMT "ll"
-#define USE_MMAN 1
-#endif
-
-#if __WIN32__ || __CYGWIN__ || __MINGW__
+#if __WIN32__ || __CYGWIN__ || __MINGW__ || __WINDOWS__
 #undef __WINDOWS__
 #define __WINDOWS__ 1
 #include <windows.h>
 #define DIRSEP '\\'
 #else
+#define __WINDOWS__ 0
 #define DIRSEP '/'
+#endif
+
+#if __CYGWIN__
+#define ULLFMT "ll"
+#define USE_MMAN 1
+#elif __WINDOWS__
+#define ULLFMT "I64"
+#define USE_MMAN 0
+#else
+#define ULLFMT "ll"
+#define USE_MMAN 1
 #endif
 
 #include <unistd.h>
@@ -48,12 +49,6 @@
 #else
 #define UNUSED
 #endif
-#endif
-
-#if __WIN32__ || __CYGWIN__ || __MINGW32__
-#define WINDOWS 1
-#else
-#define WINDOWS 0
 #endif
 
 #ifndef ut8
