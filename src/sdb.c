@@ -258,11 +258,12 @@ SDB_API int sdb_unset (Sdb* s, const char *key, ut32 cas) {
 SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	// remove 'value' from current key value.
 	// TODO: cas is ignored here
-	int vlen;
+	int vlen = 0;
 	char *p, *v = sdb_get_len (s, key, &vlen, NULL);
 	int mod = 0;
+	int valen = strlen (value);
 	while ((p = strstr (v, value))) {
-		memmove (p, p+vlen, strlen (p+vlen)+1);
+		memmove (p, p+valen, strlen (p+valen)+1);
 		mod = 1;
 	}
 	if (mod) sdb_set_owned (s, key, v, 0);
