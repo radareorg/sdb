@@ -20,22 +20,24 @@
 #define __MINGW__ 1
 #endif
 
-#if __WIN32__ || __CYGWIN__ || __MINGW__ || __WINDOWS__
+#if __WIN32__ || __MINGW__ || __WINDOWS__
 #undef __WINDOWS__
 #define __WINDOWS__ 1
 #include <windows.h>
 #define DIRSEP '\\'
 #else
+// CYGWIN AND UNIX
 #define __WINDOWS__ 0
 #define DIRSEP '/'
 #endif
 
+#include <inttypes.h>
 #if __CYGWIN__
-#define ULLFMT "ll"
 #define USE_MMAN 1
+#define ULLFMT "ll"
 #elif __WINDOWS__
-#define ULLFMT "I64"
 #define USE_MMAN 0
+#define ULLFMT "I64"
 #else
 #define ULLFMT "ll"
 #define USE_MMAN 1
