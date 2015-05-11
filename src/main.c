@@ -28,6 +28,7 @@ static void terminate(int sig UNUSED) {
 
 #define BS 128
 #define USE_SLURPIN 1
+
 static char *stdin_slurp(int *sz) {
 	int blocksize = BS;
 	static int bufsize = BS;
@@ -206,7 +207,7 @@ static int insertkeys(Sdb *s, const char **args, int nargs, int mode) {
 				break;
 			case '=':
 				if (strchr (args[i], '=')) {
-					char *v, *kv = strdup (args[i]);
+					char *v, *kv = (char *)strdup (args[i]);
 					v = strchr (kv, '=');
 					if (v) {
 						*v++ = 0;

@@ -56,6 +56,9 @@ SDB_API int sdb_journal_load(Sdb *s) {
 		return 0;
 	}
 	rr = read (fd, str, sz);
+	if (rr <0) {
+		return 0;
+	}
 	str[sz] = 0;
 	for (cur = str; ;) {
 		ptr = strchr (cur, '\n');

@@ -29,7 +29,14 @@ extern "C" {
 
 #if __WINDOWS__ && !__CYGWIN__
 #include <windows.h>
-#define SDB_MODE 0
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <io.h>
+extern void *_aligned_malloc(int n, int a);
+extern char *strdup (const char *);
+//#define SDB_MODE 0
+#define SDB_MODE _S_IWRITE | _S_IREAD
 #else
 #define SDB_MODE 0644
 //#define SDB_MODE 0600
