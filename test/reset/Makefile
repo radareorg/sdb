@@ -8,5 +8,8 @@ all:
 	$(CC) test-reset.c -o test-reset $(CFLAGS) $(LDFLAGS)
 	./test-reset
 
+asan:
+	$(MAKE) CFLAGS="-fsanitize=address ${CFLAGS}"
+
 clean:
 	rm -f a.out test-reset db.test test.db

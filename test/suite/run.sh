@@ -6,7 +6,13 @@ FAILED=0
 FIXED=0
 BROKEN=0
 
-SDB=`dirname $0`/../../src/sdb
+if [ "$1" = wine ]; then
+	SDB="wine `dirname $0`/../../src/sdb.exe"
+	WINEMODE=1
+else
+	WINEMODE=0
+	SDB=`dirname $0`/../../src/sdb
+fi
 
 if [ ! -x $SDB ]; then
 	echo "Cannot find ${SDB}"
@@ -53,11 +59,16 @@ run2() {
 run() {
 	K="$1"
 	if [ 1 = "${WINRAR}" ]; then
-		A="`${SDB} a \"$K\";${SDB} a \"$2\";rm -f a`"
-		B="`printf -- \"$3\n\"`"
+		A=$(${SDB} a "$K";${SDB} a "$2";rm -f a)
+		B=$(printf -- "$3\n")
 	else
-		A="`${SDB} - \"$K\"`"
-		B="`printf -- \"$2\n\"`"
+		A=$(${SDB} - "$K")
+		B=$(printf -- "$2\n")
+	fi
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+		#echo "            A($A)"
+		#echo "            B($B)"
 	fi
 	if [ "$A" = "$B" ]; then
 		if [ 1 = "${BRKMOD}" ]; then
@@ -150,6 +161,7 @@ test_remove() {
 	$SDB .a alpha=beta teta=omega al=pha "~alp" omega=upsilon
 	$SDB .a "~omega"
 	$SDB .a "teta="
+
 	if [ "`$SDB .a`" = "al=pha" ]; then
 		success .a $NAME
 	else
