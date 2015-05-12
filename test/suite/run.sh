@@ -12,12 +12,12 @@ if [ "$1" = wine ]; then
 else
 	WINEMODE=0
 	SDB=`dirname $0`/../../src/sdb
+	if [ ! -x "$SDB" ]; then
+		echo "Cannot find ${SDB}"
+		exit 1
+	fi
 fi
 
-if [ ! -x $SDB ]; then
-	echo "Cannot find ${SDB}"
-	exit 1
-fi
 
 fail() {
 	if [ -n "$1" ]; then
@@ -100,7 +100,11 @@ test_create() {
 a=c
 b=d
 EOF
-	if [ "`$SDB .a a`" = "c" ]; then
+	A="`$SDB .a a`"
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+	fi
+	if [ "$A" = "c" ]; then
 		success .a $NAME
 	else
 		fail .a $NAME
@@ -114,7 +118,11 @@ test_create2() {
 a=c
 b=d
 EOF
-	if [ "`$SDB .a b`" = "d" ]; then
+	A="`$SDB .a b`"
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+	fi
+	if [ "$A" = "d" ]; then
 		success .a $NAME
 	else
 		fail .a $NAME
@@ -125,7 +133,11 @@ test_store() {
 	NAME="store"
 	rm -f .a
 	$SDB .a a=c
-	if [ "`$SDB .a a`" = "c" ]; then
+	A="`$SDB .a a`"
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+	fi
+	if [ "$A" = "c" ]; then
 		success .a $NAME
 	else
 		fail .a $NAME
@@ -137,7 +149,11 @@ test_restore() {
 	rm -f .a
 	$SDB .a a=a
 	$SDB .a a=c
-	if [ "`$SDB .a a`" = "c" ]; then
+	A="`$SDB .a a`"
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+	fi
+	if [ "$A" = "c" ]; then
 		success .a $NAME
 	else
 		fail .a $NAME
@@ -162,7 +178,11 @@ test_remove() {
 	$SDB .a "~omega"
 	$SDB .a "teta="
 
-	if [ "`$SDB .a`" = "al=pha" ]; then
+	A="`$SDB .a`"
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+	fi
+	if [ "$A" = "al=pha" ]; then
 		success .a $NAME
 	else
 		fail .a $NAME
