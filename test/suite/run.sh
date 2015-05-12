@@ -316,6 +316,10 @@ title "JSON"
 # indent is broken because run() doesnt handle multiline outputs, but it works :P
 run 'foo={"bar":[1,2,3]};foo:' '{\n\t"bar": [\n\t\t1,\n\t\t2,\n\t\t3\n\t]\n}\n'
 brk 'foo={"bar":[1,2,3]};foo:bar[1]=;foo' '{"bar":[1,3]}'
+brk 'foo={"bar":[1,2,3,4]};foo:bar[0]=;foo' '{"bar":[2,3,4]}'
+brk 'foo={"bar":[1,2,3,4]};foo:bar[1]=;foo' '{"bar":[1,3,4]}'
+brk 'foo={"bar":[1,2,3,4]};foo:bar[2]=;foo' '{"bar":[1,2,4]}'
+brk 'foo={"bar":[1,2,3,4]};foo:bar[3]=;foo' '{"bar":[1,2,3]}'
 run 'foo={"bar":123};foo:bar=pop;foo:bar=cow;foo:bar' cow
 run 'foo={"bar":123};foo:bar=3;foo:bar' 3
 run 'foo={"bar":123};foo:bar=pop;foo:bar' 'pop'
