@@ -4,7 +4,7 @@ BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain ns nsabuse
 BINS+=bench-expire expire dumptwice
 CFLAGS=-I../../src -I ../src
 LDFLAGS=../src/libsdb.a
-SCRIPTS=createfail.sh
+SCRIPTS=createfail.sh testgrep.sh
 ALL=all
 
 all: $(BINS) $(SCRIPTS) reset
@@ -16,7 +16,6 @@ asan:
 
 $(SCRIPTS):
 	./$@
-	exit 1
 
 $(BINS):
 	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
@@ -30,3 +29,5 @@ add10k:
 
 clean:
 	rm -f a test.db db a.gz a.out $(BINS)
+
+.PHONY: ${SCRIPTS}
