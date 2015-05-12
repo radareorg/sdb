@@ -10,7 +10,7 @@ namespace SdbTypes {
 
 		~List() {
 			clear ();
-		} 
+		}
 
 		public string get_head() {
 			return si.get ("list."+name+".head") ?? "";

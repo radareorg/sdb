@@ -12,7 +12,6 @@ namespace SdbTypes {
 			this.name = name;
 			this.n = this.head = head;
 		}
-		
 		/* DUPPED */
 		private string get_next(string node) {
 			return si.get ("list."+name+"."+node+".next") ?? "";

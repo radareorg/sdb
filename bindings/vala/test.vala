@@ -40,7 +40,6 @@ void main () {
 		} else {
 			print ("EXPIRE TEST SUCCESS\n");
 		}
-		
 		s2.sync ();
 		s2 = null;
 	} else print ("Cannot open 'uuid.sdb'\n");
