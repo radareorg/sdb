@@ -107,4 +107,17 @@ else
 	RET=1
 fi
 
+echo a=d | ${SDB} .newdb -
+if [ "${WINEMODE}" = 1 ]; then
+	A="`${SDB} .newdb | perl -0 -pe 's/\r//g;s/\n\Z//;'`"
+else
+	A="`${SDB} .newdb`"
+fi
+if [ "a=d" = "$A" ]; then
+	printf "$G  Redash test     OK$N\n"
+else
+	printf "$R  Redask test     FAIL$N\n"
+	RET=1
+fi
+
 exit $RET
