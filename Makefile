@@ -57,6 +57,14 @@ dist:
 	pub sdb-${SDBVER}.tar.gz
 	rm -rf sdb-${SDBVER}
 
+w32dist:
+	rm -f sdb-${SDBVER}.zip
+	rm -rf sdb-${SDBVER}
+	mkdir -p sdb-${SDBVER}
+	cp src/sdb.exe sdb-${SDBVER}
+	zip -r sdb-${SDBVER}.zip sdb-${SDBVER}
+	rm -rf sdb-${SDBVER}
+
 install-dirs:
 	$(INSTALL_DIR) ${MANDIR} ${PFX}/lib/pkgconfig ${PFX}/bin 
 	$(INSTALL_DIR) ${PFX}/share/vala/vapi ${PFX}/include/sdb
