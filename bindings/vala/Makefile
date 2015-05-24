@@ -1,3 +1,5 @@
+include ../../config.mk
+
 PKGCFG=PKG_CONFIG_PATH=../../pkgconfig pkg-config --cflags --libs
 PKGCFG+=--define-variable=libdir=../../src --define-variable=includedir=../../src
 SDB_FLAGS=$(shell ${PKGCFG} sdb)
@@ -6,7 +8,13 @@ MCPKGCFG+=--define-variable=libdir=../../memcache --define-variable=includedir=.
 MCSDB_FLAGS=$(shell ${MCPKGCFG} mcsdb) ${SDB_FLAGS}
 GFLAGS=$(shell pkg-config gobject-2.0 --libs --cflags)
 
-all: test mctest
+ifeq ($(BUILD_MEMCACHE),1)
+ALL_DEPS=test mctest
+else
+ALL_DEPS=test
+endif
+
+all: $(ALL_DEPS)
 
 test: test.vala
 	@echo VALAC test.vala
