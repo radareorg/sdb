@@ -3,6 +3,8 @@ PREFIX?=/usr
 
 SDBVER=0.9.6
 
+BUILD_MEMCACHE=0
+
 INSTALL?=install
 
 ifeq ($(INSTALL),cp)

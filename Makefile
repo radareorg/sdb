@@ -10,10 +10,12 @@ MKDIR=mkdir
 
 all: pkgconfig src/sdb-version.h
 	${MAKE} -C src
+ifeq ($(BUILD_MEMCACHE),1)
 	${MAKE} -C memcache
 ifneq (${HAVE_VALA},)
 	cd ${VALADIR} && ${MAKE}
 	cd ${VALADIR}/types && ${MAKE}
+endif
 endif
 
 .PHONY: test sdb.js pkgconfig

@@ -9,18 +9,25 @@ VFILES+=hash.vala
 VFILES+=stack.vala stackiterator.vala
 VFILES+=array.vala arrayiterator.vala
 VFILES+=list.vala listiterator.vala 
-VFILES+=iterator.vala sdbinstance.vala serializable.vala iterable.vala
+VFILES+=iterator.vala serializable.vala iterable.vala
 OFILES=$(subst vala,o,${VFILES})
 CFILES=$(subst vala,c,${VFILES})
 VFLAGS+=-X -I../../../src
-VFLAGS+=-X -I../../../memcache
-VFLAGS+=../sdb.vapi ../mcsdb.vapi
+VFLAGS+=../sdb.vapi 
 CFLAGS+=-I../../../src
-CFLAGS+=-I../../../memcache
 LDFLAGS+=../../../src/libsdb.a
-LDFLAGS+=../../../memcache/libmcsdb.a
 CFLAGS+=$(shell pkg-config --cflags gobject-2.0)
 LDFLAGS+=$(shell pkg-config --libs gobject-2.0)
+
+ifeq (${BUILD_MEMCACHE},1)
+VFLAGS+=../mcsdb.vapi
+CFLAGS+=-I../../../memcache
+VFILES+=mcsdbinstance.vala
+VFLAGS+=-X -I../../../memcache
+LDFLAGS+=../../../memcache/libmcsdb.a
+else
+VFILES+=sdbinstance.vala
+endif
 
 all: test
 

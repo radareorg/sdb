@@ -13,7 +13,7 @@ namespace SdbTypes {
 			this.idx = lower;
 			this.upper = upper;
 		}
-		
+
 		public override bool next() {
 			cur = idx++;
 			for (; idx<=upper; idx++) {
