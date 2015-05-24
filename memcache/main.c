@@ -1,10 +1,10 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2015 - pancake */
 
 #include <signal.h>
 #include "mcsdb.h"
 #include "../src/types.h"
 #include <fcntl.h>
-#if WINDOWS
+#if __SDB_WINDOWS__
 #include <windows.h>
 #else
 #include <netinet/in.h>
@@ -35,14 +35,14 @@ static int fds_add(int fd) {
 
 static void sigint(int sig UNUSED) {
 	signal (SIGINT, SIG_IGN);
-	fprintf (stderr, "gets %lld\n", ms->gets);
-	fprintf (stderr, "sets %lld\n", ms->sets);
-	fprintf (stderr, "hits %lld\n", ms->hits);
-	fprintf (stderr, "miss %lld\n", ms->misses);
-	fprintf (stderr, "read %lld\n", ms->bread);
-	fprintf (stderr, "writ %lld\n", ms->bwrite);
-	fprintf (stderr, "nfds %d\n", ms->nfds);
-	fprintf (stderr, "SIGINT handled.\n");
+	eprintf ("gets %lld\n", ms->gets);
+	eprintf ("sets %lld\n", ms->sets);
+	eprintf ("hits %lld\n", ms->hits);
+	eprintf ("miss %lld\n", ms->misses);
+	eprintf ("read %lld\n", ms->bread);
+	eprintf ("writ %lld\n", ms->bwrite);
+	eprintf ("nfds %d\n", ms->nfds);
+	eprintf ("SIGINT handled.\n");
 	mcsdb_free (ms);
 	exit (0);
 }
@@ -66,7 +66,7 @@ static int mcsdb_client_accept(int fd) {
 			ms->fds[0].revents = 0;
 			return 1;
 		}
-		fprintf (stderr, "cannot accept more clients\n");
+		eprintf ("cannot accept more clients\n");
 		net_close (cfd);
 	}
 	return 0;
@@ -93,7 +93,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 		rlen = MCSDB_MAX_BUFFER-1 - c->idx;
 		r = c->next? 0: read (c->fd, c->buf+c->idx, rlen);
 		if (r<0) {
-			fprintf (stderr, "ignored error\n");
+			eprintf ("ignored error\n");
 			return 1;
 		}
 		c->buf[c->idx+r] = 0;
@@ -331,7 +331,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	if (port<1) {
-		fprintf (stderr, "Invalid port %d\n", port);
+		eprintf ("Invalid port %d\n", port);
 		return 1;
 	}
 	if (optind < argc)
