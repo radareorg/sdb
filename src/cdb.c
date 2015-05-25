@@ -63,7 +63,9 @@ int cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
 	if (!seek_set (c->fd, pos))
 		return 0;
 	while (len > 0) {
-		ssize_t r = read (c->fd, buf, len);
+		ssize_t r;
+		memset (buf, 0, len);
+		r = read (c->fd, buf, len);
 		if (r != len) return 0;
 		buf += r;
 		len -= r;
