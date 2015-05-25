@@ -12,7 +12,7 @@
 int cdb_getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 	ut8 buf[4] = {0};
 	*klen = *vlen = 0;
-	if (fd == -1 || read (fd, buf, 4) != 4)
+	if (fd == -1 || read (fd, buf, sizeof (buf)) != sizeof (buf))
 		return 0;
 	*klen = (ut32)buf[0];
 	*vlen = (ut32)(buf[1] | ((ut32)buf[2]<<8) | ((ut32)buf[3]<<16));
@@ -96,7 +96,7 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 
 	c->hslots = 0;
 	if (!c->loop) {
-		if (!cdb_read (c, buf, 8, (u << 3) & 2047))
+		if (!cdb_read (c, buf, sizeof (buf), (u << 3) & 2047))
 			return -1;
 		ut32_unpack (buf + 4, &c->hslots);
 		if (!c->hslots)
@@ -107,12 +107,12 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 		c->kpos = c->hpos + u;
 	}
 	while (c->loop < c->hslots) {
-		if (!cdb_read (c, buf, 8, c->kpos))
+		if (!cdb_read (c, buf, sizeof (buf), c->kpos))
 			return 0;
 		ut32_unpack (buf + 4, &pos);
 		if (!pos) return 0;
 		c->loop++;
-		c->kpos += 8;
+		c->kpos += sizeof (buf);
 		if (c->kpos == c->hpos + (c->hslots << 3))
 			c->kpos = c->hpos;
 		ut32_unpack (buf, &u);
