@@ -8,6 +8,21 @@ var db = sdb.open("test.db");
 */
 var db = new sdb.Database("test.db");
 
+if (sdb.json) {
+	const J = sdb.json;
+	console.log(J.indent('{"pop":33,"caca":123}'));
+}
+
+if (sdb.json_indent) {
+	console.log (
+		sdb.json_unindent (
+			sdb.json_indent (
+				'{"pop":33,"caca":123}'
+			)
+		)
+	);
+}
+
 db.set("fooormiga", "1")
 db.set("fooonambug", "2")
 db.set("fulormiga", "3")

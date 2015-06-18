@@ -8,6 +8,8 @@ using namespace v8;
 class Database : public node::ObjectWrap {
 	public:
 		static void Init(Handle<Object> exports);
+		static NAN_METHOD(Open);
+		static NAN_METHOD(Close);
 		static NAN_METHOD(Ns);
 		static NAN_METHOD(New);
 		static NAN_METHOD(Add);
@@ -89,6 +91,26 @@ NAN_METHOD(Database::UnSetLike) {
 		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 		sdb_unset_like (sdb, *k);
 	}
+}
+
+NAN_METHOD(Database::Open) {
+	int fd = -1;
+	int len = args.Length();
+	if (len == 1) {
+		if (!args[0]->IsString()) {
+			NanThrowTypeError ("string expected");
+		}
+		NanUtf8String k (args[0]);
+		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		fd = sdb_open (sdb, *k);
+	}
+	NanReturnValue(NanNew (fd != -1));
+}
+
+NAN_METHOD(Database::Close) {
+	/* arguments ignored */
+	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	sdb_close (sdb);
 }
 
 NAN_METHOD(Database::Type) {
@@ -279,10 +301,40 @@ NAN_METHOD(Encode) {
 		}
 		NanUtf8String k (args[0]);
 		char *str = sdb_encode ((const ut8*)*k, -1);
-		NanReturnValue(NanNew(str));
-		free (str);
+		if (str) {
+			Local<String> v = NanNew(str);
+			free (str);
+			NanReturnValue(v);
+		}
 	}
-	NanReturnThis();
+}
+
+NAN_METHOD(JsonIndent) {
+	int len = args.Length();
+	if (len == 1) {
+		if (!args[0]->IsString()) {
+			NanThrowTypeError ("First argument must be a string");
+		}
+		NanUtf8String k (args[0]);
+		char *res = sdb_json_indent (*k);
+		Local<String> v = NanNew(res);
+		free (res);
+		NanReturnValue(v);
+	}
+}
+
+NAN_METHOD(JsonUnindent) {
+	int len = args.Length();
+	if (len == 1) {
+		if (!args[0]->IsString()) {
+			NanThrowTypeError ("First argument must be a string");
+		}
+		NanUtf8String k (args[0]);
+		char *res = sdb_json_unindent (*k);
+		Local<String> v = NanNew(res);
+		free (res);
+		NanReturnValue(v);
+	}
 }
 
 NAN_METHOD(TypeOf) {
@@ -304,10 +356,12 @@ NAN_METHOD(Decode) {
 		}
 		NanUtf8String k (args[0]);
 		char *str = (char *)sdb_decode (*k, NULL);
-		NanReturnValue(NanNew(str));
-		free (str);
+		if (str) {
+			Local<String> v = NanNew(str);
+			free (str);
+			NanReturnValue(v);
+		}
 	}
-	NanReturnThis();
 }
 
 NAN_METHOD(Database::Query) {
@@ -318,9 +372,11 @@ NAN_METHOD(Database::Query) {
 		}
 		NanUtf8String k (args[0]);
 		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
-		const char *v = sdb_querys (sdb, *k, -1, NULL);
-		if (v != NULL) {
-			NanReturnValue(NanNew(v));
+		char *res = sdb_querys (sdb, *k, -1, NULL);
+		if (res != NULL) {
+			Local<String> v = NanNew(res);
+			free (res);
+			NanReturnValue(v);
 		}
 	}
 	NanReturnUndefined();
@@ -383,6 +439,8 @@ void Database::Init(Handle<Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(ft, "exists", Exists);
 	NODE_SET_PROTOTYPE_METHOD(ft, "ns", Ns);
 	NODE_SET_PROTOTYPE_METHOD(ft, "like", Like);
+	NODE_SET_PROTOTYPE_METHOD(ft, "open", Open);
+	NODE_SET_PROTOTYPE_METHOD(ft, "close", Close);
 	/* numeric stuff */
 #if 0
 	NODE_SET_PROTOTYPE_METHOD(ft, "inc", Inc);
@@ -433,7 +491,10 @@ void Database::Init(Handle<Object> exports) {
 	exports->Set(NanNew("encode"), NanNew <FunctionTemplate>(Encode)->GetFunction());
 	exports->Set(NanNew("decode"), NanNew <FunctionTemplate>(Decode)->GetFunction());
 	exports->Set(NanNew("typeof"), NanNew <FunctionTemplate>(TypeOf)->GetFunction());
-	//exports->Set(NanNew("decode"), Decode);
+
+	/* TODO: implement under the sdb.json object */
+	exports->Set(NanNew("json_indent"), NanNew <FunctionTemplate>(JsonIndent)->GetFunction());
+	exports->Set(NanNew("json_unindent"), NanNew <FunctionTemplate>(JsonUnindent)->GetFunction());
 }
 
 NAN_METHOD(Database::New) {
@@ -467,8 +528,21 @@ NAN_METHOD(Database::New) {
 	NanReturnValue(obj);
 }
 
-void Init(Handle<Object> exports) {
+#if 0
+NAN_METHOD(NewDatabase) {
+	Database *db = new Database();
+	Local<Value> v = obj.CallAsConstructor(0, Handle<Value>[]);
+	NanReturnValue(v);
+}
+#endif
+
+void Init(Handle<Object> exports, Handle<Value> module) {
+#if 0
+	module.As<Object>()->Set(NanNew("exports"),
+		NanNew <FunctionTemplate>(NewDatabase)->GetFunction());
+#endif
 	Database::Init(exports);
 }
 
-NODE_MODULE(sdb, Init)
+NODE_MODULE_CONTEXT_AWARE(sdb, Init)
+//NODE_MODULE(sdb, Init)
