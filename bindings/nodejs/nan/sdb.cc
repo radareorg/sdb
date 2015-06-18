@@ -271,6 +271,45 @@ NAN_METHOD(Database::Get) {
 	NanReturnUndefined();
 }
 
+NAN_METHOD(Encode) {
+	int len = args.Length();
+	if (len == 1) {
+		if (!args[0]->IsString()) {
+			NanThrowTypeError ("First argument must be a string");
+		}
+		NanUtf8String k (args[0]);
+		char *str = sdb_encode ((const ut8*)*k, -1);
+		NanReturnValue(NanNew(str));
+		free (str);
+	}
+	NanReturnThis();
+}
+
+NAN_METHOD(TypeOf) {
+	int len = args.Length();
+	if (len == 1) {
+		if (!args[0]->IsString()) {
+			NanThrowTypeError ("First argument must be a string");
+		}
+		NanUtf8String k (args[0]);
+		NanReturnValue(NanNew(sdb_type (*k)));
+	}
+}
+
+NAN_METHOD(Decode) {
+	int len = args.Length();
+	if (len == 1) {
+		if (!args[0]->IsString()) {
+			NanThrowTypeError ("First argument must be a string");
+		}
+		NanUtf8String k (args[0]);
+		char *str = (char *)sdb_decode (*k, NULL);
+		NanReturnValue(NanNew(str));
+		free (str);
+	}
+	NanReturnThis();
+}
+
 NAN_METHOD(Database::Query) {
 	int len = args.Length();
 	if (len == 1) {
@@ -391,6 +430,10 @@ void Database::Init(Handle<Object> exports) {
 #endif
 	exports->Set(name, ft->GetFunction());
 	exports->Set(NanNew("version"), NanNew(SDB_VERSION));
+	exports->Set(NanNew("encode"), NanNew <FunctionTemplate>(Encode)->GetFunction());
+	exports->Set(NanNew("decode"), NanNew <FunctionTemplate>(Decode)->GetFunction());
+	exports->Set(NanNew("typeof"), NanNew <FunctionTemplate>(TypeOf)->GetFunction());
+	//exports->Set(NanNew("decode"), Decode);
 }
 
 NAN_METHOD(Database::New) {
