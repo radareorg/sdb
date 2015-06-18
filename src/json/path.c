@@ -98,7 +98,7 @@ int json_walk (const char *s) {
 }
 
 Rangstr json_find (const char *s, Rangstr *rs) {
-#define RESFIXSZ 512
+#define RESFIXSZ 1024
 	unsigned short resfix[RESFIXSZ];
 	unsigned short *res = NULL;
 	int i, j, n, len, ret;
@@ -106,9 +106,13 @@ Rangstr json_find (const char *s, Rangstr *rs) {
 
 	if (!s) return rangstr_null ();
 	len = strlen (s);
-	res = (len<RESFIXSZ)? resfix: malloc (len+1);
-	for (i=0;i<len;i++)
-		res[i]=0;
+	res = (len<RESFIXSZ)? resfix: malloc (sizeof (unsigned short)* (len+1));
+	if (!res) {
+		eprintf ("Cannot allocate %d bytes\n", len+1);
+		return rangstr_null ();
+	}
+	for (i=0; i<len; i++)
+		res[i] = 0;
 	ret = js0n ((const unsigned char *)s, len, res);
 #define PFREE(x) if (x&&x!=resfix) free (x)
 	if (ret>0) {
