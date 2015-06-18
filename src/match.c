@@ -15,9 +15,10 @@ static inline int havePrefix(const char *glob, int glob_len, const char *pfx) {
 
 enum MatchFlag {
 	SDB_LIKE_NONE = 0,
-	SDB_LIKE_ICASE = 1,
-	SDB_LIKE_START = 2,
-	SDB_LIKE_END = 4
+	SDB_LIKE_ICASE = 1, // ?i
+	SDB_LIKE_START = 2, // ^
+	SDB_LIKE_END = 4,   // $
+	SDB_LIKE_BASE64 = 8 // %
 };
 
 static inline int mycmp(const char *a, const char *b, int n, int any) {
@@ -48,19 +49,29 @@ static inline int strstr2(const char *a, const char *b, int n) {
 static inline int compareString(const char *a, const char *b, int blen, int flags) {
 	const int start = flags & SDB_LIKE_START;
 	const int end = flags & SDB_LIKE_END;
-	int alen = strlen (a);
-	if (blen > alen)
-		return 0;
-	if (flags & SDB_LIKE_ICASE) {
-		if (start && end) return alen==blen && !mycmp (a, b, blen, 0);
-		if (start) return !mycmp (a, b, blen, 0);
-		if (end) return !mycmp (a+(alen-blen), b, blen, 0);
-		return !mycmp (a, b, blen, 1);
+	char *aa = NULL;
+	int alen, ret = 0;
+	if (flags & SDB_LIKE_BASE64) {
+		aa = (char*)sdb_decode (a, &alen);
+		a = (const char *)aa;
+	} else {
+		alen = strlen (a);
 	}
-	if (start && end) return alen==blen && !strncmp (a, b, blen);
-	if (start) return !strncmp (a, b, blen);
-	if (end) return !strncmp (a+(alen-blen), b, blen);
-	return strstr2 (a, b, blen);
+	if (blen <= alen) {
+		if (flags & SDB_LIKE_ICASE) {
+			if (start && end) ret = (alen==blen && !mycmp (a, b, blen, 0));
+			else if (start) ret = !mycmp (a, b, blen, 0);
+			else if (end) ret = !mycmp (a+(alen-blen), b, blen, 0);
+			else ret = !mycmp (a, b, blen, 1);
+		} else {
+			if (start && end) ret = (alen==blen && !strncmp (a, b, blen));
+			else if (start) ret = !strncmp (a, b, blen);
+			else if (end) ret = !strncmp (a+(alen-blen), b, blen);
+			else ret = strstr2 (a, b, blen);
+		}
+	}
+	free (aa);
+	return ret;
 }
 
 SDB_API int sdb_match (const char *str, const char *glob) {
@@ -73,6 +84,11 @@ SDB_API int sdb_match (const char *str, const char *glob) {
 	if (haveSuffix (glob, glob_len, "?i")) {
 		glob_len -= 2;
 		flags |= SDB_LIKE_ICASE;
+	}
+	if (havePrefix (glob, glob_len, "%")) {
+		glob++;
+		glob_len--;
+		flags |= SDB_LIKE_BASE64;
 	}
 	if (havePrefix (glob, glob_len, "^")) {
 		glob++;
