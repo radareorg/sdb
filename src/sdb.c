@@ -792,7 +792,59 @@ static int unset_cb(void *user, const char *k, const char *v) {
 	return 1;
 }
 
-SDB_API int sdb_unset_matching(Sdb *s, const char *k) {
+SDB_API int sdb_unset_like(Sdb *s, const char *k) {
 	UnsetCallbackData ucd = { s, k };
 	return sdb_foreach (s, unset_cb, &ucd);
+}
+
+typedef struct {
+	Sdb *sdb;
+	const char *key;
+	const char *val;
+	SdbForeachCallback cb;
+	char const **array;
+	int array_index;
+	int array_size;
+} LikeCallbackData;
+
+static int like_cb(void *user, const char *k, const char *v) {
+	LikeCallbackData *lcd = user;
+	if (k && lcd->key && !sdb_match (k, lcd->key))
+		return 1;
+	if (v && lcd->val && !sdb_match (v, lcd->val))
+		return 1;
+	if (lcd->array) {
+		int idx = lcd->array_index;
+		lcd->array_size += sizeof (char*) * 2;
+		lcd->array = realloc (lcd->array, lcd->array_size);
+		// concatenate in array
+		lcd->array[idx] = strdup (k);
+		lcd->array[idx+1] = strdup (v);
+		lcd->array[idx+2] = NULL;
+		lcd->array[idx+3] = NULL;
+		lcd->array_index = idx+2;
+	} else {
+		if (lcd->cb) {
+			lcd->cb (lcd->sdb, k, v);
+		}
+	}
+	return 1;
+}
+
+SDB_API char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb) {
+	LikeCallbackData lcd = { s, k, v, cb };
+	if (cb) {
+		sdb_foreach (s, like_cb, &lcd);
+		return NULL;
+	} else {
+		lcd.array_size = sizeof (char*)*2;
+		lcd.array = calloc (lcd.array_size, 1);
+		lcd.array_index = 0;
+		sdb_foreach (s, like_cb, &lcd);
+		if (lcd.array_index==0) {
+			free (lcd.array);
+			return NULL;
+		}
+		return (char**)lcd.array;
+	}
 }
