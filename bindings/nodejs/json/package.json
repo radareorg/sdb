@@ -1,0 +1,17 @@
+{
+  "name": "sdb-json",
+  "version": "0.9.6",
+  "description": "Sdb JSON APIs for Node.js",
+  "main": "test.js",
+  "private": true,
+  "author": "pancake <pancake@nopcode.org>",
+  "dependencies": {
+    "bindings": "*",
+    "nan": "*"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "gypfile": true,
+  "license": "LGPL"
+}
