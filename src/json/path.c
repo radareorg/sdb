@@ -1,4 +1,4 @@
-/* sdb - LGPLv3 - Copyright 2012-2013 - pancake */
+/* sdb - LGPLv3 - Copyright 2012-2015 - pancake */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,8 +30,8 @@ rep:
 	s->f = ++s->t;
 	if (s->p[s->t] == stop)
 		s->f = ++s->t;
-    if (!s->p[s->t])
-        return 0;
+	if (!s->p[s->t])
+		return 0;
 	while (s->p[s->t] != stop) {
 		if (!s->p[s->t]) {
 			s->next = 0;
@@ -75,7 +75,7 @@ int json_foreach(const char *s, JSONCallback cb UNUSED) {
 #endif
 
 int json_walk (const char *s) {
-	unsigned short *res;
+	ut32 *res;
 	int i, ret, len = strlen (s);
 	res = malloc (len+1);
 	ret = js0n ((const unsigned char *)s, len, res);
@@ -99,14 +99,14 @@ int json_walk (const char *s) {
 
 Rangstr json_find (const char *s, Rangstr *rs) {
 #define RESFIXSZ 1024
-	unsigned short resfix[RESFIXSZ];
-	unsigned short *res = NULL;
+	ut32 resfix[RESFIXSZ];
+	ut32 *res = NULL;
 	int i, j, n, len, ret;
 	Rangstr rsn;
 
 	if (!s) return rangstr_null ();
 	len = strlen (s);
-	res = (len<RESFIXSZ)? resfix: malloc (sizeof (unsigned short)* (len+1));
+	res = (len<RESFIXSZ)? resfix: malloc (sizeof (ut32)* (len+1));
 	if (!res) {
 		eprintf ("Cannot allocate %d bytes\n", len+1);
 		return rangstr_null ();
