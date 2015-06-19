@@ -8,7 +8,7 @@
         "../../../src"
       ],
       "libraries": [
-        "../../../../src/libsdb.a"
+	"../../../../../sdb/src/libsdb.a"
       ]
     }
   ]

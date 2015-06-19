@@ -51,5 +51,10 @@ function randObject(rec, depth) {
 	return obj;
 }
 
-var obj = randObject(1500, 156);
+var argv = process.argv.splice(1);
+switch (argv.length()) {
+case 1: var obj = randObject(+argv[0], 156); break;
+case 2: var obj = randObject(+argv[0], +argv[1]); break;
+default: var obj = randObject(1500, 156); break;
+}
 console.log(JSON.stringify (obj));

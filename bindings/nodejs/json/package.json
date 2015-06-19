@@ -1,7 +1,7 @@
 {
   "name": "sdb-json",
-  "version": "0.9.6",
-  "description": "Sdb JSON APIs for Node.js",
+  "version": "0.1.0",
+  "description": "Fast JSON/base64 module on top of Sdb",
   "main": "test.js",
   "private": true,
   "author": "pancake <pancake@nopcode.org>",
@@ -13,5 +13,15 @@
     "test": "node test.js"
   },
   "gypfile": true,
-  "license": "LGPL"
+  "license": "LGPL",
+  "files": [
+    "README.md"
+  ],
+  "keywords": [
+    "json",
+    "sdb",
+    "indent",
+    "base64",
+    "fast"
+  ]
 }

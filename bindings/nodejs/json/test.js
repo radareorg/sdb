@@ -10,7 +10,7 @@ if (smalljson) {
 	var msg = '{"foo":33,"bar":[1,2,3,4,5]}';
 } else {
 	//var msg = ''+fs.readFileSync('a.json');
-	var msg = ''+fs.readFileSync('z.json');
+	var msg = ''+fs.readFileSync('c.json');
 }
 /*
    console.log(msg);
@@ -24,8 +24,8 @@ console.log("[BENCHMARK] - lower numbers and higher ratios are better");
 if (smalljson) {
 	run(1, 500000);
 } else {
-	//run(1, 1);
-	run(1, 1000);
+	run(1, 2);
+	//run(1, 1000);
 }
 
 function benchmark(name, cb) {
@@ -144,7 +144,6 @@ function run_indent2(times) {
 			json.indent(msg);
 		}
 	});
-
 	try {
 		var v8 = benchmark("v8", function() {
 			var obj = JSON.parse(msg);
