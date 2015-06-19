@@ -3,10 +3,7 @@
 
 #include <sys/types.h>
 
-#ifdef ut32
-#undef ut32
-#endif
-#define ut32 unsigned int
+#define RangstrType unsigned short
 
 typedef struct {
 	int type;
@@ -20,7 +17,7 @@ Rangstr rangstr_new (const char *s);
 Rangstr rangstr_null(void);
 int rangstr_int (Rangstr *s);
 char *rangstr_dup (Rangstr *rs);
-Rangstr rangstr_news (const char *s, ut32 *res, int i);
+Rangstr rangstr_news (const char *s, RangstrType *res, int i);
 int rangstr_cmp (Rangstr *a, Rangstr *b);
 const char *rangstr_str (Rangstr* rs);
 int rangstr_length (Rangstr* rs);

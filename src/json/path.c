@@ -75,7 +75,7 @@ int json_foreach(const char *s, JSONCallback cb UNUSED) {
 #endif
 
 int json_walk (const char *s) {
-	ut32 *res;
+	RangstrType *res;
 	int i, ret, len = strlen (s);
 	res = malloc (len+1);
 	ret = js0n ((const unsigned char *)s, len, res);
@@ -99,14 +99,13 @@ int json_walk (const char *s) {
 
 Rangstr json_find (const char *s, Rangstr *rs) {
 #define RESFIXSZ 1024
-	ut32 resfix[RESFIXSZ];
-	ut32 *res = NULL;
+	RangstrType resfix[RESFIXSZ], *res = NULL;
 	int i, j, n, len, ret;
 	Rangstr rsn;
 
 	if (!s) return rangstr_null ();
 	len = strlen (s);
-	res = (len<RESFIXSZ)? resfix: malloc (sizeof (ut32)* (len+1));
+	res = (len<RESFIXSZ)? resfix: malloc (sizeof (RangstrType)* (len+1));
 	if (!res) {
 		eprintf ("Cannot allocate %d bytes\n", len+1);
 		return rangstr_null ();

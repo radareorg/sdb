@@ -3,7 +3,7 @@
 
 #include "rangstr.h"
 
-int js0n(const unsigned char *js, ut32 len, ut32 *out);
+int js0n(const unsigned char *js, RangstrType len, RangstrType *out);
 Rangstr json_get (const char *s, const char *path);
 
 /* string based api */
