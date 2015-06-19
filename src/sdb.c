@@ -809,6 +809,7 @@ typedef struct {
 
 static int like_cb(void *user, const char *k, const char *v) {
 	LikeCallbackData *lcd = user;
+	if (!user) return 0;
 	if (k && lcd->key && !sdb_match (k, lcd->key))
 		return 1;
 	if (v && lcd->val && !sdb_match (v, lcd->val))
@@ -818,8 +819,8 @@ static int like_cb(void *user, const char *k, const char *v) {
 		lcd->array_size += sizeof (char*) * 2;
 		lcd->array = realloc (lcd->array, lcd->array_size);
 		// concatenate in array
-		lcd->array[idx] = strdup (k);
-		lcd->array[idx+1] = strdup (v);
+		lcd->array[idx] = k;
+		lcd->array[idx+1] = v;
 		lcd->array[idx+2] = NULL;
 		lcd->array[idx+3] = NULL;
 		lcd->array_index = idx+2;

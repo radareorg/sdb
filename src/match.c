@@ -51,8 +51,11 @@ static inline int compareString(const char *a, const char *b, int blen, int flag
 	const int end = flags & SDB_LIKE_END;
 	char *aa = NULL;
 	int alen, ret = 0;
+	if (!a || !b || blen<0)
+		return 0;
 	if (flags & SDB_LIKE_BASE64) {
 		aa = (char*)sdb_decode (a, &alen);
+		if (!aa) return 0;
 		a = (const char *)aa;
 	} else {
 		alen = strlen (a);
