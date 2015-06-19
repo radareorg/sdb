@@ -64,3 +64,28 @@ Benchmark for 68K JSON file
 	 >> v8 : 593
 	 ratio : 1.9
 
+Benchmark for 4MB JSON file
+---------------------------
+
+	[BENCHMARK] - lower numbers and higher ratios are better
+	[T] base64 500000 times...
+	 >> sdb : 199
+	 >> v8 : 313
+	 ratio : 1.5
+	[T] get 500000 times...
+	 >> sdb : 510
+	 >> v8 : 354
+	 ratio : 0.6
+	[T] set 500000 times...
+	 >> sdb : 518
+	 >> v8 : 354
+	 ratio : 0.6
+	[T] indent 500000 times...
+	 >> sdb : 229
+	 >> v8 : 1316
+	 ratio : 5.7
+	[T] indent2 500000 times...
+	 >> sdb : 221
+	 >> v8 : 292
+	 ratio : 1.3
+

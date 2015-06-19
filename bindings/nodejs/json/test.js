@@ -3,7 +3,7 @@
 var json = require('bindings')('sdb-json');
 var fs = require("fs");
 
-var smalljson = false;
+var smalljson = true;
 
 
 if (smalljson) {
