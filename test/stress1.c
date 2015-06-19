@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	s = sdb_new ("./", "f", 0);
 
 	if (!key || !value || !s) {
-		fprintf (stderr, "Failed to allocate memory\n");
+		fprintf (stderr, "Failed to allocate sdb\n");
 		return -1;
 	}
 

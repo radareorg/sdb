@@ -60,8 +60,10 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 		}
 		if (sdb_open (s, s->dir) != -1) {
 			if (s->fd > -1 && fstat (s->fd, &st) != -1) {
-				if ((S_IFREG & st.st_mode) != S_IFREG)
+				if ((S_IFREG & st.st_mode) != S_IFREG) {
+					eprintf ("Database must be a file\n");
 					goto fail;
+				}
 			}
 			s->last = st.st_mtime;
 		} else {

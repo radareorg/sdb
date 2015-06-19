@@ -28,6 +28,7 @@ add10k:
 	sh add10k.sh
 
 clean:
+	rm -f f dumptwice.db
 	rm -f a test.db db a.gz a.out $(BINS)
 
 .PHONY: ${SCRIPTS}
