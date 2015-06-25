@@ -536,12 +536,12 @@ SDB_API int sdb_sync (Sdb* s) {
 	}
 	/* append new keyvalues */
 	ls_foreach (s->ht->list, iter, kv) {
-		if (*kv->value && kv->expire == 0LL)
-			sdb_disk_insert (s, kv->key, kv->value);
-		if (kv->expire == 0LL) {
-			it.n = iter->n;
-			sdb_unset (s, kv->key, 0);
-			iter = &it;
+		if (*kv->value && kv->expire == 0LL) {
+			if (sdb_disk_insert (s, kv->key, kv->value)) {
+				it.n = iter->n;
+				sdb_unset (s, kv->key, 0);
+				iter = &it;
+			}
 		}
 	}
 	sdb_disk_finish (s);
