@@ -7,26 +7,26 @@ echo "DONE"
 
 # creates test.db and 'a'
 G=6561
-T=a
+T=a.sdb
 D=test.db
 K=key29988
 
 echo
 printf "\033[33m[+] System grep    \033[0m"
 echo "$ grep 6561 $T"
-LINES=`time grep $G $T |wc -l`
+LINES=`grep $G $T |wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 
 echo
 printf "\033[33m[+] Dump and grep  \033[0m"
 echo "$ sdb $D | grep $G"
-LINES=`time sdb $D | grep $G | wc -l`
+LINES=`sdb $D | grep $G | wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 
 echo
 printf "\033[33m[+] Internal grep  \033[0m"
 echo "$ sdb -g $G $D"
-LINES=`time sdb -g $G $D | wc -l`
+LINES=`sdb -g $G $D | wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 
 
@@ -34,13 +34,13 @@ echo "\033[32mLines: ${LINES}\033[0m"
 echo
 printf "\033[33m[+] Grep get \033[0m"
 echo '$ grep "^$K=" $T'
-LINES="`time grep "^$K=" $T |wc -l `"
+LINES="`grep "^$K=" $T |wc -l `"
 echo "\033[32mLines: ${LINES}\033[0m"
 
 
 echo
 printf "\033[33m[+] Sdb get \033[0m"
 echo "$ sdb $D $K"
-LINES=`time sdb $D $K | grep -v '^$' | wc -l`
+LINES=`sdb $D $K | grep -v '^$' | wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 

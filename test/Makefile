@@ -1,10 +1,10 @@
 .PHONY: all reset
 
-BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain ns nsabuse
-BINS+=bench-expire expire dumptwice
+BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain
+BINS+=bench-expire expire dumptwice syncget ns nsabuse
 CFLAGS=-I../../src -I ../src
 LDFLAGS=../src/libsdb.a
-SCRIPTS=createfail.sh testgrep.sh
+SCRIPTS=createfail.sh testgrep.sh delkey.sh
 ALL=all
 
 all: $(BINS) $(SCRIPTS) reset
@@ -31,4 +31,4 @@ clean:
 	rm -f f dumptwice.db
 	rm -f a test.db db a.gz a.out $(BINS)
 
-.PHONY: ${SCRIPTS}
+.PHONY: ${SCRIPTS} ${BINS}
