@@ -53,6 +53,5 @@ try {
   console.error ("Failed",e);
 }
 
-
 console.log(db.sync());
 console.log(db.query("a=c;a"))
