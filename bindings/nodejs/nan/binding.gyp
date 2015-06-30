@@ -5,10 +5,10 @@
       "sources": [ "sdb.cc" ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
-        "../../../src"
+        "lib/sdb/src"
       ],
-      "libraries": [
-        "../../../../src/libsdb.a"
+      "dependencies": [
+        "lib/binding.gyp:libsdb"
       ]
     }
   ]
