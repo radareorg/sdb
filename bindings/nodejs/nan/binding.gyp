@@ -8,7 +8,7 @@
         "lib/sdb/src"
       ],
       "dependencies": [
-        "lib/binding.gyp:libsdb"
+        "lib/sdb.gyp:libsdb"
       ]
     }
   ]
