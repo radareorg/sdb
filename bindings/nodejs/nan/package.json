@@ -27,6 +27,7 @@
     "sdb.cc",
     "test.js",
     "lib/binding.gyp",
+    "lib/sdb/src/sdb-version.h",
     "lib/sdb/config.mk",
     "lib/sdb/src/array.c",
     "lib/sdb/src/base64.c",
