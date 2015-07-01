@@ -824,7 +824,7 @@ typedef struct {
 	const char *key;
 	const char *val;
 	SdbForeachCallback cb;
-	char const **array;
+	const char **array;
 	int array_index;
 	int array_size;
 } LikeCallbackData;
