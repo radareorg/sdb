@@ -1,5 +1,6 @@
 /* sdb-nan.js - pancake@nopcode.org // 2015 */
 
+#include <node.h>
 #include <nan.h>
 #include <sdb.h>
 
@@ -48,6 +49,8 @@ NAN_METHOD(Database::Like) {
 	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 	char **res = NULL;
 
+	NanScope();
+
 	switch (args.Length()) {
 	case 1:
 		if (args[0]->IsString()) {
@@ -83,6 +86,9 @@ NAN_METHOD(Database::Like) {
 
 NAN_METHOD(Database::UnSetLike) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("string expected");
@@ -96,6 +102,9 @@ NAN_METHOD(Database::UnSetLike) {
 NAN_METHOD(Database::Open) {
 	int fd = -1;
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("string expected");
@@ -115,6 +124,9 @@ NAN_METHOD(Database::Close) {
 
 NAN_METHOD(Database::Type) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("string expected");
@@ -141,6 +153,9 @@ NAN_METHOD(Database::UnSet) {
 NAN_METHOD(Database::Exists) {
 	bool ret = false;
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (args[0]->IsString()) {
 			NanUtf8String k (args[0]);
@@ -157,6 +172,9 @@ NAN_METHOD(Database::Exists) {
 
 NAN_METHOD(Database::Set) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 2) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -183,6 +201,9 @@ NAN_METHOD(Database::Set) {
 
 NAN_METHOD(Database::Ns) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 		if (!args[0]->IsString()) {
@@ -216,6 +237,9 @@ NAN_METHOD(Database::Open) {
 NAN_METHOD(Database::Add) {
 	int ret = 0;
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 2) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -243,17 +267,20 @@ NAN_METHOD(Database::Add) {
 }
 
 NAN_METHOD(Database::GetVersion) {
+	NanScope();
 	NanReturnValue(NanNew(SDB_VERSION));
 }
 
 NAN_METHOD(Database::Sync) {
 	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 	bool v = sdb_sync (sdb);
+	NanScope();
 	NanReturnValue(NanNew(v));
 }
 
 NAN_METHOD(Database::Drain) {
 	int len = args.Length();
+	NanScope();
 	if (len == 1) {
 		//Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 		//Sdb *sdb2 = ((Database*)(args[0]->ToObject()->Get(0)))->obj;
@@ -268,17 +295,22 @@ NAN_METHOD(Database::Drain) {
 NAN_METHOD(Database::Reset) {
 	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 	sdb_reset (sdb);
+	NanScope();
 	NanReturnThis();
 }
 
 NAN_METHOD(Database::UnLink) {
 	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
 	bool v = sdb_unlink(sdb);
+	NanScope();
 	NanReturnValue(NanNew(v));
 }
 
 NAN_METHOD(Database::Get) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -295,6 +327,9 @@ NAN_METHOD(Database::Get) {
 
 NAN_METHOD(Encode) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -311,6 +346,9 @@ NAN_METHOD(Encode) {
 
 NAN_METHOD(JsonIndent) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -325,6 +363,9 @@ NAN_METHOD(JsonIndent) {
 
 NAN_METHOD(JsonUnindent) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -339,6 +380,9 @@ NAN_METHOD(JsonUnindent) {
 
 NAN_METHOD(TypeOf) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -350,6 +394,9 @@ NAN_METHOD(TypeOf) {
 
 NAN_METHOD(Decode) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -366,6 +413,9 @@ NAN_METHOD(Decode) {
 
 NAN_METHOD(Database::Query) {
 	int len = args.Length();
+
+	NanScope();
+
 	if (len == 1) {
 		if (!args[0]->IsString()) {
 			NanThrowTypeError ("First argument must be a string");
@@ -385,23 +435,29 @@ NAN_METHOD(Database::Query) {
 NAN_METHOD(Database::Expire) {
 	ut32 v = 0; // should be 64 bit!
 	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
-	NanUtf8String k (args[0]);
+
+	NanScope();
+
 	switch (args.Length()) {
 	case 1:
-		if (!args[0]->IsString()) {
+		if (args[0]->IsString()) {
+			NanUtf8String k (args[0]);
+			v = sdb_expire_get (sdb, *k, NULL);
+		} else {
 			NanThrowTypeError ("First argument must be a string");
 		}
-		v = sdb_expire_get (sdb, *k, NULL);
 		break;
 	case 2:
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
-		}
-		if (args[1]->IsNumber()) {
-			ut64 n = (ut64)args[1]->Uint32Value();
-			v = sdb_expire_set (sdb, *k, n, 0);
+		if (args[0]->IsString()) {
+			NanUtf8String k (args[0]);
+			if (args[1]->IsNumber()) {
+				ut64 n = (ut64)args[1]->Uint32Value();
+				v = sdb_expire_set (sdb, *k, n, 0);
+			} else {
+				NanThrowTypeError ("2nd arg expects a number");
+			}
 		} else {
-			NanThrowTypeError ("2nd arg expects a number");
+			NanThrowTypeError ("First argument must be a string");
 		}
 		break;
 	default:
@@ -421,7 +477,7 @@ void Database::Init(Handle<Object> exports) {
 	auto ift = ft->InstanceTemplate();
 	auto signature = AccessorSignature::New(isolate, ft);
 	ift->SetAccessor(String::NewFromUtf8(isolate, "id"),
-		GetId, 0, data, DEFAULT, ReadOnly, signature);
+			GetId, 0, data, DEFAULT, ReadOnly, signature);
 #endif
 	NODE_SET_PROTOTYPE_METHOD(ft, "add", Add);
 	NODE_SET_PROTOTYPE_METHOD(ft, "set", Set);
@@ -486,7 +542,7 @@ void Database::Init(Handle<Object> exports) {
 	json_get
 	json_num_inc
 #endif
-	exports->Set(name, ft->GetFunction());
+		exports->Set(name, ft->GetFunction());
 	exports->Set(NanNew("version"), NanNew(SDB_VERSION));
 	exports->Set(NanNew("encode"), NanNew <FunctionTemplate>(Encode)->GetFunction());
 	exports->Set(NanNew("decode"), NanNew <FunctionTemplate>(Decode)->GetFunction());
@@ -499,13 +555,11 @@ void Database::Init(Handle<Object> exports) {
 
 NAN_METHOD(Database::New) {
 	NanScope();
-	v8::Isolate *isolate = args.GetIsolate();
+
 	if (!args.IsConstructCall()) {
-		isolate->ThrowException(Exception::TypeError(
-			String::NewFromUtf8(isolate,
-			"Database requires new")));
-		return;
+		NanThrowTypeError ("Database requires new");
 	}
+
 	Database *wrapper;
 	int len = args.Length();
 	if (len == 1) {
@@ -517,11 +571,9 @@ NAN_METHOD(Database::New) {
 	} else {
 		wrapper = new Database();
 	}
+
 	if (wrapper->obj == NULL) {
-		isolate->ThrowException(Exception::TypeError(
-			String::NewFromUtf8(isolate,
-			"sdb_new0 returns null")));
-		return;
+		NanThrowTypeError ("sdb_new0 returns null");
 	}
 	Local<v8::Object> obj = args.This();
 	wrapper->Wrap(obj);
@@ -539,10 +591,9 @@ NAN_METHOD(NewDatabase) {
 void Init(Handle<Object> exports, Handle<Value> module) {
 #if 0
 	module.As<Object>()->Set(NanNew("exports"),
-		NanNew <FunctionTemplate>(NewDatabase)->GetFunction());
+			NanNew <FunctionTemplate>(NewDatabase)->GetFunction());
 #endif
 	Database::Init(exports);
 }
 
-NODE_MODULE_CONTEXT_AWARE(sdb, Init)
-//NODE_MODULE(sdb, Init)
+NODE_MODULE(sdb, Init)
