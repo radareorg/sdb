@@ -24,6 +24,7 @@
 	"sdb/src/ns.c",
 	"sdb/src/num.c",
 	"sdb/src/query.c",
+	"sdb/src/sdb_version.h",
 	"sdb/src/util.c",
       ]
     }

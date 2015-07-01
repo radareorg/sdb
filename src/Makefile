@@ -10,7 +10,7 @@ BIN=sdb${EXEXT}
 
 .PHONY: all static shared clean
 
-all: ${BIN} sdb-version.h
+all: ${BIN} sdb_version.h
 	${MAKE} static
 	${MAKE} shared
 
@@ -19,13 +19,13 @@ json.o: json/api.c json/js0n.c json/path.c json/rangstr.c json/indent.c
 install:
 	$(MAKE) -C .. install
 
-sdb-version.h:
-	cd .. ; ${MAKE} src/sdb-version.h
+sdb_version.h:
+	cd .. ; ${MAKE} src/sdb_version.h
 
-shared: sdb-version.h
+shared: sdb_version.h
 	${MAKE} libsdb.${SOVER}
 
-static: sdb-version.h
+static: sdb_version.h
 	${MAKE} libsdb.a
 
 libsdb.a: ${OBJ}

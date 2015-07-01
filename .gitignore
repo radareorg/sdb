@@ -15,7 +15,7 @@ test/stress1
 test/verypush
 src/libsdb.so*
 src/sdb
-src/sdb-version.h
+src/sdb_version.h
 memcache/cmds
 memcache/cmds.h
 memcache/mcsdbc
