@@ -1,6 +1,6 @@
 {
   "name": "sdb",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "MIT",
   "author": "pancake <pancake@nopcode.org>",
   "description": "Sdb addon for Node.js",

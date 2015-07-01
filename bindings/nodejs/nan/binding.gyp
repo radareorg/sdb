@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "type": "none",
+      "type": "loadable_module",
       "target_name": "sdb",
       "sources": [ "sdb.cc" ],
       "include_dirs": [
