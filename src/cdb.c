@@ -17,6 +17,8 @@ int cdb_getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 		return 0;
 	*klen = (ut32)buf[0];
 	*vlen = (ut32)(buf[1] | ((ut32)buf[2]<<8) | ((ut32)buf[3]<<16));
+	if (*vlen >= 0x1000000)
+		*vlen = 0xffffff; // untaint value for coverity
 	return 1;
 }
 
