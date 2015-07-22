@@ -8,6 +8,8 @@ var db = sdb.open("test.db");
 */
 var db = new sdb.Database("test.db");
 
+console.log ("Keys: "+db.keys_on_disk());
+
 if (sdb.json) {
 	const J = sdb.json;
 	console.log(J.indent('{"pop":33,"caca":123}'));

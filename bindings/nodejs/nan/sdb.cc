@@ -22,6 +22,8 @@ class Database : public node::ObjectWrap {
 		static NAN_METHOD(Expire);
 		static NAN_METHOD(Reset);
 		static NAN_METHOD(Sync);
+		static NAN_METHOD(KeysOnDisk);
+		static NAN_METHOD(KeysOnMemory);
 		static NAN_METHOD(Query);
 		static NAN_METHOD(Like);
 		static NAN_METHOD(UnLink);
@@ -432,6 +434,28 @@ NAN_METHOD(Database::Query) {
 	NanReturnUndefined();
 }
 
+NAN_METHOD(Database::KeysOnDisk) {
+	NanScope();
+	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	ut32 count;
+	if (sdb_stats (sdb, &count, NULL)) {
+		Local<Uint32> v = NanNew(count);
+		NanReturnValue(v);
+	}
+	NanReturnUndefined();
+}
+
+NAN_METHOD(Database::KeysOnMemory) {
+	NanScope();
+	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	ut32 count;
+	if (sdb_stats (sdb, NULL, &count)) {
+		Local<Uint32> v = NanNew(count);
+		NanReturnValue(v);
+	}
+	NanReturnUndefined();
+}
+
 NAN_METHOD(Database::Expire) {
 	ut32 v = 0; // should be 64 bit!
 	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
@@ -485,6 +509,8 @@ void Database::Init(Handle<Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(ft, "unset", UnSet);
 	NODE_SET_PROTOTYPE_METHOD(ft, "unset_like", UnSetLike);
 	NODE_SET_PROTOTYPE_METHOD(ft, "reset", Reset);
+	NODE_SET_PROTOTYPE_METHOD(ft, "keys_on_disk", KeysOnDisk);
+	NODE_SET_PROTOTYPE_METHOD(ft, "keys_on_memory", KeysOnMemory);
 	NODE_SET_PROTOTYPE_METHOD(ft, "drain", Drain);
 	NODE_SET_PROTOTYPE_METHOD(ft, "unlink", UnLink);
 	NODE_SET_PROTOTYPE_METHOD(ft, "get", Get);
