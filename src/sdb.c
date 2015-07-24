@@ -624,7 +624,9 @@ SDB_API int sdb_dump_hasnext (Sdb* s) {
 		return 0;
 	if (k<1 || v<1)
 		return 0;
-	lseek (s->fd, k+v, SEEK_CUR);
+	if (lseek (s->fd, k+v, SEEK_CUR) == -1) {
+		return 0;
+	}
 	s->pos += k + v + 4;
 	return 1;
 }
