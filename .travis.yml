@@ -15,6 +15,8 @@ env:
   - TESTS=test
   
 script:
+  - OLD_CFLAGS="${CFLAGS}"
+  - OLD_LDFLAGS="${LDFLAGS}"
   - export CFLAGS="-fprofile-arcs -ftest-coverage ${CFLAGS}"
   - export LDFLAGS="-lgcov ${LDFLAGS}"
   # Limit the stack size (to 32MiB) to make ThreadSanitizer happy.
@@ -23,6 +25,8 @@ script:
   - make clean
   - make
   # Run the tests, report only regressions as errors.
+  - export CFLAGS="${OLD_CFLAGS}"
+  - export LDFLAGS="${OLD_LDFLAGS}"
   - VERBOSE=1 make $TESTS
   - sudo make install
 
