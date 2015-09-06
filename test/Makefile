@@ -2,8 +2,8 @@
 
 BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain
 BINS+=bench-expire expire dumptwice syncget ns nsabuse
-CFLAGS=-I../../src -I ../src
-LDFLAGS=../src/libsdb.a
+CFLAGS+=-I../../src -I ../src
+LDFLAGS+=../src/libsdb.a
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
 ALL=all
 
