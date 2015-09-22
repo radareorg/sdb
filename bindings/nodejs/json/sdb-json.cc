@@ -1,150 +1,156 @@
 /* sdb-nan.js - pancake@nopcode.org // 2015 */
 
+#include <node.h>
 #include <nan.h>
 #include <sdb.h>
 
 using namespace v8;
+
+#define NanReturnThis() info.GetReturnValue().Set(info.This())
+#define NanReturnValue(v) info.GetReturnValue().Set(v)
 
 extern "C" {
 	char *api_json_get (const char *s, const char *p);
 	char *api_json_set (const char *s, const char *p, const char *v);
 }
 
-
 NAN_METHOD(GetVersion) {
-	NanReturnValue(NanNew(SDB_VERSION));
+	NanReturnValue(Nan::New<v8::String>(SDB_VERSION).ToLocalChecked());
+	//info.GetReturnValue().Set(Nan::New<v8::String>(SDB_VERSION).ToLocalChecked());
 }
 
 NAN_METHOD(Encode) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *str = sdb_encode ((const ut8*)*k, -1);
 		if (str) {
-			Local<String> v = NanNew(str);
+			auto v = Nan::New<v8::String>(str);
 			free (str);
-			NanReturnValue(v);
+			NanReturnValue(v.ToLocalChecked());
 		}
 	}
 }
 
 NAN_METHOD(JsonIndent) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_indent (*k);
-		Local<String> v = NanNew(res);
+		auto v = Nan::New<v8::String>(res);
 		free (res);
-		NanReturnValue(v);
+		NanReturnValue(v.ToLocalChecked());
 	}
 }
 
 NAN_METHOD(JsonUnindent) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_unindent (*k);
-		Local<String> v = NanNew(res);
+		auto v = Nan::New<v8::String>(res);
 		free (res);
-		NanReturnValue(v);
+		NanReturnValue(v.ToLocalChecked());
 	}
 }
 
 NAN_METHOD(TypeOf) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
-		NanReturnValue(NanNew(sdb_type (*k)));
+		Nan::Utf8String k (info[0]);
+		NanReturnValue(Nan::New<v8::String>(sdb_type (*k)).ToLocalChecked());
 	}
 }
 
 NAN_METHOD(Decode) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *str = (char *)sdb_decode (*k, NULL);
 		if (str) {
-			Local<String> v = NanNew(str);
+			auto v = Nan::New<v8::String>(str);
 			free (str);
-			NanReturnValue(v);
+			NanReturnValue(v.ToLocalChecked());
 		}
 	}
 }
 
 NAN_METHOD(JsonGet) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 2) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
-		NanUtf8String v (args[1]);
+		Nan::Utf8String k (info[0]);
+		Nan::Utf8String v (info[1]);
 		char *str = api_json_get (*k, *v);
 		if (str) {
-			Local<String> v = NanNew(str);
+			auto v = Nan::New<v8::String>(str);
 			free (str);
-			NanReturnValue(v);
+			NanReturnValue(v.ToLocalChecked());
 		}
 	} else {
-		NanThrowTypeError ("wrong number of arguments");
+		Nan::ThrowTypeError ("wrong number of arguments");
 	}
 }
 
 NAN_METHOD(JsonSet) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 3) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		if (!args[1]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[1]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String p (args[0]);
-		NanUtf8String k (args[1]);
-		if (args[1]->IsString()) {
-			NanUtf8String v (args[2]);
+		Nan::Utf8String p (info[0]);
+		Nan::Utf8String k (info[1]);
+		if (info[1]->IsString()) {
+			Nan::Utf8String v (info[2]);
 			char *str = api_json_set (*p, *k, *v);
 			if (str) {
-				Local<String> v = NanNew(str);
+				auto v = Nan::New<v8::String>(str);
 				free (str);
-				NanReturnValue(v);
+				NanReturnValue(v.ToLocalChecked());
 			}
 		} else {
-			NanThrowTypeError ("TODO: support more types");
+			Nan::ThrowTypeError ("TODO: support more types");
 		}
 	} else {
-		NanThrowTypeError ("wrong number of arguments");
+		Nan::ThrowTypeError ("wrong number of arguments");
 	}
 }
 
 void Init(Handle<Object> exports, Handle<Value> module) {
+#define exportString(a,b) exports->Set(Nan::New<v8::String>(a).ToLocalChecked(),Nan::New<v8::String>(b).ToLocalChecked())
+#define exportFunction(a,b) exports->Set(Nan::New<v8::String>(a).ToLocalChecked(),Nan::New <FunctionTemplate>(b)->GetFunction())
 	/* generic */
-	exports->Set(NanNew("version"), NanNew(SDB_VERSION));
+	exportString("version", SDB_VERSION);
 	/* base64 */
-	exports->Set(NanNew("encode"), NanNew <FunctionTemplate>(Encode)->GetFunction());
-	exports->Set(NanNew("decode"), NanNew <FunctionTemplate>(Decode)->GetFunction());
+	exportFunction("encode", Encode);
+	exportFunction("decode", Decode);
 	/* json */
-	exports->Set(NanNew("typeof"), NanNew <FunctionTemplate>(TypeOf)->GetFunction());
-	exports->Set(NanNew("indent"), NanNew <FunctionTemplate>(JsonIndent)->GetFunction());
-	exports->Set(NanNew("unindent"), NanNew <FunctionTemplate>(JsonUnindent)->GetFunction());
+	exportFunction("typeof", TypeOf);
+	exportFunction("indent", JsonIndent);
+	exportFunction("unindent", JsonUnindent);
 	/* json-path */
-	exports->Set(NanNew("get"), NanNew <FunctionTemplate>(JsonGet)->GetFunction());
-	exports->Set(NanNew("set"), NanNew <FunctionTemplate>(JsonSet)->GetFunction());
+	exportFunction("get", JsonGet);
+	exportFunction("set", JsonSet);
 }
 
 NODE_MODULE(sdb, Init)

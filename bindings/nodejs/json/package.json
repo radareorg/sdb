@@ -1,6 +1,6 @@
 {
   "name": "sdb-json",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fast JSON/base64 module on top of Sdb",
   "main": "test.js",
   "private": true,
@@ -13,7 +13,7 @@
     "test": "node test.js"
   },
   "gypfile": true,
-  "license": "LGPL",
+  "license": "MIT",
   "files": [
     "README.md"
   ],

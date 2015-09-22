@@ -5,10 +5,10 @@
       "sources": [ "sdb-json.cc" ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
-        "sdb/src"
+        "../../../src"
       ],
       "libraries": [
-	"../sdb/src/libsdb.a"
+	"../../../../src/libsdb.a"
       ]
     }
   ]
