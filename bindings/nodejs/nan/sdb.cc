@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-class Database : public node::ObjectWrap {
+class Database : public Nan::ObjectWrap {
 	public:
 		static void Init(Handle<Object> exports);
 		static NAN_METHOD(Open);
@@ -48,183 +48,183 @@ class Database : public node::ObjectWrap {
 };
 
 NAN_METHOD(Database::Like) {
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	char **res = NULL;
 
-	NanScope();
+	Nan::HandleScope scope;
 
-	switch (args.Length()) {
+	switch (info.Length()) {
 	case 1:
-		if (args[0]->IsString()) {
-			NanUtf8String k (args[0]);
+		if (info[0]->IsString()) {
+			Nan::Utf8String k (info[0]);
 			res = sdb_like(sdb, *k, NULL, NULL);
 		} else {
-			NanThrowTypeError ("string expected");
+			Nan::ThrowTypeError ("string expected");
 		}
 		break;
 	case 2:
 		char *key = NULL, *val = NULL;
 		// TODO: fail if type is bool, object, ...
-		if (args[0]->IsString()) {
-			NanUtf8String k (args[0]);
+		if (info[0]->IsString()) {
+			Nan::Utf8String k (info[0]);
 			key = *k;
 		}
-		if (args[1]->IsString()) {
-			NanUtf8String v (args[1]);
+		if (info[1]->IsString()) {
+			Nan::Utf8String v (info[1]);
 			val = *v;
 		}
 		res = sdb_like (sdb, key, val, NULL);
 		break;
 	}
 	if (res) {
-		Local<Object> obj = NanNew<Object>();
+		Local<Object> obj = Nan::New<Object>();
 		for (int i = 0; res[i]; i+=2) {
-			obj->Set(NanNew(res[i]), NanNew(res[i+1]));
+			obj->Set(Nan::New(res[i]), Nan::New(res[i+1]));
 		}
-		NanReturnValue(obj);
+		info.GetReturnValue().Set(obj);
 	}
 
 }
 
 NAN_METHOD(Database::UnSetLike) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("string expected");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("string expected");
 		}
-		NanUtf8String k (args[0]);
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		Nan::Utf8String k (info[0]);
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		sdb_unset_like (sdb, *k);
 	}
 }
 
 NAN_METHOD(Database::Open) {
 	int fd = -1;
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("string expected");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("string expected");
 		}
-		NanUtf8String k (args[0]);
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		Nan::Utf8String k (info[0]);
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		fd = sdb_open (sdb, *k);
 	}
-	NanReturnValue(NanNew (fd != -1));
+	info.GetReturnValue().Set(Nan::New (fd != -1));
 }
 
 NAN_METHOD(Database::Close) {
 	/* arguments ignored */
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	sdb_close (sdb);
 }
 
 NAN_METHOD(Database::Type) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("string expected");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("string expected");
 		}
-		NanUtf8String k (args[0]);
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		Nan::Utf8String k (info[0]);
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		const char *t = sdb_type (sdb_const_get (sdb, *k, 0));
-		NanReturnValue(NanNew (t));
+		info.GetReturnValue().Set(Nan::New (t));
 	}
 }
 
 NAN_METHOD(Database::UnSet) {
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("string expected");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("string expected");
 		}
-		NanUtf8String k (args[0]);
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		Nan::Utf8String k (info[0]);
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		sdb_unset (sdb, *k, 0);
 	}
 }
 
 NAN_METHOD(Database::Exists) {
 	bool ret = false;
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (args[0]->IsString()) {
-			NanUtf8String k (args[0]);
-			Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		if (info[0]->IsString()) {
+			Nan::Utf8String k (info[0]);
+			Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 			int ret = sdb_exists (sdb, *k);
-			NanReturnValue(NanNew ((bool)ret));
+			info.GetReturnValue().Set(Nan::New ((bool)ret));
 			// sdb_num_exists
 		} else {
-			NanThrowTypeError ("string key expected");
+			Nan::ThrowTypeError ("string key expected");
 		}
 	}
-	NanReturnValue(NanNew(ret));
+	info.GetReturnValue().Set(Nan::New(ret));
 }
 
 NAN_METHOD(Database::Set) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 2) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
-		NanUtf8String k (args[0]);
-		if (args[1]->IsBoolean()) {
-			ut64 v = args[1]->Uint32Value();
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
+		Nan::Utf8String k (info[0]);
+		if (info[1]->IsBoolean()) {
+			ut64 v = info[1]->Uint32Value();
 			(void)sdb_bool_set (sdb, *k, v, 0);
-		} else if (args[1]->IsNumber()) {
-			ut64 v = args[1]->Uint32Value();
+		} else if (info[1]->IsNumber()) {
+			ut64 v = info[1]->Uint32Value();
 			(void)sdb_num_set (sdb, *k, v, 0);
-		} else if (args[1]->IsString()) {
-			NanUtf8String v (args[1]);
+		} else if (info[1]->IsString()) {
+			Nan::Utf8String v (info[1]);
 			(void)sdb_set (sdb, *k, *v, 0);
 		} else {
-			NanThrowTypeError ("Second argument must be a string");
+			Nan::ThrowTypeError ("Second argument must be a string");
 		}
 	} else {
-		NanThrowTypeError ("Sdb.Set Invalid arguments");
+		Nan::ThrowTypeError ("Sdb.Set Invalid arguments");
 	}
 	NanReturnThis();
 }
 
 NAN_METHOD(Database::Ns) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("namespace must be a string");
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("namespace must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		Sdb *db = sdb_ns (sdb, *k, 0);
 		Database *so = new Database(db);
-		NanReturnValue(NanNew (so));
+		info.GetReturnValue().Set(Nan::New (so));
 	} else if (len == 2) {
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("namespace must be a string");
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("namespace must be a string");
 		}
-		NanUtf8String k (args[0]);
-		ut32 v = args[1]->Uint32Value();
+		Nan::Utf8String k (info[0]);
+		ut32 v = info[1]->Uint32Value();
 		Sdb *db = sdb_ns (sdb, *k, v);
 		Database *so = new Database(db);
-		NanReturnValue(NanNew (so));
+		info.GetReturnValue().Set(Nan::New (so));
 	} else {
 		/* return current namespace */
 	}
@@ -238,318 +238,318 @@ NAN_METHOD(Database::Open) {
 
 NAN_METHOD(Database::Add) {
 	int ret = 0;
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 2) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
-		} else if (args[1]->IsNumber()) {
-			NanUtf8String k (args[0]);
-			ut64 v = args[1]->Uint32Value();
-			Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
+		} else if (info[1]->IsNumber()) {
+			Nan::Utf8String k (info[0]);
+			ut64 v = info[1]->Uint32Value();
+			Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 			ret = sdb_num_add (sdb, *k, v, 0);
-		} else if (args[1]->IsString()) {
-			NanUtf8String k (args[0]);
-			NanUtf8String v (args[1]);
-			Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		} else if (info[1]->IsString()) {
+			Nan::Utf8String k (info[0]);
+			Nan::Utf8String v (info[1]);
+			Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 			ret = sdb_add (sdb, *k, *v, 0);
 		} else {
-			NanThrowTypeError ("Second argument must be a string");
+			Nan::ThrowTypeError ("Second argument must be a string");
 		}
 	} else {
-		NanThrowTypeError ("Sdb.Set Invalid arguments");
+		Nan::ThrowTypeError ("Sdb.Set Invalid arguments");
 	}
 	if (ret == 0) {
-		NanReturnValue(NanNew((bool)ret));
+		info.GetReturnValue().Set(Nan::New((bool)ret));
 	} else {
 		NanReturnThis();
 	}
 }
 
 NAN_METHOD(Database::GetVersion) {
-	NanScope();
-	NanReturnValue(NanNew(SDB_VERSION));
+	Nan::HandleScope scope;
+	info.GetReturnValue().Set(Nan::New(SDB_VERSION));
 }
 
 NAN_METHOD(Database::Sync) {
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	bool v = sdb_sync (sdb);
-	NanScope();
-	NanReturnValue(NanNew(v));
+	Nan::HandleScope scope;
+	info.GetReturnValue().Set(Nan::New(v));
 }
 
 NAN_METHOD(Database::Drain) {
-	int len = args.Length();
-	NanScope();
+	int len = info.Length();
+	Nan::HandleScope scope;
 	if (len == 1) {
-		//Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
-		//Sdb *sdb2 = ((Database*)(args[0]->ToObject()->Get(0)))->obj;
-		//Sdb *sdb2 = ObjectWrap::Unwrap<Database>(arg)->obj;
+		//Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
+		//Sdb *sdb2 = ((Database*)(info[0]->ToObject()->Get(0)))->obj;
+		//Sdb *sdb2 = Nan::ObjectWrap::Unwrap<Database>(arg)->obj;
 		//sdb_drain (sdb, sdb2);
 		NanReturnThis();
 	} else {
-		NanThrowTypeError ("Missing destination database");
+		Nan::ThrowTypeError ("Missing destination database");
 	}
 }
 
 NAN_METHOD(Database::Reset) {
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	sdb_reset (sdb);
-	NanScope();
+	Nan::HandleScope scope;
 	NanReturnThis();
 }
 
 NAN_METHOD(Database::UnLink) {
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	bool v = sdb_unlink(sdb);
-	NanScope();
-	NanReturnValue(NanNew(v));
+	Nan::HandleScope scope;
+	info.GetReturnValue().Set(Nan::New(v));
 }
 
 NAN_METHOD(Database::Get) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		Nan::Utf8String k (info[0]);
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		const char *v = sdb_const_get (sdb, *k, NULL);
 		if (v != NULL) {
-			NanReturnValue(NanNew(v));
+			info.GetReturnValue().Set(Nan::New(v));
 		}
 	}
-	NanReturnUndefined();
+	return;
 }
 
 NAN_METHOD(Encode) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *str = sdb_encode ((const ut8*)*k, -1);
 		if (str) {
-			Local<String> v = NanNew(str);
+			Local<String> v = Nan::New(str);
 			free (str);
-			NanReturnValue(v);
+			info.GetReturnValue().Set(v);
 		}
 	}
 }
 
 NAN_METHOD(JsonIndent) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_indent (*k);
-		Local<String> v = NanNew(res);
+		Local<String> v = Nan::New(res);
 		free (res);
-		NanReturnValue(v);
+		info.GetReturnValue().Set(v);
 	}
 }
 
 NAN_METHOD(JsonUnindent) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_unindent (*k);
-		Local<String> v = NanNew(res);
+		Local<String> v = Nan::New(res);
 		free (res);
-		NanReturnValue(v);
+		info.GetReturnValue().Set(v);
 	}
 }
 
 NAN_METHOD(TypeOf) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
-		NanReturnValue(NanNew(sdb_type (*k)));
+		Nan::Utf8String k (info[0]);
+		info.GetReturnValue().Set(Nan::New(sdb_type (*k)));
 	}
 }
 
 NAN_METHOD(Decode) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		char *str = (char *)sdb_decode (*k, NULL);
 		if (str) {
-			Local<String> v = NanNew(str);
+			Local<String> v = Nan::New(str);
 			free (str);
-			NanReturnValue(v);
+			info.GetReturnValue().Set(v);
 		}
 	}
 }
 
 NAN_METHOD(Database::Query) {
-	int len = args.Length();
+	int len = info.Length();
 
-	NanScope();
+	Nan::HandleScope scope;
 
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
-		Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+		Nan::Utf8String k (info[0]);
+		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		char *res = sdb_querys (sdb, *k, -1, NULL);
 		if (res != NULL) {
-			Local<String> v = NanNew(res);
+			Local<String> v = Nan::New(res);
 			free (res);
-			NanReturnValue(v);
+			info.GetReturnValue().Set(v);
 		}
 	}
-	NanReturnUndefined();
+	return;
 }
 
 NAN_METHOD(Database::KeysOnDisk) {
-	NanScope();
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Nan::HandleScope scope;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	ut32 count;
 	if (sdb_stats (sdb, &count, NULL)) {
-		Local<Uint32> v = NanNew(count);
-		NanReturnValue(v);
+		Local<Uint32> v = Nan::New(count);
+		info.GetReturnValue().Set(v);
 	}
-	NanReturnUndefined();
+	return;
 }
 
 NAN_METHOD(Database::KeysOnMemory) {
-	NanScope();
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Nan::HandleScope scope;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	ut32 count;
 	if (sdb_stats (sdb, NULL, &count)) {
-		Local<Uint32> v = NanNew(count);
-		NanReturnValue(v);
+		Local<Uint32> v = Nan::New(count);
+		info.GetReturnValue().Set(v);
 	}
-	NanReturnUndefined();
+	return;
 }
 
 NAN_METHOD(Database::Expire) {
 	ut32 v = 0; // should be 64 bit!
-	Sdb *sdb = ObjectWrap::Unwrap<Database>(args.This())->obj;
+	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 
-	NanScope();
+	Nan::HandleScope scope;
 
-	switch (args.Length()) {
+	switch (info.Length()) {
 	case 1:
-		if (args[0]->IsString()) {
-			NanUtf8String k (args[0]);
+		if (info[0]->IsString()) {
+			Nan::Utf8String k (info[0]);
 			v = sdb_expire_get (sdb, *k, NULL);
 		} else {
-			NanThrowTypeError ("First argument must be a string");
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
 		break;
 	case 2:
-		if (args[0]->IsString()) {
-			NanUtf8String k (args[0]);
-			if (args[1]->IsNumber()) {
-				ut64 n = (ut64)args[1]->Uint32Value();
+		if (info[0]->IsString()) {
+			Nan::Utf8String k (info[0]);
+			if (info[1]->IsNumber()) {
+				ut64 n = (ut64)info[1]->Uint32Value();
 				v = sdb_expire_set (sdb, *k, n, 0);
 			} else {
-				NanThrowTypeError ("2nd arg expects a number");
+				Nan::ThrowTypeError ("2nd arg expects a number");
 			}
 		} else {
-			NanThrowTypeError ("First argument must be a string");
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
 		break;
 	default:
-		NanThrowTypeError ("Missing parameters");
+		Nan::ThrowTypeError ("Missing parameters");
 		break;
 	}
-	NanReturnValue(NanNew(v));
+	info.GetReturnValue().Set(Nan::New(v));
 }
 
 void Database::Init(Handle<Object> exports) {
-	Local<v8::String> name = NanNew("Database");
-	Local<v8::FunctionTemplate> ft = NanNew<FunctionTemplate>(New);
+	Local<v8::String> name = Nan::New("Database").ToLocalChecked();
+	Local<v8::FunctionTemplate> ft = Nan::New<FunctionTemplate>(New);
 	ft->SetClassName(name);
 	ft->InstanceTemplate()->SetInternalFieldCount(1);
 #if 0
 	auto data = Handle<Value>();
 	auto ift = ft->InstanceTemplate();
 	auto signature = AccessorSignature::New(isolate, ft);
-	ift->SetAccessor(String::NewFromUtf8(isolate, "id"),
+	Nan::SetAccessor(ift, String::NewFromUtf8(isolate, "id"),
 			GetId, 0, data, DEFAULT, ReadOnly, signature);
 #endif
-	NODE_SET_PROTOTYPE_METHOD(ft, "add", Add);
-	NODE_SET_PROTOTYPE_METHOD(ft, "set", Set);
-	//NODE_SET_PROTOTYPE_METHOD(ft, "get_length", GetLength);
-	NODE_SET_PROTOTYPE_METHOD(ft, "unset", UnSet);
-	NODE_SET_PROTOTYPE_METHOD(ft, "unset_like", UnSetLike);
-	NODE_SET_PROTOTYPE_METHOD(ft, "reset", Reset);
-	NODE_SET_PROTOTYPE_METHOD(ft, "keys_on_disk", KeysOnDisk);
-	NODE_SET_PROTOTYPE_METHOD(ft, "keys_on_memory", KeysOnMemory);
-	NODE_SET_PROTOTYPE_METHOD(ft, "drain", Drain);
-	NODE_SET_PROTOTYPE_METHOD(ft, "unlink", UnLink);
-	NODE_SET_PROTOTYPE_METHOD(ft, "get", Get);
-	NODE_SET_PROTOTYPE_METHOD(ft, "type", Type);
-	NODE_SET_PROTOTYPE_METHOD(ft, "sync", Sync);
-	NODE_SET_PROTOTYPE_METHOD(ft, "expire", Expire);
-	NODE_SET_PROTOTYPE_METHOD(ft, "query", Query);
-	NODE_SET_PROTOTYPE_METHOD(ft, "exists", Exists);
-	NODE_SET_PROTOTYPE_METHOD(ft, "ns", Ns);
-	NODE_SET_PROTOTYPE_METHOD(ft, "like", Like);
-	NODE_SET_PROTOTYPE_METHOD(ft, "open", Open);
-	NODE_SET_PROTOTYPE_METHOD(ft, "close", Close);
+	Nan::SetPrototypeMethod(ft, "add", Add);
+	Nan::SetPrototypeMethod(ft, "set", Set);
+	//Nan::SetPrototypeMethod(ft, "get_length", GetLength);
+	Nan::SetPrototypeMethod(ft, "unset", UnSet);
+	Nan::SetPrototypeMethod(ft, "unset_like", UnSetLike);
+	Nan::SetPrototypeMethod(ft, "reset", Reset);
+	Nan::SetPrototypeMethod(ft, "keys_on_disk", KeysOnDisk);
+	Nan::SetPrototypeMethod(ft, "keys_on_memory", KeysOnMemory);
+	Nan::SetPrototypeMethod(ft, "drain", Drain);
+	Nan::SetPrototypeMethod(ft, "unlink", UnLink);
+	Nan::SetPrototypeMethod(ft, "get", Get);
+	Nan::SetPrototypeMethod(ft, "type", Type);
+	Nan::SetPrototypeMethod(ft, "sync", Sync);
+	Nan::SetPrototypeMethod(ft, "expire", Expire);
+	Nan::SetPrototypeMethod(ft, "query", Query);
+	Nan::SetPrototypeMethod(ft, "exists", Exists);
+	Nan::SetPrototypeMethod(ft, "ns", Ns);
+	Nan::SetPrototypeMethod(ft, "like", Like);
+	Nan::SetPrototypeMethod(ft, "open", Open);
+	Nan::SetPrototypeMethod(ft, "close", Close);
 	/* numeric stuff */
 #if 0
-	NODE_SET_PROTOTYPE_METHOD(ft, "inc", Inc);
-	NODE_SET_PROTOTYPE_METHOD(ft, "dec", Dec);
-	NODE_SET_PROTOTYPE_METHOD(ft, "min", Min);
-	NODE_SET_PROTOTYPE_METHOD(ft, "max", Max);
+	Nan::SetPrototypeMethod(ft, "inc", Inc);
+	Nan::SetPrototypeMethod(ft, "dec", Dec);
+	Nan::SetPrototypeMethod(ft, "min", Min);
+	Nan::SetPrototypeMethod(ft, "max", Max);
 #endif
 
 #if 0
 	/* ARRAY */
 	var foo = db.array_get("foo", idx);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_get", ArrayGet);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_add", ArrayAdd);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_add_sorted", ArrayAddSorted);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_set", ArraySet);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_unset", ArrayUnset);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_remove", ArrayRemove);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_delete", ArrayDelete);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_contains", ArrayContains);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_size", ArraySize);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_length", ArrayLength);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_indexOf", ArrayIndexOf);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_insert", ArrayInsert);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_push", ArrayPush);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_pop", ArrayPop);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_sort", ArraySort);
-	NODE_SET_PROTOTYPE_METHOD(ft, "array_sort_num", ArraySortNum);
+	Nan::SetPrototypeMethod(ft, "array_get", ArrayGet);
+	Nan::SetPrototypeMethod(ft, "array_add", ArrayAdd);
+	Nan::SetPrototypeMethod(ft, "array_add_sorted", ArrayAddSorted);
+	Nan::SetPrototypeMethod(ft, "array_set", ArraySet);
+	Nan::SetPrototypeMethod(ft, "array_unset", ArrayUnset);
+	Nan::SetPrototypeMethod(ft, "array_remove", ArrayRemove);
+	Nan::SetPrototypeMethod(ft, "array_delete", ArrayDelete);
+	Nan::SetPrototypeMethod(ft, "array_contains", ArrayContains);
+	Nan::SetPrototypeMethod(ft, "array_size", ArraySize);
+	Nan::SetPrototypeMethod(ft, "array_length", ArrayLength);
+	Nan::SetPrototypeMethod(ft, "array_indexOf", ArrayIndexOf);
+	Nan::SetPrototypeMethod(ft, "array_insert", ArrayInsert);
+	Nan::SetPrototypeMethod(ft, "array_push", ArrayPush);
+	Nan::SetPrototypeMethod(ft, "array_pop", ArrayPop);
+	Nan::SetPrototypeMethod(ft, "array_sort", ArraySort);
+	Nan::SetPrototypeMethod(ft, "array_sort_num", ArraySortNum);
 #endif
 #if 0
 	/* NUM */
@@ -569,55 +569,55 @@ void Database::Init(Handle<Object> exports) {
 	json_num_inc
 #endif
 		exports->Set(name, ft->GetFunction());
-	exports->Set(NanNew("version"), NanNew(SDB_VERSION));
-	exports->Set(NanNew("encode"), NanNew <FunctionTemplate>(Encode)->GetFunction());
-	exports->Set(NanNew("decode"), NanNew <FunctionTemplate>(Decode)->GetFunction());
-	exports->Set(NanNew("typeof"), NanNew <FunctionTemplate>(TypeOf)->GetFunction());
+	exports->Set(Nan::New("version").ToLocalChecked(), Nan::New(SDB_VERSION));
+	exports->Set(Nan::New("encode").ToLocalChecked(), Nan::New <FunctionTemplate>(Encode)->GetFunction());
+	exports->Set(Nan::New("decode").ToLocalChecked(), Nan::New <FunctionTemplate>(Decode)->GetFunction());
+	exports->Set(Nan::New("typeof").ToLocalChecked(), Nan::New <FunctionTemplate>(TypeOf)->GetFunction());
 
 	/* TODO: implement under the sdb.json object */
-	exports->Set(NanNew("json_indent"), NanNew <FunctionTemplate>(JsonIndent)->GetFunction());
-	exports->Set(NanNew("json_unindent"), NanNew <FunctionTemplate>(JsonUnindent)->GetFunction());
+	exports->Set(Nan::New("json_indent").ToLocalChecked(), Nan::New <FunctionTemplate>(JsonIndent)->GetFunction());
+	exports->Set(Nan::New("json_unindent").ToLocalChecked(), Nan::New <FunctionTemplate>(JsonUnindent)->GetFunction());
 }
 
 NAN_METHOD(Database::New) {
-	NanScope();
+	Nan::HandleScope scope;
 
-	if (!args.IsConstructCall()) {
-		NanThrowTypeError ("Database requires new");
+	if (!info.IsConstructCall()) {
+		Nan::ThrowTypeError ("Database requires new");
 	}
 
 	Database *wrapper;
-	int len = args.Length();
+	int len = info.Length();
 	if (len == 1) {
-		if (!args[0]->IsString()) {
-			NanThrowTypeError ("First argument must be a string");
+		if (!info[0]->IsString()) {
+			Nan::ThrowTypeError ("First argument must be a string");
 		}
-		NanUtf8String k (args[0]);
+		Nan::Utf8String k (info[0]);
 		wrapper = new Database(*k);
 	} else {
 		wrapper = new Database();
 	}
 
 	if (wrapper->obj == NULL) {
-		NanThrowTypeError ("sdb_new0 returns null");
+		Nan::ThrowTypeError ("sdb_new0 returns null");
 	}
-	Local<v8::Object> obj = args.This();
+	Local<v8::Object> obj = info.This();
 	wrapper->Wrap(obj);
-	NanReturnValue(obj);
+	info.GetReturnValue().Set(obj);
 }
 
 #if 0
 NAN_METHOD(NewDatabase) {
 	Database *db = new Database();
 	Local<Value> v = obj.CallAsConstructor(0, Handle<Value>[]);
-	NanReturnValue(v);
+	info.GetReturnValue().Set(v);
 }
 #endif
 
 void Init(Handle<Object> exports, Handle<Value> module) {
 #if 0
-	module.As<Object>()->Set(NanNew("exports"),
-			NanNew <FunctionTemplate>(NewDatabase)->GetFunction());
+	module.As<Object>()->Set(Nan::New("exports").ToLocalChecked(),
+			Nan::New <FunctionTemplate>(NewDatabase)->GetFunction());
 #endif
 	Database::Init(exports);
 }
