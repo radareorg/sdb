@@ -51,8 +51,9 @@ try {
     .set("syn","fin")
     .add("oyn","jol") // will fail here
     .set("xin","min");
+  console.log ("ERROR (expecting fail)", e);
 } catch (e) {
-  console.error ("Failed",e);
+  console.error ("OK (expected fail)", e);
 }
 
 console.log(db.sync());

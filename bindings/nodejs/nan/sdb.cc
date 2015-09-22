@@ -4,6 +4,8 @@
 #include <nan.h>
 #include <sdb.h>
 
+#define NanReturnThis() info.GetReturnValue().Set(info.This())
+
 using namespace v8;
 
 class Database : public Nan::ObjectWrap {
@@ -77,13 +79,14 @@ NAN_METHOD(Database::Like) {
 		break;
 	}
 	if (res) {
-		Local<Object> obj = Nan::New<Object>();
+		auto obj = Nan::New<Object>();
 		for (int i = 0; res[i]; i+=2) {
-			obj->Set(Nan::New(res[i]), Nan::New(res[i+1]));
+			obj->Set(
+				Nan::New<v8::String>(res[i]).ToLocalChecked(),
+				Nan::New<v8::String>(res[i+1]).ToLocalChecked());
 		}
 		info.GetReturnValue().Set(obj);
 	}
-
 }
 
 NAN_METHOD(Database::UnSetLike) {
@@ -136,7 +139,7 @@ NAN_METHOD(Database::Type) {
 		Nan::Utf8String k (info[0]);
 		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		const char *t = sdb_type (sdb_const_get (sdb, *k, 0));
-		info.GetReturnValue().Set(Nan::New (t));
+		info.GetReturnValue().Set(Nan::New<v8::String>(t).ToLocalChecked());
 	}
 }
 
@@ -198,7 +201,8 @@ NAN_METHOD(Database::Set) {
 	} else {
 		Nan::ThrowTypeError ("Sdb.Set Invalid arguments");
 	}
-	NanReturnThis();
+	////NanReturnThis();
+	info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(Database::Ns) {
@@ -264,13 +268,13 @@ NAN_METHOD(Database::Add) {
 	if (ret == 0) {
 		info.GetReturnValue().Set(Nan::New((bool)ret));
 	} else {
-		NanReturnThis();
+		info.GetReturnValue().Set(info.This());
 	}
 }
 
 NAN_METHOD(Database::GetVersion) {
 	Nan::HandleScope scope;
-	info.GetReturnValue().Set(Nan::New(SDB_VERSION));
+	info.GetReturnValue().Set(Nan::New(SDB_VERSION).ToLocalChecked());
 }
 
 NAN_METHOD(Database::Sync) {
@@ -288,7 +292,7 @@ NAN_METHOD(Database::Drain) {
 		//Sdb *sdb2 = ((Database*)(info[0]->ToObject()->Get(0)))->obj;
 		//Sdb *sdb2 = Nan::ObjectWrap::Unwrap<Database>(arg)->obj;
 		//sdb_drain (sdb, sdb2);
-		NanReturnThis();
+		info.GetReturnValue().Set(info.This());
 	} else {
 		Nan::ThrowTypeError ("Missing destination database");
 	}
@@ -321,10 +325,9 @@ NAN_METHOD(Database::Get) {
 		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		const char *v = sdb_const_get (sdb, *k, NULL);
 		if (v != NULL) {
-			info.GetReturnValue().Set(Nan::New(v));
+			info.GetReturnValue().Set(Nan::New(v).ToLocalChecked());
 		}
 	}
-	return;
 }
 
 NAN_METHOD(Encode) {
@@ -339,9 +342,9 @@ NAN_METHOD(Encode) {
 		Nan::Utf8String k (info[0]);
 		char *str = sdb_encode ((const ut8*)*k, -1);
 		if (str) {
-			Local<String> v = Nan::New(str);
+			auto v = Nan::New<v8::String>(str);
 			free (str);
-			info.GetReturnValue().Set(v);
+			info.GetReturnValue().Set(v.ToLocalChecked());
 		}
 	}
 }
@@ -357,9 +360,9 @@ NAN_METHOD(JsonIndent) {
 		}
 		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_indent (*k);
-		Local<String> v = Nan::New(res);
+		auto v = Nan::New(res);
 		free (res);
-		info.GetReturnValue().Set(v);
+		info.GetReturnValue().Set(v.ToLocalChecked());
 	}
 }
 
@@ -374,9 +377,9 @@ NAN_METHOD(JsonUnindent) {
 		}
 		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_unindent (*k);
-		Local<String> v = Nan::New(res);
+		auto v = Nan::New<v8::String>(res);
 		free (res);
-		info.GetReturnValue().Set(v);
+		info.GetReturnValue().Set(v.ToLocalChecked());
 	}
 }
 
@@ -390,7 +393,7 @@ NAN_METHOD(TypeOf) {
 			Nan::ThrowTypeError ("First argument must be a string");
 		}
 		Nan::Utf8String k (info[0]);
-		info.GetReturnValue().Set(Nan::New(sdb_type (*k)));
+		info.GetReturnValue().Set(Nan::New (sdb_type (*k)).ToLocalChecked());
 	}
 }
 
@@ -406,9 +409,9 @@ NAN_METHOD(Decode) {
 		Nan::Utf8String k (info[0]);
 		char *str = (char *)sdb_decode (*k, NULL);
 		if (str) {
-			Local<String> v = Nan::New(str);
+			auto v = Nan::New<v8::String>(str);
 			free (str);
-			info.GetReturnValue().Set(v);
+			info.GetReturnValue().Set(v.ToLocalChecked());
 		}
 	}
 }
@@ -426,12 +429,11 @@ NAN_METHOD(Database::Query) {
 		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		char *res = sdb_querys (sdb, *k, -1, NULL);
 		if (res != NULL) {
-			Local<String> v = Nan::New(res);
+			auto v = Nan::New<v8::String>(res);
 			free (res);
-			info.GetReturnValue().Set(v);
+			info.GetReturnValue().Set(v.ToLocalChecked());
 		}
 	}
-	return;
 }
 
 NAN_METHOD(Database::KeysOnDisk) {
@@ -439,10 +441,11 @@ NAN_METHOD(Database::KeysOnDisk) {
 	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	ut32 count;
 	if (sdb_stats (sdb, &count, NULL)) {
-		Local<Uint32> v = Nan::New(count);
+		Local<Uint32> v = Nan::New<Uint32>(count);
 		info.GetReturnValue().Set(v);
+	} else {
+		info.GetReturnValue().Set(0);
 	}
-	return;
 }
 
 NAN_METHOD(Database::KeysOnMemory) {
@@ -452,8 +455,9 @@ NAN_METHOD(Database::KeysOnMemory) {
 	if (sdb_stats (sdb, NULL, &count)) {
 		Local<Uint32> v = Nan::New(count);
 		info.GetReturnValue().Set(v);
+	} else {
+		info.GetReturnValue().Set(0);
 	}
-	return;
 }
 
 NAN_METHOD(Database::Expire) {
@@ -568,8 +572,8 @@ void Database::Init(Handle<Object> exports) {
 	json_get
 	json_num_inc
 #endif
-		exports->Set(name, ft->GetFunction());
-	exports->Set(Nan::New("version").ToLocalChecked(), Nan::New(SDB_VERSION));
+	exports->Set(name, ft->GetFunction());
+	exports->Set(Nan::New("version").ToLocalChecked(), Nan::New(SDB_VERSION).ToLocalChecked());
 	exports->Set(Nan::New("encode").ToLocalChecked(), Nan::New <FunctionTemplate>(Encode)->GetFunction());
 	exports->Set(Nan::New("decode").ToLocalChecked(), Nan::New <FunctionTemplate>(Decode)->GetFunction());
 	exports->Set(Nan::New("typeof").ToLocalChecked(), Nan::New <FunctionTemplate>(TypeOf)->GetFunction());
