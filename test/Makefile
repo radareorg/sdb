@@ -1,7 +1,7 @@
 .PHONY: all reset
 
-BINS=fmt stack cas hook hook2 verypush stress1 fmtarr drain
-BINS+=bench-expire expire dumptwice syncget ns nsabuse siolpain
+BINS=siolpain fmt stack cas hook hook2 verypush stress1 fmtarr
+BINS+=bench-expire expire dumptwice syncget ns nsabuse drain
 CFLAGS+=-I../../src -I ../src
 LDFLAGS+=../src/libsdb.a
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
@@ -10,6 +10,10 @@ ALL=all
 all: $(BINS) $(SCRIPTS) reset
 	@suite/run.sh
 	-cd api && $(MAKE)
+
+u:
+	$(MAKE) -C ../src
+	$(MAKE)
 
 asan:
 	$(MAKE) CFLAGS="-fsanitize=address ${CFLAGS}" ALL=asan all

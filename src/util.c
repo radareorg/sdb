@@ -47,7 +47,9 @@ SDB_API ut32 sdb_hash(const char *s) {
 // assert (sizeof (s)>64)
 // XXX if s is null, the returned pointer cant be freed!!
 SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
+	char tmpbuf[64];
 	static const char* lookup = "0123456789abcdef";
+	char *os = NULL;
 	const int imax = 62;
 	int i = imax;
 	if (s) {
@@ -58,10 +60,12 @@ SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
 	if ((base > 16) || (base == 0))
 		return NULL;
 	if (!s) {
-		s = calloc (64, sizeof(char));
-		if (!s) return NULL;
+		os = s = tmpbuf;
 	}
 	if (!n) {
+		if (os) {
+			return strdup ("0");
+		}
 		strcpy (s, "0");
 		return s;
 	}
@@ -70,13 +74,17 @@ SDB_API char *sdb_itoa(ut64 n, char *s, int base) {
 		for (; n && i>0; n/=base)
 			s[i--] = (n % base) + '0';
 	} else {
-		for (; n && i>0; n/=base)
+		for (; n && i > 0; n /= base)
 			s[i--] = lookup[(n % base)];
 		if (i!=imax)
 			s[i--] = 'x';
 		s[i--] = '0';
 	}
-	return s+i+1;
+	if (os) {
+		return strdup (s+i+1);
+	}
+	memmove (s, s+i+1, strlen (s+i+1)+1);
+	return s;
 }
 
 SDB_API ut64 sdb_atoi(const char *s) {
