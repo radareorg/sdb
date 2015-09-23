@@ -4,7 +4,7 @@
 #include <nan.h>
 #include <sdb.h>
 
-#define NanReturnThis() info.GetReturnValue().Set(info.This())
+#define MyNanReturnThis() info.GetReturnValue().Set(info.This())
 
 using namespace v8;
 
@@ -44,7 +44,6 @@ class Database : public Nan::ObjectWrap {
 		~Database() {
 			sdb_free (this->obj);
 		}
-
 	private:
 		Sdb *obj;
 };
@@ -79,7 +78,7 @@ NAN_METHOD(Database::Like) {
 		break;
 	}
 	if (res) {
-		auto obj = Nan::New<Object>();
+		Local<Object> obj = Nan::New<Object>();
 		for (int i = 0; res[i]; i+=2) {
 			obj->Set(
 				Nan::New<v8::String>(res[i]).ToLocalChecked(),
@@ -201,7 +200,7 @@ NAN_METHOD(Database::Set) {
 	} else {
 		Nan::ThrowTypeError ("Sdb.Set Invalid arguments");
 	}
-	////NanReturnThis();
+	////MyNanReturnThis();
 	info.GetReturnValue().Set(info.This());
 }
 
@@ -302,7 +301,7 @@ NAN_METHOD(Database::Reset) {
 	Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 	sdb_reset (sdb);
 	Nan::HandleScope scope;
-	NanReturnThis();
+	MyNanReturnThis();
 }
 
 NAN_METHOD(Database::UnLink) {
@@ -342,7 +341,7 @@ NAN_METHOD(Encode) {
 		Nan::Utf8String k (info[0]);
 		char *str = sdb_encode ((const ut8*)*k, -1);
 		if (str) {
-			auto v = Nan::New<v8::String>(str);
+			Nan::MaybeLocal<String> v = Nan::New<v8::String>(str);
 			free (str);
 			info.GetReturnValue().Set(v.ToLocalChecked());
 		}
@@ -360,7 +359,7 @@ NAN_METHOD(JsonIndent) {
 		}
 		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_indent (*k);
-		auto v = Nan::New(res);
+		Nan::MaybeLocal<String> v = Nan::New<String>(res);
 		free (res);
 		info.GetReturnValue().Set(v.ToLocalChecked());
 	}
@@ -377,7 +376,7 @@ NAN_METHOD(JsonUnindent) {
 		}
 		Nan::Utf8String k (info[0]);
 		char *res = sdb_json_unindent (*k);
-		auto v = Nan::New<v8::String>(res);
+		Nan::MaybeLocal<v8::String> v = Nan::New<v8::String>(res);
 		free (res);
 		info.GetReturnValue().Set(v.ToLocalChecked());
 	}
@@ -409,7 +408,7 @@ NAN_METHOD(Decode) {
 		Nan::Utf8String k (info[0]);
 		char *str = (char *)sdb_decode (*k, NULL);
 		if (str) {
-			auto v = Nan::New<v8::String>(str);
+			Nan::MaybeLocal<v8::String> v = Nan::New<v8::String>(str);
 			free (str);
 			info.GetReturnValue().Set(v.ToLocalChecked());
 		}
@@ -429,7 +428,7 @@ NAN_METHOD(Database::Query) {
 		Sdb *sdb = Nan::ObjectWrap::Unwrap<Database>(info.This())->obj;
 		char *res = sdb_querys (sdb, *k, -1, NULL);
 		if (res != NULL) {
-			auto v = Nan::New<v8::String>(res);
+			Nan::MaybeLocal<v8::String> v = Nan::New<v8::String>(res);
 			free (res);
 			info.GetReturnValue().Set(v.ToLocalChecked());
 		}
