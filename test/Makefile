@@ -11,7 +11,7 @@ all: $(BINS) $(SCRIPTS) reset
 	@suite/run.sh
 	-cd api && $(MAKE)
 
-u:
+me:
 	$(MAKE) -C ../src
 	$(MAKE)
 
