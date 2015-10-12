@@ -5,7 +5,7 @@ include ../../../config.mk
 INSTALL_DATA?=install -m 644
 
 VALAC?=valac
-VFILES+=hash.vala 
+VFILES+=hash.vala
 VFILES+=stack.vala stackiterator.vala
 VFILES+=array.vala arrayiterator.vala
 VFILES+=list.vala listiterator.vala 
@@ -13,7 +13,7 @@ VFILES+=iterator.vala serializable.vala iterable.vala
 OFILES=$(subst vala,o,${VFILES})
 CFILES=$(subst vala,c,${VFILES})
 VFLAGS+=-X -I../../../src
-VFLAGS+=../sdb.vapi 
+VFLAGS+=../sdb.vapi
 CFLAGS+=-I../../../src
 LDFLAGS+=../../../src/libsdb.a
 CFLAGS+=$(shell pkg-config --cflags gobject-2.0)
@@ -52,27 +52,27 @@ test: libsdbtypes.a main.vala
 	${CC} -o test ${OFILES} ${LDFLAGS} main.o
 
 install-dirs:
-	mkdir -p ${PFX}/include
-	mkdir -p ${PFX}/lib/pkgconfig
-	mkdir -p ${PFX}/share/vala/vapi
+	mkdir -p ${DESTDIR}${INCDIR}
+	mkdir -p ${DESTDIR}${LIBDIR}/pkgconfig
+	mkdir -p ${DESTDIR}${DATADIR}/vala/vapi
 
 install: install-dirs
-	$(INSTALL_DATA) sdbtypes.h ${PFX}/include
-	$(INSTALL_DATA) libsdbtypes.a ${PFX}/lib
-	$(INSTALL_DATA) sdbtypes.pc ${PFX}/lib/pkgconfig
-	$(INSTALL_DATA) sdbtypes.vapi ${PFX}/share/vala/vapi
+	$(INSTALL_DATA) sdbtypes.h ${DESTDIR}${INCDIR}
+	$(INSTALL_DATA) libsdbtypes.a ${DESTDIR}${LIBDIR}
+	$(INSTALL_DATA) sdbtypes.pc ${DESTDIR}${LIBDIR}/pkgconfig
+	$(INSTALL_DATA) sdbtypes.vapi ${DESTDIR}${DATADIR}/vala/vapi
 
 symstall: install-dirs
-	ln -fs ${PWD}/sdbtypes.h ${PFX}/include/sdbtypes.h
-	ln -fs ${PWD}/libsdbtypes.a ${PFX}/lib/libsdbtypes.a
-	ln -fs ${PWD}/sdbtypes.pc ${PFX}/lib/pkgconfig/sdbtypes.pc
-	ln -fs ${PWD}/sdbtypes.vapi ${PFX}/share/vala/vapi/sdbtypes.vapi
+	ln -fs ${PWD}/sdbtypes.h ${DESTDIR}${INCDIR}/sdbtypes.h
+	ln -fs ${PWD}/libsdbtypes.a ${DESTDIR}${LIBDIR}/libsdbtypes.a
+	ln -fs ${PWD}/sdbtypes.pc ${DESTDIR}${LIBDIR}/pkgconfig/sdbtypes.pc
+	ln -fs ${PWD}/sdbtypes.vapi ${DESTDIR}${DATADIR}/vala/vapi/sdbtypes.vapi
 
 uninstall deinstall:
-	rm -f ${PFX}/include/sdbtypes.h
-	rm -f ${PFX}/lib/libsdbtypes.a
-	rm -f ${PFX}/lib/pkgconfig/sdbtypes.pc
-	rm -f ${PFX}/share/vala/vapi/sdbtypes.vapi
+	rm -f ${DESTDIR}${INCDIR}/sdbtypes.h
+	rm -f ${DESTDIR}${LIBDIR}/libsdbtypes.a
+	rm -f ${DESTDIR}${LIBDIR}/pkgconfig/sdbtypes.pc
+	rm -f ${DESTDIR}${DATADIR}/vala/vapi/sdbtypes.vapi
 
 clean:
 	rm -f *.c *.o sdbtypes.vapi sdbtypes.h
