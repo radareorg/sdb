@@ -1,4 +1,4 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2013 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2015 - pancake */
 
 #include "sdb.h"
 #include <ctype.h>
@@ -7,7 +7,7 @@ static void cmdhash(const char *s) {
 	unsigned int i;
 	char su[100];
 	for (i=0; s[i]; i++)
-		su[i] = toupper (s[i]);
+		su[i] = toupper ((unsigned char)s[i]);
 	su[i] = 0;
 	printf ("#define MCSDB_CMD_%s 0x%x\n", su, sdb_hash (s));
 }
