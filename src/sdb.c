@@ -396,6 +396,7 @@ SDB_API SdbKv* sdb_kv_new (const char *k, const char *v) {
 }
 
 SDB_API void sdb_kv_free (SdbKv *kv) {
+	free (kv->key);
 	free (kv->value);
 	free (kv);
 }
