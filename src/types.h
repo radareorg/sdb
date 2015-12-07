@@ -9,7 +9,7 @@
 #define eprintf(x,y...) fprintf(stderr,x,##y)
 
 #ifndef SDB_API
-#if defined(__GNUC__)
+#if defined(__GNUC__) && __GNUC__ >= 4
 #define SDB_API __attribute__((visibility("default")))
 #else
 #define SDB_API
@@ -45,7 +45,7 @@
 #include <unistd.h>
 
 #ifndef UNUSED
-#ifdef __GNUC__
+#ifdef __GNUC__ && __GNUC__ >= 4
 #define UNUSED	__attribute__((__unused__))
 #else
 #define UNUSED
