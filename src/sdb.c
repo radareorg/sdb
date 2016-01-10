@@ -299,10 +299,12 @@ SDB_API int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas) {
 }
 
 SDB_API int sdb_exists (Sdb* s, const char *key) {
+	ut32 pos, hash;
 	char ch;
 	SdbKv *kv;
 	int klen = strlen (key)+1;
-	ut32 pos, hash = sdb_hash (key);
+	if (!s) return 0;
+	hash = sdb_hash (key);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) return (*kv->value)? 1: 0;
 	if (s->fd == -1)
