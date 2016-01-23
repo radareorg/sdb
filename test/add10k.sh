@@ -5,9 +5,13 @@
 
 sdb=../src/sdb
 SIZE=10000
-SIZE=100000
+SIZE=1000000
 #SIZE=1000
 SIZE=30000
+
+if [ -n "$1" ]; then
+	SIZE="$1"
+fi
 
 makekeys() {
 	 i=0
