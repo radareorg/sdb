@@ -147,7 +147,8 @@ int cdb_make_finish(struct cdb_make *c) {
 	}
 
 	for (i=0; i<256; i++) {
-		len = count = c->count[i];
+		count = c->count[i];
+		len = count << 1;
 		ut32_pack (c->final + 4 * i, c->pos);
 
 		for (u=0; u<len; u++)
