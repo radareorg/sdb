@@ -1,6 +1,6 @@
 namespace SDB {
 	[Compact]
-	[CCode (name="Sdb", cheader_filename="sdb.h", cname="Sdb", cprefix="sdb_", free_function="sdb_free")]
+	[CCode (cheader_filename="sdb.h", cname="Sdb", cprefix="sdb_", free_function="sdb_free")]
 	public class Sdb {
 		/* lifecycle */
 		public Sdb (string? path=null, string? file=null, bool locked=false);
