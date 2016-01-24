@@ -7,7 +7,7 @@ sdb=../src/sdb
 SIZE=10000
 SIZE=1000000
 #SIZE=1000
-SIZE=30000
+SIZE=80000
 
 if [ -n "$1" ]; then
 	SIZE="$1"
@@ -22,53 +22,100 @@ makekeys() {
 	 done
 }
 
-echo "[**] Generating $SIZE keyvalues..."
+msg() {
+	echo "\033[33m$@\033[0m"
+}
+
+err() {
+	echo "\033[31m$@\033[0m"
+}
+
+ok() {
+	echo "\033[32m$@\033[0m"
+}
+
+msg "[**] Generating $SIZE keyvalues..."
 makekeys > a
-echo "[**] Verifying keys..."
+msg "[**] Verifying keys..."
 NUM=$((0+`wc -l< a`))
 if [ $NUM != $SIZE ]; then
-	echo "Failed at generating the keyvalues"
+	err "Failed at generating the keyvalues"
 	exit 1
 fi
 # TODO test if count matches
 rm -f test.db
 
-echo "[**] Bundling = database of ${SIZE} keyvalues..."
+msg "[**] Bundling = database of ${SIZE} keyvalues..."
 time cat a | $sdb test.db =
 
-echo "[**] Counting keys..."
+msg "[**] Counting keys..."
 time $sdb test.db | wc -l | tee test.count
 COUNT=$((0+`cat test.count`))
 if [ ${COUNT} -ne ${SIZE} ]; then
-	echo "Database storage is wrong: $SIZE vs ${COUNT}"
+	err "Database storage is wrong: $SIZE vs ${COUNT}"
 	rm -f test.count
 	exit 1
 fi
 
-echo "[**] Creating - database of ${SIZE} keyvalues..."
+msg "[**] Creating - database of ${SIZE} keyvalues..."
 rm -f test.db
 time cat a | $sdb test.db -
 
-echo "[**] Updating - database of ${SIZE} keyvalues..."
+msg "[**] Updating - database of ${SIZE} keyvalues..."
 time cat a | $sdb test.db -
 
 printf "[**] Database size: "
 du -hs test.db
 
-echo "[**] Updating database with ${SIZE} keyvalues..."
+msg "[**] Updating database with ${SIZE} keyvalues..."
 time cat a | $sdb test.db -
 
 #echo "[**] Updating database using stdin..."
 #time cat a | $sdb test.db -
 
-echo "[**] Fetching a single key..."
+msg "[**] Fetching a single key..."
 time $sdb test.db key999
 
-echo "[**] Counting stored keyvalues..."
+msg "[**] Constructing long query... inc $INC size $SIZE"
+KEYS=""
+NK=0
+INC=$(($SIZE/3000))
+if [ "$INC" = 0 ]; then
+	INC=$(($SIZE/5000))
+	if [ "$INC" = 0 ]; then
+		INC=$(($SIZE/100))
+		if [ "$INC" = 0 ]; then
+			INC=$(($SIZE/7))
+			if [ "$INC" = 0 ]; then
+				INC=1
+			fi
+		fi
+	fi
+fi
+ok "[**] Using inc $INC for size $SIZE"
+while : ; do
+	k=$(($k+$INC))
+	[ $k -ge $COUNT ] && break
+	KEYS="$KEYS key$k "
+	NK=$(($NK+1))
+done
+
+msg "[**] Many queries... "
+msg "[--] Query length $(echo $KEYS | wc -c)"
+msg "[--] Must be $NK"
+ROWS=$(time $sdb test.db $KEYS | grep testdata | wc -l | awk '{print $1}')
+if [ "$ROWS" = "$NK" ]; then
+	ok "[OK] $NK rows found"
+else
+	err "[FAILED] $ROWS vs $NK"
+	exit 1
+fi
+
+msg "[**] Counting stored keyvalues..."
 time $sdb test.db | wc -l | tee test.count
 COUNT=$((0+`cat test.count`))
 if [ ${COUNT} -ne ${SIZE} ]; then
-	echo "Database storage is wrong: $SIZE vs ${COUNT}"
+	err "Database storage is wrong: $SIZE vs ${COUNT}"
 	rm -f test.count
 	exit 1
 fi
