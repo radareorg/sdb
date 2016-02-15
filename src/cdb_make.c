@@ -45,7 +45,11 @@ char *cdb_alloc(ut32 n) {
 }
 
 void cdb_alloc_free(void *x) {
+#if __SDB_WINDOWS__ && !__CYGWIN__
+	_aligned_free(x);
+#else
 	free (x);
+#endif
 }
 #endif
 
