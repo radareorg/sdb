@@ -99,8 +99,7 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 		case 'h': *((short*)(stru + idx)) = (short)sdb_atoi (word); break;
 		case 's':
 			e_str = (char*)sdb_decode (word, 0);
-			*((char**)(stru + idx)) = (char*)strdup (e_str?e_str:word);
-			free (e_str);
+			*((char**)(stru + idx)) = e_str? e_str: strdup (word);
 			break;
 		case 'z':
 			*((char**)(stru + idx)) = (char*)strdup (word);
