@@ -254,10 +254,12 @@ SDB_API int sdb_array_append(Sdb *s, const char *key, const char *val, ut32 cas)
 	int str_len = 0;
 	ut32 kas = cas;
 	const char *str = sdb_const_get_len (s, key, &str_len, &kas);
+	if (!val || !*val)
+		return 0;
 	if (cas && cas != kas)
 		return 0;
 	cas = kas;
-	if (str && *str) {
+	if (str && *str && str_len > 0) {
 		int val_len = strlen (val);
 		char *newval = malloc (str_len + val_len + 2);
 		memcpy (newval, str, str_len);
@@ -459,6 +461,8 @@ SDB_API int sdb_array_prepend(Sdb *s, const char *key, const char *val, ut32 cas
 	int str_len = 0;
 	ut32 kas = cas;
 	const char *str = sdb_const_get_len (s, key, &str_len, &kas);
+	if (!val || !*val)
+		return 0;
 	if (cas && cas != kas)
 		return 0;
 	cas = kas;
