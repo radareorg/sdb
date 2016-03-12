@@ -254,9 +254,7 @@ SDB_API int sdb_array_append(Sdb *s, const char *key, const char *val, ut32 cas)
 	int str_len = 0;
 	ut32 kas = cas;
 	const char *str = sdb_const_get_len (s, key, &str_len, &kas);
-	if (!val || !*val)
-		return 0;
-	if (cas && cas != kas)
+	if (!val || (cas && cas != kas))
 		return 0;
 	cas = kas;
 	if (str && *str && str_len > 0) {
@@ -461,9 +459,7 @@ SDB_API int sdb_array_prepend(Sdb *s, const char *key, const char *val, ut32 cas
 	int str_len = 0;
 	ut32 kas = cas;
 	const char *str = sdb_const_get_len (s, key, &str_len, &kas);
-	if (!val || !*val)
-		return 0;
-	if (cas && cas != kas)
+	if (!val || (cas && cas != kas))
 		return 0;
 	cas = kas;
 	if (str && *str) {
