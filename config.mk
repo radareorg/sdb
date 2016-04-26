@@ -96,6 +96,7 @@ ifeq (${OS},Darwin)
 EXT_SO=dylib
 SOVER=dylib
 LDFLAGS+=-dynamic
+LDFLAGS_SHARED+=-dynamiclib
   ifeq (${ARCH},i386)
 #CC+=-arch i386
 CC+=-arch x86_64
