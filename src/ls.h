@@ -34,6 +34,7 @@ typedef int (*SdbListComparator)(void *a, void *b);
 #define ls_iter_cur(x) x->p
 #define ls_iter_unref(x) x
 SDB_API SdbList *ls_new(void);
+SDB_API SdbList *ls_newf(SdbListFree freefn);
 SDB_API SdbListIter *ls_append(SdbList *list, void *data);
 SDB_API SdbListIter *ls_prepend(SdbList *list, void *data);
 //SDB_API void ls_add_sorted(SdbList *list, void *data, SdbListComparator cmp);

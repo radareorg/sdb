@@ -3,15 +3,19 @@
 #include <string.h>
 #include "ls.h"
 
-SDB_API SdbList *ls_new() {
+SDB_API SdbList *ls_newf(SdbListFree freefn) {
 	SdbList *list = R_NEW (SdbList);
 	if (!list)
 		return NULL;
 	list->head = NULL;
 	list->tail = NULL;
-	list->free = free; // HACK
+	list->free = freefn; // HACK
 	list->length = 0;
 	return list;
+}
+
+SDB_API SdbList *ls_new() {
+	return ls_newf (free /*XXX HACK*/);
 }
 
 SDB_API void ls_sort(SdbList *list, SdbListComparator cmp) {

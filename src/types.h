@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #undef eprintf
 #define eprintf(x,y...) fprintf(stderr,x,##y)
