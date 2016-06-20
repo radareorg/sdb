@@ -58,13 +58,6 @@ extern char *strdup (const char *);
 // This size implies trailing zero terminator, this is 254 chars + 0
 #define SDB_KSZ 0xff
 
-typedef struct sdb_kv {
-	char *key;
-	char *value;
-	int value_len;
-	ut32 cas;
-	ut64 expire;
-} SdbKv;
 
 typedef struct sdb_t {
 	char *dir; // path+name
@@ -159,7 +152,7 @@ void* sdb_ptr_get(Sdb *db, const char *key, ut32 *cas);
 /* create db */
 int sdb_disk_create (Sdb* s);
 int sdb_disk_insert (Sdb* s, const char *key, const char *val);
-int sdb_disk_finish (Sdb* s);
+bool sdb_disk_finish (Sdb* s);
 bool sdb_disk_unlink (Sdb* s);
 
 /* iterate */
