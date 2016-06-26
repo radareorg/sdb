@@ -393,7 +393,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 				kv->value_len = vlen;
 				kv->value = val; // owned
 			} else {
-				if ((ut32)vlen>kv->value_len) {
+				if ((ut32)vlen > kv->value_len) {
 					free (kv->value);
 					kv->value = strdup (val);
 				} else {
