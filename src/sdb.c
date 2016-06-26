@@ -401,8 +401,8 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 				}
 				kv->value_len = vlen;
 			}
-		} else ht_delete {
-			(s->ht, key);
+		} else {
+			ht_delete (s->ht, key);
 		}
 		sdb_hook_call (s, key, val);
 		return cas;

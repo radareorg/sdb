@@ -20,8 +20,7 @@ const int ht_primes_sizes[] = {
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - functino to calculate the size of a value. if NULL, just stores 0.
 SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListComparator comparator, DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize) {
-	ut32 i;
-	SdbHas* ht = calloc (1, sizeof (*ht));
+	SdbHash* ht = calloc (1, sizeof (*ht));
 	if (!ht) {
 		return NULL;
 	}
@@ -143,7 +142,7 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 				kvp->value_len = 0;
 			}
 			if (!ht->table[bucket]) {
-				ht->table[bucket] = ls_newf (ht->freefn);
+				ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 			}
 			ls_prepend (ht->table[bucket], kvp);
 			ht->count++;
@@ -183,7 +182,7 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 	if (kvp && (update || !found)) {
 		bucket = hash % ht->size;
 		if (!ht->table[bucket]) {
-			ht->table[bucket] = ls_newf (ht->freefn);
+			ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 		}
 		ls_prepend (ht->table[bucket], kvp);
 		ht->count++;
