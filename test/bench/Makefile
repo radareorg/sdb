@@ -5,7 +5,7 @@ TESTS=array new sync set stack
 BINS=$(addprefix bench-,${TESTS})
 OBJS=$(addsuffix .o,${BINS})
 
-all: bench-array bench-new bench-sync bench-set
+all: bench-array bench-new bench-sync bench-set bench-reset
 
 ${BINS}: ${OBJS}
 	@for a in ${BINS} ; do ${CC} -o $$a $$a.o ${LDFLAGS} ; done
