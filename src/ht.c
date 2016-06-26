@@ -1,3 +1,4 @@
+/* radare2 - BSD 3 Clause License - crowell 2016 */
 #include "ht.h"
 #include "sdb.h"
 
@@ -19,29 +20,23 @@ const int ht_primes_sizes[] = {
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - functino to calculate the size of a value. if NULL, just stores 0.
 SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListComparator comparator, DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize) {
-	SdbHash* ht;
 	ut32 i;
-	ht = calloc (1, sizeof (*ht));
-	if (ht) {
-		ht->size = size;
-		ht->count = 0;
-		ht->prime_idx = 0;
-		ht->load_factor = 1;
-		ht->hashfn = hashfunction;
-		ht->cmp = comparator;
-		ht->dupkey = keydup;
-		ht->dupvalue = valdup;
-		ht->table = calloc (ht->size, sizeof (SdbList*));
-		ht->calcsize = calcsize;
-		if (ht->table) {
-			for (i = 0; i < ht->size; ++i) {
-				ht->table[i] = ls_newf ((SdbListFree)pair_free);
-			}
-		} else {
-			free (ht);
-			return NULL;
-		}
+	SdbHas* ht = calloc (1, sizeof (*ht));
+	if (!ht) {
+		return NULL;
 	}
+	ht->size = size;
+	ht->count = 0;
+	ht->prime_idx = 0;
+	ht->load_factor = 1;
+	ht->hashfn = hashfunction;
+	ht->cmp = comparator;
+	ht->dupkey = keydup;
+	ht->dupvalue = valdup;
+	ht->table = calloc (ht->size, sizeof (SdbList*));
+	ht->calcsize = calcsize;
+	ht->freefn = pair_free;
+	// Because we use calloc, each listptr will be NULL until used */
 	return ht;
 }
 
@@ -84,7 +79,7 @@ SdbHash* ht_new() {
 
 void ht_free(SdbHash* ht) {
 	ut32 i;
-	for (i = 0; i < ht->size; ++i) {
+	for (i = 0; i < ht->size; i++) {
 		ls_free (ht->table[i]);
 	}
 	free (ht->table);
@@ -102,7 +97,7 @@ static void internal_ht_grow(SdbHash* ht) {
 	ht2 = internal_ht_new (sz, ht->hashfn, ht->cmp, ht->dupkey,
 			ht->dupvalue, (HtKvFreeFunc)ht->table[0]->free, ht->calcsize);
 	ht2->prime_idx = ht->prime_idx;
-	for (i = 0; i < ht->size; ++i) {
+	for (i = 0; i < ht->size; i++) {
 		ls_foreach (ht->table[i], iter, kvp) {
 			(void)ht_insert (ht2, kvp->key, kvp->value);
 		}
@@ -147,11 +142,14 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 			} else {
 				kvp->value_len = 0;
 			}
+			if (!ht->table[bucket]) {
+				ht->table[bucket] = ls_newf (ht->freefn);
+			}
 			ls_prepend (ht->table[bucket], kvp);
 			ht->count++;
 			// Check if we need to grow the table.
 			if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
-				if (ht->prime_idx < sizeof (ht_primes_sizes)/sizeof (ht_primes_sizes[0])) {
+				if (ht->prime_idx < sizeof (ht_primes_sizes) / sizeof (ht_primes_sizes[0])) {
 					ht->prime_idx++;
 					internal_ht_grow (ht);
 				}
@@ -182,18 +180,19 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 	} else {
 		(void)ht_find (ht, kvp->key, &found);
 	}
-	if (update || !found) {
-		if (kvp) {
-			bucket = hash % ht->size;
-			ls_prepend (ht->table[bucket], kvp);
-			ht->count++;
-			// Check if we need to grow the table.
-			if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
-				ht->prime_idx++;
-				internal_ht_grow (ht);
-			}
-			return true;
+	if (kvp && (update || !found)) {
+		bucket = hash % ht->size;
+		if (!ht->table[bucket]) {
+			ht->table[bucket] = ls_newf (ht->freefn);
 		}
+		ls_prepend (ht->table[bucket], kvp);
+		ht->count++;
+		// Check if we need to grow the table.
+		if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
+			ht->prime_idx++;
+			internal_ht_grow (ht);
+		}
+		return true;
 	}
 	return false;
 }

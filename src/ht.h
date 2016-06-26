@@ -31,6 +31,7 @@ typedef struct ht_t {
 	DupKey dupkey; // Function for making a copy of key to store in the entry. NULL for just copying the pointer.
 	DupValue dupvalue; // Function for making a copy of value to store in the entry. NULL for just copying the pointer.
 	CalcSize calcsize; // Function to determine the size of an object. NULL will just set size to 0 for the kvp (usually not needed).
+	HtKvFreeFunc freefn; // Function to free the keyvalue store, if NULL, just calls regular free.
 	SdbList/*<SdbKv>*/** table;  // Actual table.
 	ut32 load_factor; // load factor before doubling in size.
 	ut32 prime_idx;

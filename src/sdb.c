@@ -175,7 +175,7 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 	if (s->fd == -1)
 		return NULL;
 	(void) cdb_findstart (&s->db);
-	if (cdb_findnext (&s->db, sdb_hash (key), key, keylen) < 1)
+	if (cdb_findnext (&s->db, s->ht->hashfn (key), key, keylen) < 1)
 		return NULL;
 	len = cdb_datalen (&s->db);
 	if (len < SDB_MIN_VALUE || len >= SDB_MAX_VALUE)
@@ -401,7 +401,9 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 				}
 				kv->value_len = vlen;
 			}
-		} else ht_delete (s->ht, key);
+		} else ht_delete {
+			(s->ht, key);
+		}
 		sdb_hook_call (s, key, val);
 		return cas;
 	}
@@ -418,7 +420,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	}
 	if (kv) {
 		kv->cas = nextcas ();
-		ht_insert_kvp (s->ht, kv, 1 /*update*/);
+		ht_insert_kvp (s->ht, kv, true /*update*/);
 		sdb_hook_call (s, key, val);
 		return kv->cas;
 	}
@@ -501,9 +503,9 @@ SDB_API void sdb_list (Sdb* s) {
 		return;
 	for (i = 0; i < s->ht->size; ++i) {
 		ls_foreach (s->ht->table[i], iter, kv) {
-			if (!kv->value || !*kv->value)
-				continue;
-			printf ("%s=%s\n", kv->key, kv->value);
+			if (kv->value || *kv->value) {
+				printf ("%s=%s\n", kv->key, kv->value);
+			}
 		}
 	}
 }
@@ -723,7 +725,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 
 SDB_API ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas) {
 	SdbKv *kv;
-	bool found;
+	bool found = false;
 	kv = (SdbKv*)ht_find_kvp (s->ht, key, &found);
 	if (found && kv && *kv->value) {
 		if (cas) *cas = kv->cas;
