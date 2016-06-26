@@ -94,7 +94,7 @@ static void internal_ht_grow(SdbHash* ht) {
 	ut32 i;
 	ut32 sz = ht_primes_sizes[ht->prime_idx];
 	ht2 = internal_ht_new (sz, ht->hashfn, ht->cmp, ht->dupkey,
-			ht->dupvalue, (HtKvFreeFunc)ht->table[0]->free, ht->calcsize);
+			ht->dupvalue, (HtKvFreeFunc)ht->freefn, ht->calcsize);
 	ht2->prime_idx = ht->prime_idx;
 	for (i = 0; i < ht->size; i++) {
 		ls_foreach (ht->table[i], iter, kvp) {
