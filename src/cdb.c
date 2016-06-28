@@ -118,7 +118,7 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 	}
 	c->hslots = 0;
 	if (!c->loop) {
-		int bufsz = ((u + 1) & 0xFF) ? sizeof (buf) : sizeof (buf) / 2;
+		const int bufsz = ((u + 1) & 0xFF) ? sizeof (buf) : sizeof (buf) / 2;
 		if (!cdb_read (c, buf, bufsz, (u << 2) & 1023)) {
 			return -1;
 		}
@@ -145,7 +145,9 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 			return 0;
 		}
 		ut32_unpack (buf + 4, &pos);
-		if (!pos) return 0;
+		if (!pos) {
+			return 0;
+		}
 		c->loop++;
 		c->kpos += sizeof (buf);
 		if (c->kpos == c->hpos + (c->hslots << 3))
@@ -155,10 +157,7 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 			if (!seek_set (c->fd, pos)) {
 				return -1;
 			}
-			if (!cdb_getkvlen (c->fd, &u, &c->dlen)) {
-				return -1;
-			}
-			if (u == 0) {
+			if (!cdb_getkvlen (c->fd, &u, &c->dlen) || !u) {
 				return -1;
 			}
 			if (u == len) {

@@ -28,6 +28,7 @@ extern "C" {
 #if __SDB_WINDOWS__ && !__CYGWIN__
 #include <windows.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
@@ -277,9 +278,9 @@ int sdb_check_key (const char *s);
 int sdb_isnum (const char *s);
 
 const char *sdb_type(const char *k);
-int sdb_match (const char *str, const char *glob);
-int sdb_bool_set(Sdb *db, const char *str, int v, ut32 cas);
-int sdb_bool_get(Sdb *db, const char *str, ut32 *cas);
+bool sdb_match(const char *str, const char *glob);
+int sdb_bool_set(Sdb *db, const char *str, bool v, ut32 cas);
+bool sdb_bool_get(Sdb *db, const char *str, ut32 *cas);
 
 // base64
 ut8 *sdb_decode (const char *in, int *len);
