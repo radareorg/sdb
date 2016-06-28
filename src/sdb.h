@@ -45,6 +45,7 @@ extern char *strdup (const char *);
 #define SDB_SS ","
 #define SDB_MAX_PATH 256
 #define SDB_NUM_BASE 16
+#define SDB_NUM_BUFSZ 64
 
 #define SDB_OPTION_NONE 0
 #define SDB_OPTION_ALL 0xff
