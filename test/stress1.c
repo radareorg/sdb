@@ -6,14 +6,11 @@
 
 #include <sdb.h>
 
-int main(int argc, char **argv)
-{
-	char *key;
-	char *value;
-	Sdb *s;
+int main(int argc, char **argv) {
+	int opt, key_num = 100;
+	char *key, *value;
 	size_t i;
-	int opt;
-	int key_num = 100;
+	Sdb *s;
 
 	while ((opt = getopt (argc, argv, "hn:")) != -1) {
 		switch (opt) {

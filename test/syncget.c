@@ -3,7 +3,7 @@
 int main() {
 #define DBFILE "___syncget.db"
 	const char *v;
-	Sdb *s = sdb_new0();
+	Sdb *s = sdb_new0 ();
 	unlink (DBFILE);
 	sdb_set (s, "foo", "bar", 0);
 	eprintf ("-> %s\n", sdb_get (s, "foo", NULL));
