@@ -105,6 +105,8 @@ void sdb_close (Sdb *s);
 void sdb_config (Sdb *s, int options);
 int  sdb_free (Sdb* s);
 void sdb_file (Sdb* s, const char *dir);
+bool sdb_merge (Sdb* d, Sdb *s);
+int sdb_count (Sdb* s);
 void sdb_reset (Sdb* s);
 void sdb_setup (Sdb* s, int options);
 void sdb_drain (Sdb*, Sdb*);

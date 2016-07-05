@@ -1,7 +1,7 @@
 .PHONY: all reset
 
 BINS=siolpain fmt stack cas hook hook2 verypush stress1 fmtarr
-BINS+=bench-expire expire dumptwice syncget ns nsabuse drain
+BINS+=bench-expire expire dumptwice syncget ns nsabuse drain merge
 CFLAGS+=-I../../src -I ../src
 LDFLAGS+=../src/libsdb.a
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
