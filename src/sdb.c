@@ -370,8 +370,9 @@ SDB_API void sdb_reset (Sdb* s) {
 SDB_API SdbKv* sdb_kv_new (const char *k, const char *v) {
 	SdbKv *kv;
 	int vl;
-	if (!sdb_check_key (k))
+	if (!sdb_check_key (k)) {
 		return NULL;
+	}
 	if (v) {
 		if (!sdb_check_value (v))
 			return NULL;
@@ -405,21 +406,25 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	if (!s || !key) {
 		return 0;
 	}
+	/* 200ms */
 	if (!sdb_check_key (key)) {
 		return 0;
 	}
 	if (!val) {
 		val = "";
 	}
+	/* 100ms */
 	if (!sdb_check_value (val)) {
 		return 0;
 	}
 	if (s->journal != -1) {
 		sdb_journal_log (s, key, val);
 	}
-	klen = strlen (key) + 1;
+	/* 100ms */
 	vlen = strlen (val) + 1;
-	hash = sdb_hash (key);
+	hash = sdb_hash_len (key, &klen);
+	klen++;
+
 	(void) cdb_findstart (&s->db);
 	e = ht_search (s->ht, hash);
 	if (e) {
@@ -428,7 +433,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 			if (cas && kv->cas != cas) {
 				return 0;
 			}
-			if (!strcmp (kv->value, val)) {
+			if (vlen == kv->value_len && !strcmp (kv->value, val)) {
 				return 0;
 			}
 			kv->cas = cas = nextcas ();

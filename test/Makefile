@@ -2,6 +2,9 @@
 
 BINS=siolpain fmt stack cas hook hook2 verypush stress1 fmtarr
 BINS+=bench-expire expire dumptwice syncget ns nsabuse drain merge
+BINS+=milset milsetv
+BINS+=chkkey
+
 CFLAGS+=-I../../src -I ../src
 LDFLAGS+=../src/libsdb.a
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
@@ -23,7 +26,9 @@ $(SCRIPTS):
 
 $(BINS):
 	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
-	./$@
+	time ./$@
+
+b: $(BINS)
 
 reset:
 	cd reset && $(MAKE) $(ALL)
@@ -35,4 +40,4 @@ clean:
 	rm -f f dumptwice.db
 	rm -f a test.db db a.gz a.out $(BINS)
 
-.PHONY: ${SCRIPTS} ${BINS}
+.PHONY: ${SCRIPTS} ${BINS} b

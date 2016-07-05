@@ -192,6 +192,7 @@ ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas);
 ut64 sdb_now (void);
 ut64 sdb_unow (void);
 ut32 sdb_hash (const char *key);
+ut32 sdb_hash_len (const char *key, ut32 *len);
 
 /* json api */
 int sdb_isjson (const char *k);
@@ -276,7 +277,7 @@ int sdb_hook_call(Sdb *s, const char *k, const char *v);
 void sdb_hook_free(Sdb *s);
 /* Util.c */
 int sdb_check_value (const char *s);
-int sdb_check_key (const char *s);
+bool sdb_check_key (const char *s);
 int sdb_isnum (const char *s);
 
 const char *sdb_type(const char *k);
