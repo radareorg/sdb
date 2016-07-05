@@ -406,7 +406,6 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	if (!s || !key) {
 		return 0;
 	}
-	/* 200ms */
 	if (!sdb_check_key (key)) {
 		return 0;
 	}

@@ -28,7 +28,7 @@ SDB_API bool sdb_check_key(const char *s) {
 	if (!s || !*s) {
 		return false;
 	}
-	const char *last = s + SDB_KSZ;
+	const char *last = s + SDB_KSZ - 1;
 	for (; *s; s++) {
 		char c = *s;
 		if (!c) {
