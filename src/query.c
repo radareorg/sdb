@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2011-2015 - pancake */
+/* sdb - MIT - Copyright 2011-2016 - pancake */
 
 #include <stdio.h>
 #include <string.h>
@@ -22,15 +22,17 @@ static StrBuf* strbuf_new() {
 
 static StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl) {
 	int len = strlen (str);
-	if ((sb->len + len+2)>=sb->size) {
-		int newsize = sb->size+len+256;
+	if ((sb->len + len + 2) >= sb->size) {
+		int newsize = sb->size + len + 256;
 		char *b = realloc (sb->buf, newsize);
 		/// TODO perform free and force all callers to update the ref?
-		if (!b) return NULL;
+		if (!b) {
+			return NULL;
+		}
 		sb->buf = b;
 		sb->size = newsize;
 	}
-	memcpy (sb->buf+sb->len, str, len);
+	memcpy (sb->buf + sb->len, str, len);
 	sb->len += len;
 #if NEWLINE_AFTER_QUERY
 	if (nl) {
@@ -91,13 +93,16 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	klen = strlen (k);
 	if (rlu->encode) {
 		v2 = sdb_decode (v, NULL);
-		if (v2) v = (const char *)v2;
+		if (v2) {
+			v = (const char *)v2;
+		}
 	}
 	vlen = strlen (v);
 	if (root) {
 		rlen = strlen (root);
 		line = malloc (klen + vlen + rlen + 3);
 		if (!line) {
+			free (v);
 			return 0;
 		}
 		memcpy (line, root, rlen);
@@ -108,6 +113,7 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	} else {
 		line = malloc (klen + vlen + 2);
 		if (!line) {
+			free (v);
 			return 0;
 		}
 		memcpy (line, k, klen);
