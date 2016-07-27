@@ -102,18 +102,18 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 		rlen = strlen (root);
 		line = malloc (klen + vlen + rlen + 3);
 		if (!line) {
-			free (v);
+			free (v2);
 			return 0;
 		}
 		memcpy (line, root, rlen);
 		line[rlen]='/'; /*append the '/' at the end of the namespace */
-		memcpy (line+rlen+1, k, klen);
-		line[rlen+klen+1] = '=';
-		memcpy (line+rlen+klen+2, v, vlen+1);
+		memcpy (line + rlen + 1, k, klen);
+		line[rlen + klen + 1] = '=';
+		memcpy (line + rlen + klen + 2, v, vlen + 1);
 	} else {
 		line = malloc (klen + vlen + 2);
 		if (!line) {
-			free (v);
+			free (v2);
 			return 0;
 		}
 		memcpy (line, k, klen);
