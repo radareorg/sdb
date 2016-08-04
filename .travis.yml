@@ -8,15 +8,27 @@ compiler:
   #- '"clang -fsanitize=memory -fsanitize-memory-track-origins"'
   #- '"clang -fsanitize=thread"'
 
+install:
+  - pip install 'cpp-coveralls' --user && export PATH=$HOME/.local/bin:$PATH
+
 env:
   - TESTS=test
   
 script:
+  - OLD_CFLAGS="${CFLAGS}"
+  - OLD_LDFLAGS="${LDFLAGS}"
+  - export CFLAGS="-fprofile-arcs -ftest-coverage ${CFLAGS}"
+  - export LDFLAGS="-lgcov ${LDFLAGS}"
   # Limit the stack size (to 32MiB) to make ThreadSanitizer happy.
   - ulimit -s 32768
   # Now on to actually building stuff...
   - make clean
   - make
   # Run the tests, report only regressions as errors.
+  - export CFLAGS="${OLD_CFLAGS}"
+  - export LDFLAGS="${OLD_LDFLAGS}"
   - VERBOSE=1 make $TESTS
   - sudo make install
+
+after_success: 
+  - coveralls -r ${TRAVIS_BUILD_DIR} --exclude lib --exclude tests --gcov-options '\-lp'
