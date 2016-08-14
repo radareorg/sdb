@@ -24,8 +24,8 @@ static int b64_decode(const char in[4], ut8 out[3]) {
 		if (in[i]<'+' || in[i]>'z')
 			return -1;
 		v[i] = cd64[in[i]-'+'];
-		if (v[i]=='$') {
-			len = i-1;
+		if (v[i] == '$') {
+			len = i? i - 1: -1;
 			break;
 		} else v[i]-=62;
 	}
