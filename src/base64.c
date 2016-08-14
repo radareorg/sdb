@@ -72,11 +72,10 @@ SDB_API ut8 *sdb_decode (const char *in, int *len) {
 	if (!in) return NULL;
 	ilen = strlen (in);
 	if (!ilen) return NULL;
-	size = (ilen * 2) + 16;
+	size = (ilen * 2) + 17;
 	if (size < (ut32)ilen) return NULL;
-	out = malloc (size);
+	out = calloc (1, size);
 	if (!out) return NULL;
-	memset (out, 0, ilen+8);
 	olen = sdb_decode_raw (out, in, ilen);
 	if (!olen) {
 		free (out);
