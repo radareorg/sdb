@@ -45,10 +45,11 @@ SDB_API void sdb_encode_raw(char *bout, const ut8 *bin, int len) {
 
 SDB_API int sdb_decode_raw(ut8 *bout, const char *bin, int len) {
 	int in, out, ret;
-	for (in=out=0; in<len; in+=4) {
-		ret = b64_decode (bin+in, bout+out);
-		if (ret < 1)
+	for (in = out = 0; in < len; in += 4) {
+		ret = b64_decode (bin + in, bout + out);
+		if (ret < 1) {
 			break;
+		}
 		out += ret;
 	}
 	return (in != out)? out: 0;
@@ -69,10 +70,13 @@ SDB_API ut8 *sdb_decode (const char *in, int *len) {
 	ut8 *out;
 	ut32 size;
 	int olen, ilen;
+	if (len) {
+		*len = 0;
+	}
 	if (!in) return NULL;
 	ilen = strlen (in);
 	if (!ilen) return NULL;
-	size = (ilen * 2) + 17;
+	size = (ilen * 3) + 16;
 	if (size < (ut32)ilen) return NULL;
 	out = calloc (1, size);
 	if (!out) return NULL;
