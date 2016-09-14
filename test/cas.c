@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	r = sdb_set (s, "hello", "world", r);
+	sdb_set (s, "hello", "world", r);
 	sdb_const_get (s, "hello", &cas);
 	if (r != cas) {
 		printf ("error\n");
