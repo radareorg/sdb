@@ -553,26 +553,30 @@ SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	return 1;
 }
 
+#if 0
 // TODO: reuse sdb_foreach DEPRECATE WTF NOT READING THE CDB?
 SDB_API void sdb_list (Sdb* s) {
 	SdbListIter *iter;
 	SdbKv *kv;
-	if (!s || !s->ht)
+	if (!s || !s->ht) {
 		return;
+	}
 	ls_foreach (s->ht->list, iter, kv) {
-		if (!kv->value || !*kv->value)
+		if (!kv->value || !*kv->value) {
 			continue;
+		}
 		printf ("%s=%s\n", kv->key, kv->value);
 	}
 }
+#endif
 
-SDB_API int sdb_sync (Sdb* s) {
+SDB_API bool sdb_sync (Sdb* s) {
 	SdbListIter it, *iter;
 	char *k, *v;
 	SdbKv *kv;
 
 	if (!s || !sdb_disk_create (s)) {
-		return 0;
+		return false;
 	}
 // TODO: use sdb_foreach here
 	sdb_dump_begin (s);
@@ -612,7 +616,7 @@ SDB_API int sdb_sync (Sdb* s) {
 	sdb_disk_finish (s);
 	sdb_journal_clear (s);
 	// TODO: sdb_reset memory state?
-	return 1;
+	return true;
 }
 
 // TODO: optimize: do not use syscalls here. we can just do mmap and pointer arithmetics
@@ -655,19 +659,23 @@ SDB_API int sdb_dump_hasnext (Sdb* s) {
 	if (s->fd == -1) {
 		return 0;
 	}
-	if (!cdb_getkvlen (s->fd, &k, &v))
+	if (!cdb_getkvlen (s->fd, &k, &v)) {
 		return 0;
-	if (k<1 || v<1)
+	}
+	if (k < 1 || v < 1) {
 		return 0;
-	if (lseek (s->fd, k+v, SEEK_CUR) == -1) {
+	}
+	if (lseek (s->fd, k + v, SEEK_CUR) == -1) {
 		return 0;
 	}
 	s->pos += k + v + 4;
 	return 1;
 }
 
-SDB_API int sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
-	if (!s) return 0;
+SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
+	if (!s) {
+		return false;
+	}
 	if (disk) {
 		ut32 count = 0;
 		if (s->fd != -1) {
@@ -681,7 +689,7 @@ SDB_API int sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
 	if (mem) {
 		*mem = s->ht->list->length;
 	}
-	return 1;
+	return disk || mem;
 }
 
 // TODO: make it static? internal api?
@@ -745,7 +753,9 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 
 static inline ut64 parse_expire (ut64 e) {
 	const ut64 month = 30 * 24 * 60 * 60;
-	if (e>0 && e<month) e += sdb_now ();
+	if (e > 0 && e < month) {
+		e += sdb_now ();
+	}
 	return e;
 }
 
@@ -793,7 +803,9 @@ SDB_API ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas) {
 	ut32 hash = sdb_hash (key);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv && *kv->value) {
-		if (cas) *cas = kv->cas;
+		if (cas) {
+			*cas = kv->cas;
+		}
 		return kv->expire;
 	}
 	return 0LL;
@@ -805,7 +817,7 @@ SDB_API int sdb_hook(Sdb* s, SdbHook cb, void* user) {
 	SdbListIter *iter;
 	if (s->hooks) {
 		ls_foreach (s->hooks, iter, hook) {
-			if (!(i%2) && (hook == cb))
+			if (!(i % 2) && (hook == cb))
 				return 0;
 			i++;
 		}
@@ -838,8 +850,9 @@ SDB_API int sdb_hook_call(Sdb *s, const char *k, const char *v) {
 	SdbListIter *iter;
 	SdbHook hook;
 	int i = 0;
-	if (s->last)
+	if (s->last) {
 		s->last = sdb_now ();
+	}
 	ls_foreach (s->hooks, iter, hook) {
 		if (!(i%2) && k && iter->n) {
 			void *u = iter->n->data;
@@ -847,7 +860,7 @@ SDB_API int sdb_hook_call(Sdb *s, const char *k, const char *v) {
 		}
 		i++;
 	}
-	return i>>1;
+	return i >> 1;
 }
 
 SDB_API void sdb_hook_free(Sdb *s) {
@@ -884,11 +897,12 @@ SDB_API int sdb_unlink (Sdb* s) {
 }
 
 SDB_API void sdb_drain(Sdb *s, Sdb *f) {
-	if (!s || !f) return;
-	f->refs = s->refs;
-	sdb_fini (s, 1);
-	*s = *f;
-	free (f);
+	if (s && f) {
+		f->refs = s->refs;
+		sdb_fini (s, 1);
+		*s = *f;
+		free (f);
+	}
 }
 
 typedef struct {
@@ -898,8 +912,9 @@ typedef struct {
 
 static int unset_cb(void *user, const char *k, const char *v) {
 	UnsetCallbackData *ucd = user;
-	if (sdb_match (k, ucd->key))
+	if (sdb_match (k, ucd->key)) {
 		sdb_unset (ucd->sdb, k, 0);
+	}
 	return 1;
 }
 

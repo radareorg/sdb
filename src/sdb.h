@@ -110,35 +110,35 @@ int sdb_count (Sdb* s);
 void sdb_reset (Sdb* s);
 void sdb_setup (Sdb* s, int options);
 void sdb_drain (Sdb*, Sdb*);
-int sdb_stats(Sdb *s, ut32 *disk, ut32 *mem);
+bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem);
 int sdb_dump_hasnext (Sdb* s);
 
 typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
 int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
 SdbList *sdb_foreach_list (Sdb* s);
 
-int  sdb_query (Sdb* s, const char *cmd);
-int  sdb_queryf (Sdb* s, const char *fmt, ...);
-int  sdb_query_lines (Sdb *s, const char *cmd);
+int sdb_query (Sdb* s, const char *cmd);
+int sdb_queryf (Sdb* s, const char *fmt, ...);
+int sdb_query_lines (Sdb *s, const char *cmd);
 char *sdb_querys (Sdb* s, char *buf, size_t len, const char *cmd);
 char *sdb_querysf (Sdb* s, char *buf, size_t buflen, const char *fmt, ...);
-int  sdb_query_file(Sdb *s, const char* file);
-int  sdb_exists (Sdb*, const char *key);
-int  sdb_remove (Sdb*, const char *key, ut32 cas);
-int  sdb_unset (Sdb*, const char *key, ut32 cas);
-int  sdb_unset_like(Sdb *s, const char *k);
+int sdb_query_file(Sdb *s, const char* file);
+int sdb_exists (Sdb*, const char *key);
+int sdb_remove (Sdb*, const char *key, ut32 cas);
+int sdb_unset (Sdb*, const char *key, ut32 cas);
+int sdb_unset_like(Sdb *s, const char *k);
 char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb);
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
 char *sdb_get_len (Sdb*, const char *key, int *vlen, ut32 *cas);
 const char *sdb_const_get (Sdb*, const char *key, ut32 *cas);
 const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas);
-int  sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
-int  sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas);
-int  sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas);
-int  sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas);
-int  sdb_add (Sdb* s, const char *key, const char *val, ut32 cas);
-void sdb_list(Sdb*);
-int  sdb_sync (Sdb*);
+int sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
+int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas);
+int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas);
+int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas);
+int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas);
+// void sdb_list(Sdb*);
+bool sdb_sync (Sdb*);
 void sdb_kv_free (SdbKv *kv);
 
 /* num.c */
@@ -168,21 +168,21 @@ SdbKv *sdb_dump_next (Sdb* s);
 int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen);
 
 /* journaling */
-int sdb_journal_close(Sdb *s);
-int sdb_journal_open(Sdb *s);
-int sdb_journal_load(Sdb *s);
-int sdb_journal_log(Sdb *s, const char *key, const char *val);
-int sdb_journal_clear(Sdb *s);
-int sdb_journal_unlink(Sdb *s);
+SDB_API bool sdb_journal_close(Sdb *s);
+SDB_API bool sdb_journal_open(Sdb *s);
+SDB_API int sdb_journal_load(Sdb *s);
+SDB_API bool sdb_journal_log(Sdb *s, const char *key, const char *val);
+SDB_API bool sdb_journal_clear(Sdb *s);
+SDB_API bool sdb_journal_unlink(Sdb *s);
 
 /* numeric */
 char *sdb_itoa (ut64 n, char *s, int base);
 ut64  sdb_atoi (const char *s);
 
 /* locking */
-int sdb_lock(const char *s);
-const char *sdb_lock_file(const char *f);
-void sdb_unlock(const char *s);
+SDB_API bool sdb_lock(const char *s);
+SDB_API const char *sdb_lock_file(const char *f);
+SDB_API void sdb_unlock(const char *s);
 SDB_API int sdb_unlink (Sdb* s);
 SDB_API int sdb_lock_wait(const char *s UNUSED);
 

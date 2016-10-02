@@ -485,12 +485,18 @@ next_quote:
 				[--]foo    # pop
 				[--]foo=b  # <invalid>
 #endif
-				if (eq) {
-					sdb_array_push (s, p, val, 0);
+				if (cmd[1] == '-' && eq) {
+					/* invalid syntax */
+				} else if (cmd[1] == '+' && !eq) {
+					/* invalid syntax */
 				} else {
-					char *ret = sdb_array_pop (s, p, 0);
-					out_concat (ret);
-					free (ret);
+					if (eq) {
+						sdb_array_push (s, p, val, 0);
+					} else {
+						char *ret = sdb_array_pop (s, p, 0);
+						out_concat (ret);
+						free (ret);
+					}
 				}
 			} else
 			// [+]foo        remove first element */
