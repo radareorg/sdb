@@ -7,7 +7,7 @@ int main() {
 	Sdb *s = sdb_new0 ();
 	sdb_set (s, "foo", "bar", 0);
 	for (i = 0; i < MAX ; i++) {
-		if (sdb_set (s, "foo", "bar", 0)) {
+		if (!sdb_set (s, "foo", "bar", 0)) {
 			fprintf (stderr, "milset: sdb_set failed\n");
 			return 1;
 		}

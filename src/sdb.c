@@ -450,7 +450,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 				return 0;
 			}
 			if (vlen == kv->value_len && !strcmp (kv->value, val)) {
-				return 0;
+				return kv->cas;
 			}
 			kv->cas = cas = nextcas ();
 			if (owned) {

@@ -125,10 +125,16 @@ SDB_API void sdb_fmt_free (void *stru, const char *fmt) {
 		case 'p': // TODO: leak or wat
 		case 'b':
 		case 'h':
-		case 'd': break;
-		case 'q': n = 8; break;
+		case 'd':
+			/* do nothing */
+			break;
+		case 'q':
+			n = 8;
+			break;
 		case 'z':
-		case 's': free ((void*)*((char**)(stru+len))); break;
+		case 's':
+			free ((void*)*((char**)(stru + len)));
+			break;
 		}
 		len += R_MAX ((long)sizeof (void*), n); // align
 	}
