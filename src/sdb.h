@@ -108,13 +108,13 @@ void sdb_file (Sdb* s, const char *dir);
 bool sdb_merge (Sdb* d, Sdb *s);
 int sdb_count (Sdb* s);
 void sdb_reset (Sdb* s);
-void sdb_setup (Sdb* s, int options);
-void sdb_drain (Sdb*, Sdb*);
-bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem);
-int sdb_dump_hasnext (Sdb* s);
+SDB_API void sdb_setup (Sdb* s, int options);
+SDB_API void sdb_drain (Sdb*, Sdb*);
+SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem);
+SDB_API bool sdb_dump_hasnext (Sdb* s);
 
 typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
-int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
+bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
 SdbList *sdb_foreach_list (Sdb* s);
 
 int sdb_query (Sdb* s, const char *cmd);
@@ -123,8 +123,8 @@ int sdb_query_lines (Sdb *s, const char *cmd);
 char *sdb_querys (Sdb* s, char *buf, size_t len, const char *cmd);
 char *sdb_querysf (Sdb* s, char *buf, size_t buflen, const char *fmt, ...);
 int sdb_query_file(Sdb *s, const char* file);
-int sdb_exists (Sdb*, const char *key);
-int sdb_remove (Sdb*, const char *key, ut32 cas);
+bool sdb_exists (Sdb*, const char *key);
+bool sdb_remove (Sdb*, const char *key, ut32 cas);
 int sdb_unset (Sdb*, const char *key, ut32 cas);
 int sdb_unset_like(Sdb *s, const char *k);
 char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb);
@@ -271,8 +271,8 @@ char *sdb_array_pop_tail(Sdb *s, const char *key, ut32 *cas);
 typedef void (*SdbHook)(Sdb *s, void *user, const char *k, const char *v);
 
 void sdb_global_hook(SdbHook hook, void *user);
-int sdb_hook(Sdb* s, SdbHook cb, void* user);
-int sdb_unhook(Sdb* s, SdbHook h);
+SDB_API bool sdb_hook(Sdb* s, SdbHook cb, void* user);
+SDB_API bool sdb_unhook(Sdb* s, SdbHook h);
 int sdb_hook_call(Sdb *s, const char *k, const char *v);
 void sdb_hook_free(Sdb *s);
 /* Util.c */

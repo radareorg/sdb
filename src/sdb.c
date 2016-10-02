@@ -53,12 +53,14 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 		}
 		switch (lock) {
 		case 1:
-			if (!sdb_lock (sdb_lock_file (s->dir)))
+			if (!sdb_lock (sdb_lock_file (s->dir))) {
 				goto fail;
+			}
 			break;
 		case 2:
-			if (!sdb_lock_wait (sdb_lock_file (s->dir)))
+			if (!sdb_lock_wait (sdb_lock_file (s->dir))) {
 				goto fail;
+			}
 			break;
 		}
 		if (sdb_open (s, s->dir) == -1) {
@@ -74,16 +76,18 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	s->fdump = -1;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
-	if (!s->ns)
+	if (!s->ns) {
 		goto fail;
+	}
 	s->ns->free = NULL;
 	if (!s->ns) goto fail;
 	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 	s->lock = lock;
 	// s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
-	if (global_hook)
+	if (global_hook) {
 		sdb_hook (s, global_hook, global_user);
+	}
 	cdb_init (&s->db, s->fd);
 	return s;
 fail:
@@ -139,8 +143,9 @@ static void sdb_fini(Sdb* s, int donull) {
 	if (!s) return;
 	sdb_hook_free (s);
 	cdb_free (&s->db);
-	if (s->lock)
+	if (s->lock) {
 		sdb_unlock (sdb_lock_file (s->dir));
+	}
 	sdb_ns_free (s);
 	s->refs = 0;
 	free (s->name);
@@ -156,8 +161,9 @@ static void sdb_fini(Sdb* s, int donull) {
 	free (s->dir);
 	free (s->tmpkv.value);
 	s->tmpkv.value_len = 0;
-	if (donull)
+	if (donull) {
 		memset (s, 0, sizeof (Sdb));
+	}
 }
 
 SDB_API int sdb_free (Sdb* s) {
@@ -178,42 +184,58 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 	ut32 hash, pos, len, keylen;
 	ut64 now = 0LL;
 	SdbKv *kv;
-	if (cas) *cas = 0;
-	if (vlen) *vlen = 0;
-	if (!s || !key) return NULL;
+	if (cas) {
+		*cas = 0;
+	}
+	if (vlen) {
+		*vlen = 0;
+	}
+	if (!s || !key) {
+		return NULL;
+	}
 	// TODO: optimize, iterate once
-	keylen = strlen (key)+1;
+	keylen = strlen (key) + 1;
 	hash = sdb_hash (key);
 
 	/* search in memory */
 	kv = (SdbKv*) ht_lookup (s->ht, hash);
 	if (kv) {
-		if (!*kv->value)
+		if (!*kv->value) {
 			return NULL;
+		}
 		if (kv->expire) {
-			if (!now) now = sdb_now ();
+			if (!now) {
+				now = sdb_now ();
+			}
 			if (now > kv->expire) {
 				sdb_unset (s, key, 0);
 				return NULL;
 			}
 		}
-		if (cas) *cas = kv->cas;
-		if (vlen) *vlen = kv->value_len;
+		if (cas) {
+			*cas = kv->cas;
+		}
+		if (vlen) {
+			*vlen = kv->value_len;
+		}
 		return kv->value;
 	}
 
 	/* search in disk */
-	if (s->fd == -1)
+	if (s->fd == -1) {
 		return NULL;
+	}
 	(void) cdb_findstart (&s->db);
-	if (cdb_findnext (&s->db, hash, key, keylen) < 1)
+	if (cdb_findnext (&s->db, hash, key, keylen) < 1) {
 		return NULL;
+	}
 	len = cdb_datalen (&s->db);
-	if (len < SDB_MIN_VALUE || len >= SDB_MAX_VALUE)
+	if (len < SDB_MIN_VALUE || len >= SDB_MAX_VALUE) {
 		return NULL;
-	if (vlen)
+	}
+	if (vlen) {
 		*vlen = len;
-
+	}
 	pos = cdb_datapos (&s->db);
 	return s->db.map + pos;
 }
@@ -238,16 +260,15 @@ SDB_API int sdb_unset (Sdb* s, const char *key, ut32 cas) {
 }
 
 /* remove from memory */
-SDB_API int sdb_remove(Sdb *s, const char *key, ut32 cas) {
-	SdbHashEntry *e;
+SDB_API bool sdb_remove(Sdb *s, const char *key, ut32 cas) {
 	ut32 hash = sdb_hash (key);
-	e = ht_search (s->ht, hash);
+	SdbHashEntry *e = ht_search (s->ht, hash);
 	if (e) {
 		ht_delete_entry (s->ht, e);
 		ls_delete (s->ht->list, e->iter);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 // alias for '-key=str'.. '+key=str' concats
@@ -298,19 +319,22 @@ SDB_API int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas) {
 	return sdb_set (s, key, val, cas);
 }
 
-SDB_API int sdb_exists (Sdb* s, const char *key) {
+SDB_API bool sdb_exists (Sdb* s, const char *key) {
 	ut32 pos, hash;
 	char ch;
 	SdbKv *kv;
-	int klen = strlen (key)+1;
-	if (!s) return 0;
+	int klen;
+	if (!s || !key) {
+		return false;
+	}
+	klen = strlen (key) + 1;
 	hash = sdb_hash (key);
 	kv = (SdbKv*)ht_lookup (s->ht, hash);
 	if (kv) {
-		return (*kv->value)? 1: 0;
+		return *kv->value;
 	}
 	if (s->fd == -1) {
-		return 0;
+		return false;
 	}
 	(void)cdb_findstart (&s->db);
 	if (cdb_findnext (&s->db, hash, key, klen)) {
@@ -318,7 +342,7 @@ SDB_API int sdb_exists (Sdb* s, const char *key) {
 		cdb_read (&s->db, &ch, 1, pos);
 		return ch != 0;
 	}
-	return 0;
+	return false;
 }
 
 SDB_API int sdb_open (Sdb *s, const char *file) {
@@ -366,13 +390,16 @@ SDB_API void sdb_close (Sdb *s) {
 }
 
 SDB_API void sdb_reset (Sdb* s) {
-	if (!s) return;
+	if (!s) {
+		return;
+	}
 	/* ignore disk cache, file is not removed, but we will ignore
 	 * its values when syncing again */
 	sdb_close (s);
 	/* empty memory hashtable */
-	if (s->ht)
+	if (s->ht) {
 		ht_free (s->ht);
+	}
 	s->ht = ht_new ((SdbListFree)sdb_kv_free);
 }
 
@@ -518,11 +545,13 @@ SDB_API SdbList *sdb_foreach_list (Sdb* s) {
 	return list;
 }
 
-SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
+SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbListIter *iter;
 	char *k, *v;
 	SdbKv *kv;
-	if (!s) return 0;
+	if (!s) {
+		return false;
+	}
 	sdb_dump_begin (s);
 	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		ut32 hash = sdb_hash (k);
@@ -541,16 +570,20 @@ SDB_API int sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 			int ret = cb (user, k, v);
 			free (k);
 			free (v);
-			if (!ret) return 0;
+			if (!ret) {
+				return false;
+			}
 		}
 	}
 	ls_foreach (s->ht->list, iter, kv) {
-		if (!kv->value || !*kv->value)
+		if (!kv->value || !*kv->value) {
 			continue;
-		if (!cb (user, kv->key, kv->value))
-			return 0;
+		}
+		if (!cb (user, kv->key, kv->value)) {
+			return false;
+		}
 	}
-	return 1;
+	return true;
 }
 
 #if 0
@@ -654,22 +687,22 @@ SDB_API SdbKv *sdb_dump_next (Sdb* s) {
 	return &s->tmpkv;
 }
 
-SDB_API int sdb_dump_hasnext (Sdb* s) {
+SDB_API bool sdb_dump_hasnext (Sdb* s) {
 	ut32 k, v;
 	if (s->fd == -1) {
-		return 0;
+		return false;
 	}
 	if (!cdb_getkvlen (s->fd, &k, &v)) {
-		return 0;
+		return false;
 	}
 	if (k < 1 || v < 1) {
-		return 0;
+		return false;
 	}
 	if (lseek (s->fd, k + v, SEEK_CUR) == -1) {
-		return 0;
+		return false;
 	}
 	s->pos += k + v + 4;
-	return 1;
+	return true;
 }
 
 SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
@@ -695,12 +728,18 @@ SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
 // TODO: make it static? internal api?
 SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 	ut32 vlen = 0, klen = 0;
-	if (key) *key = NULL;
-	if (value) *value = NULL;
-	if (_vlen)
+	if (key) {
+		*key = NULL;
+	}
+	if (value) {
+		*value = NULL;
+	}
+	if (_vlen) {
 		*_vlen = 0;
-	if (s->fd==-1)
+	}
+	if (s->fd == -1) {
 		return 0;
+	}
 	if (!cdb_getkvlen (s->fd, &klen, &vlen)) {
 		return 0;
 	}
@@ -711,7 +750,7 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 		*_vlen = vlen;
 	if (key) {
 		*key = 0;
-		if (klen>=SDB_MIN_KEY && klen<SDB_MAX_KEY) {
+		if (klen >= SDB_MIN_KEY && klen < SDB_MAX_KEY) {
 			*key = malloc (klen + 1);
 			if (!*key) {
 				return 0;
@@ -726,7 +765,7 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 	}
 	if (value) {
 		*value = 0;
-		if (vlen>=SDB_MIN_VALUE && vlen<SDB_MAX_VALUE) {
+		if (vlen >= SDB_MIN_VALUE && vlen < SDB_MAX_VALUE) {
 			*value = malloc (vlen + 10);
 			if (!*value) {
 				if (key) {
@@ -763,7 +802,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	char *buf;
 	ut32 hash, pos, len;
 	SdbKv *kv;
-	if (key == NULL) {
+	if (!key) {
 		s->expire = parse_expire (expire);
 		return 1;
 	}
@@ -811,14 +850,15 @@ SDB_API ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas) {
 	return 0LL;
 }
 
-SDB_API int sdb_hook(Sdb* s, SdbHook cb, void* user) {
+SDB_API bool sdb_hook(Sdb* s, SdbHook cb, void* user) {
 	int i = 0;
 	SdbHook hook;
 	SdbListIter *iter;
 	if (s->hooks) {
 		ls_foreach (s->hooks, iter, hook) {
-			if (!(i % 2) && (hook == cb))
-				return 0;
+			if (!(i % 2) && (hook == cb)) {
+				return false;
+			}
 			i++;
 		}
 	} else {
@@ -827,10 +867,10 @@ SDB_API int sdb_hook(Sdb* s, SdbHook cb, void* user) {
 	}
 	ls_append (s->hooks, cb);
 	ls_append (s->hooks, user);
-	return 1;
+	return true;
 }
 
-SDB_API int sdb_unhook(Sdb* s, SdbHook h) {
+SDB_API bool sdb_unhook(Sdb* s, SdbHook h) {
 	int i = 0;
 	SdbHook hook;
 	SdbListIter *iter, *iter2;
@@ -839,11 +879,11 @@ SDB_API int sdb_unhook(Sdb* s, SdbHook h) {
 			iter2 = iter->n;
 			ls_delete (s->hooks, iter);
 			ls_delete (s->hooks, iter2);
-			return 1;
+			return true;
 		}
 		i++;
 	}
-	return 0;
+	return false;
 }
 
 SDB_API int sdb_hook_call(Sdb *s, const char *k, const char *v) {

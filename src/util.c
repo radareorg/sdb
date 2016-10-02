@@ -2,6 +2,8 @@
 
 #include "sdb.h"
 
+#define FORCE_COLLISION 0
+
 #if USE_MONOTONIC_CLOCK
 #include <time.h>
 #else
@@ -46,18 +48,16 @@ SDB_API bool sdb_check_key(const char *s) {
 	return true;
 }
 
-SDB_API ut32 sdb_hash(const char *s) {
-	ut32 h = CDB_HASHSTART;
-	if (s) {
-		while (*s) {
-			h = (h + (h << 5)) ^* s++;
-		}
-	}
-	return h;
-}
-
 SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 	ut32 h = CDB_HASHSTART;
+#if FORCE_COLLISION
+	h = 0;
+	while (*s) {
+		h += *s;
+		s++;
+	}
+	return h;
+#endif
 	ut32 count = 0;
 	if (s) {
 		while (*s) {
@@ -69,6 +69,10 @@ SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 		*len = count;
 	}
 	return h;
+}
+
+SDB_API ut32 sdb_hash(const char *s) {
+	return sdb_hash_len (s, NULL);
 }
 
 // assert (sizeof (s)>64)
