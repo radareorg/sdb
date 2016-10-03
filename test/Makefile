@@ -28,7 +28,7 @@ $(SCRIPTS):
 
 $(BINS):
 	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
-	time ./$@
+	$(SHELL) -c "time ./$@"
 
 b: $(BINS)
 
