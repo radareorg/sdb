@@ -3,8 +3,13 @@
 #include "ht.h"
 #include "sdb.h"
 
+#define DISABLED_GROW 1
+
 // Sizes of the ht.
 const int ht_primes_sizes[] = {
+#if DISABLED_GROW
+	1024,
+#endif
 3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
 1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591,
 17519, 21023, 25229, 30293, 36353, 43627, 52361, 62851, 75431, 90523, 108631, 130363, 156437,
@@ -86,6 +91,14 @@ void ht_free(SdbHash* ht) {
 }
 
 // Increases the size of the hashtable by 2.
+
+#if DISABLED_GROW
+static inline void internal_ht_grow(SdbHash* ht) {
+	ht->prime_idx--;
+	return;
+}
+#else
+/* XXX this is wrong, it makes a test fail */
 static void internal_ht_grow(SdbHash* ht) {
 	SdbHash* ht2;
 	SdbHash swap;
@@ -98,6 +111,7 @@ static void internal_ht_grow(SdbHash* ht) {
 	ht2->prime_idx = ht->prime_idx;
 	for (i = 0; i < ht->size; i++) {
 		ls_foreach (ht->table[i], iter, kvp) {
+			eprintf ("SET %s -> %s\n", kvp->key, kvp->value);
 			(void)ht_insert (ht2, kvp->key, kvp->value);
 		}
 	}
@@ -107,6 +121,7 @@ static void internal_ht_grow(SdbHash* ht) {
 	*ht2 = swap;
 	ht_free (ht2);
 }
+#endif
 
 // Inserts the key value pair key, value into the hashtable.
 // if update is true, allow for updates, otherwise return false if the key
@@ -215,7 +230,7 @@ char* ht_find(SdbHash* ht, const char* key, bool* found) {
 		found = &_found;
 	}
 	SdbKv* kvp = ht_find_kvp (ht, key, found);
-	return (kvp && _found)? kvp->value : NULL;
+	return (kvp && *found)? kvp->value : NULL;
 }
 
 // Deletes a kvp from the hash table from the key, if the pair exists.

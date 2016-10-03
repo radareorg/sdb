@@ -268,14 +268,19 @@ SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	int vlen = 0, valen;
 	char *p, *v = sdb_get_len (s, key, &vlen, NULL);
 	int mod = 0;
-	if (!v || !key || !value) return 0;
+	if (!v || !key || !value) {
+		return 0;
+	}
 	valen = strlen (value);
 	while ((p = strstr (v, value))) {
 		memmove (p, p+valen, strlen (p+valen)+1);
 		mod = 1;
 	}
-	if (mod) sdb_set_owned (s, key, v, 0);
-	else free (v);
+	if (mod) {
+		sdb_set_owned (s, key, v, 0);
+	} else {
+		free (v);
+	}
 	return 0;
 }
 
@@ -566,31 +571,14 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 		ls_foreach (s->ht->table[i], iter, kv) {
 			if (!kv->value || !*kv->value) {
 				continue;
-			} else if (!cb (user, kv->key, kv->value)) {
+			}
+			if (!cb (user, kv->key, kv->value)) {
 				return false;
 			}
 		}
 	}
 	return true;
 }
-
-#if 0
-// TODO: reuse sdb_foreach DEPRECATE WTF NOT READING THE CDB?
-SDB_API void sdb_list (Sdb* s) {
-	SdbListIter *iter;
-	SdbKv *kv;
-	ut32 i;
-	if (!s || !s->ht) {
-		return;
-	for (i = 0; i < s->ht->size; ++i) {
-		ls_foreach (s->ht->table[i], iter, kv) {
-			if (kv->value || *kv->value) {
-				printf ("%s=%s\n", kv->key, kv->value);
-			}
-		}
-	}
-}
-#endif
 
 SDB_API bool sdb_sync (Sdb* s) {
 	SdbListIter it, *iter;
@@ -885,7 +873,7 @@ SDB_API int sdb_hook_call(Sdb *s, const char *k, const char *v) {
 		s->last = sdb_now ();
 	}
 	ls_foreach (s->hooks, iter, hook) {
-		if (!(i%2) && k && iter->n) {
+		if (!(i % 2) && k && iter->n) {
 			void *u = iter->n->data;
 			hook (s, u, k, v);
 		}
