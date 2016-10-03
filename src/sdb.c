@@ -497,10 +497,10 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 		kv = sdb_kv_new (key, val);
 	}
 	if (kv) {
-		kv->cas = nextcas ();
+		ut32 cas = kv->cas = nextcas ();
 		ht_insert_kvp (s->ht, kv, true /*update*/);
 		sdb_hook_call (s, key, val);
-		return kv->cas;
+		return cas;
 	}
 	sdb_hook_call (s, key, val);
 	return 0;

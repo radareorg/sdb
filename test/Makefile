@@ -5,8 +5,8 @@ BINS+=bench-expire expire dumptwice syncget ns nsabuse drain merge
 BINS+=milset milsetv
 BINS+=chkkey
 
-CFLAGS+=-I../../src -I ../src
-LDFLAGS+=../src/libsdb.a
+CFLAGS+=-I../../src -I ../src ${USER_CFLAGS}
+LDFLAGS+=../src/libsdb.a ${USER_LDFLAGS}
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
 ALL=all
 
@@ -18,8 +18,10 @@ me:
 	$(MAKE) -C ../src
 	$(MAKE)
 
+ASAN_CFLAGS=-fsanitize=address -fsanitize=undefined
+
 asan:
-	$(MAKE) CFLAGS="-fsanitize=address ${CFLAGS}" ALL=asan all
+	$(MAKE) CFLAGS="${ASAN_CFLAGS} ${CFLAGS}" ALL=asan all
 
 $(SCRIPTS):
 	./$@
