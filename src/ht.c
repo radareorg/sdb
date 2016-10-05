@@ -30,7 +30,7 @@ const int ht_primes_sizes[] = {
 // keydup - function to duplicate to key (eg strdup), if NULL just does =.
 // valdup - same as keydup, but for values
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
-// calcsize - functino to calculate the size of a value. if NULL, just stores 0.
+// calcsize - function to calculate the size of a value. if NULL, just stores 0.
 SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListComparator comparator, DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize) {
 	SdbHash* ht = calloc (1, sizeof (*ht));
 	if (!ht) {
@@ -148,7 +148,7 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 			kvp->key = ht->dupkey
 				? ht->dupkey (key) : (char *)key;
 			kvp->value = ht->dupvalue
-				? ht->dupvalue (key) : (char *)value;
+				? ht->dupvalue (value) : (char *)value;
 			bucket = hash % ht->size;
 			kvp->expire = 0;
 			kvp->value_len = ht->calcsize
@@ -208,7 +208,8 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 	return false;
 }
 
-// Looks up the corresponding value from the key. Returns true if found, false
+// Returns the corresponding SdbKv entry from the key.
+// If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
 SdbKv* ht_find_kvp(SdbHash* ht, const char* key, bool* found) {
 	ut32 hash;
@@ -222,14 +223,21 @@ SdbKv* ht_find_kvp(SdbHash* ht, const char* key, bool* found) {
 			? ht->cmp (key, kvp->key) == 0
 			: key == kvp->key;
 		if (match) {
-			*found = true;
+			if (found) {
+				*found = true;
+			}
 			return  kvp;
 		}
 	}
-	*found = false;
+	if (found) {
+		*found = false;
+	}
 	return NULL;
 }
 
+// Looks up the corresponding value from the key.
+// If `found` is not NULL, it will be set to true if the entry was found, false
+// otherwise.
 char* ht_find(SdbHash* ht, const char* key, bool* found) {
 	bool _found = false;
 	if (!found) {

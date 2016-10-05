@@ -13,6 +13,7 @@ ALL=all
 all: $(BINS) $(SCRIPTS) reset
 	@suite/run.sh
 	-cd api && $(MAKE)
+	-cd unit && $(MAKE) run
 
 me:
 	$(MAKE) -C ../src
