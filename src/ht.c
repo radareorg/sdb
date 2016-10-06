@@ -3,7 +3,7 @@
 #include "ht.h"
 #include "sdb.h"
 
-#define DISABLED_GROW 1
+#define DISABLED_GROW 0
 
 // Sizes of the ht.
 const int ht_primes_sizes[] = {
@@ -31,7 +31,7 @@ const int ht_primes_sizes[] = {
 // valdup - same as keydup, but for values
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.
-SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListComparator comparator, DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize) {
+static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListComparator comparator, DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize) {
 	SdbHash* ht = calloc (1, sizeof (*ht));
 	if (!ht) {
 		return NULL;
@@ -104,7 +104,6 @@ static inline void internal_ht_grow(SdbHash* ht) {
 	return;
 }
 #else
-/* XXX this is wrong, it makes a test fail */
 static void internal_ht_grow(SdbHash* ht) {
 	SdbHash* ht2;
 	SdbHash swap;
@@ -117,7 +116,6 @@ static void internal_ht_grow(SdbHash* ht) {
 	ht2->prime_idx = ht->prime_idx;
 	for (i = 0; i < ht->size; i++) {
 		ls_foreach (ht->table[i], iter, kvp) {
-			eprintf ("SET %s -> %s\n", kvp->key, kvp->value);
 			(void)ht_insert (ht2, kvp->key, kvp->value);
 		}
 	}

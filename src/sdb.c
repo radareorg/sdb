@@ -401,7 +401,7 @@ SDB_API void sdb_reset (Sdb* s) {
 }
 
 // TODO: too many allocs here. use slices
-SDB_API SdbKv* sdb_kv_new (const char *k, const char *v) {
+SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	SdbKv *kv;
 	int vl;
 	if (!sdb_check_key (k)) {

@@ -22,6 +22,7 @@ typedef size_t (*CalcSize)(const char*);
 typedef ut32 (*HashFunction)(const char*);
 typedef int (*ListComparator)(const char *a, const char *b);
 
+SdbKv* sdb_kv_new(const char *k, const char *v);
 
 /** ht **/
 typedef struct ht_t {
