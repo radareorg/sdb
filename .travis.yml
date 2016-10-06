@@ -10,7 +10,7 @@ compiler:
 
 env:
   - TESTS=test
-  
+
 script:
   # Limit the stack size (to 32MiB) to make ThreadSanitizer happy.
   - ulimit -s 32768
@@ -18,5 +18,5 @@ script:
   - make clean
   - make
   # Run the tests, report only regressions as errors.
-  - VERBOSE=1 make $TESTS
   - sudo make install
+  - VERBOSE=1 make $TESTS
