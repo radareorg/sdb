@@ -183,13 +183,16 @@ bool ht_update(SdbHash* ht, const char* key, const char* value) {
 
 bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 	bool found;
+	if (!ht || !kvp) {
+		return false;
+	}
 	ut32 bucket, hash = ht->hashfn (kvp->key);
 	if (update) {
 		(void)ht_delete_internal (ht, kvp->key, &hash);
 	} else {
 		(void)ht_find (ht, kvp->key, &found);
 	}
-	if (kvp && (update || !found)) {
+	if (update || !found) {
 		bucket = hash % ht->size;
 		if (!ht->table[bucket]) {
 			ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
