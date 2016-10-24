@@ -187,8 +187,12 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 	SdbKv *kv;
 	bool found;
 
-	if (cas) *cas = 0;
-	if (vlen) *vlen = 0;
+	if (cas) {
+		*cas = 0;
+	}
+	if (vlen) {
+		*vlen = 0;
+	}
 	if (!s || !key) {
 		return NULL;
 	}
@@ -218,7 +222,6 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 		}
 		return kv->value;
 	}
-
 	/* search in disk */
 	if (s->fd == -1) {
 		return NULL;
