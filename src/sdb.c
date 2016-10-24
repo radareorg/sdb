@@ -549,23 +549,22 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		SdbKv *kv = ht_find_kvp (s->ht, k, &found);
 		if (found) {
-			free (k);
-			free (v);
-			if (!*kv->value) {
-				// deleted = 1;
-				continue;
-			}
-			if (!cb (user, kv->key, kv->value)) {
-				return false;
+			if (*kv->key && *kv->value) {
+				if (!cb (user, kv->key, kv->value)) {
+					free (k);
+					free (v);
+					return false;
+				}
 			}
 		} else {
-			int ret = cb (user, k, v);
-			free (k);
-			free (v);
-			if (!ret) {
+			if (!cb (user, k, v)) {
+				free (k);
+				free (v);
 				return false;
 			}
 		}
+		free (k);
+		free (v);
 	}
 	for (i = 0; i < s->ht->size; ++i) {
 		ls_foreach (s->ht->table[i], iter, kv) {

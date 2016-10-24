@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2007-2014 - pancake */
+/* sdb - MIT - Copyright 2007-2016 - pancake, alvaro */
 
 #include <string.h>
 #include "ls.h"
@@ -202,7 +202,7 @@ SDB_API SdbListIter *ls_prepend(SdbList *list, void *data) {
 SDB_API void *ls_pop(SdbList *list) {
 	void *data = NULL;
 	SdbListIter *iter;
-	if (list){
+	if (list) {
 		if (list->tail) {
 			iter = list->tail;
 			if (list->head == list->tail) {
