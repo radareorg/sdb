@@ -52,31 +52,16 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListCompar
 }
 
 bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
-	ut32 bucket;
-	SdbListIter* iter = NULL;
-	SdbList* list = NULL;
-	SdbKv* kvp = NULL;
-	ut32 computed_hash;
-	if (!hash) {
-		computed_hash = ht->hashfn (key);
-	} else {
-		computed_hash = *hash;
-	}
-	bucket = computed_hash % ht->size;
-	list = ht->table[bucket];
+	SdbKv* kvp;
+	SdbListIter* iter;
+	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
+	ut32 bucket = computed_hash % ht->size;
+	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kvp) {
-		if (ht->cmp) {
-			if (ht->cmp (key, kvp->key) == 0) {
-				ls_delete (list, iter);
-				ht->count--;
-				return true;
-			}
-		} else {
-			if (key == kvp->key) {
-				ls_delete (list, iter);
-				ht->count--;
-				return true;
-			}
+		if (key == kvp->key || (ht->cmp && !ht->cmp (key, kvp->key))) {
+			ls_delete (list, iter);
+			ht->count--;
+			return true;
 		}
 	}
 	return false;
@@ -199,11 +184,14 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 		}
 		ls_prepend (ht->table[bucket], kvp);
 		ht->count++;
+#if DISABLE_GROW
+#else
 		// Check if we need to grow the table.
 		if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
 			ht->prime_idx++;
 			internal_ht_grow (ht);
 		}
+#endif
 		return true;
 	}
 	return false;

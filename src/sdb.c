@@ -568,7 +568,7 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	}
 	for (i = 0; i < s->ht->size; ++i) {
 		ls_foreach (s->ht->table[i], iter, kv) {
-			if (!kv->value || !*kv->value) {
+			if (!kv || !kv->value || !*kv->value) {
 				continue;
 			}
 			if (!cb (user, kv->key, kv->value)) {
