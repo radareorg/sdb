@@ -74,6 +74,7 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	}
 	s->journal = -1;
 	s->fdump = -1;
+	s->depth = 0;
 	s->ndump = NULL;
 	s->ns = ls_new (); // TODO: should be NULL
 	if (!s->ns) {
@@ -536,6 +537,14 @@ SDB_API SdbList *sdb_foreach_list (Sdb* s) {
 	return list;
 }
 
+static bool sdb_foreach_end (Sdb *s, bool result) {
+	s->depth--;
+	if (s->depth == 0) {
+		ht_free_deleted (s->ht);
+	}
+	return result;
+}
+
 SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbListIter *iter;
 	char *k, *v;
@@ -545,26 +554,24 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	if (!s) {
 		return false;
 	}
+	s->depth++;
 	sdb_dump_begin (s);
 	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		SdbKv *kv = ht_find_kvp (s->ht, k, &found);
+		// TODO avoid using the heap for k/v allocations
+		free (k);
+		free (v);
 		if (found) {
 			if (*kv->key && *kv->value) {
 				if (!cb (user, kv->key, kv->value)) {
-					free (k);
-					free (v);
-					return false;
+					return sdb_foreach_end (s, false);
 				}
 			}
 		} else {
 			if (!cb (user, k, v)) {
-				free (k);
-				free (v);
-				return false;
+				return sdb_foreach_end (s, false);
 			}
 		}
-		free (k);
-		free (v);
 	}
 	for (i = 0; i < s->ht->size; ++i) {
 		ls_foreach (s->ht->table[i], iter, kv) {
@@ -572,11 +579,11 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 				continue;
 			}
 			if (!cb (user, kv->key, kv->value)) {
-				return false;
+				return sdb_foreach_end (s, false);
 			}
 		}
 	}
-	return true;
+	return sdb_foreach_end (s, true);
 }
 
 SDB_API bool sdb_sync (Sdb* s) {

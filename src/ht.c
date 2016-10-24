@@ -59,7 +59,14 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kvp) {
 		if (key == kvp->key || (ht->cmp && !ht->cmp (key, kvp->key))) {
+#define EXCHANGE 1
+#if EXCHANGE
+			ls_split_iter (list, iter);
+			ls_append (ht->deleted, iter);
+			iter->data = NULL;
+#else
 			ls_delete (list, iter);
+#endif
 			ht->count--;
 			return true;
 		}
@@ -79,6 +86,13 @@ void ht_free(SdbHash* ht) {
 	}
 	free (ht->table);
 	free (ht);
+}
+
+void ht_free_deleted(SdbHash* ht) {
+	if (!ls_empty (ht->deleted)) {
+		ls_free (ht->deleted);
+		ht->deleted = ls_newf (free);
+	}
 }
 
 // Increases the size of the hashtable by 2.

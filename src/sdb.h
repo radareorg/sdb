@@ -81,6 +81,7 @@ typedef struct sdb_t {
 	SdbList *ns;
 	SdbList *hooks;
 	SdbKv tmpkv;
+	ut32 depth;
 } Sdb;
 
 typedef struct sdb_ns_t {

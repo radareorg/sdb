@@ -35,6 +35,7 @@ typedef struct ht_t {
 	CalcSize calcsize; // Function to determine the size of an object. NULL will just set size to 0 for the kvp (usually not needed).
 	HtKvFreeFunc freefn; // Function to free the keyvalue store, if NULL, just calls regular free.
 	SdbList/*<SdbKv>*/** table;  // Actual table.
+	SdbList *deleted;
 	ut32 load_factor; // load factor before doubling in size.
 	ut32 prime_idx;
 } SdbHash;
@@ -44,6 +45,8 @@ SdbHash* ht_new();
 
 // Destroy a hashtable and all of its entries.
 void ht_free(SdbHash* ht);
+
+void ht_free_deleted(SdbHash* ht);
 
 // Insert a new Key-Value pair into the hashtable. If the key already exists, returns false.
 bool ht_insert(SdbHash* ht, const char* key, const char* value);
