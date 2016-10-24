@@ -47,6 +47,7 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListCompar
 	ht->table = calloc (ht->size, sizeof (SdbList*));
 	ht->calcsize = calcsize;
 	ht->freefn = pair_free;
+	ht->deleted = ls_newf (free);
 	// Because we use calloc, each listptr will be NULL until used */
 	return ht;
 }
@@ -84,6 +85,7 @@ void ht_free(SdbHash* ht) {
 	for (i = 0; i < ht->size; i++) {
 		ls_free (ht->table[i]);
 	}
+	ht_free_deleted (ht);
 	free (ht->table);
 	free (ht);
 }
