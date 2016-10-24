@@ -36,22 +36,28 @@ static char *stdin_slurp(int *sz) {
 	static int nextlen = 0;
 	int len, rr, rr2;
 	char *buf, *tmp;
+	if (sz) {
+		*sz = 0;
+	}
 #if USE_SLURPIN
 	if (!sz) {
 		/* this is faster but have limits */
-		/* must optimize the code below before reomving this */
 		/* run test/add10k.sh script to benchmark */
-		static char buf[96096]; // MAGIC NUMBERS CO.
-		memset (buf, 0, sizeof (buf));
-		if (!fgets (buf, sizeof (buf)-1, stdin))
+		const int buf_size = 96096;
+		char *buf = calloc (1, buf_size);
+		if (!fgets (buf, buf_size - 1, stdin)) {
 			return NULL;
-		if (feof (stdin)) return NULL;
-		buf[strlen (buf)-1] = 0;
-		return strdup (buf);
+		}
+		if (feof (stdin)) {
+			return NULL;
+		}
+		int buf_len = strlen (buf) - 1;
+		buf[buf_len] = 0;
+		return realloc (buf, buf_len + 1);
 	}
 #endif
-	buf = calloc (BS+1, 1);
-	if (buf == NULL) {
+	buf = calloc (BS + 1, 1);
+	if (!buf) {
 		return NULL;
 	}
 
@@ -119,7 +125,7 @@ static char *stdin_slurp(int *sz) {
 		*sz = len;
 	}
 	//eprintf ("LEN %d (%s)\n", len, buf);
-	if (len<1) {
+	if (len < 1) {
 		free (buf);
 		buf = NULL;
 		return NULL;
@@ -343,7 +349,7 @@ static int jsonIndent() {
 }
 
 static int base64encode() {
-	int len;
+	int len = 0;
 	ut8* in;
 	char *out;
 	in = (ut8*)stdin_slurp (&len);

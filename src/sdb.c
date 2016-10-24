@@ -817,9 +817,8 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 }
 
 SDB_API ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas) {
-	SdbKv *kv;
 	bool found = false;
-	kv = (SdbKv*)ht_find_kvp (s->ht, key, &found);
+	SdbKv *kv = (SdbKv*)ht_find_kvp (s->ht, key, &found);
 	if (found && kv && *kv->value) {
 		if (cas) {
 			*cas = kv->cas;
