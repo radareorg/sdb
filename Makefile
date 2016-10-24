@@ -22,7 +22,7 @@ test:
 
 asan:
 	${MAKE} src/sdb_version.h
-	${MAKE} -C src CC="gcc -fsanitize=address" LDFLAGS=-lasan all
+	${MAKE} -C src CC="gcc -fsanitize=address" all
 
 pkgconfig:
 	[ -d pkgconfig ] && ${MAKE} -C pkgconfig || true
