@@ -342,7 +342,7 @@ next_quote:
 	} else
 	if (*cmd == '~') {
 		d = 1;
-		sdb_unset_like (s, cmd+1);
+		sdb_unset_like (s, cmd + 1);
 	} else
 	if (*cmd == '+' || *cmd == '-') {
 		d = 1;

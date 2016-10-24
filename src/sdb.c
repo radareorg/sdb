@@ -559,9 +559,9 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		SdbKv *kv = ht_find_kvp (s->ht, k, &found);
 		// TODO avoid using the heap for k/v allocations
-		free (k);
-		free (v);
 		if (found) {
+			free (k);
+			free (v);
 			if (*kv->key && *kv->value) {
 				if (!cb (user, kv->key, kv->value)) {
 					return sdb_foreach_end (s, false);
@@ -569,8 +569,12 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 			}
 		} else {
 			if (!cb (user, k, v)) {
+				free (k);
+				free (v);
 				return sdb_foreach_end (s, false);
 			}
+			free (k);
+			free (v);
 		}
 	}
 	for (i = 0; i < s->ht->size; ++i) {
@@ -959,7 +963,9 @@ typedef struct {
 
 static int like_cb(void *user, const char *k, const char *v) {
 	LikeCallbackData *lcd = user;
-	if (!user) return 0;
+	if (!user) {
+		return 0;
+	}
 	if (k && lcd->key && !sdb_match (k, lcd->key)) {
 		return 1;
 	}
