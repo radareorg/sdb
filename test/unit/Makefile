@@ -1,6 +1,8 @@
 OBJECTS = $(patsubst %.c,%,$(wildcard *.c))
-LDFLAGS += $(shell pkg-config --libs sdb)
-CFLAGS += $(shell pkg-config --cflags sdb) -g -O0
+LDFLAGS += ../../src/libsdb.a
+#$(shell pkg-config --libs sdb)
+CFLAGS += -I../../src
+#$(shell pkg-config --cflags sdb) -g -O0
 
 all: $(OBJECTS)
 
