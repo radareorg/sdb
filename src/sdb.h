@@ -188,13 +188,13 @@ ut32 sdb_hash (const char *key);
 ut32 sdb_hash_len (const char *key, ut32 *len);
 
 /* json api */
-bool sdb_isjson (const char *k);
-char *sdb_json_get (Sdb* s, const char *key, const char *p, ut32 *cas);
-int sdb_json_set (Sdb* s, const char *k, const char *p, const char *v, ut32 cas);
-int sdb_json_num_get (Sdb* s, const char *k, const char *p, ut32 *cas);
-int sdb_json_num_set (Sdb* s, const char *k, const char *p, int v, ut32 cas);
-int sdb_json_num_dec(Sdb* s, const char *k, const char *p, int n, ut32 cas);
-int sdb_json_num_inc(Sdb* s, const char *k, const char *p, int n, ut32 cas);
+SDB_API bool sdb_isjson (const char *k);
+SDB_API char *sdb_json_get (Sdb* s, const char *key, const char *p, ut32 *cas);
+SDB_API bool sdb_json_set (Sdb* s, const char *k, const char *p, const char *v, ut32 cas);
+SDB_API int sdb_json_num_get (Sdb* s, const char *k, const char *p, ut32 *cas);
+SDB_API int sdb_json_num_set (Sdb* s, const char *k, const char *p, int v, ut32 cas);
+SDB_API int sdb_json_num_dec(Sdb* s, const char *k, const char *p, int n, ut32 cas);
+SDB_API int sdb_json_num_inc(Sdb* s, const char *k, const char *p, int n, ut32 cas);
 
 char *sdb_json_indent(const char *s);
 char *sdb_json_unindent(const char *s);
