@@ -45,20 +45,25 @@ static inline int r_sys_mkdirp(char *dir) {
         return ret;
 }
 
-SDB_API int sdb_disk_create (Sdb* s) {
+SDB_API bool sdb_disk_create (Sdb* s) {
 	int nlen;
 	char *str;
-	if (!s || !s->dir || s->fdump >= 0) {
-		return 0; // cannot re-create
+	const char *dir;
+	if (!s || s->fdump >= 0) {
+		return false; // cannot re-create
 	}
+	if (!s->dir && s->name) {
+		s->dir = strdup (s->name);
+	}
+	dir = s->dir ? s->dir : "./";
 	free (s->ndump);
 	s->ndump = NULL;
-	nlen = strlen (s->dir);
+	nlen = strlen (dir);
 	str = malloc (nlen + 5);
 	if (!str) {
-		return 0;
+		return false;
 	}
-	memcpy (str, s->dir, nlen + 1);
+	memcpy (str, dir, nlen + 1);
 	r_sys_mkdirp (str);
 	memcpy (str + nlen, ".tmp", 5);
 	if (s->fdump != -1) {
@@ -68,11 +73,11 @@ SDB_API int sdb_disk_create (Sdb* s) {
 	if (s->fdump == -1) {
 		eprintf ("sdb: Cannot open '%s' for writing.\n", str);
 		free (str);
-		return 0;
+		return false;
 	}
 	cdb_make_start (&s->m, s->fdump);
 	s->ndump = str;
-	return 1;
+	return true;
 }
 
 SDB_API int sdb_disk_insert(Sdb* s, const char *key, const char *val) {
@@ -81,7 +86,7 @@ SDB_API int sdb_disk_insert(Sdb* s, const char *key, const char *val) {
 		return 0;
 	}
 	//if (!*val) return 0; //undefine variable if no value
-	return cdb_make_add (c, key, strlen (key)+1, val, strlen (val)+1);
+	return cdb_make_add (c, key, strlen (key) + 1, val, strlen (val) + 1);
 }
 
 #define IFRET(x) if (x) ret = 0

@@ -41,6 +41,9 @@ static void ns_free(Sdb *s, SdbList *list) {
 	ls_foreach (s->ns, it, ns) {
 		deleted = 0;
 		next.n = it->n;
+		if (!ns) {
+			continue;
+		}
 		if (!in_list (list, ns)) {
 			ls_delete (s->ns, it); // free (it)
 			free (ns->name);
@@ -225,8 +228,9 @@ static void ns_sync (Sdb *s, SdbList *list) {
 	SdbNs *ns;
 	SdbListIter *it;
 	ls_foreach (s->ns, it, ns) {
-		if (in_list (list, ns))
+		if (in_list (list, ns)) {
 			continue;
+		}
 		ls_append (list, ns);
 		ns_sync (ns->sdb, list);
 		sdb_sync (ns->sdb);
@@ -237,5 +241,6 @@ static void ns_sync (Sdb *s, SdbList *list) {
 SDB_API void sdb_ns_sync (Sdb *s) {
 	SdbList *list = ls_new ();
 	ns_sync (s, list);
+	list->free = NULL;
 	ls_free (list);
 }

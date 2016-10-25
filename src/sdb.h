@@ -150,7 +150,7 @@ int sdb_ptr_set(Sdb *db, const char *key, void *p, ut32 cas);
 void* sdb_ptr_get(Sdb *db, const char *key, ut32 *cas);
 
 /* create db */
-int sdb_disk_create (Sdb* s);
+SDB_API bool sdb_disk_create (Sdb* s);
 int sdb_disk_insert (Sdb* s, const char *key, const char *val);
 bool sdb_disk_finish (Sdb* s);
 bool sdb_disk_unlink (Sdb* s);

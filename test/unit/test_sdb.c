@@ -1,5 +1,6 @@
 #include "minunit.h"
 #include <sdb.h>
+#include <fcntl.h>
 
 static int foreach_delete_cb(void *user, const char *key, const char *val) {
 	if (strcmp (key, "bar")) {
@@ -56,10 +57,11 @@ bool test_sdb_delete_none(void) {
 }
 
 bool test_sdb_delete_alot(void) {
-	char key[128];
 	Sdb *db = sdb_new (NULL, NULL, false);
 	const int count = 2048;
+	char key[128];
 	int i;
+
 	for (i = 0; i < count; i++) {
 		sdb_set (db, sdb_fmt (0, "key.%d", i), "bar", 0);
 	}
@@ -69,6 +71,7 @@ bool test_sdb_delete_alot(void) {
 	SdbList *list = sdb_foreach_list (db);
 	mu_assert_eq ((int)ls_length (sdb_foreach_list (db)), 0, "Unmatched rows");
 	sdb_free (db);
+
 	mu_end;
 }
 
@@ -90,20 +93,53 @@ bool test_sdb_milset(void) {
 bool test_sdb_milset_random(void) {
 	int i = 0;
 	const int MAX = 19999999;
+	bool solved = true;
 	Sdb *s = sdb_new0 ();
 	sdb_set (s, "foo", "bar", 0);
 	for (i = 0; i < MAX ; i++) {
 		char *v = sdb_fmt (0, "bar%d", i);
 		if (!sdb_set (s, "foo", v, 0)) {
-			mu_assert ("milset: sdb_set failed", 0);
+			solved = false;
 			break;
 		}
 	}
+	mu_assert ("milset: sdb_set", solved);
 	sdb_free (s);
 	mu_end;
 }
 
+bool test_sdb_namespace(void) {
+	bool solved = false;
+	const char *dbname = ".bar";
+	Sdb *s = sdb_new0 ();
+	if (!s) {
+		return false;
+	}
+	unlink (dbname);
+	Sdb *n = sdb_ns (s, dbname, 1);
+	if (n) {
+		sdb_set (n, "user.pancake", "pancake foo", 0);
+		sdb_set (n, "user.password", "jklsdf8r3o", 0);
+		/* FIXED BUG1 ns_sync doesnt creates the database file */
+		sdb_ns_sync (s);
+		// sdb_sync (n);
+		/* FIXED BUG2 crash in free */
+	 	sdb_free (s);
+
+		int fd = open (dbname, O_RDONLY);
+		if (fd != -1) {
+			close (fd);
+			solved = true;
+		}
+		unlink (dbname);
+	}
+	mu_assert ("namespace sync", solved);
+	return solved;
+}
+
 int all_tests() {
+	// XXX two bugs found with crash
+	mu_run_test (test_sdb_namespace);
 	mu_run_test (test_sdb_foreach_delete);
 	mu_run_test (test_sdb_list_delete);
 	mu_run_test (test_sdb_delete_none);
