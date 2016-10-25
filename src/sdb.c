@@ -986,9 +986,9 @@ static int like_cb(void *user, const char *k, const char *v) {
 		lcd->array_size = newsize;
 		// concatenate in array
 		lcd->array[idx] = k;
-		lcd->array[idx+1] = v;
-		lcd->array[idx+2] = NULL;
-		lcd->array[idx+3] = NULL;
+		lcd->array[idx + 1] = v;
+		lcd->array[idx + 2] = NULL;
+		lcd->array[idx + 3] = NULL;
 		lcd->array_index = idx+2;
 	} else {
 		if (lcd->cb) {
