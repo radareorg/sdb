@@ -1,8 +1,7 @@
 .PHONY: all reset
 
-BINS=siolpain fmt stack cas hook hook2 verypush stress1 fmtarr
+BINS=siolpain fmt stack cas hook hook2 stress1 fmtarr
 BINS+=bench-expire expire dumptwice syncget ns nsabuse drain merge
-BINS+=milset milsetv
 BINS+=chkkey
 
 CFLAGS+=-I../../src -I ../src ${USER_CFLAGS}

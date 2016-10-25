@@ -72,11 +72,44 @@ bool test_sdb_delete_alot(void) {
 	mu_end;
 }
 
+bool test_sdb_milset(void) {
+	int i = 0;
+	const int MAX = 19999999;
+	Sdb *s = sdb_new0 ();
+	sdb_set (s, "foo", "bar", 0);
+	for (i = 0; i < MAX ; i++) {
+		if (!sdb_set (s, "foo", "bar", 0)) {
+			mu_assert ("milset: sdb_set failed", 0);
+			break;
+		}
+	}
+	sdb_free (s);
+	mu_end;
+}
+
+bool test_sdb_milset_random(void) {
+	int i = 0;
+	const int MAX = 19999999;
+	Sdb *s = sdb_new0 ();
+	sdb_set (s, "foo", "bar", 0);
+	for (i = 0; i < MAX ; i++) {
+		char *v = sdb_fmt (0, "bar%d", i);
+		if (!sdb_set (s, "foo", v, 0)) {
+			mu_assert ("milset: sdb_set failed", 0);
+			break;
+		}
+	}
+	sdb_free (s);
+	mu_end;
+}
+
 int all_tests() {
 	mu_run_test (test_sdb_foreach_delete);
 	mu_run_test (test_sdb_list_delete);
 	mu_run_test (test_sdb_delete_none);
 	mu_run_test (test_sdb_delete_alot);
+	mu_run_test (test_sdb_milset);
+	mu_run_test (test_sdb_milset_random);
 	return tests_passed != tests_run;
 }
 
