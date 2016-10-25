@@ -25,7 +25,9 @@ static inline int r_sys_mkdirp(char *dir) {
         const char slash = DIRSEP;
         char *path = dir;
 	char *ptr = path;
-        if (*ptr==slash) ptr++;
+        if (*ptr == slash) {
+		ptr++;
+	}
 #if __WINDOWS__
         char *p = strstr (ptr, ":\\");
         if (p) ptr = p + 2;
@@ -52,7 +54,7 @@ SDB_API int sdb_disk_create (Sdb* s) {
 	free (s->ndump);
 	s->ndump = NULL;
 	nlen = strlen (s->dir);
-	str = malloc (nlen+5);
+	str = malloc (nlen + 5);
 	if (!str) {
 		return 0;
 	}
@@ -62,7 +64,7 @@ SDB_API int sdb_disk_create (Sdb* s) {
 	if (s->fdump != -1) {
 		close (s->fdump);
 	}
-	s->fdump = open (str, O_BINARY|O_RDWR|O_CREAT|O_TRUNC, SDB_MODE);
+	s->fdump = open (str, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
 	if (s->fdump == -1) {
 		eprintf ("sdb: Cannot open '%s' for writing.\n", str);
 		free (str);
@@ -82,7 +84,7 @@ SDB_API int sdb_disk_insert(Sdb* s, const char *key, const char *val) {
 	return cdb_make_add (c, key, strlen (key)+1, val, strlen (val)+1);
 }
 
-#define IFRET(x) if(x)ret=0
+#define IFRET(x) if (x) ret = 0
 SDB_API bool sdb_disk_finish (Sdb* s) {
 	int reopen = 0, ret = true;
 	IFRET (!cdb_make_finish (&s->m));

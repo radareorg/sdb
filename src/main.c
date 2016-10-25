@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2011-2015 - pancake */
+/* sdb - MIT - Copyright 2011-2016 - pancake */
 
 #include <signal.h>
 #include <stdio.h>
@@ -16,7 +16,9 @@ static Sdb *s = NULL;
 static ut32 options = SDB_OPTION_FS | SDB_OPTION_NOSTAMP;
 
 static void terminate(int sig UNUSED) {
-	if (!s) return;
+	if (!s) {
+		return;
+	}
 	if (save && !sdb_sync (s)) {
 		sdb_free (s);
 		s = NULL;
@@ -79,7 +81,7 @@ static char *stdin_slurp(int *sz) {
 		} else {
 			rr = read (0, buf+len, blocksize);
 		}
-		if (rr <1) { // EOF
+		if (rr < 1) { // EOF
 			buf[len] = 0;
 			next = NULL;
 			break;
@@ -155,8 +157,9 @@ static int sdb_grep (const char *db, int fmt, const char *grep) {
 	if (!s) return 1;
 	sdb_config (s, options);
 	sdb_dump_begin (s);
-	if (fmt==MODE_JSON)
+	if (fmt == MODE_JSON) {
 		printf ("{");
+	}
 	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		if (!strstr (k, grep) && !strstr (v, grep)) {
 			continue;
@@ -169,7 +172,9 @@ static int sdb_grep (const char *db, int fmt, const char *grep) {
 				printf ("%s\"%s\":%llu", comma, k, sdb_atoi (v));
 			} else if (*v=='{' || *v=='[') {
 				printf ("%s\"%s\":%s", comma, k, v);
-			} else printf ("%s\"%s\":\"%s\"", comma, k, v);
+			} else {
+				printf ("%s\"%s\":\"%s\"", comma, k, v);
+			}
 			comma = ",";
 			break;
 		case MODE_ZERO:
@@ -213,8 +218,9 @@ static int sdb_dump (const char *db, int fmt) {
 	if (!s) return 1;
 	sdb_config (s, options);
 	sdb_dump_begin (s);
-	if (fmt==MODE_JSON)
+	if (fmt == MODE_JSON) {
 		printf ("{");
+	}
 	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
 		switch (fmt) {
 		case MODE_JSON:
@@ -263,9 +269,9 @@ static int sdb_dump (const char *db, int fmt) {
 
 static int insertkeys(Sdb *s, const char **args, int nargs, int mode) {
 	int must_save = 0;
-	if (args && nargs>0) {
+	if (args && nargs > 0) {
 		int i;
-		for (i=0; i<nargs; i++) {
+		for (i = 0; i < nargs; i++) {
 			switch (mode) {
 			case '-':
 				must_save |= sdb_query (s, args[i]);
@@ -336,7 +342,9 @@ static int jsonIndent() {
 	char *in;
 	char *out;
 	in = stdin_slurp (&len);
-	if (!in) return 0;
+	if (!in) {
+		return 0;
+	}
 	out = sdb_json_indent (in);
 	if (!out) {
 		free (in);
@@ -349,10 +357,9 @@ static int jsonIndent() {
 }
 
 static int base64encode() {
-	int len = 0;
-	ut8* in;
 	char *out;
-	in = (ut8*)stdin_slurp (&len);
+	int len = 0;
+	ut8 *in = (ut8*)stdin_slurp (&len);
 	if (!in) {
 		return 0;
 	}
@@ -368,14 +375,13 @@ static int base64encode() {
 }
 
 static int base64decode() {
-	int len, ret = 1;
-	char *in;
 	ut8 *out;
-	in = (char*)stdin_slurp (&len);
+	int len, ret = 1;
+	char *in = (char*)stdin_slurp (&len);
 	if (in) {
 		out = sdb_decode (in, &len);
 		if (out) {
-			if (len>=0) {
+			if (len >= 0) {
 				write (1, out, len);
 				ret = 0;
 			}
@@ -402,7 +408,9 @@ static int dbdiff (const char *a, const char *b) {
 	}
 	sdb_dump_begin (B);
 	while (sdb_dump_dupnext (B, &k, &v, NULL)) {
-		if (!v || !*v) continue;
+		if (!v || !*v) {
+			continue;
+		}
 		v2 = sdb_const_get (A, k, 0);
 		if (!v2 || strcmp (v, v2)) {
 			printf ("%s=%s\n", k, v2);
@@ -435,7 +443,7 @@ int main(int argc, const char **argv) {
 	int interactive = 0;
 
 	/* terminate flags */
-	if (argc<2) {
+	if (argc < 2) {
 		return showusage (1);
 	}
 	arg = argv[1];
@@ -449,24 +457,24 @@ int main(int argc, const char **argv) {
 			fmt = MODE_ZERO;
 			db0++;
 			argi++;
-			if (db0>=argc) {
-				return showusage(1);
+			if (db0 >= argc) {
+				return showusage (1);
 			}
 			break;
 		case 'g':
-			db0+=2;
-			if (db0>=argc) {
-				return showusage(1);
+			db0 += 2;
+			if (db0 >= argc) {
+				return showusage (1);
 			}
 			grep = argv[2];
-			argi+=2;
+			argi += 2;
 			break;
 		case 'J':
 			options |= SDB_OPTION_JOURNAL;
 			db0++;
 			argi++;
-			if (db0>=argc) {
-				return showusage(1);
+			if (db0 >= argc) {
+				return showusage (1);
 			}
 			break;
 		case 'c': return (argc<3)? showusage (1) : showcount (argv[2]);
@@ -475,12 +483,14 @@ int main(int argc, const char **argv) {
 		case 'e': return base64encode ();
 		case 'd': return base64decode ();
 		case 'D':
-			if (argc == 4)
+			if (argc == 4) {
 				return dbdiff (argv[2], argv[3]);
+			}
 			return showusage (0);
 		case 'j':
-			if (argc>2)
+			if (argc > 2) {
 				return sdb_dump (argv[db0+1], MODE_JSON);
+			}
 			return jsonIndent();
 		default:
 			eprintf ("Invalid flag %s\n", arg);
@@ -504,21 +514,20 @@ int main(int argc, const char **argv) {
 	if (argc-1 == db0) {
 		if (grep) {
 			return sdb_grep (argv[db0], fmt, grep);
-		} else {
-			return sdb_dump (argv[db0], fmt);
 		}
+		return sdb_dump (argv[db0], fmt);
 	}
 #if USE_MMAN
 	signal (SIGINT, terminate);
 	signal (SIGHUP, synchronize);
 #endif
 	ret = 0;
-	if (interactive || !strcmp (argv[db0+1], "-")) {
+	if (interactive || !strcmp (argv[db0 + 1], "-")) {
 		if ((s = sdb_new (NULL, argv[db0], 0))) {
 			sdb_config (s, options);
-			int kvs = db0+2;
+			int kvs = db0 + 2;
 			if (kvs < argc) {
-				save |= insertkeys (s, argv+argi+2, argc-kvs, '-');
+				save |= insertkeys (s, argv + argi + 2, argc - kvs, '-');
 			}
 			for (;(line = stdin_slurp (NULL));) {
 				save |= sdb_query (s, line);
@@ -529,13 +538,15 @@ int main(int argc, const char **argv) {
 				free (line);
 			}
 		}
-	} else if (!strcmp (argv[db0+1], "=")) {
-		ret = createdb (argv[db0], argv+db0+2, argc-(db0+2));
+	} else if (!strcmp (argv[db0 + 1], "=")) {
+		ret = createdb (argv[db0], argv + db0 + 2, argc - db0 + 2);
 	} else {
 		s = sdb_new (NULL, argv[db0], 0);
-		if (!s) return 1;
+		if (!s) {
+			return 1;
+		}
 		sdb_config (s, options);
-		for (i=db0+1; i<argc; i++) {
+		for (i = db0 + 1; i < argc; i++) {
 			save |= sdb_query (s, argv[i]);
 			if (fmt) {
 				fflush (stdout);
