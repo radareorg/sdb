@@ -277,7 +277,7 @@ static int insertkeys(Sdb *s, const char **args, int nargs, int mode) {
 				must_save |= sdb_query (s, args[i]);
 				break;
 			case '=':
-				if (args && args[i] && strchr (args[i], '=')) {
+				if (strchr (args[i], '=')) {
 					char *v, *kv = (char *)strdup (args[i]);
 					v = strchr (kv, '=');
 					if (v) {
@@ -539,7 +539,11 @@ int main(int argc, const char **argv) {
 			}
 		}
 	} else if (!strcmp (argv[db0 + 1], "=")) {
-		ret = createdb (argv[db0], argv + db0 + 2, argc - db0 + 2);
+		if (argc < db0 + 2) {
+			ret = createdb (argv[db0], argv + db0 + 2, argc - db0 + 2);
+		} else {
+			ret = createdb (argv[db0], NULL, 0);
+		}
 	} else {
 		s = sdb_new (NULL, argv[db0], 0);
 		if (!s) {
