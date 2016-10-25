@@ -277,7 +277,7 @@ static int insertkeys(Sdb *s, const char **args, int nargs, int mode) {
 				must_save |= sdb_query (s, args[i]);
 				break;
 			case '=':
-				if (strchr (args[i], '=')) {
+				if (args && args[i] && strchr (args[i], '=')) {
 					char *v, *kv = (char *)strdup (args[i]);
 					v = strchr (kv, '=');
 					if (v) {
