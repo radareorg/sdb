@@ -56,9 +56,13 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	SdbKv* kvp;
 	SdbListIter* iter;
 	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
+	ut32 key_len = strlen (key) + 1;
 	ut32 bucket = computed_hash % ht->size;
 	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kvp) {
+		if (key_len != kvp->key_len) {
+			continue;
+		}
 		if (key == kvp->key || (ht->cmp && !ht->cmp (key, kvp->key))) {
 #define EXCHANGE 1
 #if EXCHANGE
@@ -149,10 +153,12 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 				? ht->dupkey (key) : (char *)key;
 			kvp->value = ht->dupvalue
 				? ht->dupvalue (value) : (char *)value;
+			kvp->key_len = ht->calcsize
+				? (ut32)ht->calcsize (kvp->key) : strlen (kvp->key);
 			bucket = hash % ht->size;
 			kvp->expire = 0;
 			kvp->value_len = ht->calcsize
-				? (ut32)ht->calcsize (kvp->value) : 0;
+				? (ut32)ht->calcsize (kvp->value) : strlen (kvp->value);
 			if (!ht->table[bucket]) {
 				ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 			}

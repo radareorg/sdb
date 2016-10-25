@@ -29,7 +29,9 @@ SDB_API Sdb* sdb_new0 () {
 
 SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 	Sdb* s = R_NEW0 (Sdb);
-	if (!s) return NULL;
+	if (!s) {
+		return NULL;
+	}
 	s->fd = -1;
 	s->refs = 1;
 	if (path && !*path) {
@@ -81,7 +83,9 @@ SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
 		goto fail;
 	}
 	s->ns->free = NULL;
-	if (!s->ns) goto fail;
+	if (!s->ns) {
+		goto fail;
+	}
 	s->ht = ht_new ();
 	s->lock = lock;
 	// s->ht->list->free = (SdbListFree)sdb_kv_free;
@@ -580,7 +584,7 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 			free (v);
 		}
 	}
-	for (i = 0; i < s->ht->size; ++i) {
+	for (i = 0; i < s->ht->size; i++) {
 		ls_foreach (s->ht->table[i], iter, kv) {
 			if (!kv || !kv->value || !*kv->value) {
 				continue;

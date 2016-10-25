@@ -10,6 +10,7 @@
 typedef struct sdb_kv {
 	char *key;
 	char *value;
+	ut32 key_len;
 	ut32 value_len;
 	ut32 cas;
 	ut64 expire;
