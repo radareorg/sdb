@@ -161,7 +161,7 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 	// TODO: accelerate with small buffer in stack for small jsons
 	if (*v) {
 		int is_str = isstring (v);
-		int msz = len[0]+len[1]+len[2]+strlen (v);
+		int msz = len[0] + len[1] + len[2] + strlen (v);
 		if (msz < 1) {
 			return false;
 		}
@@ -172,12 +172,12 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		idx = len[0];
 		memcpy (str, beg[0], idx);
 		if (is_str) {
-			if (beg[2][0]!='"') {
-				str[idx]='"';
+			if (beg[2][0] != '"') {
+				str[idx] = '"';
 				idx++;
 			}
 		} else {
-			if (beg[2][0]=='"') {
+			if (beg[2][0] == '"') {
 				idx--;
 			}
 		}
@@ -187,23 +187,23 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		if (is_str) {
 			// TODO: add quotes
 			if (beg[2][0]!='"') {
-				str[idx]='"';
+				str[idx] = '"';
 				idx++;
 			}
 		} else {
-			if (beg[2][0]=='"') {
+			if (beg[2][0] == '"') {
 				beg[2]++;
 			}
 		}
 		l = len[2];
-		memcpy (str+idx, beg[2], l);
+		memcpy (str + idx, beg[2], l);
 		str[idx+l] = 0;
 	} else {
 		int kidx;
 		// DELETE KEY
 		rs.f -= 2;
 		kidx = findkey (&rs);
-		len[0] = R_MAX (1, kidx-1);
+		len[0] = R_MAX (1, kidx - 1);
 		if (kidx == 1){
 			if (beg[2][0] == '"') {
 				beg[2]++;
@@ -242,15 +242,20 @@ SDB_API const char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
 		}\
 		s->buf = x;\
 	}
-	if (!s) return NULL;
+	if (!s) {
+		return NULL;
+	}
 	if (!s->buf) {
 		s->blen = 1024;
 		s->buf = malloc (s->blen);
-		if (!s->buf)
+		if (!s->buf) {
 			return NULL;
+		}
 		*s->buf = 0;
 	}
-	if (!fmt || !*fmt) return s->buf;
+	if (!fmt || !*fmt) {
+		return s->buf;
+	}
 	va_start (ap, fmt);
 	for (; *fmt; fmt++) {
 		if (*fmt == '%') {
