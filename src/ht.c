@@ -56,13 +56,18 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	SdbKv* kvp;
 	SdbListIter* iter;
 	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
+#define EXCHANGE 0
+#if USE_KEYLEN
 	ut32 key_len = strlen (key);
+#endif
 	ut32 bucket = computed_hash % ht->size;
 	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kvp) {
+#if USE_KEYLEN
 		if (key_len != kvp->key_len) {
 			continue;
 		}
+#endif
 		if (key == kvp->key || (ht->cmp && !ht->cmp (key, kvp->key))) {
 #define EXCHANGE 1
 #if EXCHANGE
