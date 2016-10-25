@@ -67,6 +67,7 @@ SDB_API char *sdb_encode(const ut8 *bin, int len) {
 	}
 	if (len < 0) {
 		len = strlen ((const char *)bin);
+	}
 	if (!len) {
 		return strdup ("");
 	}
