@@ -5,5 +5,4 @@ pancake <pancake@nopcode.org>
 Software from others
 --------------------
 cdb: D. J. Bernstein <djb@cr.yp.to>
-src/ht.c: Eric Anholt <eric@anholt.net>
-src/ht.c: Keith Packard <keithp@keithp.com>
+src/ht.c: Jeffrey Crowell <crowell@bu.edu>
