@@ -51,6 +51,7 @@ static char *stdin_slurp(int *sz) {
 			return NULL;
 		}
 		if (feof (stdin)) {
+			free (buf);
 			return NULL;
 		}
 		int buf_len = strlen (buf) - 1;
@@ -539,11 +540,7 @@ int main(int argc, const char **argv) {
 			}
 		}
 	} else if (!strcmp (argv[db0 + 1], "=")) {
-		if (argc < db0 + 2) {
-			ret = createdb (argv[db0], argv + db0 + 2, argc - db0 + 2);
-		} else {
-			ret = createdb (argv[db0], NULL, 0);
-		}
+		ret = createdb (argv[db0], NULL, 0);
 	} else {
 		s = sdb_new (NULL, argv[db0], 0);
 		if (!s) {

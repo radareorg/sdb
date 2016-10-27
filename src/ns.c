@@ -41,9 +41,6 @@ static void ns_free(Sdb *s, SdbList *list) {
 	ls_foreach (s->ns, it, ns) {
 		deleted = 0;
 		next.n = it->n;
-		if (!ns) {
-			continue;
-		}
 		if (!in_list (list, ns)) {
 			ls_delete (s->ns, it); // free (it)
 			free (ns->name);
