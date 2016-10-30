@@ -86,9 +86,12 @@ SDB_API bool sdb_journal_log(Sdb *s, const char *key, const char *val) {
 		return false;
 	}
 	str = sdb_fmt (0, "%s=%s\n", key, val);
-	write (s->journal, str, strlen (str));
+	int len = strlen (str);
+	if (write (s->journal, str, len) != len) {
+		return false;
+	}
 #if USE_MMAN
-	fsync (s->journal);
+	(void)fsync (s->journal);
 #endif
 	return true;
 }
