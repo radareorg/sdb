@@ -104,6 +104,9 @@ int cdb_make_addbegin(struct cdb_make *c, ut32 keylen, ut32 datalen) {
 }
 
 int cdb_make_add(struct cdb_make *c, const char *key, ut32 keylen, const char *data, ut32 datalen) {
+	/* add tailing \0 to allow mmap to work later */
+	keylen++;
+	datalen++;
 	if (!cdb_make_addbegin (c, keylen, datalen)) {
 		return 0;
 	}
