@@ -215,8 +215,6 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 	if (!str || !*str) {
 		str = &null;
 		lstr = 0;
-	} else {
-		lstr--;
 	}
 	str_e = str + lstr;
 	str_lp = str_p = str;
@@ -225,8 +223,10 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 	}
 	lval = strlen (val);
 	vals = sdb_fmt_array (val);
-	for (i=0; vals[i]; i++);
-	if (i>1) {
+	for (i = 0; vals[i]; i++) {
+		/* empty */
+	}
+	if (i > 1) {
 		qsort (vals, i, sizeof (ut64*), cstring_cmp);
 	}
 	nstr_p = nstr = malloc (lstr + lval + 3);
@@ -243,10 +243,11 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 				str_p = str_e;
 			}
 		}
-		memcpy (nstr_p, str_lp, str_p-str_lp);
-		nstr_p += str_p-str_lp;
-		if (str_p == str_e && str_lp != str_e)
+		memcpy (nstr_p, str_lp, str_p - str_lp);
+		nstr_p += str_p - str_lp;
+		if (str_p == str_e && str_lp != str_e) {
 			*(nstr_p++) = SDB_RS;
+		}
 		str_lp = str_p;
 		j = strlen (vals[i]);
 		memcpy (nstr_p, vals[i], j);

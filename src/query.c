@@ -369,7 +369,7 @@ next_quote:
 		*buf = 0;
 		if (cmd[1]=='[') {
 			const char *eb = strchr (cmd, ']');
-			int idx = sdb_atoi (cmd+2);
+			int idx = sdb_atoi (cmd + 2);
 			/* +[idx]key=n */
 			/* -[idx]key=n */
 			ut64 curnum = sdb_array_get_num (s,

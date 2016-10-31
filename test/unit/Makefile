@@ -8,7 +8,7 @@ CFLAGS += -g -O0
 
 all: $(OBJECTS)
 
-run: all
+r run: all
 	./run.sh
 
 $(OBJECTS):%:%.c
