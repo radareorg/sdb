@@ -171,7 +171,7 @@ static void sdb_fini(Sdb* s, int donull) {
 	}
 }
 
-SDB_API int sdb_free (Sdb* s) {
+SDB_API bool sdb_free (Sdb* s) {
 	if (s && s->ht && s->refs) {
 		s->refs--;
 		if (s->refs < 1) {
@@ -179,10 +179,10 @@ SDB_API int sdb_free (Sdb* s) {
 			sdb_fini (s, 0);
 			s->ht = NULL;
 			free (s);
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas) {
@@ -419,12 +419,14 @@ SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 		if (!sdb_check_value (v)) {
 			return NULL;
 		}
-		vl = strlen (v) + 1;
+		vl = strlen (v);
 	} else {
 		vl = 0;
 	}
-	kv = R_NEW (SdbKv);
-	kv->key = strdup (k);
+	kv = R_NEW0 (SdbKv);
+	kv->key_len = strlen (k);
+	kv->key = malloc (kv->key_len + 1);
+	memcpy (kv->key, k, kv->key_len + 1);
 	kv->value_len = vl;
 	if (vl) {
 		kv->value = malloc (vl);
@@ -680,8 +682,8 @@ SDB_API SdbKv *sdb_dump_next (Sdb* s) {
 		return NULL;
 	}
 	vl--;
-	strncpy (s->tmpkv.key, k, SDB_KSZ-1);
-	s->tmpkv.key[SDB_KSZ-1] = '\0';
+	strncpy (s->tmpkv.key, k, SDB_KSZ - 1);
+	s->tmpkv.key[SDB_KSZ - 1] = '\0';
 	free (k);
 	free (s->tmpkv.value);
 	s->tmpkv.value = v;

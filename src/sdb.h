@@ -93,18 +93,18 @@ typedef struct sdb_ns_t {
 	Sdb *sdb;
 } SdbNs;
 
-SDB_API Sdb* sdb_new0 ();
-Sdb* sdb_new (const char *path, const char *file, int lock);
+SDB_API SDB_API Sdb* sdb_new0 ();
+SDB_API Sdb* sdb_new (const char *path, const char *file, int lock);
 
-int sdb_open (Sdb *s, const char *file);
-void sdb_close (Sdb *s);
+SDB_API int sdb_open (Sdb *s, const char *file);
+SDB_API void sdb_close (Sdb *s);
 
-void sdb_config (Sdb *s, int options);
-int  sdb_free (Sdb* s);
-void sdb_file (Sdb* s, const char *dir);
-bool sdb_merge (Sdb* d, Sdb *s);
-int sdb_count (Sdb* s);
-void sdb_reset (Sdb* s);
+SDB_API void sdb_config (Sdb *s, int options);
+SDB_API bool sdb_free (Sdb* s);
+SDB_API void sdb_file (Sdb* s, const char *dir);
+SDB_API bool sdb_merge (Sdb* d, Sdb *s);
+SDB_API int sdb_count (Sdb* s);
+SDB_API void sdb_reset (Sdb* s);
 SDB_API void sdb_setup (Sdb* s, int options);
 SDB_API void sdb_drain (Sdb*, Sdb*);
 SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem);
