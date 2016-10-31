@@ -129,6 +129,24 @@ EOF
 	fi
 }
 
+test_create3() {
+	NAME="create3"
+	rm -f .a
+	$SDB .a = <<EOF
+another=world
+this=isakey
+EOF
+	A="`$SDB .a`"
+	if [ "${WINEMODE}" = 1 ]; then
+		A="`echo "$A" | perl -0 -pe 's/\r//g;s/\n\Z//'`"
+	fi
+	if [ "$A" = "`printf 'another=world\nthis=isakey'`" ]; then
+		success .a $NAME
+	else
+		fail .a $NAME
+	fi
+}
+
 test_store() {
 	NAME="store"
 	rm -f .a
@@ -404,6 +422,7 @@ run "foo/bar/cow=3;foo/plop=2;foo/ra/re=4;foo/bar/meuh=1;***" "foo/plop=2\nfoo/b
 title "Shell"
 test_create
 test_create2
+test_create3
 test_store
 test_store2
 test_restore
