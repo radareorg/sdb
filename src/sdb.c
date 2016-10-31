@@ -208,7 +208,7 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 	/* search in memory */
 	kv = (SdbKv*) ht_find_kvp (s->ht, key, &found);
 	if (found) {
-		if (!*kv->value) {
+		if (!kv->value || !*kv->value) {
 			return NULL;
 		}
 		if (kv->expire) {
