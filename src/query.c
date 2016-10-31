@@ -88,7 +88,9 @@ static int foreach_list_cb(void *user, const char *k, const char *v) {
 	char *line, *root;
 	int rlen, klen, vlen;
 	ut8 *v2 = NULL;
-	if (!rlu) return 0;
+	if (!rlu) {
+		return 0;
+	}
 	root = rlu->root;
 	klen = strlen (k);
 	if (rlu->encode) {
@@ -309,7 +311,14 @@ next_quote:
 		} else
 		if (!strcmp (cmd, "*")) {
 			ForeachListUser user = { out, encode, NULL };
-			sdb_foreach (s, foreach_list_cb, &user);
+			SdbList *list = sdb_foreach_list (s, true);
+			SdbListIter *iter;
+			SdbKv *kv;
+			ls_foreach (list, iter, kv) {
+				//eprintf ("(%s)(%s)\n", kv->key, kv->value);
+				foreach_list_cb (&user, kv->key, kv->value);
+			}
+			ls_free (list);
 			goto fail;
 		}
 	}

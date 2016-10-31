@@ -18,7 +18,7 @@ typedef struct ls_t {
 	SdbListFree free;
 } SdbList;
 
-typedef int (*SdbListComparator)(void *a, void *b);
+typedef int (*SdbListComparator)(const void *a, const void *b);
 
 #define ls_foreach(list, it, pos) \
 	if((list)) for (it = (list)->head; it && (pos = it->data); it = it->n)

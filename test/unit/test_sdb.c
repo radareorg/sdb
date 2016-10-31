@@ -28,7 +28,7 @@ bool test_sdb_list_delete(void) {
 	sdb_set (db, "foo", "bar", 0);
 	sdb_set (db, "bar", "cow", 0);
 	sdb_set (db, "low", "bar", 0);
-	SdbList *list = sdb_foreach_list (db);
+	SdbList *list = sdb_foreach_list (db, true);
 	SdbListIter *iter;
 	SdbKv *kv;
 	ls_foreach (list, iter, kv) {
@@ -36,7 +36,7 @@ bool test_sdb_list_delete(void) {
 		sdb_unset (db, kv->key, 0);
 	}
 	ls_free (list);
-	mu_assert ("List is empty", !ls_length (sdb_foreach_list (db)));
+	mu_assert ("List is empty", !ls_length (sdb_foreach_list (db, false)));
 	sdb_free (db);
 	mu_end;
 }
@@ -50,8 +50,8 @@ bool test_sdb_delete_none(void) {
 	sdb_unset (db, "barnas", 0);
 	sdb_unset (db, "bar", 0);
 	sdb_unset (db, "pinuts", 0);
-	SdbList *list = sdb_foreach_list (db);
-	mu_assert_eq ((int)ls_length (sdb_foreach_list (db)), 2, "Unmatched rows");
+	SdbList *list = sdb_foreach_list (db, false);
+	mu_assert_eq ((int)ls_length (sdb_foreach_list (db, false)), 2, "Unmatched rows");
 	sdb_free (db);
 	mu_end;
 }
@@ -68,8 +68,8 @@ bool test_sdb_delete_alot(void) {
 	for (i = 0; i < count; i++) {
 		sdb_unset (db, sdb_fmt (0, "key.%d", i), 0);
 	}
-	SdbList *list = sdb_foreach_list (db);
-	mu_assert_eq ((int)ls_length (sdb_foreach_list (db)), 0, "Unmatched rows");
+	SdbList *list = sdb_foreach_list (db, false);
+	mu_assert_eq ((int)ls_length (sdb_foreach_list (db, false)), 0, "Unmatched rows");
 	sdb_free (db);
 
 	mu_end;

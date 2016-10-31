@@ -529,18 +529,26 @@ SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
 
 static int sdb_foreach_list_cb(void *user, const char *k, const char *v) {
 	SdbList *list = (SdbList *)user;
-	list->free = free;
 	SdbKv *kv = R_NEW0 (SdbKv);
-	/* fake read-only */
-	kv->key = (char *)k;
-	kv->value = (char*)v;
+	/* seems like some k/v are constructed in the stack and cant be used after returning */
+	kv->key = strdup (k);
+	kv->value = strdup (v);
 	ls_append (list, kv);
 	return 1;
 }
 
-SDB_API SdbList *sdb_foreach_list (Sdb* s) {
-	SdbList *list = ls_new();
+static int __cmp_asc(const void *a, const void *b) {
+	const SdbKv *ka = a;
+	const SdbKv *kb = b;
+	return strcmp (ka->key, kb->key);
+}
+
+SDB_API SdbList *sdb_foreach_list (Sdb* s, bool sorted) {
+	SdbList *list = ls_newf ((SdbListFree)sdb_kv_free);
 	sdb_foreach (s, sdb_foreach_list_cb, list);
+	if (sorted) {
+		ls_sort (list, __cmp_asc);
+	}
 	return list;
 }
 

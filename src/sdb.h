@@ -55,6 +55,9 @@ extern char *strdup (const char *);
 #define SDB_OPTION_FS      (1<<2)
 #define SDB_OPTION_JOURNAL (1<<3)
 
+#define SDB_LIST_UNSORTED 0
+#define SDB_LIST_SORTED 1
+
 // This size implies trailing zero terminator, this is 254 chars + 0
 #define SDB_KSZ 0xff
 
@@ -109,7 +112,7 @@ SDB_API bool sdb_dump_hasnext (Sdb* s);
 
 typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
 bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
-SdbList *sdb_foreach_list (Sdb* s);
+SdbList *sdb_foreach_list (Sdb* s, bool sorted);
 
 int sdb_query (Sdb* s, const char *cmd);
 int sdb_queryf (Sdb* s, const char *fmt, ...);
