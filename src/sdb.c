@@ -10,7 +10,9 @@
 
 static inline int nextcas() {
 	static ut32 cas = 1;
-	if (!cas) cas++;
+	if (!cas) {
+		cas++;
+	}
 	return cas++;
 }
 
@@ -201,7 +203,7 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 		return NULL;
 	}
 	// TODO: optimize, iterate once
-	keylen = strlen (key) + 1;
+	keylen = strlen (key);
 
 	/* search in memory */
 	kv = (SdbKv*) ht_find_kvp (s->ht, key, &found);
@@ -303,8 +305,6 @@ SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	if (!p) {
 		return sdb_set (s, key, value, cas);
 	}
-	kl--;
-	//kl = strlen (p);
 	vl = strlen (value);
 	o = malloc (kl + vl + 1);
 	if (o) {
@@ -469,8 +469,8 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	if (s->journal != -1) {
 		sdb_journal_log (s, key, val);
 	}
-	klen = strlen (key) + 1;
-	vlen = strlen (val) + 1;
+	klen = strlen (key);
+	vlen = strlen (val);
 	cdb_findstart (&s->db);
 	kv = ht_find_kvp (s->ht, key, &found);
 	if (found) {
@@ -490,7 +490,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 					free (kv->value);
 					kv->value = strdup (val);
 				} else {
-					memcpy (kv->value, val, vlen);
+					memcpy (kv->value, val, vlen + 1);
 				}
 				kv->value_len = vlen;
 			}
@@ -730,7 +730,7 @@ SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
 }
 
 // TODO: make it static? internal api?
-SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
+SDB_API bool sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 	ut32 vlen = 0, klen = 0;
 	if (key) {
 		*key = NULL;
@@ -742,25 +742,25 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 		*_vlen = 0;
 	}
 	if (s->fd == -1) {
-		return 0;
+		return false;
 	}
 	if (!cdb_getkvlen (s->fd, &klen, &vlen)) {
-		return 0;
+		return false;
 	}
 	if (klen < 1 || vlen < 1) {
-		return 0;
+		return false;
 	}
 	if (_vlen) {
 		*_vlen = vlen;
 	}
 	if (key) {
 		*key = 0;
-		if (klen >= SDB_MIN_KEY && klen < SDB_MAX_KEY) {
+		if (klen > SDB_MIN_KEY && klen < SDB_MAX_KEY) {
 			*key = malloc (klen + 1);
 			if (!*key) {
 				return 0;
 			}
-			if (getbytes (s, *key, klen) == -1) {
+			if (getbytes (s, *key, klen + 1) == -1) {
 				free (*key);
 				*key = NULL;
 				return 0;
@@ -777,7 +777,7 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 					free (*key);
 					*key = NULL;
 				}
-				return 0;
+				return false;
 			}
 			if (getbytes (s, *value, vlen)==-1) {
 				if (key) {
@@ -786,13 +786,13 @@ SDB_API int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 				}
 				free (*value);
 				*value = NULL;
-				return 0;
+				return false;
 			}
 			(*value)[vlen] = 0;
 		}
 	}
 	s->pos += 4; // XXX no.
-	return 1;
+	return true;
 }
 
 static inline ut64 parse_expire (ut64 e) {
@@ -813,7 +813,7 @@ SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 		return 1;
 	}
 	kv = (SdbKv*)ht_find_kvp (s->ht, key, &found);
-	if (found) {
+	if (found && kv) {
 		if (*kv->value) {
 			if (!cas || cas == kv->cas) {
 				kv->expire = parse_expire (expire);

@@ -165,13 +165,13 @@ void* sdb_ptr_get(Sdb *db, const char *key, ut32 *cas);
 /* create db */
 SDB_API bool sdb_disk_create (Sdb* s);
 int sdb_disk_insert (Sdb* s, const char *key, const char *val);
-bool sdb_disk_finish (Sdb* s);
-bool sdb_disk_unlink (Sdb* s);
+SDB_API bool sdb_disk_finish (Sdb* s);
+SDB_API bool sdb_disk_unlink (Sdb* s);
 
 /* iterate */
-void sdb_dump_begin (Sdb* s);
-SdbKv *sdb_dump_next (Sdb* s);
-int sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen);
+SDB_API void sdb_dump_begin (Sdb* s);
+SDB_API SdbKv *sdb_dump_next (Sdb* s);
+SDB_API bool sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen);
 
 /* journaling */
 SDB_API bool sdb_journal_close(Sdb *s);

@@ -56,7 +56,7 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	SdbKv* kvp;
 	SdbListIter* iter;
 	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
-#define USE_KEYLEN 0
+#define USE_KEYLEN 1
 #if USE_KEYLEN
 	ut32 key_len = strlen (key);
 #endif
