@@ -429,14 +429,15 @@ SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	memcpy (kv->key, k, kv->key_len + 1);
 	kv->value_len = vl;
 	if (vl) {
-		kv->value = malloc (vl);
+		kv->value = malloc (vl + 1);
 		if (!kv->value) {
 			free (kv);
 			return NULL;
 		}
-		memcpy (kv->value, v, vl);
+		memcpy (kv->value, v, vl + 1);
 	} else {
 		kv->value = NULL;
+		kv->value_len = 0;
 	}
 	kv->cas = nextcas ();
 	kv->expire = 0LL;
@@ -779,7 +780,7 @@ SDB_API bool sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 				}
 				return false;
 			}
-			if (getbytes (s, *value, vlen)==-1) {
+			if (getbytes (s, *value, vlen) == -1) {
 				if (key) {
 					free (*key);
 					*key = NULL;
@@ -1018,8 +1019,12 @@ SDB_API char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback
 		sdb_foreach (s, like_cb, &lcd);
 		return NULL;
 	}
-	if (k && !*k) lcd.key = NULL;
-	if (v && !*v) lcd.val = NULL;
+	if (k && !*k) {
+		lcd.key = NULL;
+	}
+	if (v && !*v) {
+		lcd.val = NULL;
+	}
 	lcd.array_size = sizeof (char*) * 2;
 	lcd.array = calloc (lcd.array_size, 1);
 	if (!lcd.array) {
