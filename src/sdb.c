@@ -474,7 +474,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	vlen = strlen (val);
 	cdb_findstart (&s->db);
 	kv = ht_find_kvp (s->ht, key, &found);
-	if (found) {
+	if (found && kv->value) {
 		if (cdb_findnext (&s->db, sdb_hash (key), key, klen)) {
 			if (cas && kv->cas != cas) {
 				return 0;
@@ -641,7 +641,7 @@ SDB_API bool sdb_sync (Sdb* s) {
 	/* append new keyvalues */
 	for (i = 0; i < s->ht->size; ++i) {
 		ls_foreach (s->ht->table[i], iter, kv) {
-			if (*kv->value && kv->expire == 0LL) {
+			if (kv->key && kv->value && *kv->value && kv->expire == 0LL) {
 				if (sdb_disk_insert (s, kv->key, kv->value)) {
 					it.n = iter->n;
 					//sdb_unset (s, kv->key, 0);

@@ -191,7 +191,9 @@ SDB_API char *sdb_aslice(char *out, int from, int to) {
 SDB_API int sdb_alen(const char *str) {
 	int len = 1;
 	const char *n, *p = str;
-	if (!p|| !*p) return 0;
+	if (!p|| !*p) {
+		return 0;
+	}
 	for (len = 0; ; len++) {
 		n = strchr (p, SDB_RS);
 		if (!n) {
@@ -243,7 +245,7 @@ SDB_API char *sdb_anext(char *str, char **next) {
 SDB_API const char *sdb_const_anext(const char *str, const char **next) {
 	if (next) {
 		const char *p = strchr (str, SDB_RS);
-		*next = p? p+1: NULL;
+		*next = p? p + 1: NULL;
 	}
 	return str;
 }
