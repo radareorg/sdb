@@ -111,7 +111,9 @@ SDB_API bool sdb_disk_finish (Sdb* s) {
 		//eprintf ("Error 0x%02x\n", GetLastError ());
 	}
 #else
-	IFRET (rename (s->ndump, s->dir));
+	if (s->ndump && s->dir) {
+		IFRET (rename (s->ndump, s->dir));
+	}
 #endif
 	free (s->ndump);
 	s->ndump = NULL;
