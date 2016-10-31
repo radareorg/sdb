@@ -52,6 +52,7 @@ SDB_API void ls_free(SdbList *list);
 SDB_API SdbListIter *ls_item_new(void *data);
 SDB_API void ls_unlink(SdbList *list, void *ptr);
 SDB_API void ls_split(SdbList *list, void *ptr);
+// Removes element `iter` from `list`.
 SDB_API void ls_split_iter(SdbList *list, SdbListIter *iter);
 SDB_API void *ls_get_n(SdbList *list, int n);
 SDB_API void *ls_get_top(SdbList *list);

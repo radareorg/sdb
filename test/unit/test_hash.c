@@ -80,7 +80,7 @@ bool test_ht_insert_collision(void) {
 	mu_end;
 }
 
-ut32 incr_hash(const char *key) {
+ut32 key2hash(const char *key) {
 	return atoi(key);
 }
 
@@ -90,7 +90,7 @@ bool test_ht_grow(void) {
 	char buf[100];
 	int i;
 
-	ht->hashfn = incr_hash;
+	ht->hashfn = key2hash;
 	for (i = 0; i < 20000; ++i) {
 		snprintf (str, 15, "%d", i);
 		snprintf (vstr, 15, "v%d", i);
@@ -111,6 +111,26 @@ bool test_ht_grow(void) {
 	mu_end;
 }
 
+bool test_ht_kvp(void) {
+	SdbHash *ht = ht_new ();
+	SdbKv *kvp = sdb_kv_new ("AAAA", "vAAAA");
+
+	mu_assert_eq (kvp->key_len, 4, "key_len should be 4");
+	mu_assert_eq (kvp->value_len, 5, "value_len should be 5");
+	mu_assert ("kvp should be inserted", ht_insert_kvp (ht, kvp, false));
+	kvp = ht_find_kvp (ht, "AAAA", NULL);
+	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after kvp_insert");
+	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after kvp_insert");
+
+	ht_insert (ht, "BBBB", "vBBBB");
+	kvp = ht_find_kvp (ht, "BBBB", NULL);
+	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after insert");
+	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after insert");
+
+	ht_free (ht);
+	mu_end;
+}
+
 int all_tests() {
 	mu_run_test (test_ht_insert_lookup);
 	mu_run_test (test_ht_update_lookup);
@@ -118,6 +138,7 @@ int all_tests() {
 	mu_run_test (test_ht_insert_kvp);
 	mu_run_test (test_ht_insert_collision);
 	mu_run_test (test_ht_grow);
+	mu_run_test (test_ht_kvp);
 	return tests_passed != tests_run;
 }
 

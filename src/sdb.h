@@ -125,9 +125,19 @@ bool sdb_remove (Sdb*, const char *key, ut32 cas);
 int sdb_unset (Sdb*, const char *key, ut32 cas);
 int sdb_unset_like(Sdb *s, const char *k);
 char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb);
+
+// Gets a pointer to the value associated with `key`.
 char *sdb_get (Sdb*, const char *key, ut32 *cas);
+
+// Gets a pointer to the value associated with `key` and returns in `vlen` the
+// length of the value string.
 char *sdb_get_len (Sdb*, const char *key, int *vlen, ut32 *cas);
+
+// Gets a const pointer to the value associated with `key`
 const char *sdb_const_get (Sdb*, const char *key, ut32 *cas);
+
+// Gets a const pointer to the value associated with `key` and returns in
+// `vlen` the length of the value string.
 const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas);
 int sdb_set (Sdb*, const char *key, const char *data, ut32 cas);
 int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas);
@@ -241,12 +251,25 @@ int sdb_array_delete (Sdb* s, const char *key, int n, ut32 cas);
 void sdb_array_sort (Sdb* s, const char *key, ut32 cas);
 void sdb_array_sort_num (Sdb* s, const char *key, ut32 cas);
 // set
+
+// Adds string `val` at the end of array `key`.
 int sdb_array_add (Sdb* s, const char *key, const char *val, ut32 cas);
+
+// Adds number `val` at the end of array `key`.
 int sdb_array_add_num (Sdb* s, const char *key, ut64 val, ut32 cas);
+
+// Adds string `val` in the sorted array `key`.
 int sdb_array_add_sorted (Sdb *s, const char *key, const char *val, ut32 cas);
+
+// Adds number `val` in the sorted array `key`.
 int sdb_array_add_sorted_num (Sdb *s, const char *key, ut64 val, ut32 cas);
+
+// Removes the string `val` from the array `key`.
 int sdb_array_remove (Sdb *s, const char *key, const char *val, ut32 cas);
+
+// Removes the number `val` from the array `key`.
 int sdb_array_remove_num (Sdb* s, const char *key, ut64 val, ut32 cas);
+
 // helpers
 char *sdb_anext(char *str, char **next);
 const char *sdb_const_anext(const char *str, const char **next);
@@ -256,9 +279,18 @@ int sdb_array_size(Sdb* s, const char *key);
 int sdb_array_length(Sdb* s, const char *key);
 
 int sdb_array_list(Sdb* s, const char *key);
+
+// Adds the string `val` to the start of array `key`.
 int sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas);
+
+// Returns the string at the start of array `key` or
+// NULL if there are no elements.
 char *sdb_array_pop(Sdb *s, const char *key, ut32 *cas);
+
+// Adds the number `val` to the start of array `key`.
 int sdb_array_push_num(Sdb *s, const char *key, ut64 num, ut32 cas);
+
+// Returns the number at the start of array `key`.
 ut64 sdb_array_pop_num(Sdb *s, const char *key, ut32 *cas);
 
 char *sdb_array_pop_head(Sdb *s, const char *key, ut32 *cas);
