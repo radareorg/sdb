@@ -119,6 +119,7 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		}
 		return false;
 	}
+	jslen++;
 	if (cas && c != cas) {
 		return false;
 	}

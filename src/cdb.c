@@ -9,25 +9,27 @@
 #endif
 
 /* XXX: this code must be rewritten . too slow */
-int cdb_getkvlen(int fd, ut32 *klen, ut32 *vlen) {
+bool cdb_getkvlen(int fd, ut32 *klen, ut32 *vlen) {
 	ut8 buf[4] = { 0 };
 	*klen = *vlen = 0;
 	if (fd == -1 || read (fd, buf, sizeof (buf)) != sizeof (buf)) {
-		return 0;
+		return false;
 	}
 	*klen = (ut32)buf[0];
 	*vlen = (ut32)(buf[1] | ((ut32)buf[2] << 8) | ((ut32)buf[3] << 16));
 	if (*vlen > CDB_MAX_VALUE) {
 		*vlen = CDB_MAX_VALUE; // untaint value for coverity
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 void cdb_free(struct cdb *c) {
-	if (!c->map) return;
+	if (!c->map) {
+		return;
+	}
 #if USE_MMAN
-	munmap (c->map, c->size);
+	(void)munmap (c->map, c->size);
 #else
 	free (c->map);
 #endif
@@ -150,8 +152,9 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 		}
 		c->loop++;
 		c->kpos += sizeof (buf);
-		if (c->kpos == c->hpos + (c->hslots << 3))
+		if (c->kpos == c->hpos + (c->hslots << 3)) {
 			c->kpos = c->hpos;
+		}
 		ut32_unpack (buf, &u);
 		if (u == c->khash) {
 			if (!seek_set (c->fd, pos)) {
