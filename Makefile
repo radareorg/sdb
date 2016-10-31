@@ -11,9 +11,13 @@ all: pkgconfig src/sdb_version.h
 ifeq ($(BUILD_MEMCACHE),1)
 	${MAKE} -C memcache
 endif
+
+vala:
 ifneq (${HAVE_VALA},)
 	cd ${VALADIR} && ${MAKE}
 	cd ${VALADIR}/types && ${MAKE}
+else
+	@echo Nothing to do.
 endif
 
 .PHONY: test sdb.js pkgconfig
