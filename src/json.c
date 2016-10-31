@@ -130,8 +130,9 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 			int curlen, is_str = isstring (v);
 			const char *q = is_str?"\"":"";
 			const char *e = ""; // XX: or comma
-			if (js[0] && js[1] != '}')
+			if (js[0] && js[1] != '}') {
 				e = ",";
+			}
 			curlen = sprintf (b, "{\"%s\":%s%s%s%s",
 				p, q, v, q, e);
 			strcpy (b + curlen, js + 1);
@@ -197,7 +198,7 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		}
 		l = len[2];
 		memcpy (str + idx, beg[2], l);
-		str[idx+l] = 0;
+		str[idx + l] = 0;
 	} else {
 		int kidx;
 		// DELETE KEY
@@ -265,7 +266,7 @@ SDB_API const char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
 				JSONSTR_ALLOCATE (32);
 				arg_i = va_arg (ap, int);
 				arg_i = arg_i? 4: 5;
-				memcpy (s->buf + s->len, arg_i==4?"true":"false", 5);
+				memcpy (s->buf + s->len, (arg_i == 4)? "true": "false", 5);
 				s->len += arg_i;
 				break;
 			case 'f':

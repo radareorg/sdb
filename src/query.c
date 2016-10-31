@@ -227,7 +227,9 @@ repeat:
 			val = sdb_const_get (s, eq + 1, 0);
 			if (next) *next = ';';
 			is_ref = 1; // protect readonly buffer from being processed
-		} else val = eq;
+		} else {
+			val = eq;
+		}
 	} else {
 		val = NULL;
 		d = 0;
