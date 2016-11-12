@@ -761,7 +761,7 @@ SDB_API bool sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
 			if (!*key) {
 				return 0;
 			}
-			if (getbytes (s, *key, klen + 1) == -1) {
+			if (getbytes (s, *key, klen) == -1) {
 				free (*key);
 				*key = NULL;
 				return 0;
