@@ -625,7 +625,7 @@ SDB_API bool sdb_sync (Sdb* s) {
 		/* find that key in the memory storage */
 		kv = ht_find_kvp (s->ht, k, &found);
 		if (found) {
-			if (kv && *kv->value) {
+			if (kv && kv->value && *kv->value) {
 				/* asume k = kv->key */
 				sdb_disk_insert (s, k, kv->value);
 			}
