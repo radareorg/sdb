@@ -16,6 +16,7 @@ typedef struct ls_t {
 	SdbListIter *head;
 	SdbListIter *tail;
 	SdbListFree free;
+	void *sorted;
 } SdbList;
 
 typedef int (*SdbListComparator)(const void *a, const void *b);
@@ -41,9 +42,7 @@ SDB_API SdbList *ls_newf(SdbListFree freefn);
 SDB_API SdbListIter *ls_append(SdbList *list, void *data);
 SDB_API SdbListIter *ls_prepend(SdbList *list, void *data);
 //SDB_API void ls_add_sorted(SdbList *list, void *data, SdbListComparator cmp);
-SDB_API void ls_sort(SdbList *list, SdbListComparator cmp);
-SDB_API void ls_insertion_sort(SdbList *list, SdbListComparator cmp);
-SDB_API void ls_merge_sort(SdbList *list, SdbListComparator cmp);
+SDB_API bool ls_sort(SdbList *list, SdbListComparator cmp);
 
 SDB_API void ls_delete(SdbList *list, SdbListIter *iter);
 SDB_API void ls_iter_init(SdbListIter *iter, SdbList *list);
