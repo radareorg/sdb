@@ -142,6 +142,9 @@ static void internal_ht_grow(SdbHash* ht) {
 // if update is true, allow for updates, otherwise return false if the key
 // already exists.
 static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const char* value) {
+	if (!ht || !key || !value) {
+		return false;
+	}
 	SdbKv* kvp;
 	ut32 hash = ht->hashfn (key);
 	ut32 bucket;
