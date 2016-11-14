@@ -94,7 +94,7 @@ static void ls_merge_sort(SdbList *list, SdbListComparator cmp) {
 }
 
 SDB_API bool ls_sort(SdbList *list, SdbListComparator cmp) {
-	if (cmp && list->sorted == cmp) {
+	if (!cmp || list->sorted == cmp) {
 		return false;
 	}
 	if (list->length > 43) {
