@@ -1,4 +1,4 @@
-/* radare2 - BSD 3 Clause License - crowell 2016 */
+/* radare2 - BSD 3 Clause License - crowell, pancake 2016 */
 
 #include "ht.h"
 #include "sdb.h"
@@ -42,8 +42,8 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListCompar
 	ht->load_factor = 1;
 	ht->hashfn = hashfunction;
 	ht->cmp = comparator? comparator: strcmp;
-	ht->dupkey = keydup;
-	ht->dupvalue = valdup;
+	ht->dupkey = keydup? keydup: strdup;
+	ht->dupvalue = valdup? valdup: strdup;
 	ht->table = calloc (ht->size, sizeof (SdbList*));
 	ht->calcsize = calcsize? calcsize: strlen;
 	ht->freefn = pair_free;
@@ -151,10 +151,8 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 	if (update || !found) {
 		kvp = calloc (1, sizeof (SdbKv));
 		if (kvp) {
-			kvp->key = ht->dupkey
-				? ht->dupkey (key) : (char *)key;
-			kvp->value = ht->dupvalue
-				? ht->dupvalue (value) : (char *)value;
+			kvp->key = ht->dupkey (key);
+			kvp->value = ht->dupvalue (value);
 			kvp->key_len = ht->calcsize (kvp->key);
 			bucket = hash % ht->size;
 			kvp->expire = 0;
