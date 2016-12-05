@@ -41,7 +41,7 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListCompar
 	ht->prime_idx = 0;
 	ht->load_factor = 1;
 	ht->hashfn = hashfunction;
-	ht->cmp = comparator;
+	ht->cmp = comparator? comparator: strcmp;
 	ht->dupkey = keydup;
 	ht->dupvalue = valdup;
 	ht->table = calloc (ht->size, sizeof (SdbList*));
@@ -68,7 +68,7 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 			continue;
 		}
 #endif
-		if (key == kvp->key || (ht->cmp && !ht->cmp (key, kvp->key))) {
+		if (key == kvp->key || !ht->cmp (key, kvp->key)) {
 #define EXCHANGE 1
 #if EXCHANGE
 			ls_split_iter (list, iter);
@@ -232,9 +232,7 @@ SdbKv* ht_find_kvp(SdbHash* ht, const char* key, bool* found) {
 	hash = ht->hashfn (key);
 	bucket = hash % ht->size;
 	ls_foreach (ht->table[bucket], iter, kvp) {
-		bool match = ht->cmp
-			? ht->cmp (key, kvp->key) == 0
-			: key == kvp->key;
+		bool match = !ht->cmp (key, kvp->key);
 		if (match) {
 			if (found) {
 				*found = true;
