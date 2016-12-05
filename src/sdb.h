@@ -193,7 +193,7 @@ SDB_API int sdb_unlink (Sdb* s);
 SDB_API int sdb_lock_wait(const char *s UNUSED);
 
 /* expiration */
-int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas);
+bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas);
 ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas);
 ut64 sdb_now (void);
 ut64 sdb_unow (void);

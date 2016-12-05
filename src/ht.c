@@ -3,7 +3,10 @@
 #include "ht.h"
 #include "sdb.h"
 
+/* tune the hashtable */
 #define GROWABLE 0
+#define USE_KEYLEN 1
+#define EXCHANGE 1
 
 // Sizes of the ht.
 const int ht_primes_sizes[] = {
@@ -56,9 +59,8 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	SdbKv* kvp;
 	SdbListIter* iter;
 	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
-#define USE_KEYLEN 1
 #if USE_KEYLEN
-	ut32 key_len = strlen (key);
+	ut32 key_len = ht->calcsize (key);
 #endif
 	ut32 bucket = computed_hash % ht->size;
 	SdbList* list = ht->table[bucket];
@@ -69,7 +71,6 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 		}
 #endif
 		if (key == kvp->key || !ht->cmp (key, kvp->key)) {
-#define EXCHANGE 1
 #if EXCHANGE
 			ls_split_iter (list, iter);
 			ls_append (ht->deleted, iter);

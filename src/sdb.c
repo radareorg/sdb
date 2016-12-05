@@ -807,39 +807,39 @@ static inline ut64 parse_expire (ut64 e) {
 	return e;
 }
 
-SDB_API int sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
+SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	char *buf;
 	ut32 pos, len;
 	SdbKv *kv;
 	bool found;
 	if (!key) {
 		s->expire = parse_expire (expire);
-		return 1;
+		return true;
 	}
 	kv = (SdbKv*)ht_find_kvp (s->ht, key, &found);
 	if (found && kv) {
 		if (*kv->value) {
 			if (!cas || cas == kv->cas) {
 				kv->expire = parse_expire (expire);
-				return 1;
+				return true;
 			}
 		}
-		return 0;
+		return false;
 	}
 	if (s->fd == -1) {
-		return 0;
+		return false;
 	}
 	(void) cdb_findstart (&s->db);
 	if (!cdb_findnext (&s->db, sdb_hash (key), key, strlen (key) + 1)) {
-		return 0;
+		return false;
 	}
 	pos = cdb_datapos (&s->db);
 	len = cdb_datalen (&s->db);
 	if (len < 1 || len == UT32_MAX) {
-		return 0;
+		return false;
 	}
 	if (!(buf = calloc (1, len + 1))) {
-		return 0;
+		return false;
 	}
 	cdb_read (&s->db, buf, len, pos);
 	buf[len] = 0;
