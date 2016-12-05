@@ -45,7 +45,7 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListCompar
 	ht->dupkey = keydup;
 	ht->dupvalue = valdup;
 	ht->table = calloc (ht->size, sizeof (SdbList*));
-	ht->calcsize = calcsize;
+	ht->calcsize = calcsize? calcsize: strlen;
 	ht->freefn = pair_free;
 	ht->deleted = ls_newf (free);
 	// Because we use calloc, each listptr will be NULL until used */
@@ -155,12 +155,10 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 				? ht->dupkey (key) : (char *)key;
 			kvp->value = ht->dupvalue
 				? ht->dupvalue (value) : (char *)value;
-			kvp->key_len = ht->calcsize
-				? (ut32)ht->calcsize (kvp->key) : strlen (kvp->key);
+			kvp->key_len = ht->calcsize (kvp->key);
 			bucket = hash % ht->size;
 			kvp->expire = 0;
-			kvp->value_len = ht->calcsize
-				? (ut32)ht->calcsize (kvp->value) : strlen (kvp->value);
+			kvp->value_len = ht->calcsize (kvp->value);
 			if (!ht->table[bucket]) {
 				ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 			}
