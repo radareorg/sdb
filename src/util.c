@@ -56,8 +56,7 @@ SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 		h += *s;
 		s++;
 	}
-	return h;
-#endif
+#else
 	ut32 count = 0;
 	if (s) {
 		while (*s) {
@@ -68,6 +67,7 @@ SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 	if (len) {
 		*len = count;
 	}
+#endif
 	return h;
 }
 
@@ -163,8 +163,9 @@ SDB_API char *sdb_aslice(char *out, int from, int to) {
 		return NULL;
 	}
 	while (*p) {
-		if (idx == from)
-			if (!str) str = p;
+		if (!str && idx == from) {
+			str = p;
+		}
 		if (idx == to) {
 			end = p;
 			break;
@@ -301,34 +302,41 @@ SDB_API int sdb_num_base (const char *s) {
 }
 
 SDB_API const char *sdb_type(const char *k) {
-	if (!k || !*k) return "undefined";
-	if (sdb_isnum (k)) return "number";
-	if (sdb_isjson (k)) return "json";
-	if (strchr (k, ',')) return "array";
+	if (!k || !*k) {
+		return "undefined";
+	}
+	if (sdb_isnum (k)) {
+		return "number";
+	}
+	if (sdb_isjson (k)) {
+		return "json";
+	}
+	if (strchr (k, ',')) {
+		return "array";
+	}
 	if (!strcmp (k, "true") || !strcmp (k, "false")) {
 		return "boolean";
 	}
 	return "string";
 }
 
-// TODO: check if open and closed bracket/parenthesis matches
 // TODO: check all the values
 SDB_API bool sdb_isjson (const char *k) {
 	int level = 0;
-	int quotes = 0;
+	bool quotes = false;
 	if (!k || (*k != '{' && *k != '[')) {
 		return false;
 	}
 	for (; *k; k++) {
 		if (quotes) {
 			if (*k == '"') {
-				quotes = 0;
+				quotes = false;
 			}
 			continue;
 		}
 		switch (*k) {
 		case '"':
-			quotes = 1;
+			quotes = true;
 			break;
 		case '[':
 		case '{':
@@ -337,11 +345,12 @@ SDB_API bool sdb_isjson (const char *k) {
 		case ']':
 		case '}':
 			level--;
+			if (level < 0) {
+				/* invalid json */
+				return false;
+			}
 			break;
 		}
 	}
-	if (quotes || level) {
-		return false;
-	}
-	return true;
+	return (!quotes && !level);
 }

@@ -28,9 +28,9 @@ struct cdb {
 };
 
 void cdb_free(struct cdb *);
-int cdb_init(struct cdb *, int fd);
+bool cdb_init(struct cdb *, int fd);
 void cdb_findstart(struct cdb *);
-int cdb_read(struct cdb *, char *, unsigned int, ut32);
+bool cdb_read(struct cdb *, char *, unsigned int, ut32);
 int cdb_findnext(struct cdb *, ut32 u, const char *, ut32);
 
 #define cdb_datapos(c) ((c)->dpos)

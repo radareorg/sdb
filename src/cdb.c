@@ -40,7 +40,7 @@ void cdb_findstart(struct cdb *c) {
 	c->loop = 0;
 }
 
-int cdb_init(struct cdb *c, int fd) {
+bool cdb_init(struct cdb *c, int fd) {
 	struct stat st;
 	c->map = NULL;
 	c->fd = fd;
@@ -50,13 +50,13 @@ int cdb_init(struct cdb *c, int fd) {
 		char *x = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 		if (!x) {
 			eprintf ("Cannot mmap %d\n", (int)st.st_size);
-			return 0;
+			return false;
 		}
 #else
 		char *x = calloc (1, st.st_size);
 		if (!x) {
 			eprintf ("Cannot malloc %d\n", (int)st.st_size);
-			return 0;
+			return false;
 		}
 		read (fd, x, st.st_size); // TODO: handle return value
 #endif
@@ -64,33 +64,33 @@ int cdb_init(struct cdb *c, int fd) {
 			c->size = st.st_size;
 			c->map = x;
 		}
-		return 1;
+		return true;
 	}
 	c->map = NULL;
 	c->size = 0;
-	return 0;
+	return false;
 }
 
-int cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
+bool cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
 	if (c->map) {
 		if ((pos > c->size) || (c->size - pos < len)) {
-			return 0;
+			return false;
 		}
 		memcpy (buf, c->map + pos, len);
-		return 1;
+		return true;
 	}
 	if (!seek_set (c->fd, pos)) {
-		return 0;
+		return false;
 	}
 	while (len > 0) {
 		ssize_t r = read (c->fd, buf, len);
 		if (r < 1 || (ut32) r != len) {
-			return 0;
+			return false;
 		}
 		buf += r;
 		len -= r;
 	}
-	return 1;
+	return true;
 }
 
 static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
