@@ -48,6 +48,7 @@ static char *stdin_slurp(int *sz) {
 		const int buf_size = 96096;
 		char *buf = calloc (1, buf_size);
 		if (!fgets (buf, buf_size - 1, stdin)) {
+			free (buf);
 			return NULL;
 		}
 		if (feof (stdin)) {
@@ -340,9 +341,8 @@ static int showversion(void) {
 
 static int jsonIndent() {
 	int len;
-	char *in;
 	char *out;
-	in = stdin_slurp (&len);
+	char *in = stdin_slurp (&len);
 	if (!in) {
 		return 0;
 	}
