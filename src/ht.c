@@ -3,13 +3,11 @@
 #include "ht.h"
 #include "sdb.h"
 
-#define DISABLED_GROW 0
+#define GROWABLE 0
 
 // Sizes of the ht.
 const int ht_primes_sizes[] = {
-#if DISABLED_GROW
-	1024,
-#else
+#if GROWABLE
 	3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131,
 	163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
 	1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861,
@@ -19,6 +17,8 @@ const int ht_primes_sizes[] = {
 	389357, 467237, 560689, 672827, 807403, 968897, 1162687,
 	1395263, 1674319, 2009191, 2411033, 2893249, 3471899,
 	4166287, 4999559, 5999471, 7199369
+#else
+	1024,
 #endif
 };
 
@@ -108,13 +108,7 @@ void ht_free_deleted(SdbHash* ht) {
 }
 
 // Increases the size of the hashtable by 2.
-
-#if DISABLED_GROW
-static inline void internal_ht_grow(SdbHash* ht) {
-	ht->prime_idx--;
-	return;
-}
-#else
+#if GROWABLE
 static void internal_ht_grow(SdbHash* ht) {
 	SdbHash* ht2;
 	SdbHash swap;
@@ -172,6 +166,7 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 			}
 			ls_prepend (ht->table[bucket], kvp);
 			ht->count++;
+#if GROWABLE
 			// Check if we need to grow the table.
 			if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
 				if (ht->prime_idx < sizeof (ht_primes_sizes) / sizeof (ht_primes_sizes[0])) {
@@ -179,6 +174,7 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 					internal_ht_grow (ht);
 				}
 			}
+#endif
 			return true;
 		}
 	}
@@ -215,8 +211,7 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 		}
 		ls_prepend (ht->table[bucket], kvp);
 		ht->count++;
-#if DISABLE_GROW
-#else
+#if GROWABLE
 		// Check if we need to grow the table.
 		if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
 			ht->prime_idx++;
