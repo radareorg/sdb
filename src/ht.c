@@ -92,13 +92,15 @@ SdbHash* ht_new() {
 }
 
 void ht_free(SdbHash* ht) {
-	ut32 i;
-	for (i = 0; i < ht->size; i++) {
-		ls_free (ht->table[i]);
+	if (ht) {
+		ut32 i;
+		for (i = 0; i < ht->size; i++) {
+			ls_free (ht->table[i]);
+		}
+		free (ht->table);
+		ls_free (ht->deleted);
+		free (ht);
 	}
-	free (ht->table);
-	ls_free (ht->deleted);
-	free (ht);
 }
 
 void ht_free_deleted(SdbHash* ht) {

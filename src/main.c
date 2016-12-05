@@ -73,15 +73,15 @@ static char *stdin_slurp(int *sz) {
 			bufsize = nextlen + blocksize;
 			//len = nextlen;
 			rr = nextlen;
-			rr2 = read (0, buf+nextlen, blocksize);
-			if (rr2 >0) {
+			rr2 = read (0, buf + nextlen, blocksize);
+			if (rr2 > 0) {
 				rr += rr2;
 				bufsize += rr2;
 			}
 			next = NULL;
 			nextlen = 0;
 		} else {
-			rr = read (0, buf+len, blocksize);
+			rr = read (0, buf + len, blocksize);
 		}
 		if (rr < 1) { // EOF
 			buf[len] = 0;
@@ -95,10 +95,10 @@ static char *stdin_slurp(int *sz) {
 			char *nl = strchr (buf, '\n');
 			if (nl) {
 				*nl++ = 0;
-				int nlen = (nl-buf);
-				nextlen = len-nlen; //bufsize-nlen;
-				if (nextlen>0) {
-					next = malloc (nextlen+blocksize+1);
+				int nlen = nl - buf;
+				nextlen = len - nlen;
+				if (nextlen > 0) {
+					next = malloc (nextlen + blocksize + 1);
 					if (!next) {
 						eprintf ("Cannot malloc %d\n", nextlen);
 						break;
@@ -118,7 +118,7 @@ static char *stdin_slurp(int *sz) {
 		}
 #endif
 		bufsize += blocksize;
-		tmp = realloc (buf, bufsize+1);
+		tmp = realloc (buf, bufsize + 1);
 		if (!tmp) {
 			bufsize -= blocksize;
 			break;
@@ -156,7 +156,9 @@ static int sdb_grep (const char *db, int fmt, const char *grep) {
 	char *k, *v;
 	const char *comma = "";
 	Sdb *s = sdb_new (NULL, db, 0);
-	if (!s) return 1;
+	if (!s) {
+		return 1;
+	}
 	sdb_config (s, options);
 	sdb_dump_begin (s);
 	if (fmt == MODE_JSON) {
@@ -217,7 +219,9 @@ static int sdb_dump (const char *db, int fmt) {
 	char *k, *v;
 	const char *comma = "";
 	Sdb *s = sdb_new (NULL, db, 0);
-	if (!s) return 1;
+	if (!s) {
+		return 1;
+	}
 	sdb_config (s, options);
 	sdb_dump_begin (s);
 	if (fmt == MODE_JSON) {
@@ -232,7 +236,9 @@ static int sdb_dump (const char *db, int fmt) {
 				printf ("%s\"%s\":%llu", comma, k, sdb_atoi (v));
 			} else if (*v=='{' || *v=='[') {
 				printf ("%s\"%s\":%s", comma, k, v);
-			} else printf ("%s\"%s\":\"%s\"", comma, k, v);
+			} else {
+				printf ("%s\"%s\":\"%s\"", comma, k, v);
+			}
 			comma = ",";
 			break;
 		case MODE_ZERO:
@@ -441,7 +447,7 @@ int main(int argc, const char **argv) {
 	const char *arg, *grep = NULL;
 	int i, ret, fmt = MODE_DFLT;
 	int db0 = 1, argi = 1;
-	int interactive = 0;
+	bool interactive = false;
 
 	/* terminate flags */
 	if (argc < 2) {
@@ -478,7 +484,7 @@ int main(int argc, const char **argv) {
 				return showusage (1);
 			}
 			break;
-		case 'c': return (argc<3)? showusage (1) : showcount (argv[2]);
+		case 'c': return (argc < 3)? showusage (1) : showcount (argv[2]);
 		case 'v': return showversion ();
 		case 'h': return showusage (2);
 		case 'e': return base64encode ();
@@ -490,7 +496,7 @@ int main(int argc, const char **argv) {
 			return showusage (0);
 		case 'j':
 			if (argc > 2) {
-				return sdb_dump (argv[db0+1], MODE_JSON);
+				return sdb_dump (argv[db0 + 1], MODE_JSON);
 			}
 			return jsonIndent();
 		default:
@@ -503,8 +509,8 @@ int main(int argc, const char **argv) {
 	if (argi == 1 && !strcmp (argv[argi], "-")) {
 		/* no database */
 		argv[argi] = "";
-		if (argc == db0+1) {
-			interactive = 1;
+		if (argc == db0 + 1) {
+			interactive = true;
 			/* if no argument passed */
 			argv[argi] = "-";
 			argc++;
@@ -512,7 +518,7 @@ int main(int argc, const char **argv) {
 		}
 	}
 	/* sdb dbname */
-	if (argc-1 == db0) {
+	if (argc - 1 == db0) {
 		if (grep) {
 			return sdb_grep (argv[db0], fmt, grep);
 		}

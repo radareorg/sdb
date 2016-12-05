@@ -113,6 +113,7 @@ SDB_API bool sdb_dump_hasnext (Sdb* s);
 typedef int (*SdbForeachCallback)(void *user, const char *k, const char *v);
 bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user);
 SdbList *sdb_foreach_list (Sdb* s, bool sorted);
+SdbList *sdb_foreach_match (Sdb* s, const char *expr, bool sorted);
 
 int sdb_query (Sdb* s, const char *cmd);
 int sdb_queryf (Sdb* s, const char *fmt, ...);

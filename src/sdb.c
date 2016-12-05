@@ -396,7 +396,7 @@ SDB_API void sdb_close (Sdb *s) {
 	}
 }
 
-SDB_API void sdb_reset (Sdb* s) {
+SDB_API void sdb_reset(Sdb* s) {
 	if (!s) {
 		return;
 	}
@@ -404,13 +404,53 @@ SDB_API void sdb_reset (Sdb* s) {
 	 * its values when syncing again */
 	sdb_close (s);
 	/* empty memory hashtable */
-	if (s->ht) {
-		ht_free (s->ht);
-	}
+	ht_free (s->ht);
 	s->ht = ht_new ();
 }
 
-// TODO: too many allocs here. use slices
+static int lastIndex(const char *str) {
+	int len = strlen (str);
+	return (len > 0)? len - 1: 0;
+}
+
+static bool match(const char *str, const char *expr) {
+	bool startsWith = *expr == '^';
+	bool endsWith = expr[lastIndex (expr)] == '$';
+	if (startsWith && endsWith) {
+		return !strncmp (str, expr + 1, strlen (expr) - 2);
+	}
+	if (startsWith) {
+		return !strncmp (str, expr + 1, strlen (expr) - 1);
+	}
+	if (endsWith) {
+		int alen = strlen (str);
+		int blen = strlen (expr) - 1;
+		if (alen <= blen) {
+			return false;
+		}
+		char *a = str + strlen (str) - blen;
+		return (!strncmp (a, expr, blen));
+	}
+	return strstr (str, expr);
+}
+
+SDB_API bool sdb_kv_match(SdbKv *kv, const char *expr) {
+	// TODO: add syntax to negate condition
+	// TODO: add syntax to OR k/v instead of AND
+	// [^]str[$]=[^]str[$]
+	const char *eq = strchr (expr, '=');
+	if (eq) {
+		char *e = strdup (expr);
+		char *ep = e + (eq - expr);
+		*ep++ = 0;
+		bool res = !*e || match (kv->key, e);
+		bool res2 = !*ep || match (kv->value, ep);
+		free (e);
+		return res && res2;
+	}
+	return match (kv->key, expr);
+}
+
 SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	SdbKv *kv;
 	int vl;
@@ -456,10 +496,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 	ut32 vlen, klen;
 	SdbKv *kv;
 	bool found;
-	if (!s || !key) {
-		return 0;
-	}
-	if (!sdb_check_key (key)) {
+	if (!s || !sdb_check_key (key)) {
 		return 0;
 	}
 	if (!val) {
@@ -555,6 +592,40 @@ SDB_API SdbList *sdb_foreach_list (Sdb* s, bool sorted) {
 	if (sorted) {
 		ls_sort (list, __cmp_asc);
 	}
+	return list;
+}
+
+typedef struct {
+	const char *expr;
+	SdbList *list;
+	bool single;
+} _;
+
+static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
+	_ *o = (_*)user;
+	SdbKv tkv = { .key = k, .value = v };
+	if (sdb_kv_match (&tkv, o->expr)) {
+		SdbKv *kv = R_NEW0 (SdbKv);
+		kv->key = strdup (k);
+		kv->value = strdup (v);
+		ls_append (o->list, kv);
+		if (o->single) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+SDB_API SdbList *sdb_foreach_match (Sdb* s, const char *expr, bool single) {
+	SdbList *list = ls_newf ((SdbListFree)sdb_kv_free);
+	_ o = { expr, list, single };
+	sdb_foreach (s, sdb_foreach_match_cb, &o);
+#if 0
+	// TODO. add sorted ? wtf
+	if (sorted) {
+		ls_sort (list, __cmp_asc);
+	}
+#endif
 	return list;
 }
 

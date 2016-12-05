@@ -357,12 +357,21 @@ next_quote:
 		} else {
 			eprintf ("sdb: filesystem access disabled in config\n");
 		}
-	} else
-	if (*cmd == '~') {
-		d = 1;
-		sdb_unset_like (s, cmd + 1);
-	} else
-	if (*cmd == '+' || *cmd == '-') {
+	} else if (*cmd == '~') {
+		if (cmd[1] == '~') {
+			SdbKv *kv;
+			SdbListIter *li;
+			SdbList *l = sdb_foreach_match (s, cmd + 2, false);
+			ls_foreach (l, li, kv) {
+				printf ("%s=%s\n", kv->key, kv->value);
+			}
+			fflush (stdout);
+			ls_free (l);
+		} else {
+			d = 1;
+			sdb_unset_like (s, cmd + 1);
+		}
+	} else if (*cmd == '+' || *cmd == '-') {
 		d = 1;
 		if (!buf) {
 			buf = strdup ("");
