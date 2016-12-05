@@ -37,7 +37,7 @@ static char *stdin_slurp(int *sz) {
 	static char *next = NULL;
 	static int nextlen = 0;
 	int len, rr, rr2;
-	char *buf, *tmp;
+	char *tmp, *buf = NULL;
 	if (sz) {
 		*sz = 0;
 	}
@@ -46,7 +46,7 @@ static char *stdin_slurp(int *sz) {
 		/* this is faster but have limits */
 		/* run test/add10k.sh script to benchmark */
 		const int buf_size = 96096;
-		char *buf = calloc (1, buf_size);
+		buf = calloc (1, buf_size);
 		if (!fgets (buf, buf_size - 1, stdin)) {
 			free (buf);
 			return NULL;
@@ -57,7 +57,12 @@ static char *stdin_slurp(int *sz) {
 		}
 		int buf_len = strlen (buf) - 1;
 		buf[buf_len] = 0;
-		return realloc (buf, buf_len + 1);
+		char *newbuf = realloc (buf, buf_len + 1);
+		if (newbuf) {
+			return newbuf;
+		}
+		free (buf);
+		return NULL;
 	}
 #endif
 	buf = calloc (BS + 1, 1);
