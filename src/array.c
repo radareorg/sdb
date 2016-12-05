@@ -352,12 +352,12 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 	//lstr = strlen (str);
 	ptr = (char*)Aindexof (str, idx);
 	if (ptr) {
-		int diff = ptr-str;
+		int diff = ptr - str;
 		char *nstr = malloc (lstr + lval + 2);
 		if (!nstr) {
 			return false;
 		}
-		ptr = nstr+diff;
+		ptr = nstr + diff;
 		//memcpy (nstr, str, lstr+1);
 		memcpy (nstr, str, diff);
 		memcpy (ptr, val, lval + 1);

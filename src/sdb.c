@@ -282,9 +282,11 @@ SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 		return 0;
 	}
 	valen = strlen (value);
-	while ((p = strstr (v, value))) {
-		memmove (p, p+valen, strlen (p+valen)+1);
-		mod = 1;
+	if (valen > 0) {
+		while ((p = strstr (v, value))) {
+			memmove (p, p + valen, strlen (p + valen) + 1);
+			mod = 1;
+		}
 	}
 	if (mod) {
 		sdb_set_owned (s, key, v, 0);
