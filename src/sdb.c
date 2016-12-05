@@ -485,6 +485,7 @@ static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32
 			kv->cas = cas = nextcas ();
 			if (owned) {
 				kv->value_len = vlen;
+				free (kv->value);
 				kv->value = val; // owned
 			} else {
 				if ((ut32)vlen > kv->value_len) {

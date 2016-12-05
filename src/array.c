@@ -344,7 +344,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut3
 		for (i = 0; i < ilen; i++) {
 			newkey [i] = SDB_RS;
 		}
-		memcpy (newkey+i, val, lval+1);
+		memcpy (newkey + i, val, lval + 1);
 		ret = sdb_array_insert (s, key, -1, newkey, cas);
 		free (newkey);
 		return ret;
