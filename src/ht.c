@@ -3,11 +3,6 @@
 #include "ht.h"
 #include "sdb.h"
 
-/* tune the hashtable */
-#define GROWABLE 0
-#define USE_KEYLEN 1
-#define EXCHANGE 1
-
 // Sizes of the ht.
 const int ht_primes_sizes[] = {
 #if GROWABLE
@@ -51,6 +46,9 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListCompar
 	ht->calcsize = calcsize? calcsize: strlen;
 	ht->freefn = pair_free;
 	ht->deleted = ls_newf (free);
+#if INSERTORDER
+	ht->list = ls_newf (NULL);
+#endif
 	// Because we use calloc, each listptr will be NULL until used */
 	return ht;
 }
@@ -63,6 +61,20 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	ut32 key_len = ht->calcsize (key);
 #endif
 	ut32 bucket = computed_hash % ht->size;
+#if INSERTORDER
+	ls_foreach (ht->list, iter, kvp) {
+#if USE_KEYLEN
+		if (key_len != kvp->key_len) {
+			continue;
+		}
+#endif
+		if (key == kvp->key || !ht->cmp (key, kvp->key)) {
+			ls_delete (ht->list, iter);
+			ht->count--;
+			break;
+		}
+	}
+#endif
 	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kvp) {
 #if USE_KEYLEN
@@ -99,6 +111,9 @@ void ht_free(SdbHash* ht) {
 		}
 		free (ht->table);
 		ls_free (ht->deleted);
+#if INSERTORDER
+		ls_free (ht->list);
+#endif
 		free (ht);
 	}
 }
@@ -164,6 +179,9 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 				ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 			}
 			ls_prepend (ht->table[bucket], kvp);
+#if INSERTORDER
+			ls_append (ht->list, kvp);
+#endif
 			ht->count++;
 #if GROWABLE
 			// Check if we need to grow the table.
@@ -209,6 +227,9 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 			ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 		}
 		ls_prepend (ht->table[bucket], kvp);
+#if INSERTORDER
+		ls_append (ht->list, kvp);
+#endif
 		ht->count++;
 #if GROWABLE
 		// Check if we need to grow the table.

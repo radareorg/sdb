@@ -118,6 +118,18 @@ SDB_API void ls_delete(SdbList *list, SdbListIter *iter) {
 	free (iter);
 }
 
+SDB_API bool ls_delete_data(SdbList *list, void *ptr) {
+	void *kvp;
+	SdbListIter *iter;
+	ls_foreach (list, iter, kvp) {
+		if (ptr == kvp) {
+			ls_delete (list, iter);
+			return true;
+		}
+	}
+	return false;
+}
+
 SDB_API void ls_split_iter(SdbList *list, SdbListIter *iter) {
 	if (!list || !iter) {
 		return;

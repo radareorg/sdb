@@ -408,16 +408,17 @@ SDB_API void sdb_reset(Sdb* s) {
 	s->ht = ht_new ();
 }
 
-static int lastIndex(const char *str) {
+static char lastChar(const char *str) {
 	int len = strlen (str);
-	return (len > 0)? len - 1: 0;
+	return str[(len > 0)? len - 1: 0];
 }
 
 static bool match(const char *str, const char *expr) {
 	bool startsWith = *expr == '^';
-	bool endsWith = expr[lastIndex (expr)] == '$';
+	bool endsWith = lastChar (expr) == '$';
 	if (startsWith && endsWith) {
-		return !strncmp (str, expr + 1, strlen (expr) - 2);
+		return strlen (str) == strlen (expr) - 2 && \
+			!strncmp (str, expr + 1, strlen (expr) - 2);
 	}
 	if (startsWith) {
 		return !strncmp (str, expr + 1, strlen (expr) - 1);
@@ -428,7 +429,7 @@ static bool match(const char *str, const char *expr) {
 		if (alen <= blen) {
 			return false;
 		}
-		char *a = str + strlen (str) - blen;
+		const char *a = str + strlen (str) - blen;
 		return (!strncmp (a, expr, blen));
 	}
 	return strstr (str, expr);
@@ -603,7 +604,7 @@ typedef struct {
 
 static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 	_ *o = (_*)user;
-	SdbKv tkv = { .key = k, .value = v };
+	SdbKv tkv = { .key = (char*)k, .value = (char*)v };
 	if (sdb_kv_match (&tkv, o->expr)) {
 		SdbKv *kv = R_NEW0 (SdbKv);
 		kv->key = strdup (k);
@@ -642,7 +643,6 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	char *k, *v;
 	SdbKv *kv;
 	bool found;
-	ut32 i;
 	if (!s) {
 		return false;
 	}
@@ -669,6 +669,17 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 			free (v);
 		}
 	}
+#if INSERTORDER
+	ls_foreach (s->ht->list, iter, kv) {
+		if (!kv || !kv->value || !*kv->value) {
+			continue;
+		}
+		if (!cb (user, kv->key, kv->value)) {
+			return sdb_foreach_end (s, false);
+		}
+	}
+#else
+	ut32 i;
 	for (i = 0; i < s->ht->size; i++) {
 		ls_foreach (s->ht->table[i], iter, kv) {
 			if (!kv || !kv->value || !*kv->value) {
@@ -679,6 +690,7 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 			}
 		}
 	}
+#endif
 	return sdb_foreach_end (s, true);
 }
 

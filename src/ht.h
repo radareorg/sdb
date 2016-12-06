@@ -6,6 +6,13 @@
 #include "ls.h"
 #include "types.h"
 
+/* tune the hashtable */
+#define INSERTORDER 0
+#define GROWABLE 0
+#define USE_KEYLEN 1
+#define EXCHANGE 1
+
+
 /** keyvalue pair **/
 typedef struct sdb_kv {
 	char *key;
@@ -39,6 +46,9 @@ typedef struct ht_t {
 	SdbList *deleted;
 	ut32 load_factor; // load factor before doubling in size.
 	ut32 prime_idx;
+#if INSERTORDER
+	SdbList *list;
+#endif
 } SdbHash;
 
 // Create a new RHashTable2.
