@@ -154,69 +154,7 @@ static void internal_ht_grow(SdbHash* ht) {
 }
 #endif
 
-// Inserts the key value pair key, value into the hashtable.
-// if update is true, allow for updates, otherwise return false if the key
-// already exists.
-static bool internal_ht_insert(SdbHash* ht, bool update, const char* key,
-				const char* value) {
-	if (!ht || !key || !value) {
-		return false;
-	}
-	SdbKv* kvp;
-	ut32 bucket, hash = ht->hashfn (key);
-	bool found = true;
-	if (update) {
-		(void)ht_delete_internal (ht, key, &hash);
-	} else {
-		(void)ht_find (ht, key, &found);
-	}
-	if (update || !found) {
-		kvp = calloc (1, sizeof (SdbKv));
-		if (kvp) {
-			kvp->key = ht->dupkey (key);
-			kvp->value = ht->dupvalue (value);
-			kvp->key_len = ht->calcsize (kvp->key);
-			bucket = hash % ht->size;
-			kvp->expire = 0;
-			kvp->value_len = ht->calcsize (kvp->value);
-			if (!ht->table[bucket]) {
-				ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
-			}
-			ls_prepend (ht->table[bucket], kvp);
-#if INSERTORDER
-			ls_append (ht->list, kvp);
-#endif
-			ht->count++;
-#if GROWABLE
-			// Check if we need to grow the table.
-			if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
-				if (ht->prime_idx <
-				    sizeof (ht_primes_sizes) /
-					    sizeof (ht_primes_sizes[0])) {
-					ht->prime_idx++;
-					internal_ht_grow (ht);
-				}
-			}
-#endif
-			return true;
-		}
-	}
-	return false;
-}
-
-// Inserts the key value pair key, value into the hashtable.
-// Doesn't allow for "update" of the value.
-bool ht_insert(SdbHash* ht, const char* key, const char* value) {
-	return internal_ht_insert (ht, false, key, value);
-}
-
-// Inserts the key value pair key, value into the hashtable.
-// Does allow for "update" of the value.
-bool ht_update(SdbHash* ht, const char* key, const char* value) {
-	return internal_ht_insert (ht, true, key, value);
-}
-
-bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
+static bool internal_ht_insert_kvp(SdbHash* ht, SdbKv *kvp, bool update) {
 	bool found;
 	if (!ht || !kvp) {
 		return false;
@@ -247,6 +185,46 @@ bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
 		return true;
 	}
 	return false;
+}
+
+// Inserts the key value pair key, value into the hashtable.
+// if update is true, allow for updates, otherwise return false if the key
+// already exists.
+static bool internal_ht_insert(SdbHash* ht, bool update, const char* key,
+				const char* value) {
+	if (!ht || !key || !value) {
+		return false;
+	}
+	SdbKv* kvp = calloc (1, sizeof (SdbKv));
+	if (kvp) {
+		kvp->key = ht->dupkey (key);
+		kvp->value = ht->dupvalue (value);
+		kvp->key_len = ht->calcsize (kvp->key);
+		kvp->expire = 0;
+		kvp->value_len = ht->calcsize (kvp->value);
+		if (!internal_ht_insert_kvp (ht, kvp, update)) {
+			ht->freefn (kvp);
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+// Inserts the key value pair key, value into the hashtable.
+// Doesn't allow for "update" of the value.
+bool ht_insert(SdbHash* ht, const char* key, const char* value) {
+	return internal_ht_insert (ht, false, key, value);
+}
+
+// Inserts the key value pair key, value into the hashtable.
+// Does allow for "update" of the value.
+bool ht_update(SdbHash* ht, const char* key, const char* value) {
+	return internal_ht_insert (ht, true, key, value);
+}
+
+bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
+	return internal_ht_insert_kvp (ht, kvp, update);
 }
 
 // Returns the corresponding SdbKv entry from the key.

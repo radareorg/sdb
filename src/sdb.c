@@ -487,10 +487,10 @@ SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	return kv;
 }
 
-SDB_API void sdb_kv_free (SdbKv *kv) {
+SDB_API void sdb_kv_free(SdbKv *kv) {
 	free (kv->key);
 	free (kv->value);
-	free (kv);
+	R_FREE (kv);
 }
 
 static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
