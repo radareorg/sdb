@@ -156,9 +156,10 @@ static void synchronize(int sig UNUSED) {
 	}
 }
 #endif
-
-static int sdb_grep (const char *db, int fmt, const char *grep) {
-	char *k, *v;
+static int sdb_grep_dump(const char *db, int fmt, bool grep,
+			  const char *expgrep) {
+	char *v;
+	char k[SDB_MAX_KEY] = {0};
 	const char *comma = "";
 	Sdb *s = sdb_new (NULL, db, 0);
 	if (!s) {
@@ -169,8 +170,8 @@ static int sdb_grep (const char *db, int fmt, const char *grep) {
 	if (fmt == MODE_JSON) {
 		printf ("{");
 	}
-	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
-		if (!strstr (k, grep) && !strstr (v, grep)) {
+	while (sdb_dump_dupnext (s, k, &v, NULL)) {
+		if (grep && !strstr (k, expgrep) && !strstr (v, expgrep)) {
 			continue;
 		}
 		switch (fmt) {
@@ -194,17 +195,6 @@ static int sdb_grep (const char *db, int fmt, const char *grep) {
 			printf ("%s=%s\n", k, v);
 			break;
 		}
-#if 0
-		if (qf && strchr (v, SDB_RS)) {
-			for (p=v; *p; p++)
-				if (*p==SDB_RS)
-					*p = ',';
-			printf ("[]%s=%s\n", k, v);
-		} else {
-			printf ("%s=%s\n", k, v);
-		}
-#endif
-		free (k);
 		free (v);
 	}
 	switch (fmt) {
@@ -219,65 +209,12 @@ static int sdb_grep (const char *db, int fmt, const char *grep) {
 	sdb_free (s);
 	return 0;
 }
+static int sdb_grep(const char *db, int fmt, const char *grep) {
+	return sdb_grep_dump(db, fmt, true, grep);
+}
 
-static int sdb_dump (const char *db, int fmt) {
-	char *k, *v;
-	const char *comma = "";
-	Sdb *s = sdb_new (NULL, db, 0);
-	if (!s) {
-		return 1;
-	}
-	sdb_config (s, options);
-	sdb_dump_begin (s);
-	if (fmt == MODE_JSON) {
-		printf ("{");
-	}
-	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
-		switch (fmt) {
-		case MODE_JSON:
-			if (!strcmp (v, "true") || !strcmp (v, "false")) {
-				printf ("%s\"%s\":%s", comma, k, v);
-			} else if (sdb_isnum (v)) {
-				printf ("%s\"%s\":%llu", comma, k, sdb_atoi (v));
-			} else if (*v=='{' || *v=='[') {
-				printf ("%s\"%s\":%s", comma, k, v);
-			} else {
-				printf ("%s\"%s\":\"%s\"", comma, k, v);
-			}
-			comma = ",";
-			break;
-		case MODE_ZERO:
-			printf ("%s=%s", k, v);
-			fwrite ("", 1,1, stdout);
-			break;
-		default:
-			printf ("%s=%s\n", k, v);
-			break;
-		}
-#if 0
-		if (qf && strchr (v, SDB_RS)) {
-			for (p=v; *p; p++)
-				if (*p==SDB_RS)
-					*p = ',';
-			printf ("[]%s=%s\n", k, v);
-		} else {
-			printf ("%s=%s\n", k, v);
-		}
-#endif
-		free (k);
-		free (v);
-	}
-	switch (fmt) {
-	case MODE_ZERO:
-		fflush (stdout);
-		write (1, "", 1);
-		break;
-	case MODE_JSON:
-		printf ("}\n");
-		break;
-	}
-	sdb_free (s);
-	return 0;
+static int sdb_dump(const char *db, int fmt) {
+	return sdb_grep_dump (db, fmt, false, NULL);
 }
 
 static int insertkeys(Sdb *s, const char **args, int nargs, int mode) {
@@ -406,12 +343,13 @@ static int base64decode() {
 
 static int dbdiff (const char *a, const char *b) {
 	int n = 0;
-	char *k, *v;
+	char *v;
+	char k[SDB_MAX_KEY] = {0};
 	const char *v2;
 	Sdb *A = sdb_new (NULL, a, 0);
 	Sdb *B = sdb_new (NULL, b, 0);
 	sdb_dump_begin (A);
-	while (sdb_dump_dupnext (A, &k, &v, NULL)) {
+	while (sdb_dump_dupnext (A, k, &v, NULL)) {
 		v2 = sdb_const_get (B, k, 0);
 		if (!v2) {
 			printf ("%s=\n", k);
@@ -419,7 +357,7 @@ static int dbdiff (const char *a, const char *b) {
 		}
 	}
 	sdb_dump_begin (B);
-	while (sdb_dump_dupnext (B, &k, &v, NULL)) {
+	while (sdb_dump_dupnext (B, k, &v, NULL)) {
 		if (!v || !*v) {
 			continue;
 		}
@@ -431,7 +369,6 @@ static int dbdiff (const char *a, const char *b) {
 	}
 	sdb_free (A);
 	sdb_free (B);
-	free (k);
 	free (v);
 	return n;
 }

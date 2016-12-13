@@ -25,7 +25,7 @@ SDB_API void sdb_global_hook(SdbHook hook, void *user) {
 }
 
 // TODO: use mmap instead of read.. much faster!
-SDB_API Sdb* sdb_new0 () {
+SDB_API Sdb* sdb_new0() {
 	return sdb_new (NULL, NULL, 0);
 }
 
@@ -110,7 +110,7 @@ fail:
 }
 
 // XXX: this is wrong. stuff not stored in memory is lost
-SDB_API void sdb_file (Sdb* s, const char *dir) {
+SDB_API void sdb_file(Sdb* s, const char *dir) {
 	if (s->lock) {
 		sdb_unlock (sdb_lock_file (s->dir));
 	}
@@ -147,7 +147,9 @@ SDB_API int sdb_count(Sdb *s) {
 }
 
 static void sdb_fini(Sdb* s, int donull) {
-	if (!s) return;
+	if (!s) {
+		return;
+	}
 	sdb_hook_free (s);
 	cdb_free (&s->db);
 	if (s->lock) {
@@ -173,7 +175,7 @@ static void sdb_fini(Sdb* s, int donull) {
 	}
 }
 
-SDB_API bool sdb_free (Sdb* s) {
+SDB_API bool sdb_free(Sdb* s) {
 	if (s && s->ht && s->refs) {
 		s->refs--;
 		if (s->refs < 1) {
@@ -187,7 +189,7 @@ SDB_API bool sdb_free (Sdb* s) {
 	return false;
 }
 
-SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas) {
+SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas) {
 	ut32 pos, len, keylen;
 	ut64 now = 0LL;
 	SdbKv *kv;
@@ -247,22 +249,22 @@ SDB_API const char *sdb_const_get_len (Sdb* s, const char *key, int *vlen, ut32 
 	return s->db.map + pos;
 }
 
-SDB_API const char *sdb_const_get (Sdb* s, const char *key, ut32 *cas) {
+SDB_API const char *sdb_const_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_const_get_len (s, key, NULL, cas);
 }
 
 // TODO: add sdb_getf?
 
-SDB_API char *sdb_get_len (Sdb* s, const char *key, int *vlen, ut32 *cas) {
+SDB_API char *sdb_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas) {
 	const char *value = sdb_const_get_len (s, key, vlen, cas);
 	return value ? strdup (value) : NULL;
 }
 
-SDB_API char *sdb_get (Sdb* s, const char *key, ut32 *cas) {
+SDB_API char *sdb_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_get_len (s, key, NULL, cas);
 }
 
-SDB_API int sdb_unset (Sdb* s, const char *key, ut32 cas) {
+SDB_API int sdb_unset(Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
@@ -318,14 +320,14 @@ SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 }
 
 // set if not defined
-SDB_API int sdb_add (Sdb* s, const char *key, const char *val, ut32 cas) {
+SDB_API int sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
 	if (sdb_exists (s, key)) {
 		return 0;
 	}
 	return sdb_set (s, key, val, cas);
 }
 
-SDB_API bool sdb_exists (Sdb* s, const char *key) {
+SDB_API bool sdb_exists(Sdb* s, const char *key) {
 	ut32 pos;
 	char ch;
 	SdbKv *kv;
@@ -350,7 +352,7 @@ SDB_API bool sdb_exists (Sdb* s, const char *key) {
 	return false;
 }
 
-SDB_API int sdb_open (Sdb *s, const char *file) {
+SDB_API int sdb_open(Sdb *s, const char *file) {
         struct stat st;
 	if (!s) {
 		return -1;
@@ -383,7 +385,7 @@ SDB_API int sdb_open (Sdb *s, const char *file) {
 	return s->fd;
 }
 
-SDB_API void sdb_close (Sdb *s) {
+SDB_API void sdb_close(Sdb *s) {
 	if (s) {
 		if (s->fd != -1) {
 			close (s->fd);
@@ -469,11 +471,15 @@ SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	kv = R_NEW0 (SdbKv);
 	kv->key_len = strlen (k);
 	kv->key = malloc (kv->key_len + 1);
+	if (!kv->key) {
+		return NULL;
+	}
 	memcpy (kv->key, k, kv->key_len + 1);
 	kv->value_len = vl;
 	if (vl) {
 		kv->value = malloc (vl + 1);
 		if (!kv->value) {
+			free (kv->key);
 			free (kv);
 			return NULL;
 		}
@@ -563,11 +569,11 @@ static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 
 	return 0;
 }
 
-SDB_API int sdb_set_owned (Sdb* s, const char *key, char *val, ut32 cas) {
+SDB_API int sdb_set_owned(Sdb* s, const char *key, char *val, ut32 cas) {
 	return sdb_set_internal (s, key, val, 1, cas);
 }
 
-SDB_API int sdb_set (Sdb* s, const char *key, const char *val, ut32 cas) {
+SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
 	return sdb_set_internal (s, key, (char*)val, 0, cas);
 }
 
@@ -587,7 +593,7 @@ static int __cmp_asc(const void *a, const void *b) {
 	return strcmp (ka->key, kb->key);
 }
 
-SDB_API SdbList *sdb_foreach_list (Sdb* s, bool sorted) {
+SDB_API SdbList *sdb_foreach_list(Sdb* s, bool sorted) {
 	SdbList *list = ls_newf ((SdbListFree)sdb_kv_free);
 	sdb_foreach (s, sdb_foreach_list_cb, list);
 	if (sorted) {
@@ -600,10 +606,10 @@ typedef struct {
 	const char *expr;
 	SdbList *list;
 	bool single;
-} _;
+} _match_sdb_user;
 
 static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
-	_ *o = (_*)user;
+	_match_sdb_user *o = (_match_sdb_user*)user;
 	SdbKv tkv = { .key = (char*)k, .value = (char*)v };
 	if (sdb_kv_match (&tkv, o->expr)) {
 		SdbKv *kv = R_NEW0 (SdbKv);
@@ -617,9 +623,9 @@ static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 	return 1;
 }
 
-SDB_API SdbList *sdb_foreach_match (Sdb* s, const char *expr, bool single) {
+SDB_API SdbList *sdb_foreach_match(Sdb* s, const char *expr, bool single) {
 	SdbList *list = ls_newf ((SdbListFree)sdb_kv_free);
-	_ o = { expr, list, single };
+	_match_sdb_user o = { expr, list, single };
 	sdb_foreach (s, sdb_foreach_match_cb, &o);
 #if 0
 	// TODO. add sorted ? wtf
@@ -630,17 +636,18 @@ SDB_API SdbList *sdb_foreach_match (Sdb* s, const char *expr, bool single) {
 	return list;
 }
 
-static bool sdb_foreach_end (Sdb *s, bool result) {
+static bool sdb_foreach_end(Sdb *s, bool result) {
 	s->depth--;
-	if (s->depth == 0) {
+	if (!s->depth) {
 		ht_free_deleted (s->ht);
 	}
 	return result;
 }
 
-SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
+SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	SdbListIter *iter;
-	char *k, *v;
+	char *v;
+	char k[SDB_MAX_KEY] = {0};
 	SdbKv *kv;
 	bool found;
 	if (!s) {
@@ -648,11 +655,11 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	}
 	s->depth++;
 	sdb_dump_begin (s);
-	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
+	while (sdb_dump_dupnext (s, k, &v, NULL)) {
 		SdbKv *kv = ht_find_kvp (s->ht, k, &found);
 		// TODO avoid using the heap for k/v allocations
+		// XXX alvaro: the key can be used without malloc in sdb_dump_dupnext
 		if (found) {
-			free (k);
 			free (v);
 			if (*kv->key && *kv->value) {
 				if (!cb (user, kv->key, kv->value)) {
@@ -661,11 +668,9 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 			}
 		} else {
 			if (!cb (user, k, v)) {
-				free (k);
 				free (v);
 				return sdb_foreach_end (s, false);
 			}
-			free (k);
 			free (v);
 		}
 	}
@@ -694,9 +699,10 @@ SDB_API bool sdb_foreach (Sdb* s, SdbForeachCallback cb, void *user) {
 	return sdb_foreach_end (s, true);
 }
 
-SDB_API bool sdb_sync (Sdb* s) {
+SDB_API bool sdb_sync(Sdb* s) {
 	SdbListIter it, *iter;
-	char *k, *v;
+	char *v;
+	char k[SDB_MAX_KEY] = {0};
 	SdbKv *kv;
 	bool found;
 	ut32 i;
@@ -707,7 +713,7 @@ SDB_API bool sdb_sync (Sdb* s) {
 // TODO: use sdb_foreach here
 	sdb_dump_begin (s);
 	/* iterate over all keys in disk database */
-	while (sdb_dump_dupnext (s, &k, &v, NULL)) {
+	while (sdb_dump_dupnext (s, k, &v, NULL)) {
 		/* find that key in the memory storage */
 		kv = ht_find_kvp (s->ht, k, &found);
 		if (found) {
@@ -721,7 +727,6 @@ SDB_API bool sdb_sync (Sdb* s) {
 		} else if (v && *v) {
 			sdb_disk_insert (s, k, v);
 		}
-		free (k);
 		free (v);
 	}
 	/* append new keyvalues */
@@ -942,7 +947,7 @@ SDB_API bool sdb_unhook(Sdb* s, SdbHook h) {
 	SdbHook hook;
 	SdbListIter *iter, *iter2;
 	ls_foreach (s->hooks, iter, hook) {
-		if (!(i%2) && (hook == h)) {
+		if (!(i % 2) && (hook == h)) {
 			iter2 = iter->n;
 			ls_delete (s->hooks, iter);
 			ls_delete (s->hooks, iter2);
@@ -998,7 +1003,7 @@ SDB_API void sdb_config(Sdb *s, int options) {
 	}
 }
 
-SDB_API int sdb_unlink (Sdb* s) {
+SDB_API int sdb_unlink(Sdb* s) {
 	sdb_fini (s, 1);
 	return sdb_disk_unlink (s);
 }

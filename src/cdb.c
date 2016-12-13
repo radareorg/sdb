@@ -76,6 +76,9 @@ bool cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
 		if ((pos > c->size) || (c->size - pos < len)) {
 			return false;
 		}
+		if (!buf) {
+			return false;
+		}
 		memcpy (buf, c->map + pos, len);
 		return true;
 	}
@@ -158,12 +161,6 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 		}
 		ut32_unpack (buf, &u);
 		if (u == c->khash) {
-#if 0
-			//cdb_getkvlen takes care of seek
-			if (!seek_set (c->fd, pos)) {
-				return -1;
-			}
-#endif
 			if (!cdb_getkvlen (c, &u, &c->dlen, pos) || !u) {
 				return -1;
 			}
