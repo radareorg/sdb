@@ -761,11 +761,12 @@ SDB_API void sdb_dump_begin(Sdb* s) {
 	}
 }
 
-SDB_API SdbKv *sdb_dump_next (Sdb* s) {
-	char *k = NULL, *v = NULL;
+SDB_API SdbKv *sdb_dump_next(Sdb* s) {
+	char *v = NULL;
+	char k[SDB_MAX_KEY] = {0};
 	int vl = 0;
 	// we dont need to malloc, because all values are null terminated in memory.
-	if (!sdb_dump_dupnext (s, &k, &v, &vl)) {
+	if (!sdb_dump_dupnext (s, k, &v, &vl)) {
 		return NULL;
 	}
 	vl--;
@@ -811,11 +812,8 @@ SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
 }
 
 // TODO: make it static? internal api?
-SDB_API bool sdb_dump_dupnext(Sdb* s, char **key, char **value, int *_vlen) {
+SDB_API bool sdb_dump_dupnext(Sdb* s, char *key, char **value, int *_vlen) {
 	ut32 vlen = 0, klen = 0;
-	if (key) {
-		*key = NULL;
-	}
 	if (value) {
 		*value = NULL;
 	}
@@ -833,18 +831,12 @@ SDB_API bool sdb_dump_dupnext(Sdb* s, char **key, char **value, int *_vlen) {
 		*_vlen = vlen;
 	}
 	if (key) {
-		*key = 0;
+		key[0] = 0;
 		if (klen > SDB_MIN_KEY && klen < SDB_MAX_KEY) {
-			*key = malloc (klen + 1);
-			if (!*key) {
+			if (getbytes (s, key, klen) == -1) {
 				return 0;
 			}
-			if (getbytes (s, *key, klen) == -1) {
-				free (*key);
-				*key = NULL;
-				return 0;
-			}
-			(*key)[klen] = 0;
+			key[klen] = 0;
 		}
 	}
 	if (value) {
@@ -852,17 +844,9 @@ SDB_API bool sdb_dump_dupnext(Sdb* s, char **key, char **value, int *_vlen) {
 		if (vlen >= SDB_MIN_VALUE && vlen < SDB_MAX_VALUE) {
 			*value = malloc (vlen + 10);
 			if (!*value) {
-				if (key) {
-					free (*key);
-					*key = NULL;
-				}
 				return false;
 			}
 			if (getbytes (s, *value, vlen) == -1) {
-				if (key) {
-					free (*key);
-					*key = NULL;
-				}
 				free (*value);
 				*value = NULL;
 				return false;
