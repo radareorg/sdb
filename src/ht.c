@@ -24,12 +24,16 @@ const int ht_primes_sizes[] = {
 // Create a new hashtable and return a pointer to it.
 // size - number of buckets in the hashtable
 // hashfunction - the function that does the hashing, must not be null.
-// comparator - the function to check if values are equal, if NULL, just checks == (for storing ints).
+// comparator - the function to check if values are equal, if NULL, just checks
+// == (for storing ints).
 // keydup - function to duplicate to key (eg strdup), if NULL just does =.
 // valdup - same as keydup, but for values
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.
-static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction, ListComparator comparator, DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize) {
+static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
+				 ListComparator comparator, DupKey keydup,
+				 DupValue valdup, HtKvFreeFunc pair_free,
+				 CalcSize calcsize) {
 	SdbHash* ht = calloc (1, sizeof (*ht));
 	if (!ht) {
 		return NULL;
@@ -153,13 +157,13 @@ static void internal_ht_grow(SdbHash* ht) {
 // Inserts the key value pair key, value into the hashtable.
 // if update is true, allow for updates, otherwise return false if the key
 // already exists.
-static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const char* value) {
+static bool internal_ht_insert(SdbHash* ht, bool update, const char* key,
+				const char* value) {
 	if (!ht || !key || !value) {
 		return false;
 	}
 	SdbKv* kvp;
-	ut32 hash = ht->hashfn (key);
-	ut32 bucket;
+	ut32 bucket, hash = ht->hashfn (key);
 	bool found = true;
 	if (update) {
 		(void)ht_delete_internal (ht, key, &hash);
@@ -186,7 +190,9 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key, const 
 #if GROWABLE
 			// Check if we need to grow the table.
 			if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
-				if (ht->prime_idx < sizeof (ht_primes_sizes) / sizeof (ht_primes_sizes[0])) {
+				if (ht->prime_idx <
+				    sizeof (ht_primes_sizes) /
+					    sizeof (ht_primes_sizes[0])) {
 					ht->prime_idx++;
 					internal_ht_grow (ht);
 				}
