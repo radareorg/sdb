@@ -10,8 +10,6 @@
 #define CDB_MAX_KEY 0xff
 #define CDB_MAX_VALUE 0xffffff
 
-/* TODO THIS MUST GTFO! */
-bool cdb_getkvlen(int fd, ut32 *klen, ut32 *vlen);
 #define CDB_HASHSTART 5381
 
 struct cdb {
@@ -27,6 +25,8 @@ struct cdb {
 	ut32 dlen;   /* initialized if cdb_findnext() returns 1 */
 };
 
+/* TODO THIS MUST GTFO! */
+bool cdb_getkvlen(struct cdb *db, ut32 *klen, ut32 *vlen, ut32 pos);
 void cdb_free(struct cdb *);
 bool cdb_init(struct cdb *, int fd);
 void cdb_findstart(struct cdb *);
