@@ -9,10 +9,10 @@
 #endif
 
 /* XXX: this code must be rewritten . too slow */
-bool cdb_getkvlen(int fd, ut32 *klen, ut32 *vlen) {
+bool cdb_getkvlen(struct cdb *c, ut32 *klen, ut32 *vlen, ut32 pos) {
 	ut8 buf[4] = { 0 };
 	*klen = *vlen = 0;
-	if (fd == -1 || read (fd, buf, sizeof (buf)) != sizeof (buf)) {
+	if (!cdb_read (c, (char *)buf, sizeof (buf), pos)) {
 		return false;
 	}
 	*klen = (ut32)buf[0];
@@ -79,7 +79,7 @@ bool cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
 		memcpy (buf, c->map + pos, len);
 		return true;
 	}
-	if (!seek_set (c->fd, pos)) {
+	if (c->fd == -1 || !seek_set (c->fd, pos)) {
 		return false;
 	}
 	while (len > 0) {
@@ -158,10 +158,13 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 		}
 		ut32_unpack (buf, &u);
 		if (u == c->khash) {
+#if 0
+			//cdb_getkvlen takes care of seek
 			if (!seek_set (c->fd, pos)) {
 				return -1;
 			}
-			if (!cdb_getkvlen (c->fd, &u, &c->dlen) || !u) {
+#endif
+			if (!cdb_getkvlen (c, &u, &c->dlen, pos) || !u) {
 				return -1;
 			}
 			if (u == len) {

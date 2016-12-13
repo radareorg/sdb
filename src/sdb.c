@@ -745,14 +745,14 @@ SDB_API bool sdb_sync (Sdb* s) {
 
 // TODO: optimize: do not use syscalls here. we can just do mmap and pointer arithmetics
 static int getbytes(Sdb *s, char *b, int len) {
-	if (read (s->fd, b, len) != len) {
+	if (!cdb_read (&s->db, b, len, s->pos)) {
 		return -1;
 	}
 	s->pos += len;
 	return len;
 }
 
-SDB_API void sdb_dump_begin (Sdb* s) {
+SDB_API void sdb_dump_begin(Sdb* s) {
 	if (s->fd != -1) {
 		s->pos = sizeof (((struct cdb_make *)0)->final);
 		seek_set (s->fd, s->pos);
@@ -778,18 +778,12 @@ SDB_API SdbKv *sdb_dump_next (Sdb* s) {
 	return &s->tmpkv;
 }
 
-SDB_API bool sdb_dump_hasnext (Sdb* s) {
+SDB_API bool sdb_dump_hasnext(Sdb* s) {
 	ut32 k, v;
-	if (s->fd == -1) {
-		return false;
-	}
-	if (!cdb_getkvlen (s->fd, &k, &v)) {
+	if (!cdb_getkvlen (&s->db, &k, &v, s->pos)) {
 		return false;
 	}
 	if (k < 1 || v < 1) {
-		return false;
-	}
-	if (lseek (s->fd, k + v, SEEK_CUR) == -1) {
 		return false;
 	}
 	s->pos += k + v + 4;
@@ -828,12 +822,10 @@ SDB_API bool sdb_dump_dupnext(Sdb* s, char **key, char **value, int *_vlen) {
 	if (_vlen) {
 		*_vlen = 0;
 	}
-	if (s->fd == -1) {
+	if (!cdb_getkvlen (&s->db, &klen, &vlen, s->pos)) {
 		return false;
 	}
-	if (!cdb_getkvlen (s->fd, &klen, &vlen)) {
-		return false;
-	}
+	s->pos += 4;
 	if (klen < 1 || vlen < 1) {
 		return false;
 	}
@@ -878,7 +870,6 @@ SDB_API bool sdb_dump_dupnext(Sdb* s, char **key, char **value, int *_vlen) {
 			(*value)[vlen] = 0;
 		}
 	}
-	s->pos += 4; // XXX no.
 	return true;
 }
 
