@@ -4,21 +4,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-static const char *sdb_journal_filename (Sdb *s) {
+static const char *sdb_journal_filename(Sdb *s) {
 	return (s && s->name)
 		? sdb_fmt (0, "%s.journal", s->name)
 		: NULL;
 }
 
 SDB_API bool sdb_journal_close(Sdb *s) {
-	const char *filename;
 	if (s->journal == -1) {
 		return false;
 	}
 	close (s->journal);
 	s->journal = -1;
-	filename = sdb_journal_filename (s);
-	unlink (filename);
+	unlink (sdb_journal_filename (s));
 	return true;
 }
 

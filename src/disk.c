@@ -21,33 +21,33 @@
 #endif
 
 static inline int r_sys_mkdirp(char *dir) {
-        int ret = 1;
-        const char slash = DIRSEP;
-        char *path = dir;
+	int ret = 1;
+	const char slash = DIRSEP;
+	char *path = dir;
 	char *ptr = path;
-        if (*ptr == slash) {
+	if (*ptr == slash) {
 		ptr++;
 	}
 #if __WINDOWS__
         char *p = strstr (ptr, ":\\");
-        if (p) {
-		ptr = p + 2;
-	}
+		if (p) {
+			ptr = p + 2;
+		}
 #endif
-        while ((ptr = strchr (ptr, slash))) {
-                *ptr = 0;
-                if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
-                        eprintf ("r_sys_mkdirp: fail '%s' of '%s'\n", path, dir);
+		while ((ptr = strchr (ptr, slash))) {
+			*ptr = 0;
+			if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
+				eprintf ("r_sys_mkdirp: fail '%s' of '%s'\n", path, dir);
+				*ptr = slash;
+				return 0;
+			}
 			*ptr = slash;
-                        return 0;
-                }
-                *ptr = slash;
-                ptr++;
-        }
-        return ret;
+			ptr++;
+		}
+		return ret;
 }
 
-SDB_API bool sdb_disk_create (Sdb* s) {
+SDB_API bool sdb_disk_create(Sdb* s) {
 	int nlen;
 	char *str;
 	const char *dir;
@@ -58,8 +58,7 @@ SDB_API bool sdb_disk_create (Sdb* s) {
 		s->dir = strdup (s->name);
 	}
 	dir = s->dir ? s->dir : "./";
-	free (s->ndump);
-	s->ndump = NULL;
+	R_FREE (s->ndump);
 	nlen = strlen (dir);
 	str = malloc (nlen + 5);
 	if (!str) {

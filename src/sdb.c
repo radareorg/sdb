@@ -29,7 +29,7 @@ SDB_API Sdb* sdb_new0 () {
 	return sdb_new (NULL, NULL, 0);
 }
 
-SDB_API Sdb* sdb_new (const char *path, const char *name, int lock) {
+SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	Sdb* s = R_NEW0 (Sdb);
 	if (!s) {
 		return NULL;
@@ -493,7 +493,7 @@ SDB_API void sdb_kv_free (SdbKv *kv) {
 	free (kv);
 }
 
-static int sdb_set_internal (Sdb* s, const char *key, char *val, int owned, ut32 cas) {
+static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
 	ut32 vlen, klen;
 	SdbKv *kv;
 	bool found;
@@ -817,7 +817,7 @@ SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
 }
 
 // TODO: make it static? internal api?
-SDB_API bool sdb_dump_dupnext (Sdb* s, char **key, char **value, int *_vlen) {
+SDB_API bool sdb_dump_dupnext(Sdb* s, char **key, char **value, int *_vlen) {
 	ut32 vlen = 0, klen = 0;
 	if (key) {
 		*key = NULL;
