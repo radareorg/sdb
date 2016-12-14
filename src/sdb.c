@@ -636,6 +636,14 @@ SDB_API SdbList *sdb_foreach_match(Sdb* s, const char *expr, bool single) {
 	return list;
 }
 
+static int getbytes(Sdb *s, char *b, int len) {
+	if (!cdb_read (&s->db, b, len, s->pos)) {
+		return -1;
+	}
+	s->pos += len;
+	return len;
+}
+
 static bool sdb_foreach_end(Sdb *s, bool result) {
 	s->depth--;
 	if (!s->depth) {
@@ -644,35 +652,47 @@ static bool sdb_foreach_end(Sdb *s, bool result) {
 	return result;
 }
 
-SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
-	SdbListIter *iter;
-	char *v;
+static bool sdb_foreach_cdb(Sdb *s, SdbForeachCallback cb,
+			     SdbForeachCallback cb2, void *user) {
+	char *v = NULL;
 	char k[SDB_MAX_KEY] = {0};
-	SdbKv *kv;
 	bool found;
-	if (!s) {
-		return false;
-	}
-	s->depth++;
 	sdb_dump_begin (s);
 	while (sdb_dump_dupnext (s, k, &v, NULL)) {
 		SdbKv *kv = ht_find_kvp (s->ht, k, &found);
-		// TODO avoid using the heap for k/v allocations
-		// XXX alvaro: the key can be used without malloc in sdb_dump_dupnext
 		if (found) {
 			free (v);
-			if (*kv->key && *kv->value) {
+			if (kv && kv->key && kv->value) {
 				if (!cb (user, kv->key, kv->value)) {
-					return sdb_foreach_end (s, false);
+					free (v);
+					return false;
+				}
+				if (cb2) {
+					cb2 (user, k, kv->value);
 				}
 			}
 		} else {
 			if (!cb (user, k, v)) {
 				free (v);
-				return sdb_foreach_end (s, false);
+				return false;
 			}
 			free (v);
 		}
+	}
+	return true;
+}
+
+SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
+	SdbListIter *iter;
+	SdbKv *kv;
+	bool result;
+	if (!s) {
+		return false;
+	}
+	s->depth++;
+	result = sdb_foreach_cdb (s, cb, NULL, user);
+	if (!result) {
+		return sdb_foreach_end (s, false);
 	}
 #if INSERTORDER
 	ls_foreach (s->ht->list, iter, kv) {
@@ -699,43 +719,43 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	return sdb_foreach_end (s, true);
 }
 
+static int _insert_into_disk(void *user, const char *key, const char *value) {
+	Sdb *s = (Sdb *)user;
+	if (s) {
+		sdb_disk_insert (s, key, value);
+		return true;
+	}
+	return false;
+}
+
+static int _remove_afer_insert(void *user, const char *k, const char *v) {
+	Sdb *s = (Sdb *)user;
+	if (s) {
+		ht_delete (s->ht, k);
+		return true;
+	}
+	return false;
+}
+
 SDB_API bool sdb_sync(Sdb* s) {
 	SdbListIter it, *iter;
-	char *v;
-	char k[SDB_MAX_KEY] = {0};
 	SdbKv *kv;
-	bool found;
+	bool result;
 	ut32 i;
 
 	if (!s || !sdb_disk_create (s)) {
 		return false;
 	}
-// TODO: use sdb_foreach here
-	sdb_dump_begin (s);
-	/* iterate over all keys in disk database */
-	while (sdb_dump_dupnext (s, k, &v, NULL)) {
-		/* find that key in the memory storage */
-		kv = ht_find_kvp (s->ht, k, &found);
-		if (found) {
-			if (kv && kv->value && *kv->value) {
-				/* asume k = kv->key */
-				sdb_disk_insert (s, k, kv->value);
-			}
-			// XXX: This fails if key is dupped
-			//else printf ("remove (%s)\n", kv->key);
-			ht_delete (s->ht, k);
-		} else if (v && *v) {
-			sdb_disk_insert (s, k, v);
-		}
-		free (v);
+	result = sdb_foreach_cdb (s, _insert_into_disk, _remove_afer_insert, s);
+	if (!result) {
+		return false;
 	}
 	/* append new keyvalues */
 	for (i = 0; i < s->ht->size; ++i) {
 		ls_foreach (s->ht->table[i], iter, kv) {
-			if (kv->key && kv->value && *kv->value && kv->expire == 0LL) {
+			if (kv->key && kv->value && *kv->value && !kv->expire) {
 				if (sdb_disk_insert (s, kv->key, kv->value)) {
 					it.n = iter->n;
-					//sdb_unset (s, kv->key, 0);
 					sdb_remove (s, kv->key, 0);
 					iter = &it;
 				}
@@ -746,15 +766,6 @@ SDB_API bool sdb_sync(Sdb* s) {
 	sdb_journal_clear (s);
 	// TODO: sdb_reset memory state?
 	return true;
-}
-
-// TODO: optimize: do not use syscalls here. we can just do mmap and pointer arithmetics
-static int getbytes(Sdb *s, char *b, int len) {
-	if (!cdb_read (&s->db, b, len, s->pos)) {
-		return -1;
-	}
-	s->pos += len;
-	return len;
 }
 
 SDB_API void sdb_dump_begin(Sdb* s) {

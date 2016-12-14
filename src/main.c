@@ -210,7 +210,7 @@ static int sdb_grep_dump(const char *db, int fmt, bool grep,
 	return 0;
 }
 static int sdb_grep(const char *db, int fmt, const char *grep) {
-	return sdb_grep_dump(db, fmt, true, grep);
+	return sdb_grep_dump (db, fmt, true, grep);
 }
 
 static int sdb_dump(const char *db, int fmt) {
