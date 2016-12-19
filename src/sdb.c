@@ -909,7 +909,7 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	}
 	pos = cdb_datapos (&s->db);
 	len = cdb_datalen (&s->db);
-	if (len < 1 || len == UT32_MAX) {
+	if (len < 1 || len >= INT32_MAX) {
 		return false;
 	}
 	if (!(buf = calloc (1, len + 1))) {
