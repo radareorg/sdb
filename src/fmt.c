@@ -8,7 +8,7 @@
 // TODO: Add 'a' format for array of pointers null terminated??
 // XXX SLOW CONCAT
 #define concat(x) if (x) { \
-	int size = 2+strlen(x)+(out?strlen(out)+4:0); \
+	int size = 2+strlen(x?x:"")+(out?strlen(out)+4:0); \
 	if (out) { char *o = realloc (out, size); \
 		if (o) {\
 			strcat (o, ",");\

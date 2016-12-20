@@ -788,7 +788,6 @@ SDB_API SdbKv *sdb_dump_next(Sdb* s) {
 	vl--;
 	strncpy (s->tmpkv.key, k, SDB_KSZ - 1);
 	s->tmpkv.key[SDB_KSZ - 1] = '\0';
-	free (k);
 	free (s->tmpkv.value);
 	s->tmpkv.value = v;
 	s->tmpkv.value_len = vl;
