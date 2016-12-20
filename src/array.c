@@ -651,7 +651,11 @@ SDB_API void sdb_array_sort(Sdb *s, const char *key, ut32 cas) {
 		nstr += j;
 		*(nstr++) = SDB_RS;
 	}
-	*(--nstr) = '\0';
+	if (nstr > str) {
+		*(--nstr) = '\0';
+	} else {
+		*nstr = '\0';
+	}
 	sdb_set_owned (s, key, str, cas);
 	free (strs);
 }
