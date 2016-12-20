@@ -32,15 +32,19 @@ static StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl) {
 		sb->buf = b;
 		sb->size = newsize;
 	}
-	memcpy (sb->buf + sb->len, str, len);
-	sb->len += len;
+	if (sb->buf && str) {
+		memcpy (sb->buf + sb->len, str, len);
+		sb->len += len;
+	}
 #if NEWLINE_AFTER_QUERY
-	if (nl) {
+	if (sb->buf && nl) {
 		sb->buf[sb->len++] = '\n';
 		len++;
 	}
 #endif
-	sb->buf[sb->len] = 0;
+	if (sb->buf) {
+		sb->buf[sb->len] = 0;
+	}
 	return sb;
 }
 
