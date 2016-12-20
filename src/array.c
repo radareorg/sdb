@@ -169,7 +169,8 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val,
 		ptr = (char *)Aindexof (nstr, idx);
 		if (ptr) {
 			int lptr = (nstr + lstr + 1) - ptr;
-			*(ptr - 1) = 0;
+			char *p_1 = ptr > nstr? ptr - 1: ptr;
+			*p_1 = 0;
 			lnstr = ptr - nstr - 1;
 			memcpy (x, nstr, lnstr);
 			x[lnstr] = SDB_RS;
