@@ -472,6 +472,7 @@ SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	kv->key_len = strlen (k);
 	kv->key = malloc (kv->key_len + 1);
 	if (!kv->key) {
+		free (kv);
 		return NULL;
 	}
 	memcpy (kv->key, k, kv->key_len + 1);
