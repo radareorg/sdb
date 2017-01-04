@@ -34,14 +34,18 @@
 
 #include <inttypes.h>
 #if __CYGWIN__
-#define USE_MMAN 1
+#define HAVE_MMAN 1
 #define ULLFMT "ll"
 #elif __SDB_WINDOWS__
-#define USE_MMAN 0
+#define HAVE_MMAN 0
 #define ULLFMT "I64"
 #else
 #define ULLFMT "ll"
-#define USE_MMAN 1
+#define HAVE_MMAN 1
+#endif
+
+#ifndef USE_MMAN
+#define USE_MMAN HAVE_MMAN
 #endif
 
 #include <unistd.h>
