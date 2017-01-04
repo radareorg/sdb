@@ -34,6 +34,7 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	if (!s) {
 		return NULL;
 	}
+	s->db.fd = -1;
 	s->fd = -1;
 	s->refs = 1;
 	if (path && !*path) {
