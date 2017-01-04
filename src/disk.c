@@ -29,22 +29,22 @@ static inline int r_sys_mkdirp(char *dir) {
 		ptr++;
 	}
 #if __WINDOWS__
-        char *p = strstr (ptr, ":\\");
-		if (p) {
-			ptr = p + 2;
-		}
+	char *p = strstr (ptr, ":\\");
+	if (p) {
+		ptr = p + 2;
+	}
 #endif
-		while ((ptr = strchr (ptr, slash))) {
-			*ptr = 0;
-			if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
-				eprintf ("r_sys_mkdirp: fail '%s' of '%s'\n", path, dir);
-				*ptr = slash;
-				return 0;
-			}
+	while ((ptr = strchr (ptr, slash))) {
+		*ptr = 0;
+		if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
+			eprintf ("r_sys_mkdirp: fail '%s' of '%s'\n", path, dir);
 			*ptr = slash;
-			ptr++;
+			return 0;
 		}
-		return ret;
+		*ptr = slash;
+		ptr++;
+	}
+	return ret;
 }
 
 SDB_API bool sdb_disk_create(Sdb* s) {
@@ -92,7 +92,7 @@ SDB_API int sdb_disk_insert(Sdb* s, const char *key, const char *val) {
 
 #define IFRET(x) if (x) ret = 0
 SDB_API bool sdb_disk_finish (Sdb* s) {
-	int reopen = 0, ret = true;
+	bool reopen = false, ret = true;
 	IFRET (!cdb_make_finish (&s->m));
 #if USE_MMAN
 	IFRET (fsync (s->fdump));
@@ -103,7 +103,7 @@ SDB_API bool sdb_disk_finish (Sdb* s) {
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
-		reopen = 1;
+		reopen = true;
 	}
 #if __SDB_WINDOWS__
 	if (MoveFileEx (s->ndump, s->dir, MOVEFILE_REPLACE_EXISTING)) {
@@ -117,7 +117,7 @@ SDB_API bool sdb_disk_finish (Sdb* s) {
 	free (s->ndump);
 	s->ndump = NULL;
 	// reopen if was open before
-	reopen = 1; // always reopen if possible
+	reopen = true; // always reopen if possible
 	if (reopen) {
 		int rr = sdb_open (s, s->dir);
 		if (ret && rr < 0) {
