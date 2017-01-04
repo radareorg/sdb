@@ -18,7 +18,7 @@ bool test_sdb_array_push_pop(void) {
 	p = sdb_array_pop (db, "foo", NULL);
 	mu_assert_streq (p, "foo", "foo was not at the top");
 	p = sdb_array_pop (db, "foo", NULL);
-	mu_assert_eq ((int)p, (int)NULL, "there shouldn't be any element in the array");
+	mu_assert_eq ((int)(size_t)p, (int)(size_t)NULL, "there shouldn't be any element in the array");
 
 	sdb_free (db);
 	mu_end;
@@ -38,7 +38,7 @@ bool test_sdb_array_add_remove(void) {
 	mu_assert_streq (sdb_const_get (db, "foo", 0), "foo,cow", "nothing should be deleted");
 	sdb_array_remove (db, "foo", "cow", 0);
 	sdb_array_remove (db, "foo", "foo", 0);
-	mu_assert_eq ((int)sdb_const_get (db, "foo", 0), (int)NULL, "all elements should be deleted");
+	mu_assert_eq ((size_t)(int)sdb_const_get (db, "foo", 0), (size_t)(int)NULL, "all elements should be deleted");
 
 	sdb_free (db);
 	mu_end;

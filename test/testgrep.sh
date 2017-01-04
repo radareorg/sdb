@@ -1,6 +1,7 @@
 #!/bin/sh
 # proof that grep is faster than sdb
 
+PATH="../src:$PATH"
 printf "\033[33m[+] Creating test database...  \033[0m"
 sh add10k.sh > /dev/null 2>&1
 echo "DONE"
