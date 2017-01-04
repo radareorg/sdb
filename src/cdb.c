@@ -38,6 +38,11 @@ void cdb_free(struct cdb *c) {
 
 void cdb_findstart(struct cdb *c) {
 	c->loop = 0;
+#if !USE_MMAN
+	if (c->fd != -1) {
+		lseek (c->fd, 0, SEEK_SET);
+	}
+#endif
 }
 
 bool cdb_init(struct cdb *c, int fd) {
