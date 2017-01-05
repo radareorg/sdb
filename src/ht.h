@@ -12,19 +12,20 @@
 #define USE_KEYLEN 1
 #define EXCHANGE 1
 
-typedef void (*HtKvFreeFunc)(void*);
-typedef char* (*DupKey)(void *);
-typedef char* (*DupValue)(void *);
-typedef size_t (*CalcSize)(void *);
-typedef ut32 (*HashFunction)(const char*);
-typedef int (*ListComparator)(const char *a, const char *b);
-
 typedef struct ht_kv {
 	char *key;
 	void *value;
 	ut32 key_len;
 	ut32 value_len;
 } HtKv;
+
+typedef void (*HtKvFreeFunc)(HtKv *);
+typedef char* (*DupKey)(void *);
+typedef char* (*DupValue)(void *);
+typedef size_t (*CalcSize)(void *);
+typedef ut32 (*HashFunction)(const char*);
+typedef int (*ListComparator)(const char *a, const char *b);
+
 
 /** ht **/
 typedef struct ht_t {
