@@ -2,59 +2,59 @@
 #include <sdb.h>
 
 bool test_ht_insert_lookup(void) {
-	SdbHash *ht = ht_new ();
-	ht_insert (ht, "AAAA", "vAAAA");
-	ht_insert (ht, "BBBB", "vBBBB");
-	ht_insert (ht, "CCCC", "vCCCC");
+	SdbHash *ht = sdb_ht_new ();
+	sdb_ht_insert (ht, "AAAA", "vAAAA");
+	sdb_ht_insert (ht, "BBBB", "vBBBB");
+	sdb_ht_insert (ht, "CCCC", "vCCCC");
 
-	mu_assert_streq (ht_find (ht, "BBBB", NULL), "vBBBB", "BBBB value wrong");
-	mu_assert_streq (ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA value wrong");
-	mu_assert_streq (ht_find (ht, "CCCC", NULL), "vCCCC", "CCCC value wrong");
+	mu_assert_streq (sdb_ht_find (ht, "BBBB", NULL), "vBBBB", "BBBB value wrong");
+	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA value wrong");
+	mu_assert_streq (sdb_ht_find (ht, "CCCC", NULL), "vCCCC", "CCCC value wrong");
 
-	ht_free (ht);
+	sdb_ht_free (ht);
 	mu_end;
 }
 
 bool test_ht_update_lookup(void) {
-	SdbHash *ht = ht_new ();
-	ht_insert (ht, "AAAA", "vAAAA");
-	ht_insert (ht, "BBBB", "vBBBB");
+	SdbHash *ht = sdb_ht_new ();
+	sdb_ht_insert (ht, "AAAA", "vAAAA");
+	sdb_ht_insert (ht, "BBBB", "vBBBB");
 
 	// test update to add a new element
-	ht_update (ht, "CCCC", "vCCCC");
-	mu_assert_streq (ht_find (ht, "CCCC", NULL), "vCCCC", "CCCC value wrong");
+	sdb_ht_update (ht, "CCCC", "vCCCC");
+	mu_assert_streq (sdb_ht_find (ht, "CCCC", NULL), "vCCCC", "CCCC value wrong");
 
 	// test update to replace an existing element
-	ht_update (ht, "AAAA", "vDDDD");
-	mu_assert_streq (ht_find (ht, "AAAA", NULL), "vDDDD", "DDDD value wrong");
+	sdb_ht_update (ht, "AAAA", "vDDDD");
+	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vDDDD", "DDDD value wrong");
 
-	ht_free (ht);
+	sdb_ht_free (ht);
 	mu_end;
 }
 
 bool test_ht_delete(void) {
-	SdbHash *ht = ht_new ();
+	SdbHash *ht = sdb_ht_new ();
 	mu_assert ("nothing should be deleted", !ht_delete (ht, "non existing"));
 
-	ht_insert (ht, "AAAA", "vAAAA");
+	sdb_ht_insert (ht, "AAAA", "vAAAA");
 	mu_assert ("AAAA should be deleted", ht_delete (ht, "AAAA"));
 	mu_assert ("AAAA still there", !ht_find (ht, "AAAA", NULL));
 
-	ht_free (ht);
+	sdb_ht_free (ht);
 	mu_end;
 }
 
 bool test_ht_insert_kvp(void) {
-	SdbHash *ht = ht_new ();
+	SdbHash *ht = sdb_ht_new ();
 	SdbKv *kv = sdb_kv_new ("AAAA", "vAAAA");
-	mu_assert ("AAAA shouldn't exist", !ht_find_kvp (ht, "AAAA", NULL));
-	ht_insert_kvp (ht, kv, false);
-	mu_assert ("AAAA should exist", ht_find_kvp (ht, "AAAA", NULL));
+	mu_assert ("AAAA shouldn't exist", !sdb_ht_find_kvp (ht, "AAAA", NULL));
+	sdb_ht_insert_kvp (ht, kv, false);
+	mu_assert ("AAAA should exist", sdb_ht_find_kvp (ht, "AAAA", NULL));
 	SdbKv *kv2 = sdb_kv_new ("AAAA", "vNEWAAAA");
-	mu_assert ("AAAA shouldn't be replaced", !ht_insert_kvp (ht, kv2, false));
-	mu_assert ("AAAA should be replaced", ht_insert_kvp (ht, kv2, true));
+	mu_assert ("AAAA shouldn't be replaced", !sdb_ht_insert_kvp (ht, kv2, false));
+	mu_assert ("AAAA should be replaced", sdb_ht_insert_kvp (ht, kv2, true));
 
-	SdbKv *foundkv = ht_find_kvp (ht, "AAAA", NULL);
+	SdbKv *foundkv = sdb_ht_find_kvp (ht, "AAAA", NULL);
 	mu_assert_streq (foundkv->value, "vNEWAAAA", "vNEWAAAA should be there");
 
 	ht_free (ht);
@@ -66,17 +66,17 @@ ut32 create_collision(const char *key) {
 }
 
 bool test_ht_insert_collision(void) {
-	SdbHash *ht = ht_new ();
+	SdbHash *ht = sdb_ht_new ();
 	ht->hashfn = create_collision;
 	ht_insert (ht, "AAAA", "vAAAA");
-	mu_assert_streq (ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should be there");
+	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should be there");
 	ht_insert (ht, "BBBB", "vBBBB");
-	mu_assert_streq (ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should still be there");
-	mu_assert_streq (ht_find (ht, "BBBB", NULL), "vBBBB", "BBBB should be there");
+	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should still be there");
+	mu_assert_streq (sdb_ht_find (ht, "BBBB", NULL), "vBBBB", "BBBB should be there");
 	ht_insert (ht, "CCCC", "vBBBB");
-	mu_assert_streq (ht_find (ht, "CCCC", NULL), "vBBBB", "CCCC should be there");
+	mu_assert_streq (sdb_ht_find (ht, "CCCC", NULL), "vBBBB", "CCCC should be there");
 
-	ht_free (ht);
+	sdb_ht_free (ht);
 	mu_end;
 }
 
@@ -85,7 +85,7 @@ ut32 key2hash(const char *key) {
 }
 
 bool test_ht_grow(void) {
-	SdbHash *ht = ht_new ();
+	SdbHash *ht = sdb_ht_new ();
 	char str[15], vstr[15];
 	char buf[100];
 	int i;
@@ -100,7 +100,7 @@ bool test_ht_grow(void) {
 	for (i = 0; i < 20000; ++i) {
 		snprintf (str, 15, "%d", i);
 		snprintf (vstr, 15, "v%d", i);
-		char *v = ht_find (ht, str, NULL);
+		char *v = sdb_ht_find (ht, str, NULL);
 		snprintf (buf, 100, "%s/%s should be there", str, vstr);
 		mu_assert (buf, v);
 		snprintf (buf, 100, "%s/%s should be right", str, vstr);
@@ -112,22 +112,22 @@ bool test_ht_grow(void) {
 }
 
 bool test_ht_kvp(void) {
-	SdbHash *ht = ht_new ();
+	SdbHash *ht = sdb_ht_new ();
 	SdbKv *kvp = sdb_kv_new ("AAAA", "vAAAA");
 
 	mu_assert_eq (kvp->key_len, 4, "key_len should be 4");
 	mu_assert_eq (kvp->value_len, 5, "value_len should be 5");
-	mu_assert ("kvp should be inserted", ht_insert_kvp (ht, kvp, false));
-	kvp = ht_find_kvp (ht, "AAAA", NULL);
+	mu_assert ("kvp should be inserted", sdb_ht_insert_kvp (ht, kvp, false));
+	kvp = sdb_ht_find_kvp (ht, "AAAA", NULL);
 	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after kvp_insert");
 	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after kvp_insert");
 
-	ht_insert (ht, "BBBB", "vBBBB");
-	kvp = ht_find_kvp (ht, "BBBB", NULL);
+	sdb_ht_insert (ht, "BBBB", "vBBBB");
+	kvp = sdb_ht_find_kvp (ht, "BBBB", NULL);
 	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after insert");
 	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after insert");
 
-	ht_free (ht);
+	sdb_ht_free (ht);
 	mu_end;
 }
 

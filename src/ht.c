@@ -33,7 +33,7 @@ const int ht_primes_sizes[] = {
 static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
 				 ListComparator comparator, DupKey keydup,
 				 DupValue valdup, HtKvFreeFunc pair_free,
-				 CalcSize calcsize) {
+				 CalcSize calcsizeK, CalcSize calcsizeV) {
 	SdbHash* ht = calloc (1, sizeof (*ht));
 	if (!ht) {
 		return NULL;
@@ -43,11 +43,12 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
 	ht->prime_idx = 0;
 	ht->load_factor = 1;
 	ht->hashfn = hashfunction;
-	ht->cmp = comparator? comparator: strcmp;
-	ht->dupkey = keydup? keydup: strdup;
-	ht->dupvalue = valdup? valdup: strdup;
+	ht->cmp = comparator? comparator: (ListComparator)strcmp;
+	ht->dupkey = keydup? keydup: (DupKey)strdup;
+	ht->dupvalue = valdup? valdup: (DupValue)strdup;
 	ht->table = calloc (ht->size, sizeof (SdbList*));
-	ht->calcsize = calcsize? calcsize: strlen;
+	ht->calcsizeK = calcsizeK? calcsizeK: (CalcSize)strlen;
+	ht->calcsizeV = calcsizeV? calcsizeV: (CalcSize)strlen;
 	ht->freefn = pair_free;
 	ht->deleted = ls_newf (free);
 #if INSERTORDER
@@ -58,21 +59,21 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
 }
 
 bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
-	SdbKv* kvp;
+	HtKv* kv;
 	SdbListIter* iter;
 	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
 #if USE_KEYLEN
-	ut32 key_len = ht->calcsize (key);
+	ut32 key_len = ht->calcsizeK ((void *)key);
 #endif
 	ut32 bucket = computed_hash % ht->size;
 #if INSERTORDER
-	ls_foreach (ht->list, iter, kvp) {
+	ls_foreach (ht->list, iter, kv) {
 #if USE_KEYLEN
-		if (key_len != kvp->key_len) {
+		if (key_len != kv->key_len) {
 			continue;
 		}
 #endif
-		if (key == kvp->key || !ht->cmp (key, kvp->key)) {
+		if (key == kv->key || !ht->cmp (key, kv->key)) {
 			ls_delete (ht->list, iter);
 			ht->count--;
 			break;
@@ -80,13 +81,13 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	}
 #endif
 	SdbList* list = ht->table[bucket];
-	ls_foreach (list, iter, kvp) {
+	ls_foreach (list, iter, kv) {
 #if USE_KEYLEN
-		if (key_len != kvp->key_len) {
+		if (key_len != kv->key_len) {
 			continue;
 		}
 #endif
-		if (key == kvp->key || !ht->cmp (key, kvp->key)) {
+		if (key == kv->key || !ht->cmp (key, kv->key)) {
 #if EXCHANGE
 			ls_split_iter (list, iter);
 			ls_append (ht->deleted, iter);
@@ -102,9 +103,12 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	return false;
 }
 
-SdbHash* ht_new() {
-	return internal_ht_new (ht_primes_sizes[0], sdb_hash, strcmp, strdup,
-			strdup, sdb_kv_free, strlen);
+SdbHash* ht_new(HashFunction hashfunction, ListComparator comparator,
+		 DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free,
+		 CalcSize calcsizeK, CalcSize calcsizeV) {
+	HashFunction hfcn = hashfunction ? hashfunction : sdb_hash;
+	return internal_ht_new (ht_primes_sizes[0], hfcn, comparator, keydup,
+				valdup, pair_free, calcsizeK, calcsizeV);
 }
 
 void ht_free(SdbHash* ht) {
@@ -134,16 +138,15 @@ void ht_free_deleted(SdbHash* ht) {
 static void internal_ht_grow(SdbHash* ht) {
 	SdbHash* ht2;
 	SdbHash swap;
-	SdbKv* kvp;
+	HtKv* kv;
 	SdbListIter* iter;
-	ut32 i;
-	ut32 sz = ht_primes_sizes[ht->prime_idx];
+	ut32 i, sz = ht_primes_sizes[ht->prime_idx];
 	ht2 = internal_ht_new (sz, ht->hashfn, ht->cmp, ht->dupkey,
 			ht->dupvalue, (HtKvFreeFunc)ht->freefn, ht->calcsize);
 	ht2->prime_idx = ht->prime_idx;
 	for (i = 0; i < ht->size; i++) {
-		ls_foreach (ht->table[i], iter, kvp) {
-			(void)ht_insert (ht2, kvp->key, kvp->value);
+		ls_foreach (ht->table[i], iter, kv) {
+			(void)ht_insert (ht2, kv->key, kv->value);
 		}
 	}
 	// And now swap the internals.
@@ -154,25 +157,25 @@ static void internal_ht_grow(SdbHash* ht) {
 }
 #endif
 
-static bool internal_ht_insert_kvp(SdbHash* ht, SdbKv *kvp, bool update) {
+static bool internal_ht_insert_kv(SdbHash *ht, HtKv *kv, bool update) {
 	bool found;
-	if (!ht || !kvp) {
+	if (!ht || !kv) {
 		return false;
 	}
-	ut32 bucket, hash = ht->hashfn (kvp->key);
+	ut32 bucket, hash = ht->hashfn (kv->key);
 	if (update) {
-		(void)ht_delete_internal (ht, kvp->key, &hash);
+		(void)ht_delete_internal (ht, kv->key, &hash);
 	} else {
-		(void)ht_find (ht, kvp->key, &found);
+		(void)ht_find (ht, kv->key, &found);
 	}
 	if (update || !found) {
 		bucket = hash % ht->size;
 		if (!ht->table[bucket]) {
 			ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 		}
-		ls_prepend (ht->table[bucket], kvp);
+		ls_prepend (ht->table[bucket], kv);
 #if INSERTORDER
-		ls_append (ht->list, kvp);
+		ls_append (ht->list, kv);
 #endif
 		ht->count++;
 #if GROWABLE
@@ -187,63 +190,56 @@ static bool internal_ht_insert_kvp(SdbHash* ht, SdbKv *kvp, bool update) {
 	return false;
 }
 
-// Inserts the key value pair key, value into the hashtable.
-// if update is true, allow for updates, otherwise return false if the key
-// already exists.
 static bool internal_ht_insert(SdbHash* ht, bool update, const char* key,
-				const char* value) {
+				void* value) {
 	if (!ht || !key || !value) {
 		return false;
 	}
-	SdbKv* kvp = calloc (1, sizeof (SdbKv));
-	if (kvp) {
-		kvp->key = ht->dupkey (key);
-		kvp->value = ht->dupvalue (value);
-		kvp->key_len = ht->calcsize (kvp->key);
-		kvp->expire = 0;
-		kvp->value_len = ht->calcsize (kvp->value);
-		if (!internal_ht_insert_kvp (ht, kvp, update)) {
-			ht->freefn (kvp);
+	HtKv* kv = calloc (1, sizeof (HtKv));
+	if (kv) {
+		kv->key = ht->dupkey ((void *)key);
+		kv->value = ht->dupvalue ((void *)value);
+		kv->key_len = ht->calcsizeK ((void *)kv->key);
+		kv->value_len = ht->calcsizeV ((void *)kv->value);
+		if (!internal_ht_insert_kv (ht, kv, update)) {
+			ht->freefn (kv);
 			return false;
 		}
 		return true;
 	}
 	return false;
 }
-
+bool ht_insert_kv(SdbHash *ht, HtKv *kv, bool update) {
+	return internal_ht_insert_kv (ht, kv, update);
+}
 // Inserts the key value pair key, value into the hashtable.
 // Doesn't allow for "update" of the value.
-bool ht_insert(SdbHash* ht, const char* key, const char* value) {
+bool ht_insert(SdbHash* ht, const char* key, void* value) {
 	return internal_ht_insert (ht, false, key, value);
 }
 
 // Inserts the key value pair key, value into the hashtable.
 // Does allow for "update" of the value.
-bool ht_update(SdbHash* ht, const char* key, const char* value) {
+bool ht_update(SdbHash* ht, const char* key, void* value) {
 	return internal_ht_insert (ht, true, key, value);
-}
-
-bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update) {
-	return internal_ht_insert_kvp (ht, kvp, update);
 }
 
 // Returns the corresponding SdbKv entry from the key.
 // If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
-SdbKv* ht_find_kvp(SdbHash* ht, const char* key, bool* found) {
-	ut32 hash;
-	ut32 bucket;
+HtKv* ht_find_kv(SdbHash* ht, const char* key, bool* found) {
+	ut32 hash, bucket;
 	SdbListIter* iter;
-	SdbKv* kvp;
+	HtKv* kv;
 	hash = ht->hashfn (key);
 	bucket = hash % ht->size;
-	ls_foreach (ht->table[bucket], iter, kvp) {
-		bool match = !ht->cmp (key, kvp->key);
+	ls_foreach (ht->table[bucket], iter, kv) {
+		bool match = !ht->cmp (key, kv->key);
 		if (match) {
 			if (found) {
 				*found = true;
 			}
-			return  kvp;
+			return kv;
 		}
 	}
 	if (found) {
@@ -255,16 +251,16 @@ SdbKv* ht_find_kvp(SdbHash* ht, const char* key, bool* found) {
 // Looks up the corresponding value from the key.
 // If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
-char* ht_find(SdbHash* ht, const char* key, bool* found) {
+void* ht_find(SdbHash* ht, const char* key, bool* found) {
 	bool _found = false;
 	if (!found) {
 		found = &_found;
 	}
-	SdbKv* kvp = ht_find_kvp (ht, key, found);
-	return (kvp && *found)? kvp->value : NULL;
+	HtKv* kv = ht_find_kv (ht, key, found);
+	return (kv && *found)? kv->value : NULL;
 }
 
-// Deletes a kvp from the hash table from the key, if the pair exists.
+// Deletes a entry from the hash table from the key, if the pair exists.
 bool ht_delete(SdbHash* ht, const char* key) {
 	return ht_delete_internal (ht, key, NULL);
 }

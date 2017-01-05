@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 #include "types.h"
-#include "ht.h"
+#include "sdbht.h"
 #include "ls.h"
 #include "cdb.h"
 #include "cdb_make.h"

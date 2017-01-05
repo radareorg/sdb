@@ -12,25 +12,19 @@
 #define USE_KEYLEN 1
 #define EXCHANGE 1
 
-
-/** keyvalue pair **/
-typedef struct sdb_kv {
-	char *key;
-	char *value;
-	ut32 key_len;
-	ut32 value_len;
-	ut32 cas;
-	ut64 expire;
-} SdbKv;
-
-typedef void (*HtKvFreeFunc)(SdbKv*);
-typedef char* (*DupKey)(const char*);
-typedef char* (*DupValue)(const char*);
-typedef size_t (*CalcSize)(const char*);
+typedef void (*HtKvFreeFunc)(void*);
+typedef char* (*DupKey)(void *);
+typedef char* (*DupValue)(void *);
+typedef size_t (*CalcSize)(void *);
 typedef ut32 (*HashFunction)(const char*);
 typedef int (*ListComparator)(const char *a, const char *b);
 
-SdbKv* sdb_kv_new(const char *k, const char *v);
+typedef struct ht_kv {
+	char *key;
+	void *value;
+	ut32 key_len;
+	ut32 value_len;
+} HtKv;
 
 /** ht **/
 typedef struct ht_t {
@@ -38,15 +32,11 @@ typedef struct ht_t {
 	ut32 count;	   	// number of stored elements.
 	ListComparator cmp;   	// Function for comparing values. Returns 0 if eq.
 	HashFunction hashfn;  	// Function for hashing items in the hash table.
-	DupKey dupkey;  	// Function for making a copy of key to store in the
-				// entry. NULL for just copying the pointer.
-	DupValue dupvalue;  	// Function for making a copy of value to store in
-				// the entry. NULL for just copying the pointer.
-	CalcSize calcsize;  	// Function to determine the size of an object. NULL
-				// will just set size to 0 for the kvp (usually not
-				// needed).
-	HtKvFreeFunc freefn;  	// Function to free the keyvalue store, if NULL,
-			      	// just calls regular free.
+	DupKey dupkey;  		// Function for making a copy of key
+	DupValue dupvalue;  	// Function for making a copy of value
+	CalcSize calcsizeK;     // Function to determine the key's size
+	CalcSize calcsizeV;  	// Function to determine the value's size
+	HtKvFreeFunc freefn;  	// Function to free the keyvalue store
 	SdbList /*<SdbKv>*/** table;  // Actual table.
 	SdbList* deleted;
 	ut32 load_factor;  	// load factor before doubling in size.
@@ -56,30 +46,26 @@ typedef struct ht_t {
 #endif
 } SdbHash;
 
-// Create a new RHashTable2.
-SdbHash* ht_new();
-
+// Create a new RHashTable.
+// If hashfunction is NULL it will be used sdb_hash internally
+// If keydup or valdup are null it will be used strdup internally
+// If keySize or valueSize are null it will be used strlen internally
+SdbHash* ht_new(HashFunction hashfunction,
+			  ListComparator comparator, DupKey keydup,
+			  DupValue valdup, HtKvFreeFunc pair_free,
+			  CalcSize keySize, CalcSize valueSize);
 // Destroy a hashtable and all of its entries.
 void ht_free(SdbHash* ht);
-
 void ht_free_deleted(SdbHash* ht);
-
 // Insert a new Key-Value pair into the hashtable. If the key already exists, returns false.
-bool ht_insert(SdbHash* ht, const char* key, const char* value);
-
+bool ht_insert(SdbHash* ht, const char* key, void* value);
+//Insert a new HtKv in the hashtable
+bool ht_insert_kv(SdbHash *ht, HtKv *kv, bool update);
 // Insert a new Key-Value pair into the hashtable, or updates the value if the key already exists.
-bool ht_update(SdbHash* ht, const char* key, const char* value);
-
+bool ht_update(SdbHash* ht, const char* key, void* value);
 // Delete a key from the hashtable.
 bool ht_delete(SdbHash* ht, const char* key);
-
 // Find the value corresponding to the matching key.
-char* ht_find(SdbHash* ht, const char* key, bool* found);
-
-// Find the KeyValuePair corresponding to the matching key.
-SdbKv* ht_find_kvp(SdbHash* ht, const char* key, bool* found);
-
-// Insert an existing keyvalue pair to the hashtable.
-bool ht_insert_kvp(SdbHash* ht, SdbKv* kvp, bool update);
-
+void* ht_find(SdbHash* ht, const char* key, bool* found);
+HtKv* ht_find_kv(SdbHash* ht, const char* key, bool* found);
 #endif // __HT_H

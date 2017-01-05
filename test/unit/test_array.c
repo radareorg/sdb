@@ -38,7 +38,7 @@ bool test_sdb_array_add_remove(void) {
 	mu_assert_streq (sdb_const_get (db, "foo", 0), "foo,cow", "nothing should be deleted");
 	sdb_array_remove (db, "foo", "cow", 0);
 	sdb_array_remove (db, "foo", "foo", 0);
-	mu_assert_eq ((size_t)(int)sdb_const_get (db, "foo", 0), (size_t)(int)NULL, "all elements should be deleted");
+	mu_assert_eq ((int)(size_t)sdb_const_get (db, "foo", 0), (int)(size_t)NULL, "all elements should be deleted");
 
 	sdb_free (db);
 	mu_end;
