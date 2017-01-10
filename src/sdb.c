@@ -456,21 +456,63 @@ SDB_API bool sdb_kv_match(SdbKv *kv, const char *expr) {
 }
 
 SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
+	return sdb_kv_new2 (k, strlen (k), v, strlen (v));
+#if 0
 	SdbKv *kv;
 	int vl;
-	if (!sdb_check_key (k)) {
-		return NULL;
-	}
 	if (v) {
-		if (!sdb_check_value (v)) {
+		vl = strlen (v);
+		if (vl >= SDB_VSZ) {
 			return NULL;
 		}
-		vl = strlen (v);
 	} else {
 		vl = 0;
 	}
 	kv = R_NEW0 (SdbKv);
 	kv->key_len = strlen (k);
+	if (key_len >= SDB_KSZ) {
+		free (kv);
+		return NULL;
+	}
+	kv->key = malloc (kv->key_len + 1);
+	if (!kv->key) {
+		free (kv);
+		return NULL;
+	}
+	memcpy (kv->key, k, kv->key_len + 1);
+	kv->value_len = vl;
+	if (vl) {
+		kv->value = malloc (vl + 1);
+		if (!kv->value) {
+			free (kv->key);
+			free (kv);
+			return NULL;
+		}
+		memcpy (kv->value, v, vl + 1);
+	} else {
+		kv->value = NULL;
+		kv->value_len = 0;
+	}
+	kv->cas = nextcas ();
+	kv->expire = 0LL;
+	return kv;
+#endif
+}
+
+SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl) {
+	SdbKv *kv;
+	if (v) {
+		if (vl >= SDB_VSZ) {
+			return NULL;
+		}
+	} else {
+		vl = 0;
+	}
+	if (kl >= SDB_KSZ) {
+		return NULL;
+	}
+	kv = R_NEW0 (SdbKv);
+	kv->key_len = kl;
 	kv->key = malloc (kv->key_len + 1);
 	if (!kv->key) {
 		free (kv);
@@ -501,25 +543,25 @@ SDB_API void sdb_kv_free(SdbKv *kv) {
 	R_FREE (kv);
 }
 
-static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
+static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
 	ut32 vlen, klen;
 	SdbKv *kv;
 	bool found;
-	if (!s || !sdb_check_key (key)) {
+	if (!s || !key) {
 		return 0;
 	}
 	if (!val) {
 		val = "";
 	}
-	/* 100ms */
-	if (!sdb_check_value (val)) {
+	// XXX strlen computed twice.. because of check_*()
+	klen = strlen (key);
+	vlen = strlen (val);
+	if (klen >= SDB_KSZ || vlen >= SDB_VSZ) {
 		return 0;
 	}
 	if (s->journal != -1) {
 		sdb_journal_log (s, key, val);
 	}
-	klen = strlen (key);
-	vlen = strlen (val);
 	cdb_findstart (&s->db);
 	kv = sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && kv->value) {
@@ -528,6 +570,7 @@ static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 
 				return 0;
 			}
 			if (vlen == kv->value_len && !strcmp (kv->value, val)) {
+				sdb_hook_call (s, key, val);
 				return kv->cas;
 			}
 			kv->cas = cas = nextcas ();
@@ -538,10 +581,9 @@ static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 
 			} else {
 				if ((ut32)vlen > kv->value_len) {
 					free (kv->value);
-					kv->value = strdup (val);
-				} else {
-					memcpy (kv->value, val, vlen + 1);
+					kv->value = malloc (vlen + 1);
 				}
+				memcpy (kv->value, val, vlen + 1);
 				kv->value_len = vlen;
 			}
 		} else {
@@ -553,13 +595,13 @@ static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 
 	// empty values are also stored
 	// TODO store only the ones that are in the CDB
 	if (owned) {
-		kv = sdb_kv_new (key, NULL);
+		kv = sdb_kv_new2 (key, klen, NULL, 0);
 		if (kv) {
 			kv->value = val;
 			kv->value_len = vlen;
 		}
 	} else {
-		kv = sdb_kv_new (key, val);
+		kv = sdb_kv_new2 (key, klen, val, vlen);
 	}
 	if (kv) {
 		ut32 cas = kv->cas = nextcas ();
@@ -567,7 +609,7 @@ static int sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 
 		sdb_hook_call (s, key, val);
 		return cas;
 	}
-	sdb_hook_call (s, key, val);
+// kv set failed, no need to callback	sdb_hook_call (s, key, val);
 	return 0;
 }
 

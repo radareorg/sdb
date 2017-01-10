@@ -12,38 +12,12 @@
 
 // XXX deprecate?
 SDB_API bool sdb_check_value(const char *s) {
-	if (!s || *s == '$') {
-		return false;
-	}
-	// TODO: check value length ?
-	return true;
+	return s != NULL;
 }
 
 SDB_API bool sdb_check_key(const char *s) {
 	if (!s || !*s) {
 		return false;
-	}
-	const char *last = s + SDB_KSZ - 1;
-	for (; *s; s++) {
-		const char c = *s;
-		if (!c) {
-			return true;
-		}
-		if (s == last) {
-			return false;
-		}
-		switch (c) {
-		case '"':
-		case '+':
-		case '-':
-		case '=':
-		case '[':
-		case ']':
-		case ':':
-		case '$':
-		case ';':
-			return false;
-		}
 	}
 	return true;
 }
@@ -286,12 +260,12 @@ SDB_API ut64 sdb_unow () {
 	return x;
 }
 
-SDB_API int sdb_isnum (const char *s) {
+SDB_API int sdb_isnum(const char *s) {
 	const char vs = *s;
 	return ((vs == '-' || vs == '+') || (vs >= '0' && vs <= '9'));
 }
 
-SDB_API int sdb_num_base (const char *s) {
+SDB_API int sdb_num_base(const char *s) {
 	if (!s) {
 		return SDB_NUM_BASE;
 	}

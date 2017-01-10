@@ -60,6 +60,7 @@ extern char *strdup (const char *);
 
 // This size implies trailing zero terminator, this is 254 chars + 0
 #define SDB_KSZ 0xff
+#define SDB_VSZ 0xffffff
 
 
 typedef struct sdb_t {
