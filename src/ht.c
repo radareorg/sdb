@@ -231,9 +231,17 @@ HtKv* ht_find_kv(SdbHash* ht, const char* key, bool* found) {
 	ut32 hash, bucket;
 	SdbListIter* iter;
 	HtKv* kv;
+#if USE_KEYLEN
+	ut32 key_len = ht->calcsizeK ((void *)key);
+#endif
 	hash = ht->hashfn (key);
 	bucket = hash % ht->size;
 	ls_foreach (ht->table[bucket], iter, kv) {
+#if USE_KEYLEN
+		if (key_len != kv->key_len) {
+			continue;
+		}
+#endif
 		bool match = !ht->cmp (key, kv->key);
 		if (match) {
 			if (found) {

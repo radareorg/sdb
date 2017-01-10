@@ -36,7 +36,7 @@ bool sdb_ht_update(SdbHash *ht, const char *key, const char*value) {
 }
 
 SdbKv* sdb_ht_find_kvp(SdbHash* ht, const char* key, bool* found) {
-	return (SdbKv *)ht_find_kv(ht, key, found);
+	return (SdbKv *)ht_find_kv (ht, key, found);
 }
 
 char* sdb_ht_find(SdbHash* ht, const char* key, bool* found) {
@@ -48,7 +48,7 @@ void sdb_ht_free(SdbHash *ht) {
 }
 
 bool sdb_ht_delete(SdbHash* ht, const char *key) {
-	return ht_delete(ht, key);
+	return ht_delete (ht, key);
 }
 
 void sdb_ht_free_deleted(SdbHash* ht) {
