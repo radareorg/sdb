@@ -50,7 +50,6 @@ SDB_API char *sdb_fmt(int n, const char *fmt, ...) {
 	return Key[n];
 }
 
-
 SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
 	char buf[128], *e_str, *out = NULL;
 	int n, len = 0;

@@ -306,8 +306,6 @@ SDB_API bool sdb_unhook(Sdb* s, SdbHook h);
 int sdb_hook_call(Sdb *s, const char *k, const char *v);
 void sdb_hook_free(Sdb *s);
 /* Util.c */
-bool sdb_check_value(const char *s);
-bool sdb_check_key(const char *s);
 int sdb_isnum(const char *s);
 
 const char *sdb_type(const char *k);

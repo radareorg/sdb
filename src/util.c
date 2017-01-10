@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2011-2016 - pancake */
+/* sdb - MIT - Copyright 2011-2017 - pancake */
 
 #include "sdb.h"
 
@@ -9,18 +9,6 @@
 #else
 #include <sys/time.h>
 #endif
-
-// XXX deprecate?
-SDB_API bool sdb_check_value(const char *s) {
-	return s != NULL;
-}
-
-SDB_API bool sdb_check_key(const char *s) {
-	if (!s || !*s) {
-		return false;
-	}
-	return true;
-}
 
 SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 	ut32 h = CDB_HASHSTART;
