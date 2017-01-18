@@ -1,18 +1,18 @@
-/* Copyleft 2012 - sdb (aka SimpleDB) - pancake<nopcode.org> */
+/* Copyleft 2012-2017 - sdb (aka SimpleDB) - pancake<nopcode.org> */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "rangstr.h"
 
-void rangstr_print (Rangstr *s) {
+SDB_IPI void rangstr_print (Rangstr *s) {
 	if (s && s->p) {
 		(void) fwrite (s->p+s->f,
 			s->t-s->f, 1, stdout);
 	}
 }
 
-Rangstr rangstr_new (const char *s) {
+SDB_IPI Rangstr rangstr_new (const char *s) {
 	Rangstr rs;
 	if (!s) return rangstr_null ();
 	rs.f = 0;
@@ -23,12 +23,12 @@ Rangstr rangstr_new (const char *s) {
 	return rs;
 }
 
-Rangstr rangstr_null(void) {
+SDB_IPI Rangstr rangstr_null(void) {
 	Rangstr rs = {0, 0, 0, 0, 0};
 	return rs;
 }
 
-int rangstr_int (Rangstr *s) {
+SDB_IPI int rangstr_int (Rangstr *s) {
 	const int base = 10;
 	int mul = 1;
 	int ch, n = 0;
@@ -48,7 +48,7 @@ int rangstr_int (Rangstr *s) {
 	return n * mul;
 }
 
-char *rangstr_dup (Rangstr *rs) {
+SDB_IPI char *rangstr_dup (Rangstr *rs) {
 	int len;
 	char *p;
 	if (!rs->p) return NULL;
@@ -59,7 +59,7 @@ char *rangstr_dup (Rangstr *rs) {
 	return p;
 }
 
-Rangstr rangstr_news (const char *s, RangstrType *res, int i) {
+SDB_IPI Rangstr rangstr_news (const char *s, RangstrType *res, int i) {
 	Rangstr rs;
 	rs.next = 1;
 	rs.f = res[i];
@@ -69,27 +69,29 @@ Rangstr rangstr_news (const char *s, RangstrType *res, int i) {
 	return rs;
 }
 
-int rangstr_cmp (Rangstr *a, Rangstr *b) {
+SDB_IPI int rangstr_cmp (Rangstr *a, Rangstr *b) {
 	int la = a->t-a->f;
 	int lb = b->t-b->f;
 	int lbz = strlen (b->p + b->f);
-	if (lbz<lb)
+	if (lbz < lb) {
 		lb = lbz;
-	if (la != lb)
+	}
+	if (la != lb) {
 		return 1;
+	}
 	return memcmp (a->p+a->f, b->p+b->f, la);
 }
 
-int rangstr_find (Rangstr* a, char ch) {
+SDB_IPI int rangstr_find (Rangstr* a, char ch) {
 	size_t i = a->f;
 	while (i<a->t && a->p[i] && a->p[i] != ch) i++;
 	return a->p[i]? (int)i: -1;
 }
 
-const char *rangstr_str (Rangstr* rs) {
+SDB_IPI  const char *rangstr_str (Rangstr* rs) {
 	return rs->p + rs->f;
 }
 
-int rangstr_length (Rangstr* rs) {
+SDB_IPI int rangstr_length (Rangstr* rs) {
 	return rs->t - rs->f;
 }
