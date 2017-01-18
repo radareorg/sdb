@@ -1,9 +1,9 @@
-/* sdb - MIT - Copyright 2012-2015 - pancake */
+/* sdb - MIT - Copyright 2012-2017 - pancake */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "rangstr.h"
+#include "rangstr.c"
 #include "json.h"
 #include "../types.h"
 
@@ -86,6 +86,7 @@ int json_foreach(const char *s, JSONCallback cb UNUSED) {
 }
 #endif
 
+#if 0 // UNUSED
 SDB_IPI int json_walk (const char *s) {
 	RangstrType *res;
 	int i, ret, len = strlen (s);
@@ -108,6 +109,7 @@ SDB_IPI int json_walk (const char *s) {
 	free (res);
 	return 1;
 }
+#endif
 
 SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 #define RESFIXSZ 1024
@@ -115,7 +117,9 @@ SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 	int i, j, n, len, ret;
 	Rangstr rsn;
 
-	if (!s) return rangstr_null ();
+	if (!s) {
+		return rangstr_null ();
+	}
 	len = strlen (s);
 	res = (len<RESFIXSZ)? resfix: malloc (sizeof (RangstrType)* (len+1));
 	if (!res) {
