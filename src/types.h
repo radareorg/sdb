@@ -20,9 +20,9 @@
 
 #ifndef SDB_IPI
 #if defined(__GNUC__) && __GNUC__ >= 4
-#define SDB_IPI __attribute__((visibility("hidden")))
+#define SDB_IPI static __attribute__((visibility("hidden")))
 #else
-#define SDB_IPI
+#define SDB_IPI static
 #endif
 #endif
 
