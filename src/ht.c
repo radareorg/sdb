@@ -103,12 +103,10 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 	return false;
 }
 
-SdbHash* ht_new(HashFunction hashfunction, ListComparator comparator,
-		 DupKey keydup, DupValue valdup, HtKvFreeFunc pair_free,
-		 CalcSize calcsizeK, CalcSize calcsizeV) {
-	HashFunction hfcn = hashfunction ? hashfunction : sdb_hash;
-	return internal_ht_new (ht_primes_sizes[0], hfcn, comparator, keydup,
-				valdup, pair_free, calcsizeK, calcsizeV);
+SdbHash* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
+	return internal_ht_new (ht_primes_sizes[0], (HashFunction)sdb_hash, 
+	  			(ListComparator)strcmp, (DupKey)strdup,
+				valdup, pair_free, (CalcSize)strlen, calcsizeV);
 }
 
 void ht_free(SdbHash* ht) {

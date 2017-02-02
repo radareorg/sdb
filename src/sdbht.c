@@ -1,10 +1,7 @@
 #include "sdbht.h"
 
 SdbHash* sdb_ht_new() {
-	return ht_new ((HashFunction)sdb_hash, (ListComparator)strcmp,
-		       (DupKey)strdup, (DupValue)strdup,
-		       (HtKvFreeFunc)sdb_kv_free, (CalcSize)strlen,
-		       (CalcSize)strlen);
+	return ht_new ((DupValue)strdup, (HtKvFreeFunc)sdb_kv_free, (CalcSize)strlen);
 }
 
 static bool sdb_ht_internal_insert(SdbHash* ht, const char* key,

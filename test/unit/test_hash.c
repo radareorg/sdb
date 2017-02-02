@@ -170,8 +170,8 @@ bool test_ht_general(void) {
 	person2->name = strdup ("pancake");
 	person2->age = 9000;
 
-	SdbHash *ht = ht_new (NULL, NULL, NULL, (DupValue)duplicate_person,
-			      free_kv, NULL, (CalcSize)calcSizePerson);
+	SdbHash *ht = ht_new ((DupValue)duplicate_person, free_kv, 
+	  			(CalcSize)calcSizePerson);
 	if (!ht) {
 		mu_end;
 	}
