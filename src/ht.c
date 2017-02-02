@@ -43,7 +43,7 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
 	ht->prime_idx = 0;
 	ht->load_factor = 1;
 	ht->hashfn = hashfunction;
-	ht->cmp = comparator? comparator: (ListComparator)strcmp;
+	ht->cmp = (ListComparator)strcmp;
 	ht->dupkey = keydup? keydup: (DupKey)strdup;
 	ht->dupvalue = valdup? valdup: NULL; 
 	ht->table = calloc (ht->size, sizeof (SdbList*));
