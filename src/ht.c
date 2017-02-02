@@ -26,8 +26,8 @@ const int ht_primes_sizes[] = {
 // hashfunction - the function that does the hashing, must not be null.
 // comparator - the function to check if values are equal, if NULL, just checks
 // == (for storing ints).
-// keydup - function to duplicate to key (eg strdup), if NULL just does =.
-// valdup - same as keydup, but for values
+// keydup - function to duplicate to key (eg strdup), if NULL just does strup.
+// valdup - same as keydup, but for values but if NULL just assign
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.
 static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
@@ -45,7 +45,7 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
 	ht->hashfn = hashfunction;
 	ht->cmp = comparator? comparator: (ListComparator)strcmp;
 	ht->dupkey = keydup? keydup: (DupKey)strdup;
-	ht->dupvalue = valdup? valdup: (DupValue)strdup;
+	ht->dupvalue = valdup? valdup: NULL; 
 	ht->table = calloc (ht->size, sizeof (SdbList*));
 	ht->calcsizeK = calcsizeK? calcsizeK: (CalcSize)strlen;
 	ht->calcsizeV = calcsizeV? calcsizeV: (CalcSize)strlen;
@@ -198,7 +198,11 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key,
 	HtKv* kv = calloc (1, sizeof (HtKv));
 	if (kv) {
 		kv->key = ht->dupkey ((void *)key);
-		kv->value = ht->dupvalue ((void *)value);
+		if (ht->dupvalue) {
+			kv->value = ht->dupvalue ((void *)value);
+		} else {
+			kv->value = (void *)value;
+		}
 		kv->key_len = ht->calcsizeK ((void *)kv->key);
 		kv->value_len = ht->calcsizeV ((void *)kv->value);
 		if (!internal_ht_insert_kv (ht, kv, update)) {
