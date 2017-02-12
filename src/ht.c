@@ -202,9 +202,15 @@ static bool internal_ht_insert(SdbHash* ht, bool update, const char* key,
 			kv->value = (void *)value;
 		}
 		kv->key_len = ht->calcsizeK ((void *)kv->key);
-		kv->value_len = ht->calcsizeV ((void *)kv->value);
+		if (ht->calcsizeV) {
+			kv->value_len = ht->calcsizeV ((void *)kv->value);
+		} else {
+			kv->value_len = 0;
+		}
 		if (!internal_ht_insert_kv (ht, kv, update)) {
-			ht->freefn (kv);
+			if (ht->freefn) {
+				ht->freefn (kv);
+			}
 			return false;
 		}
 		return true;
