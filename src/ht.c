@@ -91,7 +91,9 @@ bool ht_delete_internal(SdbHash* ht, const char* key, ut32* hash) {
 #if EXCHANGE
 			ls_split_iter (list, iter);
 			ls_append (ht->deleted, iter);
-			list->free (iter->data);
+			if (list->free) {
+				list->free (iter->data);
+			}
 			iter->data = NULL;
 #else
 			ls_delete (list, iter);
