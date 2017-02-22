@@ -48,7 +48,7 @@ static SdbHash* internal_ht_new(ut32 size, HashFunction hashfunction,
 	ht->dupvalue = valdup? valdup: NULL; 
 	ht->table = calloc (ht->size, sizeof (SdbList*));
 	ht->calcsizeK = calcsizeK? calcsizeK: (CalcSize)strlen;
-	ht->calcsizeV = calcsizeV? calcsizeV: (CalcSize)strlen;
+	ht->calcsizeV = calcsizeV? calcsizeV: NULL;
 	ht->freefn = pair_free;
 	ht->deleted = ls_newf (free);
 #if INSERTORDER
