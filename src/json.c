@@ -143,7 +143,7 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		}
 		// invalid json?
 		return false;
-	} 
+	}
 #define WLEN(x) (int)(size_t)(end[x]-beg[x])
 
 	beg[0] = js;
@@ -280,7 +280,11 @@ SDB_API const char *sdb_json_format(SdbJsonString* s, const char *fmt, ...) {
 			case 'l':
 				JSONSTR_ALLOCATE (32);
 				arg_l = va_arg (ap, ut64);
+#if __SDB_WINDOWS__ && !__CYGWIN__
+				snprintf (tmp, sizeof (tmp), "0x%llx", arg_l);
+#else
 				snprintf (tmp, sizeof (tmp), "0x%"ULLFMT"x", arg_l);
+#endif
 				memcpy (s->buf+s->len, tmp, strlen (tmp));
 				s->len += strlen (tmp);
 				break;

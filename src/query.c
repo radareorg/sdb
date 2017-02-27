@@ -467,7 +467,11 @@ next_quote:
 			}
 			// keep base
 			if (base == 16) {
+#if __SDB_WINDOWS__ && !__CYGWIN__
+				w = snprintf (buf, len - 1, "0x%llx", n);
+#else
 				w = snprintf (buf, len - 1, "0x%"ULLFMT"x", n);
+#endif
 				if (w<0 || (size_t)w>len) {
 					if (bufset && len<0xff) {
 						free (buf);
@@ -477,10 +481,18 @@ next_quote:
 						}
 					}
 					bufset = 1;
+#if __SDB_WINDOWS__ && !__CYGWIN__
+					snprintf (buf, 0xff, "0x%llx", n);
+#else
 					snprintf (buf, 0xff, "0x%"ULLFMT"x", n);
+#endif
 				}
 			} else {
+#if __SDB_WINDOWS__ && !__CYGWIN__
+				w = snprintf (buf, len-1, "%lld", n);
+#else
 				w = snprintf (buf, len-1, "%"ULLFMT"d", n);
+#endif
 				if (w<0 || (size_t)w>len) {
 					if (bufset && len<0xff) {
 						free (buf);
@@ -490,7 +502,11 @@ next_quote:
 						}
 					}
 					bufset = 1;
+#if __SDB_WINDOWS__ && !__CYGWIN__
+					snprintf (buf, 0xff, "%lld", n);
+#else
 					snprintf (buf, 0xff, "%"ULLFMT"d", n);
+#endif
 				}
 			}
 		}
