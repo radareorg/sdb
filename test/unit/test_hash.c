@@ -148,6 +148,7 @@ void free_kv(HtKv *kv) {
 	Person *p = kv->value;
 	free (p->name);
 	free (p);
+	free (kv);
 }
 
 size_t calcSizePerson(void *c) {
