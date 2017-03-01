@@ -21,7 +21,7 @@ char *cdb_alloc(ut32 n) {
 }
 
 #if __SDB_WINDOWS && !__CYGWIN__
-extern void _aligned_free(void *memblock);
+extern __attribute__((dllimport)) void _aligned_free(void *memblock);
 #endif
 
 void cdb_alloc_free(void *x) {
