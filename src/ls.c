@@ -7,7 +7,9 @@
 
 SDB_API SdbList *ls_newf(SdbListFree freefn) {
 	SdbList *list = ls_new ();
-	list->free = freefn;
+	if (list) {
+		list->free = freefn;
+	}
 	return list;
 }
 

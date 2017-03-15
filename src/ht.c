@@ -288,7 +288,7 @@ bool ht_delete(SdbHash* ht, const char* key) {
 
 void ht_foreach(SdbHash *ht, HtForeachCallback cb, void *user) {
 	if (!ht) {
-		return NULL;
+		return;
 	}
 	ut32 i = 0;
 	HtKv *kv;
