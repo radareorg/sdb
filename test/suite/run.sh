@@ -351,7 +351,7 @@ run 'c=;?c' 'undefined'
 
 title "JSON"
 # indent is broken because run() doesnt handle multiline outputs, but it works :P
-run 'foo={"bar":[1,2,3]};foo:' '{\n\t"bar": [\n\t\t1,\n\t\t2,\n\t\t3\n\t]\n}\n'
+run 'foo={"bar":[1,2,3]};foo:' '{\n  "bar": [\n    1,\n    2,\n    3\n  ]\n}\n'
 brk 'foo={"bar":[1,2,3]};foo:bar[1]=;foo' '{"bar":[1,3]}'
 brk 'foo={"bar":[1,2,3,4]};foo:bar[0]=;foo' '{"bar":[2,3,4]}'
 brk 'foo={"bar":[1,2,3,4]};foo:bar[1]=;foo' '{"bar":[1,3,4]}'
