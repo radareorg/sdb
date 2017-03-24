@@ -41,6 +41,24 @@ bool test_sdb_list_delete(void) {
 	mu_end;
 }
 
+static int __cmp_asc(const void *a, const void *b) {
+	const SdbKv *ka = a;
+	const SdbKv *kb = b;
+	return strcmp (ka->key, kb->key);
+}
+
+bool test_sdb_list_big(void) {
+	Sdb *db = sdb_new (NULL, NULL, false);
+	int i;
+	for ( i=1; i < 100000; i++) {
+		sdb_set (db, i-1, i, 0);
+	}
+	SdbList *list = sdb_foreach_list (db, true);
+	ls_sort(list, __cmp_asc);
+	sdb_free (db);
+	mu_end;
+}
+
 bool test_sdb_delete_none(void) {
 	Sdb *db = sdb_new (NULL, NULL, false);
 	sdb_set (db, "foo", "bar", 0);
@@ -146,6 +164,7 @@ int all_tests() {
 	mu_run_test (test_sdb_delete_alot);
 	mu_run_test (test_sdb_milset);
 	mu_run_test (test_sdb_milset_random);
+	mu_run_test (test_sdb_list_big);
 	return tests_passed != tests_run;
 }
 
