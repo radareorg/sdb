@@ -48,13 +48,13 @@ static int __cmp_asc(const void *a, const void *b) {
 }
 
 bool test_sdb_list_big(void) {
-	Sdb *db = sdb_new (NULL, NULL, false);
+	Sdb *db = sdb_new0 ();
 	int i;
-	for ( i=0; i < 1000000; i++) {
+	for (i = 0; i < 1000000; i++) {
     	sdb_num_set (db, sdb_fmt (0, "%d", i), i + 1, 0);
 	}
+	printf ("Let sort the list\n");
 	SdbList *list = sdb_foreach_list (db, true);
-	ls_sort (list, __cmp_asc);
 	// TODO: verify if its sorted
 	sdb_free (db);
 	mu_end;
