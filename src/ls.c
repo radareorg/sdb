@@ -21,9 +21,9 @@ SDB_API SdbList *ls_new() {
 	return list;
 }
 
-static void ls_insertion_sort(SdbList *list, SdbListComparator cmp) {
+static void ls_insertion_sort_iter(SdbListIter *iter, SdbListComparator cmp) {
 	SdbListIter *it, *it2;
-	for (it = list->head; it && it->data; it = it->n) {
+	for (it = iter; it && it->data; it = it->n) {
 		for (it2 = it->n; it2 && it2->data; it2 = it2->n) {
 			if (cmp (it->data, it2->data) > 0) {
 				void *t = it->data;
@@ -33,6 +33,11 @@ static void ls_insertion_sort(SdbList *list, SdbListComparator cmp) {
 		}
 	}
 }
+
+static void ls_insertion_sort(SdbList *list, SdbListComparator cmp) {
+	ls_insertion_sort_iter (list->head, cmp);
+}
+
 
 static SdbListIter *_merge(SdbListIter *first, SdbListIter *second, SdbListComparator cmp) {
 	if (!first) { 
@@ -77,16 +82,7 @@ static SdbListIter * _merge_sort(SdbListIter *head, SdbListComparator cmp, int d
 		return head;
 	}
 	if (depth == LS_MERGE_DEPTH) {
-		SdbListIter *it, *it2;
-		for (it = head; it && it->data; it = it->n) {
-			for (it2 = it->n; it2 && it2->data; it2 = it2->n) {
-				if (cmp (it->data, it2->data) > 0) {
-					void *t = it->data;
-					it->data = it2->data;
-					it2->data = t;
-				}
-			}
-		}
+		ls_insertion_sort_iter (head, cmp);
 		return head;
 	}
 	second = _sdb_list_split (head);
