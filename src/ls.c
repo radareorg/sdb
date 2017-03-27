@@ -284,34 +284,6 @@ SDB_API int ls_join(SdbList *list1, SdbList *list2) {
 }
 
 
-SDB_API int r_list_del_n(SdbList *list, int n) {
-	SdbListIter *it;
-	int i;
-	if (!list) {
-		return false;
-	}
-	for (it = list->head, i = 0; it && it->data; it = it->n, i++)
-		if (i == n) {
-			if (!it->p && !it->n) {
-				list->head = list->tail = NULL;
-			} else if (!it->p) {
-				it->n->p = NULL;
-				list->head = it->n;
-			} else if (!it->n) {
-				it->p->n = NULL;
-				list->tail = it->p;
-			} else {
-				it->p->n = it->n;
-				it->n->p = it->p;
-			}
-			free (it);
-			list->length--;
-			return true;
-		}
-	return false;
-}
-
-
 SDB_API SdbListIter *ls_insert(SdbList *list, int n, void *data) {
 	SdbListIter *it, *item;
 	int i;
