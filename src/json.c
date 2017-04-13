@@ -127,20 +127,22 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 	}
 	rs = json_get (js, p);
 	if (!rs.p) {
-		int b_len = jslen + strlen (k) + strlen (v) + 32;
-		char *b = malloc (b_len);
-		if (b) {
+		// jslen already comprehends the NULL-terminator
+		// 7 corresponds to the length of '{"":"",'
+		int buf_len = jslen + strlen (p) + strlen (v) + 7;
+		char *buf = malloc (buf_len);
+		if (buf) {
 			int curlen, is_str = isstring (v);
-			const char *q = is_str? "\"": "";
-			const char *e = ""; // XX: or comma
+			const char *quote = is_str ? "\"" : "";
+			const char *end = ""; // XX: or comma
 			if (js[0] && js[1] != '}') {
-				e = ",";
+				end = ",";
 			}
-			curlen = sprintf (b, "{\"%s\":%s%s%s%s",
-				p, q, v, q, e);
-			strcpy (b + curlen, js + 1);
+			curlen = sprintf (buf, "{\"%s\":%s%s%s%s",
+				p, quote, v, quote, end);
+			strcpy (buf + curlen, js + 1);
 			// transfer ownership
-			sdb_set_owned (s, k, b, cas);
+			sdb_set_owned (s, k, buf, cas);
 			return true;
 		}
 		// invalid json?
