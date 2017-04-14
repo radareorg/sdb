@@ -385,7 +385,7 @@ next_quote:
 	} else if (*cmd == '+' || *cmd == '-') {
 		d = 1;
 		if (!buf) {
-			buf = strdup ("");
+			buf = malloc (len);
 			bufset = 1;
 		}
 		*buf = 0;
