@@ -391,6 +391,10 @@ next_quote:
 		*buf = 0;
 		if (cmd[1]=='[') {
 			const char *eb = strchr (cmd, ']');
+			if (eb == NULL) {
+				eprintf ("Missing ']'.\n");
+				goto fail;
+			}
 			int idx = sdb_atoi (cmd + 2);
 			/* +[idx]key=n */
 			/* -[idx]key=n */
