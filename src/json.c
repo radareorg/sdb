@@ -202,6 +202,7 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		} else {
 			if (beg[2][0] == '"') {
 				beg[2]++;
+				len[2]--;
 			}
 		}
 		l = len[2];
