@@ -165,7 +165,8 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 	// TODO: accelerate with small buffer in stack for small jsons
 	if (*v) {
 		int is_str = isstring (v);
-		int msz = len[0] + len[1] + len[2] + strlen (v);
+		// 2 is the maximum amount of quotes that can be inserted
+		int msz = len[0] + len[1] + len[2] + strlen (v) + 2;
 		if (msz < 1) {
 			return false;
 		}
