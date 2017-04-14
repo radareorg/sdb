@@ -96,8 +96,8 @@ SDB_IPI Rangstr rangstr_news (const char *s, RangstrType *res, int i) {
 }
 
 SDB_IPI int rangstr_cmp (Rangstr *a, Rangstr *b) {
-	int la = a->t-a->f;
-	int lb = b->t-b->f;
+	int la = a->t - a->f;
+	int lb = b->t - b->f;
 	int lbz = strlen (b->p + b->f);
 	if (lbz < lb) {
 		lb = lbz;
@@ -105,7 +105,7 @@ SDB_IPI int rangstr_cmp (Rangstr *a, Rangstr *b) {
 	if (la != lb) {
 		return 1;
 	}
-	return memcmp (a->p+a->f, b->p+b->f, la);
+	return memcmp (a->p + a->f, b->p + b->f, la);
 }
 
 SDB_IPI int rangstr_find (Rangstr* a, char ch) {
