@@ -52,8 +52,10 @@ SDB_API int sdb_json_num_get (Sdb *s, const char *k, const char *p, ut32 *cas) {
 static int findkey(Rangstr *rs) {
 	int i;
 	for (i = rs->f; i > 0; i--) {
+		// Find the quote after the key
 		if (rs->p[i] == '"') {
 			for (--i; i > 0; i--) {
+				// Find the quote before the key
 				if (rs->p[i] == '"') {
 					return i;
 				}
@@ -148,6 +150,8 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		// invalid json?
 		return false;
 	}
+
+	// rs.p and js point to the same memory location
 	beg[0] = js;
 	end[0] = rs.p + rs.f;
 	len[0] = WLEN (0);
@@ -209,21 +213,25 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 		rs.f -= 2;
 		kidx = findkey (&rs);
 		len[0] = R_MAX (1, kidx - 1);
-		if (kidx == 1) {
-			if (beg[2][0] == '"') {
-				beg[2]++;
-			}
+
+		// Delete quote if deleted value was a string
+		if (beg[2][0] == '"') {
 			beg[2]++;
 			len[2]--;
 		}
+
+		// If not the last key, delete comma
+		if (len[2] != 2) {
+			beg[2]++;
+			len[2]--;
+		}
+
 		str = malloc (len[0] + len[2] + 1);
 		if (!str) {
 			return false;
 		}
+
 		memcpy (str, beg[0], len[0]);
-		if (!*beg[2]) {
-			beg[2]--;
-		}
 		memcpy (str + len[0], beg[2], len[2]);
 		str[len[0] + len[2]] = 0;
 	}
