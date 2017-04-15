@@ -232,6 +232,10 @@ repeat:
 			next = strchr (eq + 1, ';');
 			if (next) *next = 0;
 			val = sdb_const_get (s, eq + 1, 0);
+			if (!val) {
+				eprintf("No value for '%s'\n", eq + 1);
+				goto fail;
+			}
 			if (next) *next = ';';
 			is_ref = 1; // protect readonly buffer from being processed
 		} else {
