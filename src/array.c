@@ -1,6 +1,7 @@
 /* sdb - MIT - Copyright 2011-2016 - pancake */
 
 #include "sdb.h"
+#include <limits.h>
 
 // TODO: Push should always prepend. do not make this configurable
 #define PUSH_PREPENDS 1
@@ -138,7 +139,8 @@ SDB_API int sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val,
 // TODO: done, but there's room for improvement
 SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val,
 			      ut32 cas) {
-	int lnstr, lstr, lval;
+	int lnstr, lstr;
+	size_t lval;
 	char *x, *ptr;
 	const char *str = sdb_const_get_len (s, key, &lstr, 0);
 	if (!str || !*str) {
@@ -150,7 +152,17 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val,
 	// we can optimize this by caching value len in memory . add
 	// sdb_const_get_size()
 	lstr = strlen (str); 
-	x = malloc (lval + lstr + 2);
+
+	// When removing strlen this conversion should be checked
+	size_t lstr_tmp = lstr;
+	if (lstr_tmp > INT_MAX - lval || lstr_tmp + lval > INT_MAX - 2) {
+		return false;
+	}
+	x = malloc (lval + lstr_tmp + 2);
+	if (!x) {
+		return false;
+	}
+
 	if (idx == -1) {
 		memcpy (x, str, lstr);
 		x[lstr] = SDB_RS;
