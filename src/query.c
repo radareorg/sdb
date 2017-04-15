@@ -729,7 +729,9 @@ next_quote:
 					if (encode) {
 						char *newbuf = (void*)sdb_decode (buf, NULL);
 						if (newbuf) {
-							free (buf);
+							if (bufset) {
+								free (buf);
+							}
 							buf = newbuf;
 						}
 					}
