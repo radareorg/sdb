@@ -167,7 +167,7 @@ SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *_cmd) {
 	int i, d, ok, w, alength, bufset = 0, is_ref = 0, encode = 0;
 	const char *p, *q, *val = NULL;
 	char *eq, *tmp, *json, *next, *quot, *arroba, *res,
-		*cmd, *newcmd = NULL, *oldcmd = NULL;
+		*cmd, *newcmd = NULL, *original_cmd = NULL;
 	StrBuf *out;
 	Sdb *s = r;
 	ut64 n;
@@ -176,7 +176,7 @@ SDB_API char *sdb_querys (Sdb *r, char *buf, size_t len, const char *_cmd) {
 	}
 	out = strbuf_new ();
 	if (_cmd) {
-		cmd = newcmd = strdup (_cmd);
+		cmd = original_cmd = strdup (_cmd);
 		if (!cmd) {
 			free (out);
 			return NULL;
@@ -352,14 +352,9 @@ next_quote:
 		p = cmd;
 	}
 	if (*cmd == '$') {
+		free(newcmd);
 		char *nc = sdb_get (s, cmd + 1, 0);
-		if (nc) {
-			free (oldcmd);
-			oldcmd = newcmd;
-			cmd = newcmd = nc;
-		} else {
-			cmd = newcmd = strdup ("");
-		}
+		cmd = newcmd = (nc) ? nc : strdup("");
 	}
 	// cmd = val
 	// cmd is key and val is value
@@ -825,8 +820,8 @@ fail:
 	} else {
 		res = NULL;
 	}
-	free (newcmd);
-	free (oldcmd);
+	free(original_cmd);
+	free(newcmd);
 	return res;
 }
 
