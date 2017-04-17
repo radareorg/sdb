@@ -679,7 +679,7 @@ next_quote:
 						ok = sdb_set (s, p, sval, 0);
 					}
 				}
-				if (ok) {
+				if (ok && buf) {
 					*buf = 0;
 				}
 			} else {
