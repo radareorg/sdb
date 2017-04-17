@@ -676,6 +676,7 @@ SDB_API void sdb_array_sort_num(Sdb *s, const char *key, ut32 cas) {
 	char *ret, *nstr, *str;
 	int lstr;
 	ut64 *nums;
+
 	str = sdb_get_len (s, key, &lstr, 0);
 	if (!str) {
 		return;
@@ -685,14 +686,18 @@ SDB_API void sdb_array_sort_num(Sdb *s, const char *key, ut32 cas) {
 		return;
 	}
 	nums = sdb_fmt_array_num (str);
-	qsort (nums + 1, (int)*nums, sizeof (ut64), int_cmp);
-	nstr = str;
-	memset (nstr, 'q', *nums);
-	nstr += *nums;
-	*nstr = '\0';
-	ret = sdb_fmt_tostr (nums + 1, str);
-	sdb_set_owned (s, key, ret, cas);
 	free (str);
+
+	qsort (nums + 1, (int)*nums, sizeof (ut64), int_cmp);
+
+	nstr = malloc (*nums + 1);
+	memset (nstr, 'q', *nums);
+	nstr[*nums] = '\0';
+
+	ret = sdb_fmt_tostr (nums + 1, nstr);
+	sdb_set_owned (s, key, ret, cas);
+
+	free (nstr);
 	free (nums);
 	return;
 }
