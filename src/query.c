@@ -471,10 +471,10 @@ next_quote:
 			// keep base
 			if (base == 16) {
 				w = snprintf (buf, len - 1, "0x%"ULLFMT"x", n);
-				if (w<0 || (size_t)w>len) {
-					if (bufset && len<0xff) {
+				if (w < 0 || (size_t)w > len) {
+					if (bufset && len < 0xff) {
 						free (buf);
-						buf = malloc (0xff);
+						buf = malloc (len = 0xff);
 						if (!buf) {
 							goto fail;
 						}
@@ -484,10 +484,10 @@ next_quote:
 				}
 			} else {
 				w = snprintf (buf, len-1, "%"ULLFMT"d", n);
-				if (w<0 || (size_t)w>len) {
-					if (bufset && len<0xff) {
+				if (w < 0 || (size_t)w > len) {
+					if (bufset && len < 0xff) {
 						free (buf);
-						buf = malloc (0xff);
+						buf = malloc (len = 0xff);
 						if (!buf) {
 							goto fail;
 						}
@@ -504,7 +504,7 @@ next_quote:
 			// if (!eq) ...
 			alength = sdb_array_length (s, p);
 			if (!buf) {
-				buf = malloc (len + 1);
+				buf = malloc (++len);
 				if (!buf) {
 					goto fail;
 				}
@@ -515,7 +515,7 @@ next_quote:
 				if (bufset) {
 					free (buf);
 				}
-				buf = malloc (32);
+				buf = malloc (len = 32);
 				bufset = 1;
 				snprintf (buf, 31, "%d", alength);
 			}
@@ -630,7 +630,7 @@ next_quote:
 							val = NULL;
 						}
 					}
-					if (ok) *buf = 0;
+					if (ok && buf) *buf = 0;
 					else buf = NULL;
 				} else {
 					if (i==0) {
@@ -690,11 +690,13 @@ next_quote:
 					i = atoi (cmd + 1);
 					buf = sdb_array_get (s, p, i, NULL);
 					bufset = 1;
+					len = strlen(buf) + 1;
 					if (encode) {
 						char *newbuf = (void*)sdb_decode (buf, NULL);
 						if (newbuf) {
 							free (buf);
 							buf = newbuf;
+							len = strlen(buf) + 1;
 						}
 					}
 					out_concat (buf);
@@ -703,14 +705,15 @@ next_quote:
 						goto fail;
 					}
 					wl = strlen (sval);
-					if (!buf || wl>len) {
-						buf = malloc (wl+2);
+					if (!buf || wl >= len) {
+						buf = malloc (wl + 2);
 						if (!buf) {
 							free (out->buf);
 							out->buf = NULL;
 							goto fail;
 						}
 						bufset = 1;
+						len = wl + 2;
 					}
 					for (i = 0; sval[i]; i++) {
 						if (sval[i + 1]) {
@@ -728,6 +731,7 @@ next_quote:
 								free (buf);
 							}
 							buf = newbuf;
+							len = strlen(buf) + 1;
 						}
 					}
 					out_concat (buf);
