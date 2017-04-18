@@ -689,8 +689,10 @@ next_quote:
 				if (cmd[1]) {
 					i = atoi (cmd + 1);
 					buf = sdb_array_get (s, p, i, NULL);
-					bufset = 1;
-					len = strlen(buf) + 1;
+					if (buf) {
+						bufset = 1;
+						len = strlen(buf) + 1;
+					}
 					if (encode) {
 						char *newbuf = (void*)sdb_decode (buf, NULL);
 						if (newbuf) {
