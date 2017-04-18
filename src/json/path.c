@@ -134,17 +134,20 @@ SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 
 	ret = js0n ((const unsigned char *)s, len, res);
 #define PFREE(x) if (x && x != resfix) free (x)
-	if (ret>0) {
+	if (ret > 0) {
 		PFREE (res);
 		return rangstr_null ();
 	}
-	if (*s=='[') {
+
+	if (*s == '[') {
 		n = rangstr_int (rs);
-		n++;
-		if (n<0) goto beach;
-		for (i=j=0; res[i] && j<n; i+=2, j++);
-		if (j<n) goto beach;
-		rsn = rangstr_news (s, res, i-2);
+		if (n < 0) goto beach;
+
+		for (i = j = 0; res[i] && j < n; i += 2, j++);
+		if (!res[i]) goto beach;
+
+		rsn = rangstr_news (s, res, i);
+
 		PFREE (res);
 		return rsn;
 	} else {
