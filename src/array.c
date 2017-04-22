@@ -153,9 +153,10 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val,
 	// sdb_const_get_size()
 	lstr = strlen (str); 
 
+#define SIZE_ADD_OVFCHK(x, y) ((SIZE_MAX - (x)) <= y)
 	// When removing strlen this conversion should be checked
 	size_t lstr_tmp = lstr;
-	if (lstr_tmp > INT_MAX - lval || lstr_tmp + lval > INT_MAX - 2) {
+	if (SIZE_ADD_OVFCHK (lval, lstr_tmp) || SIZE_ADD_OVFCHK (lval + lstr_tmp, 2)) {
 		return false;
 	}
 	x = malloc (lval + lstr_tmp + 2);
@@ -687,10 +688,16 @@ SDB_API void sdb_array_sort_num(Sdb *s, const char *key, ut32 cas) {
 	}
 	nums = sdb_fmt_array_num (str);
 	free (str);
+	if (!nums) {
+		return;
+	}
 
 	qsort (nums + 1, (int)*nums, sizeof (ut64), int_cmp);
 
 	nstr = malloc (*nums + 1);
+	if (!nstr) {
+		return;
+	}
 	memset (nstr, 'q', *nums);
 	nstr[*nums] = '\0';
 

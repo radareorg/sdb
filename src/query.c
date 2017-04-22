@@ -233,7 +233,7 @@ repeat:
 			if (next) *next = 0;
 			val = sdb_const_get (s, eq + 1, 0);
 			if (!val) {
-				eprintf("No value for '%s'\n", eq + 1);
+				eprintf ("No value for '%s'\n", eq + 1);
 				goto fail;
 			}
 			if (next) *next = ';';
@@ -352,9 +352,9 @@ next_quote:
 		p = cmd;
 	}
 	if (*cmd == '$') {
-		free(newcmd);
+		free (newcmd);
 		char *nc = sdb_get (s, cmd + 1, 0);
-		cmd = newcmd = (nc) ? nc : strdup("");
+		cmd = newcmd = (nc) ? nc : strdup ("");
 	}
 	// cmd = val
 	// cmd is key and val is value
@@ -384,13 +384,13 @@ next_quote:
 	} else if (*cmd == '+' || *cmd == '-') {
 		d = 1;
 		if (!buf) {
-			buf = malloc (len);
+			buf = calloc (1, len);
 			bufset = 1;
 		}
 		*buf = 0;
 		if (cmd[1]=='[') {
 			const char *eb = strchr (cmd, ']');
-			if (eb == NULL) {
+			if (!eb) {
 				eprintf ("Missing ']'.\n");
 				goto fail;
 			}
@@ -733,7 +733,7 @@ next_quote:
 								free (buf);
 							}
 							buf = newbuf;
-							len = strlen(buf) + 1;
+							len = strlen (buf) + 1;
 						}
 					}
 					out_concat (buf);
@@ -826,8 +826,8 @@ fail:
 	} else {
 		res = NULL;
 	}
-	free(original_cmd);
-	free(newcmd);
+	free (original_cmd);
+	free (newcmd);
 	return res;
 }
 

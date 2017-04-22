@@ -43,7 +43,7 @@ SDB_IPI int rangstr_length (Rangstr* rs) {
 }
 
 SDB_IPI int rangstr_int (Rangstr *s) {
-	if (!s->p) {
+	if (!s || !s->p) {
 		return 0;
 	}
 

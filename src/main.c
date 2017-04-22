@@ -47,7 +47,11 @@ static char *stdin_slurp(int *sz) {
 		/* run test/add10k.sh script to benchmark */
 		const int buf_size = 96096;
 
-		buf = malloc (buf_size);
+		buf = calloc (1, buf_size);
+		if (!buf) {
+			return NULL;
+		}
+
 		if (!fgets (buf, buf_size, stdin)) {
 			free (buf);
 			return NULL;
