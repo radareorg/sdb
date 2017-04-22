@@ -123,7 +123,7 @@ SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 
 	len = strlen (s);
 	if (len < RESFIXSZ) {
-		memset(resfix, 0, sizeof (RangstrType) * RESFIXSZ);
+		memset (resfix, 0, sizeof (RangstrType) * RESFIXSZ);
 	} else {
 		res = calloc (len + 1, sizeof (RangstrType));
 		if (!res) {
@@ -141,10 +141,14 @@ SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 
 	if (*s == '[') {
 		n = rangstr_int (rs);
-		if (n < 0) goto beach;
+		if (n < 0) {
+			goto beach;
+		}
 
 		for (i = j = 0; res[i] && j < n; i += 2, j++);
-		if (!res[i]) goto beach;
+		if (!res[i]) {
+			goto beach;
+		}
 
 		rsn = rangstr_news (s, res, i);
 

@@ -129,9 +129,10 @@ SDB_API bool sdb_json_set (Sdb *s, const char *k, const char *p, const char *v, 
 	}
 	rs = json_get (js, p);
 	if (!rs.p) {
-		// jslen already comprehends the NULL-terminator
+		// jslen already comprehends the NULL-terminator and is
+		// ensured to be positive by sdb_const_get_len
 		// 7 corresponds to the length of '{"":"",'
-		int buf_len = jslen + strlen (p) + strlen (v) + 7;
+		size_t buf_len = jslen + strlen (p) + strlen (v) + 7;
 		char *buf = malloc (buf_len);
 		if (buf) {
 			int curlen, is_str = isstring (v);

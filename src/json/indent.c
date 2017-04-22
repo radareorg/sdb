@@ -21,8 +21,8 @@ SDB_API char *sdb_json_indent(const char *s, const char *tab) {
 		return NULL;
 	}
 
-	size_t tab_len = strlen(tab);
-	for(int idx = 0; s[idx]; idx++) {
+	size_t tab_len = strlen (tab);
+	for (int idx = 0; s[idx]; idx++) {
 		if (o_size > INT_MAX - (indent * tab_len + 2)) {
 			return NULL;
 		}
