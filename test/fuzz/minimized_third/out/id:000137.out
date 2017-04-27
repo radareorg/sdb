@@ -1,0 +1,54 @@
+=================================================================
+==6613==ERROR: AddressSanitizer: heap-use-after-free on address 0xf4d007b6 at pc 0x08090312 bp 0xffc03418 sp 0xffc03408
+READ of size 1 at 0xf4d007b6 thread T0
+    #0 0x8090311 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:199
+    #1 0x809112d in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:836
+    #2 0x804a701 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:492
+    #3 0xf70401c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #4 0x804c09f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c09f)
+
+0xf4d007b6 is located 6 bytes inside of 7-byte region [0xf4d007b0,0xf4d007b7)
+freed by thread T0 here:
+    #0 0xf72e23ac in free (/usr/lib/libasan.so.3+0xdf3ac)
+    #1 0x808ba4d in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:357
+
+previously allocated by thread T0 here:
+    #0 0xf725e074 in strdup (/usr/lib/libasan.so.3+0x5b074)
+    #1 0x8089287 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:179
+    #2 0xf77b4fff  (<unknown module>)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /home/egeretto/Documents/sdb_afl/sdb/src/query.c:199 in sdb_querys
+Shadow bytes around the buggy address:
+  0x3e9a00a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00d0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00e0: fa fa 02 fa fa fa 02 fa fa fa 00 04 fa fa 02 fa
+=>0x3e9a00f0: fa fa 01 fa fa fa[fd]fa fa fa 00 04 fa fa 07 fa
+  0x3e9a0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0110: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0120: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0130: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0140: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Heap right redzone:      fb
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack partial redzone:   f4
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==6613==ABORTING

@@ -1,0 +1,51 @@
+=================================================================
+==17677==ERROR: AddressSanitizer: heap-buffer-overflow on address 0xf4d00791 at pc 0xf7275091 bp 0xfffb65d8 sp 0xfffb61a8
+WRITE of size 4 at 0xf4d00791 thread T0
+    #0 0xf7275090 in __interceptor_vsnprintf (/usr/lib/libasan.so.3+0x9e090)
+    #1 0xf72752db in snprintf (/usr/lib/libasan.so.3+0x9e2db)
+    #2 0x808dcfe in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:483
+    #3 0x8091ebd in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:826
+    #4 0x804a352 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:486
+    #5 0xf70141c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #6 0x804c50f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c50f)
+
+0xf4d00791 is located 0 bytes to the right of 1-byte region [0xf4d00790,0xf4d00791)
+allocated by thread T0 here:
+    #0 0xf7232074 in strdup (/usr/lib/libasan.so.3+0x5b074)
+    #1 0x808d3fe in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:388
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/usr/lib/libasan.so.3+0x9e090) in __interceptor_vsnprintf
+Shadow bytes around the buggy address:
+  0x3e9a00a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00d0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00e0: fa fa fa fa fa fa 00 04 fa fa 02 fa fa fa 01 fa
+=>0x3e9a00f0: fa fa[01]fa fa fa 06 fa fa fa 00 04 fa fa 06 fa
+  0x3e9a0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0110: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0120: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0130: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0140: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Heap right redzone:      fb
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack partial redzone:   f4
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==17677==ABORTING

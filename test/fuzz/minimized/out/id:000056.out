@@ -1,0 +1,54 @@
+=================================================================
+==17621==ERROR: AddressSanitizer: heap-buffer-overflow on address 0xf4d006f3 at pc 0x08075889 bp 0xfff2a3c8 sp 0xfff2a3b8
+READ of size 1 at 0xf4d006f3 thread T0
+    #0 0x8075888 in rangstr_find json/rangstr.c:109
+    #1 0x8075888 in json_get json/path.c:170
+    #2 0x807866d in sdb_json_num_get /home/egeretto/Documents/sdb_afl/sdb/src/json.c:46
+    #3 0x807ae47 in sdb_json_num_dec /home/egeretto/Documents/sdb_afl/sdb/src/json.c:35
+    #4 0x808dc4a in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:458
+    #5 0x8091ebd in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:826
+    #6 0x804a352 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:486
+    #7 0xf70451c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #8 0x804c50f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c50f)
+
+0xf4d006f3 is located 0 bytes to the right of 3-byte region [0xf4d006f0,0xf4d006f3)
+allocated by thread T0 here:
+    #0 0xf7263074 in strdup (/usr/lib/libasan.so.3+0x5b074)
+    #1 0x808a355 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:179
+    #2 0xf77b9fff  (<unknown module>)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow json/rangstr.c:109 in rangstr_find
+Shadow bytes around the buggy address:
+  0x3e9a0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0090: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a00c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x3e9a00d0: fa fa fa fa fa fa fa fa fa fa 04 fa fa fa[03]fa
+  0x3e9a00e0: fa fa 00 04 fa fa 03 fa fa fa 00 04 fa fa 04 fa
+  0x3e9a00f0: fa fa 01 fa fa fa fd fa fa fa fd fd fa fa fd fa
+  0x3e9a0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0110: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9a0120: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Heap right redzone:      fb
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack partial redzone:   f4
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==17621==ABORTING

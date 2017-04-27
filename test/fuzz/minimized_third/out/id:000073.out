@@ -1,0 +1,53 @@
+=================================================================
+==6574==ERROR: AddressSanitizer: heap-buffer-overflow on address 0xf5600b1f at pc 0xf71ba2a1 bp 0xfff46ad8 sp 0xfff466a8
+WRITE of size 1 at 0xf5600b1f thread T0
+    #0 0xf71ba2a0  (/usr/lib/libasan.so.3+0x602a0)
+    #1 0x8078d36 in sdb_json_set /home/egeretto/Documents/sdb_afl/sdb/src/json.c:194
+    #2 0x80795e4 in sdb_json_num_set /home/egeretto/Documents/sdb_afl/sdb/src/json.c:87
+    #3 0x807988f in sdb_json_num_inc /home/egeretto/Documents/sdb_afl/sdb/src/json.c:29
+    #4 0x808dd05 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:464
+    #5 0x809112d in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:836
+    #6 0x804a701 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:492
+    #7 0xf6f971c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #8 0x804c09f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c09f)
+
+0xf5600b1f is located 1 bytes to the left of 17-byte region [0xf5600b20,0xf5600b31)
+allocated by thread T0 here:
+    #0 0xf72397c4 in malloc (/usr/lib/libasan.so.3+0xdf7c4)
+    #1 0x8077ec4 in sdb_json_set /home/egeretto/Documents/sdb_afl/sdb/src/json.c:177
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/usr/lib/libasan.so.3+0x602a0) 
+Shadow bytes around the buggy address:
+  0x3eac0110: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac0120: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac0130: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac0140: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac0150: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x3eac0160: fa fa fa[fa]00 00 01 fa fa fa 00 00 00 fa fa fa
+  0x3eac0170: 00 00 00 04 fa fa 00 00 00 fa fa fa 00 00 00 fa
+  0x3eac0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac0190: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac01a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3eac01b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Heap right redzone:      fb
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack partial redzone:   f4
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==6574==ABORTING

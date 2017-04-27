@@ -1,0 +1,50 @@
+=================================================================
+==17689==ERROR: AddressSanitizer: heap-buffer-overflow on address 0xf4e007ff at pc 0x0804bc5c bp 0xfff66768 sp 0xfff66758
+WRITE of size 1 at 0xf4e007ff thread T0
+    #0 0x804bc5b in stdin_slurp /home/egeretto/Documents/sdb_afl/sdb/src/main.c:59
+    #1 0x804bc5b in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:485
+    #2 0xf6fd81c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #3 0x804c50f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c50f)
+
+0xf4e007ff is located 1 bytes to the left of 96096-byte region [0xf4e00800,0xf4e17f60)
+allocated by thread T0 here:
+    #0 0xf727a9cc in __interceptor_calloc (/usr/lib/libasan.so.3+0xdf9cc)
+    #1 0x804a372 in stdin_slurp /home/egeretto/Documents/sdb_afl/sdb/src/main.c:49
+    #2 0x804a372 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:485
+    #3 0xf6fd81c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /home/egeretto/Documents/sdb_afl/sdb/src/main.c:59 in stdin_slurp
+Shadow bytes around the buggy address:
+  0x3e9c00a0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9c00b0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9c00c0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9c00d0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x3e9c00e0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x3e9c00f0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa[fa]
+  0x3e9c0100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3e9c0110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3e9c0120: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3e9c0130: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3e9c0140: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Heap right redzone:      fb
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack partial redzone:   f4
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==17689==ABORTING

@@ -1,0 +1,17 @@
+ASAN:DEADLYSIGNAL
+=================================================================
+==17691==ERROR: AddressSanitizer: SEGV on unknown address 0x00000001 (pc 0xf7003f06 bp 0xff8152a8 sp 0xff814e24 T0)
+    #0 0xf7003f05 in __strlen_sse2_bsf (/usr/lib/libc.so.6+0x89f05)
+    #1 0xf718badd  (/usr/lib/libasan.so.3+0x36add)
+    #2 0x8068fb2 in sdb_const_get_len /home/egeretto/Documents/sdb_afl/sdb/src/sdb.c:209
+    #3 0x8069c21 in sdb_const_get /home/egeretto/Documents/sdb_afl/sdb/src/sdb.c:254
+    #4 0x8092ad6 in sdb_array_get_num /home/egeretto/Documents/sdb_afl/sdb/src/array.c:66
+    #5 0x808cf27 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:397
+    #6 0x8091ebd in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:826
+    #7 0x804a352 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:486
+    #8 0xf6f921c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #9 0x804c50f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c50f)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/usr/lib/libc.so.6+0x89f05) in __strlen_sse2_bsf
+==17691==ABORTING

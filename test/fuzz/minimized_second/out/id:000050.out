@@ -1,0 +1,21 @@
+ASAN:DEADLYSIGNAL
+=================================================================
+==21539==ERROR: AddressSanitizer: SEGV on unknown address 0x0809e490 (pc 0xf71c96b8 bp 0xfff3be58 sp 0xfff3b980 T0)
+    #0 0xf71c96b7  (/usr/lib/libasan.so.3+0x1c6b7)
+    #1 0xf728c37a in free (/usr/lib/libasan.so.3+0xdf37a)
+    #2 0x805e5aa in sdb_kv_free /home/egeretto/Documents/sdb_afl/sdb/src/sdb.c:542
+    #3 0x8055be1 in ls_delete /home/egeretto/Documents/sdb_afl/sdb/src/ls.c:137
+    #4 0x805601f in ls_destroy /home/egeretto/Documents/sdb_afl/sdb/src/ls.c:182
+    #5 0x8056190 in ls_free /home/egeretto/Documents/sdb_afl/sdb/src/ls.c:193
+    #6 0x805aa94 in ht_free /home/egeretto/Documents/sdb_afl/sdb/src/ht.c:118
+    #7 0x8059737 in sdb_ht_free /home/egeretto/Documents/sdb_afl/sdb/src/sdbht.c:44
+    #8 0x806c520 in sdb_fini /home/egeretto/Documents/sdb_afl/sdb/src/sdb.c:164
+    #9 0x806c520 in sdb_free /home/egeretto/Documents/sdb_afl/sdb/src/sdb.c:184
+    #10 0x804dc99 in terminate /home/egeretto/Documents/sdb_afl/sdb/src/main.c:27
+    #11 0x804a4b2 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:516
+    #12 0xf6fea1c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #13 0x804c4bf  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c4bf)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/usr/lib/libasan.so.3+0x1c6b7) 
+==21539==ABORTING

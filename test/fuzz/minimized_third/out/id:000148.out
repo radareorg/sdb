@@ -1,0 +1,55 @@
+=================================================================
+==6654==ERROR: AddressSanitizer: stack-buffer-underflow on address 0xffe9c4bc at pc 0x08073836 bp 0xffe9c448 sp 0xffe9c438
+READ of size 2 at 0xffe9c4bc thread T0
+    #0 0x8073835 in rangstr_news json/rangstr.c:91
+    #1 0x8073835 in json_find json/path.c:147
+    #2 0x8073ecf in json_get json/path.c:187
+    #3 0x8076ce7 in sdb_json_get /home/egeretto/Documents/sdb_afl/sdb/src/json.c:17
+    #4 0x808d33f in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:773
+    #5 0x809112d in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:836
+    #6 0x804a701 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:492
+    #7 0xf6f5d1c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #8 0x804c09f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c09f)
+
+Address 0xffe9c4bc is located in stack of thread T0 at offset 28 in frame
+    #0 0x8071d7f in json_find json/path.c:114
+
+  This frame has 1 object(s):
+    [32, 2080) 'resfix' <== Memory access at offset 28 underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism or swapcontext
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-underflow json/rangstr.c:91 in rangstr_news
+Shadow bytes around the buggy address:
+  0x3ffd3840: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd3850: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd3860: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd3870: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd3880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x3ffd3890: 00 00 00 00 f1 f1 f1[f1]00 00 00 00 00 00 00 00
+  0x3ffd38a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd38b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd38c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd38d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x3ffd38e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Heap right redzone:      fb
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack partial redzone:   f4
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==6654==ABORTING

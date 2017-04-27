@@ -1,0 +1,12 @@
+ASAN:DEADLYSIGNAL
+=================================================================
+==6591==ERROR: AddressSanitizer: SEGV on unknown address 0x00000000 (pc 0x0808b641 bp 0x00000000 sp 0xffcc7b90 T0)
+    #0 0x808b640 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:764
+    #1 0x809112d in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:836
+    #2 0x804a701 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:492
+    #3 0xf70411c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #4 0x804c09f  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c09f)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /home/egeretto/Documents/sdb_afl/sdb/src/query.c:764 in sdb_querys
+==6591==ABORTING

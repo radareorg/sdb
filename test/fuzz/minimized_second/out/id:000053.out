@@ -1,0 +1,12 @@
+=================================================================
+==21545==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0xfffeb470 in thread T0
+    #0 0xf72753ac in free (/usr/lib/libasan.so.3+0xdf3ac)
+    #1 0x8090878 in sdb_querys /home/egeretto/Documents/sdb_afl/sdb/src/query.c:728
+    #2 0x8091f7f in sdb_query /home/egeretto/Documents/sdb_afl/sdb/src/query.c:830
+    #3 0x804a961 in main /home/egeretto/Documents/sdb_afl/sdb/src/main.c:492
+    #4 0xf6fd31c5 in __libc_start_main (/usr/lib/libc.so.6+0x181c5)
+    #5 0x804c4bf  (/home/egeretto/Documents/sdb_afl/sdb_asan+0x804c4bf)
+
+AddressSanitizer can not describe address in more detail (wild memory access suspected).
+SUMMARY: AddressSanitizer: bad-free (/usr/lib/libasan.so.3+0xdf3ac) in free
+==21545==ABORTING
