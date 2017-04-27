@@ -113,7 +113,8 @@ SDB_IPI int json_walk (const char *s) {
 
 SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 #define RESFIXSZ 1024
-	RangstrType resfix[RESFIXSZ], *res = resfix;
+	RangstrType resfix[RESFIXSZ] = {0};
+	RangstrType *res = resfix;
 	int i, j, n, len, ret;
 	Rangstr rsn;
 
@@ -122,9 +123,7 @@ SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 	}
 
 	len = strlen (s);
-	if (len < RESFIXSZ) {
-		memset (resfix, 0, sizeof (RangstrType) * RESFIXSZ);
-	} else {
+	if (len > RESFIXSZ) {
 		res = calloc (len + 1, sizeof (RangstrType));
 		if (!res) {
 			eprintf ("Cannot allocate %d bytes\n", len + 1);

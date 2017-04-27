@@ -13,7 +13,7 @@ static void doIndent(int idt, char **o, const char *tab) {
 }
 
 SDB_API char *sdb_json_indent(const char *s, const char *tab) {
-	int indent = 0;
+	int idx, indent = 0;
 	int instr = 0;
 	size_t o_size = 0;
 	char *o, *O;
@@ -22,7 +22,7 @@ SDB_API char *sdb_json_indent(const char *s, const char *tab) {
 	}
 
 	size_t tab_len = strlen (tab);
-	for (int idx = 0; s[idx]; idx++) {
+	for (idx = 0; s[idx]; idx++) {
 		if (o_size > INT_MAX - (indent * tab_len + 2)) {
 			return NULL;
 		}

@@ -153,10 +153,9 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val,
 	// sdb_const_get_size()
 	lstr = strlen (str); 
 
-#define SIZE_ADD_OVFCHK(x, y) ((SIZE_MAX - (x)) <= y)
 	// When removing strlen this conversion should be checked
 	size_t lstr_tmp = lstr;
-	if (SIZE_ADD_OVFCHK (lval, lstr_tmp) || SIZE_ADD_OVFCHK (lval + lstr_tmp, 2)) {
+	if (SZT_ADD_OVFCHK (lval, lstr_tmp) || SZT_ADD_OVFCHK (lval + lstr_tmp, 2)) {
 		return false;
 	}
 	x = malloc (lval + lstr_tmp + 2);
