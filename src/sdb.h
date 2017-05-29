@@ -37,7 +37,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <io.h>
 #ifndef _MSC_VER
-extern __attribute__ ((dllimport)) void *__cdecl _aligned_malloc (size_t, size_t);
+extern __attribute__((dllimport)) void *__cdecl _aligned_malloc (size_t, size_t);
 extern char *strdup (const char *);
 #else
 #include <process.h>
