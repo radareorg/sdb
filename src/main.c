@@ -398,7 +398,7 @@ int showcount (const char *db) {
 	return 0;
 }
 
-int main(int argc, const char **argv) {
+int __main(int argc, const char **argv) {
 	char *line;
 	const char *arg, *grep = NULL;
 	int i, ret, fmt = MODE_DFLT;
