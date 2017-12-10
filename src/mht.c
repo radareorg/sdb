@@ -1,24 +1,40 @@
+/* sdb - MIT - Copyright 2017 - pancake */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include "sdb.h"
 
-mhtkv *mht_getr(mht *m, mhti k);
-void mht_init(mht *m, mht_free f);
-static mhti mht_get(mht *m, mhti k);
-
-void mht_init(mht *m, mht_free f) {
+void mht_init(mht *m, ut32 size, mht_free f) {
 	memset(m, 0, sizeof (mht));
+	if (size > 0) {
+		m->table = calloc (size, sizeof (mhtkv));
+		m->size = size;
+	}
 	m->f = f;
 }
 
 void mht_fini(mht *m) {
-	int i;
+	ut32 i;
 	if (m) {
-		for (i = 0; i < MHTSZ; i++) {
-			free (m->table[i]);
+		if (m->f) {
+			for (i = 0; i < m->size; i++) {
+				mhtkv *kv = m->table[i];
+				if (kv) {
+					while (kv->k != MHTNO) {
+						m->f(kv->u);
+						kv++;
+					}
+				}
+				free (m->table[i]);
+			}
+		} else {
+			for (i = 0; i < m->size; i++) {
+				free (m->table[i]);
+			}
 		}
-		mht_init(m, NULL);
+		free (m->table);
+		mht_init(m, 0, NULL);
 	}
 }
 
@@ -27,10 +43,10 @@ mhti mht_hash(const char *s) {
 }
 
 bool mht_set(mht *m, mhti k, mhti v, void *u) {
-	const int bucket = k % MHTSZ;
-	if (k == MHTNO) {
+	if (!m || !m->size || k == MHTNO) {
 		return false;
 	}
+	const int bucket = k % m->size;
 	mhtkv *kv = m->table[bucket];
 	if (!kv) {
 		kv = calloc (sizeof(mhtkv), 2);
@@ -71,7 +87,7 @@ bool mht_set(mht *m, mhti k, mhti v, void *u) {
 }
 
 mhtkv *mht_getr(mht *m, mhti k) {
-	int bucket = k % MHTSZ;
+	int bucket = k % m->size;
 	mhtkv *kv = m->table[bucket];
 	if (kv) {
 		while (kv->k != MHTNO) {
@@ -95,13 +111,13 @@ void *mht_getu(mht *m, mhti k) {
 }
 
 bool mht_add(mht *m, mhti k, mhti v, void *u) {
-	return (mht_get(m, k) == MHTNO)
+	return mht_getr(m, k)
 		? mht_set(m, k, v, u)
 		: false;
 }
 
 bool mht_del(mht *m, mhti k) {
-	int bucket = k % MHTSZ;
+	int bucket = k % m->size;
 	if (k == MHTNO) {
 		return false;
 	}
@@ -129,7 +145,7 @@ bool mht_del(mht *m, mhti k) {
 static char *mht_str(mht *m, mhti k) {
 	// walk all buckets and print the data..... we need a printer for kv->u
 	char *res = malloc (1024);
-	int bucket = k % MHTSZ;
+	int bucket = k % m->size;
 	mhti *kv = m->table[bucket];
 	char *p = res;
 	for (i = 0; i < 1024; i++) {
@@ -142,11 +158,11 @@ static char *mht_str(mht *m, mhti k) {
 
 static char *mht_str(mht *m) {
 	char *res = malloc (1024);
-	int bucket = k % MHTSZ;
+	int bucket = k % m->size;
 	mhti *kv = m->table[bucket];
 	int i;
 	char *p = res;
-	for (i = 0; i < MHTSZ; i++) {
+	for (i = 0; i < m->size; i++) {
 		sprintf (p, "%s%lld", comma, kv->v);
 		p += strlen (p);
 		kv++;
@@ -154,15 +170,15 @@ static char *mht_str(mht *m) {
 	return res;
 }
 
-#endif
 int main() {
 	mht m;
-	mht_init(&m, NULL);
+	mht_init(&m, 32, free);
 	mht_set(&m, mht_hash("username"), 1024, NULL);
-	mht_set(&m, 32, 212, "test");
+	mht_set(&m, 32, 212, strdup("test"));
 	mht_del(&m, mht_hash("username"));
 	printf ("%d\n", (int)mht_get(&m, mht_hash("username")));
 	printf ("%s\n", mht_getu(&m, 32)); //mht_hash("username")));
 	mht_fini(&m);
 	return 0;
 }
+#endif

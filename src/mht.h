@@ -25,10 +25,21 @@ typedef struct {
 typedef void (*mht_free)(void *);
 
 typedef struct {
-	void *table[MHTSZ];
+	void **table; //[MHTSZ];
 	mht_free f;
+	ut32 size;
 } mht;
 
 typedef mht SdbMini;
 
-
+void mht_init(mht *m, ut32, mht_free f);
+void mht_fini(mht *m);
+mhti mht_hash(const char *s);
+bool mht_set(mht *m, mhti k, mhti v, void *u);
+mhtkv *mht_getr(mht *m, mhti k);
+mhtkv *mht_getr(mht *m, mhti k);
+mhti mht_get(mht *m, mhti k);
+mhti mht_get(mht *m, mhti k);
+void *mht_getu(mht *m, mhti k);
+bool mht_add(mht *m, mhti k, mhti v, void *u);
+bool mht_del(mht *m, mhti k);
