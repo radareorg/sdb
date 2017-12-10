@@ -5,13 +5,21 @@
 #include <stdbool.h>
 #include "sdb.h"
 
-void mht_init(mht *m, ut32 size, mht_free f) {
-	memset(m, 0, sizeof (mht));
-	if (size > 0) {
-		m->table = calloc (size, sizeof (mhtkv));
-		m->size = size;
+mht *mht_new(ut32 size, mht_freecb f) {
+	mht *m = calloc(1, sizeof (mht));
+	mht_init (m, size, f);
+	return m;
+}
+
+void mht_init(mht *m, ut32 size, mht_freecb f) {
+	if (m) {
+		memset(m, 0, sizeof (mht));
+		if (size > 0) {
+			m->table = calloc (size, sizeof (mhtkv));
+			m->size = size;
+		}
+		m->f = f;
 	}
-	m->f = f;
 }
 
 void mht_fini(mht *m) {
@@ -36,6 +44,11 @@ void mht_fini(mht *m) {
 		free (m->table);
 		mht_init(m, 0, NULL);
 	}
+}
+
+void mht_free(mht *m) {
+	mht_fini(m);
+	free (m);
 }
 
 mhti mht_hash(const char *s) {

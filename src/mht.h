@@ -22,17 +22,19 @@ typedef struct {
 // 8 + 8 + 8 = 24 .. still not there, missing 8
 // 4 + 4 + 8 = 16 .. lgtm
 
-typedef void (*mht_free)(void *);
+typedef void (*mht_freecb)(void *);
 
 typedef struct {
 	void **table; //[MHTSZ];
-	mht_free f;
+	mht_freecb f;
 	ut32 size;
 } mht;
 
 typedef mht SdbMini;
 
-void mht_init(mht *m, ut32, mht_free f);
+mht *mht_new(ut32 size, mht_freecb f);
+void mht_free(mht*);
+void mht_init(mht *m, ut32, mht_freecb f);
 void mht_fini(mht *m);
 mhti mht_hash(const char *s);
 bool mht_set(mht *m, mhti k, mhti v, void *u);
