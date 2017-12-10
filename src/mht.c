@@ -85,11 +85,11 @@ bool mht_set(mht *m, mhti k, mhti v, void *u) {
 	int curln = cursz / sizeof(mhtkv);
 	mhtkv *newkv = realloc(tmp, (curln + 2) * sizeof(mhtkv));
 	if (newkv) {
-		m->table[bucket] = newkv;
-		newkv += curln;
-		newkv->k = k;
-		newkv->v = v;
-		newkv->u = u;
+		kv = m->table[bucket] = newkv;
+		kv += curln;
+		kv->k = k;
+		kv->v = v;
+		kv->u = u;
 		kv++;
 		kv->k = MHTNO;
 		kv->v = MHTNO;
