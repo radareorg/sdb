@@ -63,7 +63,7 @@ bool dict_set(dict *m, dicti k, dicti v, void *u) {
 	const int bucket = k % m->size;
 	dictkv *kv = m->table[bucket];
 	if (!kv) {
-		kv = calloc (sizeof(dictkv), 2);
+		kv = calloc (sizeof (dictkv), 2);
 		if (kv) {
 			m->table[bucket] = kv;
 			kv->k = MHTNO;
@@ -82,9 +82,8 @@ bool dict_set(dict *m, dicti k, dicti v, void *u) {
 		}
 		kv++;
 	}
-	int cursz = (kv - tmp);
-	int curln = cursz / sizeof(dictkv);
-	dictkv *newkv = realloc(tmp, (curln + 2) * sizeof(dictkv));
+	int curln = (kv - tmp);
+	dictkv *newkv = realloc (tmp, (curln + 2) * sizeof (dictkv));
 	if (newkv) {
 		kv = m->table[bucket] = newkv;
 		kv += curln;
@@ -115,12 +114,12 @@ dictkv *dict_getr(dict *m, dicti k) {
 }
 
 dicti dict_get(dict *m, dicti k) {
-	dictkv *kv = dict_getr(m, k);
+	dictkv *kv = dict_getr (m, k);
 	return kv? kv->v: MHTNO;
 }
 
 void *dict_getu(dict *m, dicti k) {
-	dictkv *kv = dict_getr(m, k);
+	dictkv *kv = dict_getr (m, k);
 	return kv? kv->u: NULL;
 }
 
@@ -183,15 +182,20 @@ static char *dict_str(dict *m) {
 	}
 	return res;
 }
-
 int main() {
 	dict m;
 	dict_init(&m, 32, free);
+	dict_set (&m, 0x100, 1, NULL);
+	dict_set (&m, 0x200, 2, NULL);
+printf ("%d %d\n", (int)dict_get(&m, 0x100), (int)dict_get(&m, 0x200));
+
+#if 0
 	dict_set(&m, dict_hash("username"), 1024, NULL);
 	dict_set(&m, 32, 212, strdup("test"));
 	dict_del(&m, dict_hash("username"));
 	printf ("%d\n", (int)dict_get(&m, dict_hash("username")));
 	printf ("%s\n", dict_getu(&m, 32)); //dict_hash("username")));
+#endif
 	dict_fini(&m);
 	return 0;
 }
