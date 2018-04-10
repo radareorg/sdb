@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2014-2016 - pancake */
+/* sdb - MIT - Copyright 2014-2018 - pancake */
 
 #include "sdb.h"
 #include <stdarg.h>
@@ -207,8 +207,8 @@ SDB_API char** sdb_fmt_array(const char *list) {
 	if (list && *list) {
 		int len = sdb_alen (list);
 		retp = ret = (char**) malloc (2 * strlen (list) +
-			((len + 1)*sizeof (char*))+1);
-		_s = (char*)ret + ((len + 1) * sizeof (char*));
+			((len + 1) * sizeof (char *)) + 1);
+		_s = (char *)ret + ((len + 1) * sizeof (char *));
 		if (!ret) {
 			return NULL;
 		}
