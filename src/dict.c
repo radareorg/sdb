@@ -188,6 +188,30 @@ bool dict_del(dict *m, dicti k) {
 	return false;
 }
 
+// call the cb callback on each element of the dictionary
+// m : dict to iterate
+// cb : function that accept a dictkv. When it returns a value != 0, the
+//      iteration stops
+// u : additional information to pass to cb together with the dictkv
+void dict_foreach(dict *m, dictkv_cb cb, void *u) {
+	bool iterate = true;
+	ut32 i;
+
+	for (i = 0; i < m->size && iterate; i++) {
+		dictkv *kv = m->table[i];
+		if (kv) {
+			while (kv->k != MHTNO) {
+				int res = cb (kv, u);
+				if (res != 0) {
+					iterate = false;
+					break;
+				}
+				kv++;
+			}
+		}
+	}
+}
+
 #if 0
 static char *dict_str(dict *m, dicti k) {
 	// walk all buckets and print the data..... we need a printer for kv->u
