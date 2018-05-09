@@ -16,7 +16,6 @@ extern "C" {
 #include "cdb.h"
 #include "cdb_make.h"
 #include "sdb_version.h"
-#include "json/rangstr.h"
 
 #undef r_offsetof
 #define r_offsetof(type, member) ((unsigned long) &((type*)0)->member)
@@ -222,7 +221,7 @@ SDB_API ut32 sdb_hash_len(const char *key, ut32 *len);
 SDB_API ut8 sdb_hash_byte(const char *s);
 
 /* json api */
-SDB_API int sdb_js0n(const unsigned char *js, RangstrType len, RangstrType *out);
+// SDB_API int sdb_js0n(const unsigned char *js, RangstrType len, RangstrType *out);
 SDB_API bool sdb_isjson(const char *k);
 SDB_API char *sdb_json_get(Sdb* s, const char *key, const char *p, ut32 *cas);
 SDB_API bool sdb_json_set(Sdb* s, const char *k, const char *p, const char *v, ut32 cas);
