@@ -1,4 +1,4 @@
-// by jeremie miller - 2010-2015
+// by jeremie miller - 2010-2018
 // public domain, contributions/improvements welcome via github
 
 // opportunity to further optimize would be having different jump tables for higher depths
