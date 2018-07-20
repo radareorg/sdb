@@ -1,13 +1,13 @@
 include ../sdb-test.mk
 
-TESTS=array new sync set stack
+TESTS=array new sync set reset stack
 BINS=$(addprefix bench-,${TESTS})
 OBJS=$(addsuffix .o,${BINS})
 
-all: bench-array bench-new bench-sync bench-set bench-reset
+all: ${BINS}
 
-${BINS}: ${OBJS}
-	@for a in ${BINS} ; do ${CC} -o $$a $$a.o ${LDFLAGS} ; done
+%: %.c
+	${CC} ${CFLAGS} -o $@ $< ${LDFLAGS}
 
 run test:
 	for a in ${TESTS} ; do ./bench-$$a ; done
