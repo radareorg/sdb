@@ -4,7 +4,7 @@ sdb_libversion = host_machine.system() == 'windows' ? '' : sdb_version
 sdb_platform_inc = ['.']
 if host_machine.system() == 'windows'
   sdb_platform_deps = [cc.find_library('ws2_32')]
-  sdb_platform_inc += ['libr/include/msvc']
+  sdb_platform_inc += ['msvc']
 endif
 sdb_platform_inc = include_directories(sdb_platform_inc)
 
