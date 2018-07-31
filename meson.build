@@ -1,4 +1,4 @@
-sdb_version = '1.0.0'
+sdb_version = '1.2.0'
 
 sdb_platform_inc = []
 if host_machine.system() == 'windows'
