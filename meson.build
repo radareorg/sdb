@@ -61,7 +61,7 @@ libsdb = both_libraries('sdb', files,
 
 sdb_exe = executable('sdb', 'src/main.c',
   include_directories: sdb_inc,
-  link_with: [libsdb.get_shared_lib()],
+  link_with: [libsdb.get_static_lib()],
   install: true,
   implicit_include_directories: false
 )
