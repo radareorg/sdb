@@ -44,12 +44,13 @@ files = [
 sdb_inc = [
   sdb_platform_inc,
   include_directories([
-    'src'
+    'src',
+    '.',
   ])
 ]
 
 include_files = run_command(glob_cmd + ['src/*.h']).stdout().strip().split(';') + [sdb_version_path]
-install_headers(include_files)
+install_headers(include_files, subdir: 'sdb')
 
 libsdb = both_libraries('sdb', files,
   include_directories: sdb_inc,
