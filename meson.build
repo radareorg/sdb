@@ -1,4 +1,5 @@
 sdb_version = '1.2.0'
+sdb_libversion = host_machine.system() == 'windows' ? '' : sdb_version
 
 sdb_platform_inc = []
 if host_machine.system() == 'windows'
@@ -44,14 +45,16 @@ sdb_inc = [
   ])
 ]
 
-libsdb = library('sdb', files,
+libsdb = both_libraries('sdb', files,
   include_directories: sdb_inc,
-  implicit_include_directories: false
+  implicit_include_directories: false,
+  install: true,
+  soversion: sdb_libversion
 )
 
 sdb_exe = executable('sdb', 'src/main.c',
   include_directories: sdb_inc,
-  link_with: [libsdb],
+  link_with: [libsdb.get_shared_lib()],
   install: true,
   implicit_include_directories: false
 )
@@ -65,6 +68,6 @@ sdb_gen_cmd = [
 ]
 
 sdb_dep = declare_dependency(
-  link_with: libsdb,
+  link_with: libsdb.get_static_lib(),
   include_directories: sdb_inc
 )
