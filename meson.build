@@ -6,6 +6,7 @@ if host_machine.system() == 'windows'
 endif
 
 # Create sdb_version.h
+py3_exe = import('python3').find_python()
 run_command(py3_exe, '-c', 'with open("src/sdb_version.h", "w") as f: f.write("#define SDB_VERSION \"' + sdb_version + '\"")')
 
 files = [
@@ -22,8 +23,8 @@ files = [
   'src/json.c',
   #'src/json/api.c',
   #'src/json/indent.c',
-  'src/json/js0n.c',
-  'src/json/path.c',
+  #'src/json/js0n.c',
+  #'src/json/path.c',
   #'src/json/rangstr.c',
   'src/lock.c',
   'src/ls.c',
@@ -36,23 +37,20 @@ files = [
   'src/util.c',
 ]
 
-libsdb = static_library('sdb', files,
-  include_directories: [
-    platform_inc,
-    include_directories([
-      'src'
-    ])
-  ],
+sdb_inc = [
+  sdb_platform_inc,
+  include_directories([
+    'src'
+  ])
+]
+
+libsdb = library('sdb', files,
+  include_directories: sdb_inc,
   implicit_include_directories: false
 )
 
 sdb_exe = executable('sdb', 'src/main.c',
-  include_directories: [
-    sdb_platform_inc,
-    include_directories([
-      'src'
-    ])
-  ],
+  include_directories: sdb_inc,
   link_with: [libsdb],
   install: true,
   implicit_include_directories: false
@@ -65,3 +63,8 @@ sdb_gen_cmd = [
   '@OUTPUT@',
   '@INPUT@'
 ]
+
+sdb_dep = declare_dependency(
+  link_with: libsdb,
+  include_directories: sdb_inc
+)
