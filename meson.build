@@ -59,9 +59,15 @@ libsdb = both_libraries('sdb', files,
   soversion: sdb_libversion
 )
 
+if host_machine.system() == 'windows'
+  link_with = libsdb.get_static_lib()
+else
+  link_with = libsdb.get_shared_lib()
+endif
+
 sdb_exe = executable('sdb', 'src/main.c',
   include_directories: sdb_inc,
-  link_with: [libsdb.get_static_lib()],
+  link_with: [link_with],
   install: true,
   implicit_include_directories: false
 )
