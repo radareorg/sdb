@@ -8,7 +8,10 @@ endif
 
 # Create sdb_version.h
 py3_exe = import('python3').find_python()
-run_command(py3_exe, '-c', 'with open("src/sdb_version.h", "w") as f: f.write("#define SDB_VERSION \"' + sdb_version + '\"")')
+sdb_version_path = join_paths(meson.current_build_dir(), 'sdb_version.h')
+run_command(py3_exe, '-c', 'with open("@0@", "w") as f: f.write("#define SDB_VERSION \"@1@\"")'.format(sdb_version_path, sdb_version))
+
+glob_cmd = [py3_exe, '-c', 'from sys import argv; print(";".join(__import__("glob").glob(argv[1])))']
 
 files = [
   'src/array.c',
@@ -44,6 +47,9 @@ sdb_inc = [
     'src'
   ])
 ]
+
+include_files = run_command(glob_cmd + ['src/*.h']).stdout().strip().split(';') + [sdb_version_path]
+install_headers(include_files)
 
 libsdb = both_libraries('sdb', files,
   include_directories: sdb_inc,
