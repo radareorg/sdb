@@ -1,10 +1,12 @@
 sdb_version = '1.2.0'
 sdb_libversion = host_machine.system() == 'windows' ? '' : sdb_version
 
-sdb_platform_inc = []
+sdb_platform_inc = ['.']
 if host_machine.system() == 'windows'
-  sdb_platform_inc = include_directories('msvc')
+  sdb_platform_deps = [cc.find_library('ws2_32')]
+  sdb_platform_inc += ['libr/include/msvc']
 endif
+sdb_platform_inc = include_directories(sdb_platform_inc)
 
 # Create sdb_version.h
 py3_exe = import('python3').find_python()
@@ -44,8 +46,7 @@ files = [
 sdb_inc = [
   sdb_platform_inc,
   include_directories([
-    'src',
-    '.',
+    'src'
   ])
 ]
 
