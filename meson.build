@@ -1,4 +1,14 @@
-sdb_version = '1.2.0'
+py3_exe = import('python3').find_python()
+
+version_cmd = 'import sys; l=open("config.mk").read().split("\\n"); print(next(filter(lambda x: "SDBVER=" in x, l)).split("=")[1])'
+sdb_version = run_command(py3_exe, '-c', version_cmd)
+if sdb_version.returncode() == 0
+  sdb_version = sdb_version.stdout().strip()
+else
+  sdb_version = '0.0.1'
+endif
+
+message('SDB version = ' + sdb_version)
 sdb_libversion = host_machine.system() == 'windows' ? '' : sdb_version
 
 sdb_platform_inc = ['.']
@@ -8,7 +18,6 @@ endif
 sdb_platform_inc = include_directories(sdb_platform_inc)
 
 # Create sdb_version.h
-py3_exe = import('python3').find_python()
 sdb_version_path = join_paths(meson.current_build_dir(), 'sdb_version.h')
 run_command(py3_exe, '-c', 'with open("@0@", "w") as f: f.write("#define SDB_VERSION \"@1@\"")'.format(sdb_version_path, sdb_version))
 
