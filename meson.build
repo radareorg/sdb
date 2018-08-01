@@ -1,12 +1,27 @@
-sdb_version = '1.0.0'
+py3_exe = import('python3').find_python()
 
-sdb_platform_inc = []
-if host_machine.system() == 'windows'
-  sdb_platform_inc = include_directories('msvc')
+version_cmd = 'import sys; l=open("config.mk").read().split("\\n"); print(next(filter(lambda x: "SDBVER=" in x, l)).split("=")[1])'
+sdb_version = run_command(py3_exe, '-c', version_cmd)
+if sdb_version.returncode() == 0
+  sdb_version = sdb_version.stdout().strip()
+else
+  sdb_version = '0.0.1'
 endif
 
+message('SDB version = ' + sdb_version)
+sdb_libversion = host_machine.system() == 'windows' ? '' : sdb_version
+
+sdb_platform_inc = ['.']
+if host_machine.system() == 'windows'
+  sdb_platform_inc += ['msvc']
+endif
+sdb_platform_inc = include_directories(sdb_platform_inc)
+
 # Create sdb_version.h
-run_command(py3_exe, '-c', 'with open("src/sdb_version.h", "w") as f: f.write("#define SDB_VERSION \"' + sdb_version + '\"")')
+sdb_version_path = join_paths(meson.current_build_dir(), 'sdb_version.h')
+run_command(py3_exe, '-c', 'with open("@0@", "w") as f: f.write("#define SDB_VERSION \"@1@\"")'.format(sdb_version_path, sdb_version))
+
+glob_cmd = [py3_exe, '-c', 'from sys import argv; print(";".join(__import__("glob").glob(argv[1])))']
 
 files = [
   'src/array.c',
@@ -22,8 +37,8 @@ files = [
   'src/json.c',
   #'src/json/api.c',
   #'src/json/indent.c',
-  'src/json/js0n.c',
-  'src/json/path.c',
+  #'src/json/js0n.c',
+  #'src/json/path.c',
   #'src/json/rangstr.c',
   'src/lock.c',
   'src/ls.c',
@@ -36,25 +51,32 @@ files = [
   'src/util.c',
 ]
 
-libsdb = static_library('sdb', files,
-  include_directories: [
-    platform_inc,
-    include_directories([
-      'src'
-    ])
-  ],
-  implicit_include_directories: false
+is_subproject = meson.is_subproject() or get_variable('is_sdb_subproject', false)
+
+sdb_inc = [
+  sdb_platform_inc,
+  include_directories([
+    'src'
+  ])
+]
+
+libsdb = both_libraries('sdb', files,
+  include_directories: sdb_inc,
+  implicit_include_directories: false,
+  install: not is_subproject,
+  soversion: sdb_libversion
 )
 
+if host_machine.system() == 'windows'
+  link_with = libsdb.get_static_lib()
+else
+  link_with = libsdb.get_shared_lib()
+endif
+
 sdb_exe = executable('sdb', 'src/main.c',
-  include_directories: [
-    sdb_platform_inc,
-    include_directories([
-      'src'
-    ])
-  ],
-  link_with: [libsdb],
-  install: true,
+  include_directories: sdb_inc,
+  link_with: [link_with],
+  install: not is_subproject,
   implicit_include_directories: false
 )
 
@@ -65,3 +87,13 @@ sdb_gen_cmd = [
   '@OUTPUT@',
   '@INPUT@'
 ]
+
+if not is_subproject
+  include_files = run_command(glob_cmd + ['src/*.h']).stdout().strip().split(';') + [sdb_version_path]
+  install_headers(include_files, subdir: 'sdb')
+else
+  sdb_dep = declare_dependency(
+    link_with: libsdb.get_static_lib(),
+    include_directories: sdb_inc
+  )
+endif
