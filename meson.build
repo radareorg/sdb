@@ -51,6 +51,8 @@ files = [
   'src/util.c',
 ]
 
+is_subproject = meson.is_subproject() or get_variable('is_sdb_subproject', false)
+
 sdb_inc = [
   sdb_platform_inc,
   include_directories([
@@ -58,13 +60,10 @@ sdb_inc = [
   ])
 ]
 
-include_files = run_command(glob_cmd + ['src/*.h']).stdout().strip().split(';') + [sdb_version_path]
-install_headers(include_files, subdir: 'sdb')
-
 libsdb = both_libraries('sdb', files,
   include_directories: sdb_inc,
   implicit_include_directories: false,
-  install: true,
+  install: not is_subproject,
   soversion: sdb_libversion
 )
 
@@ -77,7 +76,7 @@ endif
 sdb_exe = executable('sdb', 'src/main.c',
   include_directories: sdb_inc,
   link_with: [link_with],
-  install: true,
+  install: not is_subproject,
   implicit_include_directories: false
 )
 
@@ -89,7 +88,12 @@ sdb_gen_cmd = [
   '@INPUT@'
 ]
 
-sdb_dep = declare_dependency(
-  link_with: libsdb.get_static_lib(),
-  include_directories: sdb_inc
-)
+if not is_subproject
+  include_files = run_command(glob_cmd + ['src/*.h']).stdout().strip().split(';') + [sdb_version_path]
+  install_headers(include_files, subdir: 'sdb')
+else
+  sdb_dep = declare_dependency(
+    link_with: libsdb.get_static_lib(),
+    include_directories: sdb_inc
+  )
+endif
