@@ -120,6 +120,7 @@ SDB_API void sdb_config(Sdb *s, int options);
 SDB_API bool sdb_free(Sdb* s);
 SDB_API void sdb_file(Sdb* s, const char *dir);
 SDB_API bool sdb_merge(Sdb* d, Sdb *s);
+SDB_API bool sdb_empty(Sdb *s);
 SDB_API int sdb_count(Sdb* s);
 SDB_API void sdb_reset(Sdb* s);
 SDB_API void sdb_setup(Sdb* s, int options);
