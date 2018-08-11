@@ -131,7 +131,7 @@ SDB_API bool sdb_merge(Sdb* d, Sdb *s) {
 	return sdb_foreach (s, sdb_merge_cb, d);
 }
 
-SDB_API bool sdb_empty(Sdb *s) {
+SDB_API bool sdb_isempty(Sdb *s) {
 	if (s) {
 		if (s->db.fd != -1) {
 			sdb_dump_begin (s);
