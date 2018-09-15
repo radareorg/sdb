@@ -1,19 +1,19 @@
 #include <sdb-one.h>
 
 int main(int argc, char **argv) {
-	SdbHash *h = ht_new(free);
-char k[128];
-int i, len = atoi (argv[1]);
-	
-	for (i=0;i<len; i++) {
+	SdbHt *h = ht_new(free);
+	char k[128];
+	int i, len = atoi (argv[1]);
+
+	for (i = 0; i < len; i++) {
 		sprintf (k, "keynum%d", i);
-	ht_insert (h, sdb_hash(k, 0), strdup (
-"jkladjfklafjklsajfklsajdflksadjfklsadjflk"
-), NULL);
-}
-printf ("JGAKJK\n");
-sleep (11111);
-ht_free (h);
+		ht_insert (h, sdb_hash(k, 0), strdup (
+			"jkladjfklafjklsajfklsajdflksadjfklsadjflk"
+			), NULL);
+	}
+	printf ("JGAKJK\n");
+	sleep (11111);
+	ht_free (h);
 }
 
 #if 0

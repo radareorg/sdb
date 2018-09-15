@@ -7,7 +7,7 @@ typedef struct _test_struct {
 } Person;
 
 bool test_ht_insert_lookup(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 	sdb_ht_insert (ht, "CCCC", "vCCCC");
@@ -21,7 +21,7 @@ bool test_ht_insert_lookup(void) {
 }
 
 bool test_ht_update_lookup(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 
@@ -38,7 +38,7 @@ bool test_ht_update_lookup(void) {
 }
 
 bool test_ht_delete(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	mu_assert ("nothing should be deleted", !sdb_ht_delete (ht, "non existing"));
 
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
@@ -50,7 +50,7 @@ bool test_ht_delete(void) {
 }
 
 bool test_ht_insert_kvp(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	SdbKv *kv = sdb_kv_new ("AAAA", "vAAAA");
 	mu_assert ("AAAA shouldn't exist", !sdb_ht_find_kvp (ht, "AAAA", NULL));
 	sdb_ht_insert_kvp (ht, kv, false);
@@ -71,7 +71,7 @@ ut32 create_collision(const char *key) {
 }
 
 bool test_ht_insert_collision(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	ht->hashfn = create_collision;
 	ht_insert (ht, "AAAA", "vAAAA");
 	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should be there");
@@ -90,7 +90,7 @@ ut32 key2hash(const char *key) {
 }
 
 bool test_ht_grow(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	char str[15], vstr[15];
 	char buf[100];
 	int i;
@@ -117,7 +117,7 @@ bool test_ht_grow(void) {
 }
 
 bool test_ht_kvp(void) {
-	SdbHash *ht = sdb_ht_new ();
+	SdbHt *ht = sdb_ht_new ();
 	SdbKv *kvp = sdb_kv_new ("AAAA", "vAAAA");
 
 	mu_assert_eq (kvp->key_len, 4, "key_len should be 4");
@@ -171,7 +171,7 @@ bool test_ht_general(void) {
 	person2->name = strdup ("pancake");
 	person2->age = 9000;
 
-	SdbHash *ht = ht_new ((DupValue)duplicate_person, free_kv, 
+	SdbHt *ht = ht_new ((DupValue)duplicate_person, free_kv,
 	  			(CalcSize)calcSizePerson);
 	if (!ht) {
 		mu_end;
