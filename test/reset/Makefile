@@ -1,6 +1,6 @@
-SDB=../../src/sdb
-CFLAGS=-I../../src
-LDFLAGS=../../src/libsdb.a
+SDB=$(shell which sdb)
+CFLAGS=$(shell pkg-config --cflags sdb)
+LDFLAGS=$(shell pkg-config --libs sdb)
 
 all:
 	rm -f db.test

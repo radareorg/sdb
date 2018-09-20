@@ -1,7 +1,7 @@
 all:
-	@$(CC) $(CFLAGS) -I../../src array.c ../../src/libsdb.a
+	@$(CC) $(CFLAGS) $(shell pkg-config --cflags --libs sdb)
 	@./a.out
-	@$(CC) $(CFLAGS) -I../../src refs.c ../../src/libsdb.a
+	@$(CC) $(CFLAGS) $(shell pkg-config --cflags --libs sdb)
 	@./a.out
 
 clean:

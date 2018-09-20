@@ -9,7 +9,7 @@ if [ -z "${SDB}" ]; then
 #	if [ -f ../src/sdb.exe ]; then
 #		SDB="wine ../src/sdb.exe"
 #	else
-		SDB="../src/sdb"
+		SDB=$(which sdb)
 #	fi
 fi
 WINEMODE=0
