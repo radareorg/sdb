@@ -11,7 +11,7 @@ if [ "$1" = wine ]; then
 	WINEMODE=1
 else
 	WINEMODE=0
-	SDB=`dirname $0`/../../src/sdb
+	SDB=$(which sdb)
 	if [ ! -x "$SDB" ]; then
 		echo "Cannot find ${SDB}"
 		exit 1

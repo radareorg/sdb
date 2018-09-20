@@ -23,7 +23,7 @@ script:
   - make clean
   - git clean -xdf
   - CFLAGS=-DUSE_MMAN=0 make
-  - VERBOSE=1 make $TESTS
   # Test install / uninstall procedures
   - sudo make install
+  - VERBOSE=1 make $TESTS
   - sudo make uninstall
