@@ -17,14 +17,15 @@ script:
   # Now on to actually building stuff...
   - make clean
   - make
+  # Test install / uninstall procedures
+  - sudo make install
   - VERBOSE=1 make $TESTS
+  - sudo make uninstall
   # ----- NO_MMAN ----- #
   # Run again to find issues for the non-mmap build
   - make clean
   - git clean -xdf
   - CFLAGS=-DUSE_MMAN=0 make
-  # Test install / uninstall procedures
   - sudo make install
-  - pkg-config --list-all | grep sdb
   - VERBOSE=1 make $TESTS
   - sudo make uninstall
