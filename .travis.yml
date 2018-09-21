@@ -25,5 +25,6 @@ script:
   - CFLAGS=-DUSE_MMAN=0 make
   # Test install / uninstall procedures
   - sudo make install
+  - pkg-config --list-all | grep sdb
   - VERBOSE=1 make $TESTS
   - sudo make uninstall
