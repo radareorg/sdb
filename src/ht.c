@@ -3,8 +3,11 @@
 #include "ht.h"
 #include "sdb.h"
 
+#define LOAD_FACTOR 0.9
+#define S_ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
+
 // Sizes of the ht.
-const int ht_primes_sizes[] = {
+static const int ht_primes_sizes[] = {
 	3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131,
 	163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
 	1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861,
@@ -23,6 +26,17 @@ const int ht_primes_sizes[] = {
 #define CALCSIZEV(ht, v) ((ht)->calcsizeV ? (ht)->calcsizeV (v) : 0)
 #define FREEFN(ht, kv) do { if ((ht)->freefn) { (ht)->freefn (kv); } } while (0)
 
+static inline bool is_kv_equal(SdbHt *ht, const char *key, const ut32 key_len, const HtKv *kv) {
+	if (key_len != kv->key_len) {
+		return false;
+	}
+
+	bool res = key == kv->key;
+	if (!res && ht->cmp) {
+		res = !ht->cmp (key, kv->key);
+	}
+	return res;
+}
 
 // Create a new hashtable and return a pointer to it.
 // size - number of buckets in the hashtable
@@ -33,7 +47,7 @@ const int ht_primes_sizes[] = {
 // valdup - same as keydup, but for values but if NULL just assign
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.
-static SdbHt* internal_ht_new(ut32 size, HashFunction hashfunction,
+static SdbHt* internal_ht_new(ut32 size, ut32 prime_idx, HashFunction hashfunction,
 				 ListComparator comparator, DupKey keydup,
 				 DupValue valdup, HtKvFreeFunc pair_free,
 				 CalcSize calcsizeK, CalcSize calcsizeV) {
@@ -43,8 +57,7 @@ static SdbHt* internal_ht_new(ut32 size, HashFunction hashfunction,
 	}
 	ht->size = size;
 	ht->count = 0;
-	ht->prime_idx = 0;
-	ht->load_factor = 1;
+	ht->prime_idx = prime_idx;
 	ht->hashfn = hashfunction;
 	ht->cmp = comparator;
 	ht->dupkey = keydup;
@@ -65,11 +78,7 @@ SDB_API bool ht_delete_internal(SdbHt* ht, const char* key, ut32* hash) {
 	ut32 bucket = computed_hash % ht->size;
 	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kv) {
-		if (key_len != kv->key_len) {
-			continue;
-		}
-
-		if (key == kv->key || !ht->cmp (key, kv->key)) {
+		if (is_kv_equal (ht, key, key_len, kv)) {
 			ls_delete (list, iter);
 			ht->count--;
 			return true;
@@ -79,9 +88,24 @@ SDB_API bool ht_delete_internal(SdbHt* ht, const char* key, ut32* hash) {
 }
 
 SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
-	return internal_ht_new (ht_primes_sizes[0], (HashFunction)sdb_hash, 
-	  			(ListComparator)strcmp, (DupKey)strdup,
-				valdup, pair_free, (CalcSize)strlen, calcsizeV);
+	return internal_ht_new (ht_primes_sizes[0], 0, (HashFunction)sdb_hash,
+		(ListComparator)strcmp, (DupKey)strdup,
+		valdup, pair_free, (CalcSize)strlen, calcsizeV);
+}
+
+SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
+	ut32 sz;
+	int i = 0;
+
+	while (i < S_ARRAY_SIZE (ht_primes_sizes) &&
+		ht_primes_sizes[i] * LOAD_FACTOR < initial_size) {
+		i++;
+	}
+	sz = i < S_ARRAY_SIZE (ht_primes_sizes) ? ht_primes_sizes[i] : (initial_size * (2 - LOAD_FACTOR));
+
+	return internal_ht_new (sz, i, (HashFunction)sdb_hash,
+		(ListComparator)strcmp, (DupKey)strdup,
+		valdup, pair_free, (CalcSize)strlen, calcsizeV);
 }
 
 SDB_API void ht_free(SdbHt* ht) {
@@ -106,7 +130,7 @@ static void internal_ht_grow(SdbHt* ht) {
 	HtKv* kv;
 	SdbListIter* iter, *tmp;
 	ut32 i, sz = ht_primes_sizes[ht->prime_idx];
-	ht2 = internal_ht_new (sz, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
+	ht2 = internal_ht_new (sz, ht->prime_idx, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
 		ht->freefn, ht->calcsizeK, ht->calcsizeV);
 	ht2->prime_idx = ht->prime_idx;
 	for (i = 0; i < ht->size; i++) {
@@ -146,7 +170,7 @@ static bool internal_ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 		ls_prepend (ht->table[bucket], kv);
 		ht->count++;
 		// Check if we need to grow the table.
-		if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
+		if (ht->count >= LOAD_FACTOR * ht_primes_sizes[ht->prime_idx]) {
 			ht->prime_idx++;
 			internal_ht_grow (ht);
 		}
@@ -205,12 +229,7 @@ SDB_API HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
 	hash = HASHFN (ht, key);
 	bucket = hash % ht->size;
 	ls_foreach (ht->table[bucket], iter, kv) {
-		if (key_len != kv->key_len) {
-			continue;
-		}
-
-		bool match = !ht->cmp (key, kv->key);
-		if (match) {
+		if (is_kv_equal (ht, key, key_len, kv)) {
 			if (found) {
 				*found = true;
 			}
