@@ -1,7 +1,7 @@
 prefix=@@PREFIX@@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
-includedir=${prefix}/include/sdb
+includedir=${prefix}/include
 
 Name: sdb
 Description: Simple DataBase
