@@ -48,7 +48,3 @@ SDB_API void sdb_ht_free(SdbHt *ht) {
 SDB_API bool sdb_ht_delete(SdbHt* ht, const char *key) {
 	return ht_delete (ht, key);
 }
-
-SDB_API void sdb_ht_free_deleted(SdbHt* ht) {
-	ht_free_deleted (ht);
-}

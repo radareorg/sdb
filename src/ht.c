@@ -5,7 +5,6 @@
 
 // Sizes of the ht.
 const int ht_primes_sizes[] = {
-#if GROWABLE
 	3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131,
 	163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
 	1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861,
@@ -15,10 +14,14 @@ const int ht_primes_sizes[] = {
 	389357, 467237, 560689, 672827, 807403, 968897, 1162687,
 	1395263, 1674319, 2009191, 2411033, 2893249, 3471899,
 	4166287, 4999559, 5999471, 7199369
-#else
-	1024,
-#endif
 };
+
+#define HASHFN(ht, k) ((ht)->hashfn ? (ht)->hashfn (k) : (ut32)(ut64)(k))
+#define DUPKEY(ht, k) ((ht)->dupkey ? (ht)->dupkey (k) : (void *)k)
+#define DUPVAL(ht, v) ((ht)->dupvalue ? (ht)->dupvalue (v) : v)
+#define CALCSIZEK(ht, k) ((ht)->calcsizeK ? (ht)->calcsizeK (k) : 0)
+#define CALCSIZEV(ht, v) ((ht)->calcsizeV ? (ht)->calcsizeV (v) : 0)
+#define FREEFN(ht, kv) do { if ((ht)->freefn) { (ht)->freefn (kv); } } while (0)
 
 
 // Create a new hashtable and return a pointer to it.
@@ -43,17 +46,13 @@ static SdbHt* internal_ht_new(ut32 size, HashFunction hashfunction,
 	ht->prime_idx = 0;
 	ht->load_factor = 1;
 	ht->hashfn = hashfunction;
-	ht->cmp = (ListComparator)strcmp;
-	ht->dupkey = keydup? keydup: (DupKey)strdup;
-	ht->dupvalue = valdup? valdup: NULL; 
+	ht->cmp = comparator;
+	ht->dupkey = keydup;
+	ht->dupvalue = valdup;
 	ht->table = calloc (ht->size, sizeof (SdbList*));
-	ht->calcsizeK = calcsizeK? calcsizeK: (CalcSize)strlen;
-	ht->calcsizeV = calcsizeV? calcsizeV: NULL;
+	ht->calcsizeK = calcsizeK;
+	ht->calcsizeV = calcsizeV;
 	ht->freefn = pair_free;
-	ht->deleted = ls_newf (free);
-#if INSERTORDER
-	ht->list = ls_newf (NULL);
-#endif
 	// Because we use calloc, each listptr will be NULL until used */
 	return ht;
 }
@@ -61,43 +60,17 @@ static SdbHt* internal_ht_new(ut32 size, HashFunction hashfunction,
 SDB_API bool ht_delete_internal(SdbHt* ht, const char* key, ut32* hash) {
 	HtKv* kv;
 	SdbListIter* iter;
-	ut32 computed_hash = hash ? *hash : ht->hashfn (key);
-#if USE_KEYLEN
-	ut32 key_len = ht->calcsizeK ((void *)key);
-#endif
+	ut32 computed_hash = hash ? *hash : HASHFN (ht, key);
+	ut32 key_len = CALCSIZEK (ht, key);
 	ut32 bucket = computed_hash % ht->size;
-#if INSERTORDER
-	ls_foreach (ht->list, iter, kv) {
-#if USE_KEYLEN
-		if (key_len != kv->key_len) {
-			continue;
-		}
-#endif
-		if (key == kv->key || !ht->cmp (key, kv->key)) {
-			ls_delete (ht->list, iter);
-			ht->count--;
-			break;
-		}
-	}
-#endif
 	SdbList* list = ht->table[bucket];
 	ls_foreach (list, iter, kv) {
-#if USE_KEYLEN
 		if (key_len != kv->key_len) {
 			continue;
 		}
-#endif
+
 		if (key == kv->key || !ht->cmp (key, kv->key)) {
-#if EXCHANGE
-			ls_split_iter (list, iter);
-			ls_append (ht->deleted, iter);
-			if (list->free) {
-				list->free (iter->data);
-			}
-			iter->data = NULL;
-#else
 			ls_delete (list, iter);
-#endif
 			ht->count--;
 			return true;
 		}
@@ -112,41 +85,39 @@ SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize
 }
 
 SDB_API void ht_free(SdbHt* ht) {
-	if (ht) {
-		ut32 i;
-		for (i = 0; i < ht->size; i++) {
-			ls_free (ht->table[i]);
-		}
-		free (ht->table);
-		ls_free (ht->deleted);
-#if INSERTORDER
-		ls_free (ht->list);
-#endif
-		free (ht);
+	if (!ht) {
+		return;
 	}
+
+	ut32 i;
+	for (i = 0; i < ht->size; i++) {
+		ls_free (ht->table[i]);
+	}
+	free (ht->table);
+	free (ht);
 }
 
-SDB_API void ht_free_deleted(SdbHt* ht) {
-	if (!ls_empty (ht->deleted)) {
-		ls_free (ht->deleted);
-		ht->deleted = ls_newf (free);
-	}
-}
+static bool internal_ht_insert_kv(SdbHt *ht, HtKv *kv, bool update);
 
 // Increases the size of the hashtable by 2.
-#if GROWABLE
 static void internal_ht_grow(SdbHt* ht) {
 	SdbHt* ht2;
 	SdbHt swap;
 	HtKv* kv;
-	SdbListIter* iter;
+	SdbListIter* iter, *tmp;
 	ut32 i, sz = ht_primes_sizes[ht->prime_idx];
-	ht2 = internal_ht_new (sz, ht->hashfn, ht->cmp, ht->dupkey,
-			ht->dupvalue, (HtKvFreeFunc)ht->freefn, ht->calcsize);
+	ht2 = internal_ht_new (sz, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
+		ht->freefn, ht->calcsizeK, ht->calcsizeV);
 	ht2->prime_idx = ht->prime_idx;
 	for (i = 0; i < ht->size; i++) {
-		ls_foreach (ht->table[i], iter, kv) {
-			(void)ht_insert (ht2, kv->key, kv->value);
+		if (!ht->table[i]) {
+			continue;
+		}
+
+		ht->table[i]->free = NULL;
+		ls_foreach_safe (ht->table[i], iter, tmp, kv) {
+			internal_ht_insert_kv (ht2, kv, false);
+			ls_delete (ht->table[i], iter);
 		}
 	}
 	// And now swap the internals.
@@ -155,14 +126,13 @@ static void internal_ht_grow(SdbHt* ht) {
 	*ht2 = swap;
 	ht_free (ht2);
 }
-#endif
 
 static bool internal_ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 	bool found = false;
 	if (!ht || !kv) {
 		return false;
 	}
-	ut32 bucket, hash = ht->hashfn (kv->key);
+	ut32 bucket, hash = HASHFN (ht, kv->key);
 	if (update) {
 		(void)ht_delete_internal (ht, kv->key, &hash);
 	} else {
@@ -174,17 +144,12 @@ static bool internal_ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 			ht->table[bucket] = ls_newf ((SdbListFree)ht->freefn);
 		}
 		ls_prepend (ht->table[bucket], kv);
-#if INSERTORDER
-		ls_append (ht->list, kv);
-#endif
 		ht->count++;
-#if GROWABLE
 		// Check if we need to grow the table.
 		if (ht->count >= ht->load_factor * ht_primes_sizes[ht->prime_idx]) {
 			ht->prime_idx++;
 			internal_ht_grow (ht);
 		}
-#endif
 		return true;
 	}
 	return false;
@@ -192,27 +157,18 @@ static bool internal_ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 
 static bool internal_ht_insert(SdbHt* ht, bool update, const char* key,
 				void* value) {
-	if (!ht || !key || !value) {
+	if (!ht) {
 		return false;
 	}
 	HtKv* kv = calloc (1, sizeof (HtKv));
 	if (kv) {
-		kv->key = ht->dupkey ((void *)key);
-		if (ht->dupvalue) {
-			kv->value = ht->dupvalue ((void *)value);
-		} else {
-			kv->value = (void *)value;
-		}
-		kv->key_len = ht->calcsizeK ((void *)kv->key);
-		if (ht->calcsizeV) {
-			kv->value_len = ht->calcsizeV ((void *)kv->value);
-		} else {
-			kv->value_len = 0;
-		}
+		kv->key = DUPKEY (ht, key);
+		kv->value = DUPVAL (ht, value);
+		kv->key_len = CALCSIZEK (ht, kv->key);
+		kv->value_len = CALCSIZEV (ht, kv->value);
+
 		if (!internal_ht_insert_kv (ht, kv, update)) {
-			if (ht->freefn) {
-				ht->freefn (kv);
-			}
+			FREEFN (ht, kv);
 			return false;
 		}
 		return true;
@@ -245,20 +201,14 @@ SDB_API HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
 	ut32 hash, bucket;
 	SdbListIter* iter;
 	HtKv* kv;
-#if USE_KEYLEN
-	if (!key) {
-		return NULL;
-	}
-	ut32 key_len = ht->calcsizeK ((void *)key);
-#endif
-	hash = ht->hashfn (key);
+	ut32 key_len = CALCSIZEK (ht, key);
+	hash = HASHFN (ht, key);
 	bucket = hash % ht->size;
 	ls_foreach (ht->table[bucket], iter, kv) {
-#if USE_KEYLEN
 		if (key_len != kv->key_len) {
 			continue;
 		}
-#endif
+
 		bool match = !ht->cmp (key, kv->key);
 		if (match) {
 			if (found) {
@@ -299,7 +249,7 @@ SDB_API void ht_foreach(SdbHt *ht, HtForeachCallback cb, void *user) {
 	SdbListIter *iter;
 	for (i = 0; i < ht->size; i++) {
 		ls_foreach (ht->table[i], iter, kv) {
-			if (!kv || !kv->key || !kv->value) {
+			if (!kv) {
 				continue;
 			}
 			if (!cb (user, kv->key, kv->value)) {
