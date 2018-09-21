@@ -8,4 +8,4 @@ Description: Simple DataBase
 Version: @@VERSION@@
 Requires:
 Libs: -L${libdir} -lsdb
-Cflags: -I${includedir} -I${includedir}
+Cflags: -I${includedir}/sdb -I${includedir}
