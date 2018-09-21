@@ -22,7 +22,6 @@ extern void sdb_kv_free(SdbKv *kv);
 SDB_API SdbHt* sdb_ht_new(void);
 // Destroy a hashtable and all of its entries.
 SDB_API void sdb_ht_free(SdbHt* ht);
-SDB_API void sdb_ht_free_deleted(SdbHt* ht);
 // Insert a new Key-Value pair into the hashtable. If the key already exists, returns false.
 SDB_API bool sdb_ht_insert(SdbHt* ht, const char* key, const char* value);
 // Insert a new Key-Value pair into the hashtable, or updates the value if the key already exists.
