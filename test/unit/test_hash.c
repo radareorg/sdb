@@ -60,7 +60,7 @@ bool test_ht_insert_kvp(void) {
 	mu_assert ("AAAA should be replaced", sdb_ht_insert_kvp (ht, kv2, true));
 
 	SdbKv *foundkv = sdb_ht_find_kvp (ht, "AAAA", NULL);
-	mu_assert_streq (foundkv->value, "vNEWAAAA", "vNEWAAAA should be there");
+	mu_assert_streq (foundkv->base.value, "vNEWAAAA", "vNEWAAAA should be there");
 
 	ht_free (ht);
 	mu_end;
@@ -120,17 +120,17 @@ bool test_ht_kvp(void) {
 	SdbHt *ht = sdb_ht_new ();
 	SdbKv *kvp = sdb_kv_new ("AAAA", "vAAAA");
 
-	mu_assert_eq (kvp->key_len, 4, "key_len should be 4");
-	mu_assert_eq (kvp->value_len, 5, "value_len should be 5");
+	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4");
+	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5");
 	mu_assert ("kvp should be inserted", sdb_ht_insert_kvp (ht, kvp, false));
 	kvp = sdb_ht_find_kvp (ht, "AAAA", NULL);
-	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after kvp_insert");
-	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after kvp_insert");
+	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4 after kvp_insert");
+	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5 after kvp_insert");
 
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 	kvp = sdb_ht_find_kvp (ht, "BBBB", NULL);
-	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after insert");
-	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after insert");
+	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4 after insert");
+	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5 after insert");
 
 	sdb_ht_free (ht);
 	mu_end;
@@ -225,6 +225,7 @@ static void free_key_value(HtKv *kv) {
 
 bool should_not_be_caled(void *user, const char *k, void *v) {
 	mu_fail ("this function should not be called");
+	return false;
 }
 
 bool test_empty_ht(void) {

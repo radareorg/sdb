@@ -331,8 +331,7 @@ next_quote:
 			SdbListIter *iter;
 			SdbKv *kv;
 			ls_foreach (list, iter, kv) {
-				//eprintf ("(%s)(%s)\n", kv->key, kv->value);
-				foreach_list_cb (&user, kv->key, kv->value);
+				foreach_list_cb (&user, kv->base.key, kv->base.value);
 			}
 			ls_free (list);
 			goto fail;
@@ -372,7 +371,7 @@ next_quote:
 			SdbListIter *li;
 			SdbList *l = sdb_foreach_match (s, cmd + 2, false);
 			ls_foreach (l, li, kv) {
-				printf ("%s=%s\n", kv->key, kv->value);
+				printf ("%s=%s\n", kv->base.key, kv->base.value);
 			}
 			fflush (stdout);
 			ls_free (l);
