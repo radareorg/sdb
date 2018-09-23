@@ -25,6 +25,9 @@ static const int ht_primes_sizes[] = {
 #define CALCSIZEK(ht, k) ((ht)->calcsizeK ? (ht)->calcsizeK (k) : 0)
 #define CALCSIZEV(ht, v) ((ht)->calcsizeV ? (ht)->calcsizeV (v) : 0)
 #define FREEFN(ht, kv) do { if ((ht)->freefn) { (ht)->freefn (kv); } } while (0)
+// when possible, use the precomputed prime numbers which help with collisions,
+// otherwise, at least make the number odd with |1
+#define COMPUTE_SIZE(idx, sz) ((idx) != UT32_MAX ? ht_primes_sizes[idx] : ((sz) | 1))
 
 static inline bool is_kv_equal(SdbHt *ht, const char *key, const ut32 key_len, const HtKv *kv) {
 	if (key_len != kv->key_len) {
@@ -101,8 +104,11 @@ SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair
 		ht_primes_sizes[i] * LOAD_FACTOR < initial_size) {
 		i++;
 	}
-	sz = i < S_ARRAY_SIZE (ht_primes_sizes) ? ht_primes_sizes[i] : (initial_size * (2 - LOAD_FACTOR));
+	if (i == S_ARRAY_SIZE (ht_primes_sizes)) {
+		i = UT32_MAX;
+	}
 
+	sz = COMPUTE_SIZE (i, (ut32)(initial_size * (2 - LOAD_FACTOR)));
 	return internal_ht_new (sz, i, (HashFunction)sdb_hash,
 		(ListComparator)strcmp, (DupKey)strdup,
 		valdup, pair_free, (CalcSize)strlen, calcsizeV);
@@ -129,10 +135,14 @@ static void internal_ht_grow(SdbHt* ht) {
 	SdbHt swap;
 	HtKv* kv;
 	SdbListIter* iter, *tmp;
-	ut32 i, sz = ht_primes_sizes[ht->prime_idx];
-	ht2 = internal_ht_new (sz, ht->prime_idx, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
+	ut32 i, idx, sz;
+
+	idx = ht->prime_idx != UT32_MAX ? ht->prime_idx + 1 : UT32_MAX;
+	sz = COMPUTE_SIZE (idx, ht->size * 2);
+
+	ht2 = internal_ht_new (sz, idx, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
 		ht->freefn, ht->calcsizeK, ht->calcsizeV);
-	ht2->prime_idx = ht->prime_idx;
+
 	for (i = 0; i < ht->size; i++) {
 		if (!ht->table[i]) {
 			continue;
@@ -170,8 +180,7 @@ static bool internal_ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 		ls_prepend (ht->table[bucket], kv);
 		ht->count++;
 		// Check if we need to grow the table.
-		if (ht->count >= LOAD_FACTOR * ht_primes_sizes[ht->prime_idx]) {
-			ht->prime_idx++;
+		if (ht->count >= LOAD_FACTOR * ht->size) {
 			internal_ht_grow (ht);
 		}
 		return true;
