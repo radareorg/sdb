@@ -11,7 +11,7 @@ ALL=all
 
 all: $(BINS) $(SCRIPTS) reset
 	@suite/run.sh
-	-cd api && $(MAKE)
+	cd api && $(MAKE)
 	@$(MAKE) -C unit run
 
 me:
