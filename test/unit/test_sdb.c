@@ -33,7 +33,7 @@ bool test_sdb_list_delete(void) {
 	SdbKv *kv;
 	ls_foreach (list, iter, kv) {
 		//printf ("--> %s\n", kv->key);
-		sdb_unset (db, kv->key, 0);
+		sdb_unset (db, kv->base.key, 0);
 	}
 	ls_free (list);
 	mu_assert ("List is empty", !ls_length (sdb_foreach_list (db, false)));
@@ -44,7 +44,7 @@ bool test_sdb_list_delete(void) {
 static int __cmp_asc(const void *a, const void *b) {
 	const SdbKv *ka = a;
 	const SdbKv *kb = b;
-	return strcmp (ka->key, kb->key);
+	return strcmp (ka->base.key, kb->base.key);
 }
 
 bool test_sdb_list_big(void) {

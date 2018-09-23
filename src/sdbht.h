@@ -6,10 +6,7 @@
 /** keyvalue pair **/
 typedef struct sdb_kv {
 	//sub of HtKv so we can cast safely
-	char *key;
-	char *value;
-	ut32 key_len;
-	ut32 value_len;
+	HtKv base;
 	ut32 cas;
 	ut64 expire;
 } SdbKv;
