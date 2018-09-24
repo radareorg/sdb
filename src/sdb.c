@@ -472,46 +472,6 @@ SDB_API bool sdb_kv_match(SdbKv *kv, const char *expr) {
 
 SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
 	return sdb_kv_new2 (k, strlen (k), v, strlen (v));
-#if 0
-	SdbKv *kv;
-	int vl;
-	if (v) {
-		vl = strlen (v);
-		if (vl >= SDB_VSZ) {
-			return NULL;
-		}
-	} else {
-		vl = 0;
-	}
-	kv = R_NEW0 (SdbKv);
-	kv->base.key_len = strlen (k);
-	if (key_len >= SDB_KSZ) {
-		free (kv);
-		return NULL;
-	}
-	kv->base.key = malloc (kv->base.key_len + 1);
-	if (!kv->base.key) {
-		free (kv);
-		return NULL;
-	}
-	memcpy (kv->base.key, k, kv->base.key_len + 1);
-	kv->base.value_len = vl;
-	if (vl) {
-		kv->base.value = malloc (vl + 1);
-		if (!kv->base.value) {
-			free (kv->base.key);
-			free (kv);
-			return NULL;
-		}
-		memcpy (kv->base.value, v, vl + 1);
-	} else {
-		kv->base.value = NULL;
-		kv->base.value_len = 0;
-	}
-	kv->cas = nextcas ();
-	kv->expire = 0LL;
-	return kv;
-#endif
 }
 
 SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl) {
