@@ -371,7 +371,7 @@ next_quote:
 			SdbListIter *li;
 			SdbList *l = sdb_foreach_match (s, cmd + 2, false);
 			ls_foreach (l, li, kv) {
-				printf ("%s=%s\n", kv->base.key, kv->base.value);
+				printf ("%s=%s\n", kv->base.key, (char *)kv->base.value);
 			}
 			fflush (stdout);
 			ls_free (l);
