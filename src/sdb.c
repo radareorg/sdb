@@ -591,6 +591,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32
 	if (kv) {
 		ut32 cas = kv->cas = nextcas ();
 		sdb_ht_insert_kvp (s->ht, kv, true /*update*/);
+		free (kv);
 		sdb_hook_call (s, key, val);
 		return cas;
 	}
@@ -725,11 +726,10 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 		}
 
 		while (kv->base.present) {
-			if (!kv || !kv->base.value || !*(char *)kv->base.value) {
-				continue;
-			}
-			if (!cb (user, kv->base.key, kv->base.value)) {
-				return sdb_foreach_end (s, false);
+			if (kv && kv->base.value && *(char *)kv->base.value) {
+				if (!cb (user, kv->base.key, kv->base.value)) {
+					return sdb_foreach_end (s, false);
+				}
 			}
 			kv++;
 		}
