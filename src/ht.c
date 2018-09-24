@@ -20,6 +20,7 @@ static const int ht_primes_sizes[] = {
 };
 
 #define HASHFN(ht, k) ((ht)->hashfn ? (ht)->hashfn (k) : (ut32)(ut64)(k))
+#define BUCKET(ht, k) ((HASHFN (ht, k) % (ht)->size))
 #define DUPKEY(ht, k) ((ht)->dupkey ? (ht)->dupkey (k) : (void *)k)
 #define DUPVAL(ht, v) ((ht)->dupvalue ? (ht)->dupvalue (v) : v)
 #define CALCSIZEK(ht, k) ((ht)->calcsizeK ? (ht)->calcsizeK (k) : 0)
@@ -231,12 +232,11 @@ SDB_API HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
 	if (!ht) {
 		return NULL;
 	}
-	ut32 hash, bucket;
+	ut32 bucket = BUCKET (ht, key);
 	SdbListIter* iter;
 	HtKv* kv;
 	ut32 key_len = CALCSIZEK (ht, key);
-	hash = HASHFN (ht, key);
-	bucket = hash % ht->size;
+
 	ls_foreach (ht->table[bucket], iter, kv) {
 		if (is_kv_equal (ht, key, key_len, kv)) {
 			if (found) {
