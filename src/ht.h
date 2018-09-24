@@ -11,7 +11,6 @@ typedef struct ht_kv {
 	void *value;
 	ut32 key_len;
 	ut32 value_len;
-	bool present;
 } HtKv;
 
 typedef void (*HtKvFreeFunc)(HtKv *);
@@ -22,6 +21,10 @@ typedef ut32 (*HashFunction)(const char *);
 typedef int (*ListComparator)(const char *a, const char *b);
 typedef bool (*HtForeachCallback)(void *user, const char *k, void *v);
 
+typedef struct ht_bucket_t {
+	HtKv *arr;
+	ut32 count;
+} HtBucket;
 
 /** ht **/
 typedef struct ht_t {
@@ -34,7 +37,7 @@ typedef struct ht_t {
 	CalcSize calcsizeK;     // Function to determine the key's size
 	CalcSize calcsizeV;  	// Function to determine the value's size
 	HtKvFreeFunc freefn;  	// Function to free the keyvalue store
-	HtKv** table;  // Actual table.
+	HtBucket* table;  // Actual table.
 	ut32 prime_idx;
 	size_t elem_size;
 } SdbHt;

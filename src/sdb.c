@@ -8,6 +8,19 @@
 #include <sys/stat.h>
 #include "sdb.h"
 
+#define KV_AT(ht, bt, i) ((SdbKv *)((char *)(bt)->arr + (i) * (ht)->elem_size))
+#define NEXTKV(ht, kv) ((SdbKv *)((char *)(kv) + (ht)->elem_size))
+#define PREVKV(ht, kv) ((SdbKv *)((char *)(kv) - (ht)->elem_size))
+
+#define BUCKET_FOREACH(ht, bt, j, kv)					\
+	for ((j) = 0, (kv) = (SdbKv *)(bt)->arr; j < (bt)->count; (j)++, (kv) = NEXTKV (ht, kv))
+
+struct sdb_foreach_user {
+	SdbForeachCallback cb;
+	void *user;
+	bool res;
+};
+
 static inline int nextcas(void) {
 	static ut32 cas = 1;
 	if (!cas) {
@@ -708,6 +721,16 @@ static bool sdb_foreach_cdb(Sdb *s, SdbForeachCallback cb,
 	return true;
 }
 
+static bool my_sdb_foreach(struct sdb_foreach_user *u, const char *k, char *v) {
+	if (v && *v) {
+		if (!u->cb (u->user, k, v)) {
+			u->res = false;
+			return false;
+		}
+	}
+	return true;
+}
+
 SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	bool result;
 	if (!s) {
@@ -718,23 +741,13 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	if (!result) {
 		return sdb_foreach_end (s, false);
 	}
-	ut32 i;
-	for (i = 0; i < s->ht->size; i++) {
-		SdbKv *kv = (SdbKv *)s->ht->table[i];
-		if (!kv) {
-			continue;
-		}
 
-		while (kv->base.present) {
-			if (kv && kv->base.value && *(char *)kv->base.value) {
-				if (!cb (user, kv->base.key, kv->base.value)) {
-					return sdb_foreach_end (s, false);
-				}
-			}
-			kv++;
-		}
-	}
-	return sdb_foreach_end (s, true);
+	struct sdb_foreach_user sdb_user;
+	sdb_user.user = user;
+	sdb_user.cb = cb;
+	sdb_user.res = true;
+	ht_foreach (s->ht, (HtForeachCallback)my_sdb_foreach, &sdb_user);
+	return sdb_foreach_end (s, sdb_user.res);
 }
 
 static int _insert_into_disk(void *user, const char *key, const char *value) {
@@ -766,23 +779,23 @@ SDB_API bool sdb_sync(Sdb* s) {
 	if (!result) {
 		return false;
 	}
+
 	/* append new keyvalues */
 	for (i = 0; i < s->ht->size; ++i) {
-		SdbKv *kv = (SdbKv *)s->ht->table[i];
-		if (!kv) {
-			continue;
-		}
+		HtBucket *bt = &s->ht->table[i];
+		SdbKv *kv;
+		int j;
 
-
-		while (kv->base.present) {
+		BUCKET_FOREACH (s->ht, bt, j, kv) {
 			if (kv->base.key && kv->base.value && *(char *)kv->base.value && !kv->expire) {
 				if (sdb_disk_insert (s, kv->base.key, kv->base.value)) {
 					sdb_remove (s, kv->base.key, 0);
-					// do not increment kv, otherwise we skip an element
+					// decrement kv and j, otherwise we skip an element
+					kv = PREVKV (s->ht, kv);
+					j--;
 					continue;
 				}
 			}
-			kv++;
 		}
 	}
 	sdb_disk_finish (s);
