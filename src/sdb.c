@@ -15,12 +15,6 @@
 #define BUCKET_FOREACH(ht, bt, j, kv)					\
 	for ((j) = 0, (kv) = (SdbKv *)(bt)->arr; j < (bt)->count; (j)++, (kv) = NEXTKV (ht, kv))
 
-struct sdb_foreach_user {
-	SdbForeachCallback cb;
-	void *user;
-	bool res;
-};
-
 static inline int nextcas(void) {
 	static ut32 cas = 1;
 	if (!cas) {
@@ -721,16 +715,6 @@ static bool sdb_foreach_cdb(Sdb *s, SdbForeachCallback cb,
 	return true;
 }
 
-static bool my_sdb_foreach(struct sdb_foreach_user *u, const char *k, char *v) {
-	if (v && *v) {
-		if (!u->cb (u->user, k, v)) {
-			u->res = false;
-			return false;
-		}
-	}
-	return true;
-}
-
 SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	bool result;
 	if (!s) {
@@ -742,12 +726,21 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 		return sdb_foreach_end (s, false);
 	}
 
-	struct sdb_foreach_user sdb_user;
-	sdb_user.user = user;
-	sdb_user.cb = cb;
-	sdb_user.res = true;
-	ht_foreach (s->ht, (HtForeachCallback)my_sdb_foreach, &sdb_user);
-	return sdb_foreach_end (s, sdb_user.res);
+	int i;
+	for (i = 0; i < s->ht->size; ++i) {
+		HtBucket *bt = &s->ht->table[i];
+		SdbKv *kv;
+		int j;
+
+		BUCKET_FOREACH (s->ht, bt, j, kv) {
+			if (kv && kv->base.value && *(char *)kv->base.value) {
+				if (!cb (user, kv->base.key, kv->base.value)) {
+					return sdb_foreach_end (s, false);
+				}
+			}
+		}
+	}
+	return sdb_foreach_end (s, true);
 }
 
 static int _insert_into_disk(void *user, const char *key, const char *value) {
