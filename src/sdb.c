@@ -515,7 +515,7 @@ SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl) {
 SDB_API void sdb_kv_free(SdbKv *kv) {
 	free (kv->base.key);
 	free (kv->base.value);
-	R_FREE (kv);
+	free (kv);
 }
 
 static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
@@ -708,8 +708,6 @@ static bool sdb_foreach_cdb(Sdb *s, SdbForeachCallback cb,
 }
 
 SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
-	SdbListIter *iter;
-	SdbKv *kv;
 	bool result;
 	if (!s) {
 		return false;
@@ -721,13 +719,19 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	}
 	ut32 i;
 	for (i = 0; i < s->ht->size; i++) {
-		ls_foreach (s->ht->table[i], iter, kv) {
+		SdbKv *kv = (SdbKv *)s->ht->table[i];
+		if (!kv) {
+			continue;
+		}
+
+		while (kv->base.present) {
 			if (!kv || !kv->base.value || !*(char *)kv->base.value) {
 				continue;
 			}
 			if (!cb (user, kv->base.key, kv->base.value)) {
 				return sdb_foreach_end (s, false);
 			}
+			kv++;
 		}
 	}
 	return sdb_foreach_end (s, true);
@@ -752,8 +756,6 @@ static int _remove_afer_insert(void *user, const char *k, const char *v) {
 }
 
 SDB_API bool sdb_sync(Sdb* s) {
-	SdbListIter it, *iter;
-	SdbKv *kv;
 	bool result;
 	ut32 i;
 
@@ -766,14 +768,21 @@ SDB_API bool sdb_sync(Sdb* s) {
 	}
 	/* append new keyvalues */
 	for (i = 0; i < s->ht->size; ++i) {
-		ls_foreach (s->ht->table[i], iter, kv) {
+		SdbKv *kv = (SdbKv *)s->ht->table[i];
+		if (!kv) {
+			continue;
+		}
+
+
+		while (kv->base.present) {
 			if (kv->base.key && kv->base.value && *(char *)kv->base.value && !kv->expire) {
 				if (sdb_disk_insert (s, kv->base.key, kv->base.value)) {
-					it.n = iter->n;
 					sdb_remove (s, kv->base.key, 0);
-					iter = &it;
+					// do not increment kv, otherwise we skip an element
+					continue;
 				}
 			}
+			kv++;
 		}
 	}
 	sdb_disk_finish (s);
