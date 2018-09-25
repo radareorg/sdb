@@ -133,36 +133,37 @@ SDB_API void ht_free(SdbHt* ht) {
 }
 
 // Increases the size of the hashtable by 2.
-/* static void internal_ht_grow(SdbHt* ht) {
+static void internal_ht_grow(SdbHt* ht) {
 	SdbHt* ht2;
 	SdbHt swap;
-	HtKv* kv;
-	SdbListIter* iter, *tmp;
 	ut32 i, idx, sz;
 
 	idx = ht->prime_idx != UT32_MAX ? ht->prime_idx + 1 : UT32_MAX;
+	if (idx == S_ARRAY_SIZE (ht_primes_sizes)) {
+		idx = UT32_MAX;
+	}
 	sz = COMPUTE_SIZE (idx, ht->size * 2);
 
 	ht2 = internal_ht_new (sz, idx, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
-		ht->freefn, ht->calcsizeK, ht->calcsizeV);
+		ht->freefn, ht->calcsizeK, ht->calcsizeV, ht->elem_size);
 
 	for (i = 0; i < ht->size; i++) {
-		if (!ht->table[i]) {
-			continue;
-		}
+		HtBucket *bt = &ht->table[i];
+		HtKv *kv;
+		int j;
 
-		ht->table[i]->free = NULL;
-		ls_foreach_safe (ht->table[i], iter, tmp, kv) {
-			internal_ht_insert_kv (ht2, kv, false);
-			ls_delete (ht->table[i], iter);
+		BUCKET_FOREACH (ht, bt, j, kv) {
+			ht_insert_kv (ht2, kv, false);
 		}
 	}
 	// And now swap the internals.
 	swap = *ht;
 	*ht = *ht2;
 	*ht2 = swap;
+
+	ht2->freefn = NULL;
 	ht_free (ht2);
-} */
+}
 
 bool ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 	ut32 bucket = BUCKET (ht, kv->key);
@@ -221,6 +222,10 @@ SDB_API bool ht_insert(SdbHt* ht, const char* key, void* value) {
 	kv->value_len = CALCSIZEV (ht, value);
 	bt->count++;
 	ht->count++;
+
+	if (ht->count >= LOAD_FACTOR * ht->size) {
+		internal_ht_grow (ht);
+	}
 	return true;
 }
 
