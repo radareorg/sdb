@@ -165,88 +165,75 @@ static void internal_ht_grow(SdbHt* ht) {
 	ht_free (ht2);
 }
 
-bool ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
-	ut32 bucket = BUCKET (ht, kv->key);
+static void check_growing(SdbHt *ht) {
+	if (ht->count >= LOAD_FACTOR * ht->size) {
+		internal_ht_grow (ht);
+	}
+}
+
+static HtKv *reserve_kv(SdbHt *ht, const char *key, const int key_len, bool update) {
+	ut32 bucket = BUCKET (ht, key);
 	HtBucket *bt = &ht->table[bucket];
 	HtKv *kvtmp;
 	int j;
 
 	BUCKET_FOREACH (ht, bt, j, kvtmp) {
-		if (is_kv_equal (ht, kv->key, kv->key_len, kvtmp)) {
+		if (is_kv_equal (ht, key, key_len, kvtmp)) {
 			if (update) {
-				// XXX: just free value
-				memcpy (kvtmp, kv, ht->elem_size);
-				return true;
+				FREEFN (ht, kvtmp);
+				return kvtmp;
 			}
-			return false;
+			return NULL;
 		}
 	}
 
 	HtKv *newkvarr = realloc (bt->arr, (bt->count + 1) * ht->elem_size);
 	if (!newkvarr) {
-		return false;
+		return NULL;
 	}
 
 	bt->arr = newkvarr;
-	memcpy (KV_AT (ht, bt, bt->count), kv, ht->elem_size);
 	bt->count++;
 	ht->count++;
+	return KV_AT (ht, bt, bt->count - 1);
+}
+
+bool ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
+	HtKv *kv_dst = reserve_kv (ht, kv->key, kv->key_len, update);
+	if (!kv_dst) {
+		return false;
+	}
+
+	memcpy (kv_dst, kv, ht->elem_size);
+	check_growing (ht);
+	return true;
+}
+
+static bool insert_update(SdbHt *ht, const char *key, void *value, bool update) {
+	ut32 key_len = CALCSIZEK (ht, key);
+	HtKv* kv_dst = reserve_kv (ht, key, key_len, update);
+	if (!kv_dst) {
+		return false;
+	}
+
+	kv_dst->key = DUPKEY (ht, key);
+	kv_dst->key_len = key_len;
+	kv_dst->value = DUPVAL (ht, value);
+	kv_dst->value_len = CALCSIZEV (ht, value);
+	check_growing (ht);
 	return true;
 }
 
 // Inserts the key value pair key, value into the hashtable.
 // Doesn't allow for "update" of the value.
 SDB_API bool ht_insert(SdbHt* ht, const char* key, void* value) {
-	ut32 bucket = BUCKET (ht, key);
-	ut32 key_len = CALCSIZEK (ht, key);
-	HtBucket *bt = &ht->table[bucket];
-	HtKv *kv;
-	int j;
-
-	BUCKET_FOREACH (ht, bt, j, kv) {
-		if (is_kv_equal (ht, key, key_len, kv)) {
-			return false;
-		}
-	}
-
-	HtKv *newkvarr = realloc (bt->arr, (bt->count + 1) * ht->elem_size);
-	if (!newkvarr) {
-		return false;
-	}
-
-	bt->arr = newkvarr;
-	kv = KV_AT (ht, bt, bt->count);
-	kv->key = DUPKEY (ht, key);
-	kv->key_len = key_len;
-	kv->value = DUPVAL (ht, value);
-	kv->value_len = CALCSIZEV (ht, value);
-	bt->count++;
-	ht->count++;
-
-	if (ht->count >= LOAD_FACTOR * ht->size) {
-		internal_ht_grow (ht);
-	}
-	return true;
+	return insert_update (ht, key, value, false);
 }
 
 // Inserts the key value pair key, value into the hashtable.
 // Does allow for "update" of the value.
 SDB_API bool ht_update(SdbHt* ht, const char* key, void* value) {
-	ut32 bucket = BUCKET (ht, key);
-	ut32 key_len = CALCSIZEK (ht, key);
-	HtBucket *bt = &ht->table[bucket];
-	HtKv *kv;
-	int j;
-
-	BUCKET_FOREACH (ht, bt, j, kv) {
-		if (is_kv_equal (ht, key, key_len, kv)) {
-			// XXX: just free value
-			kv->value = DUPVAL (ht, value);
-			kv->value_len = CALCSIZEV (ht, value);
-			return true;
-		}
-	}
-	return false;
+	return insert_update (ht, key, value, true);
 }
 
 // Returns the corresponding SdbKv entry from the key.
@@ -279,26 +266,8 @@ HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
 // If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
 SDB_API void* ht_find(SdbHt* ht, const char* key, bool* found) {
-	ut32 bucket = BUCKET (ht, key);
-
-	if (found) {
-		*found = false;
-	}
-
-	HtBucket *bt = &ht->table[bucket];
-	ut32 key_len = CALCSIZEK (ht, key);
-	HtKv *kv;
-	int j;
-
-	BUCKET_FOREACH (ht, bt, j, kv) {
-		if (is_kv_equal (ht, key, key_len, kv)) {
-			if (found) {
-				*found = true;
-			}
-			return kv->value;
-		}
-	}
-	return NULL;
+	HtKv *res = ht_find_kv (ht, key, found);
+	return res ? res->value : NULL;
 }
 
 // Deletes a entry from the hash table from the key, if the pair exists.
