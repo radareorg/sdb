@@ -1,6 +1,8 @@
-SDB=$(shell which sdb)
-CFLAGS=$(shell pkg-config --cflags sdb)
-LDFLAGS=$(shell pkg-config --libs sdb)
+SRCDIR=../../src
+BASEDIR?=${SRCDIR}
+SDB="${BASEDIR}/sdb"
+CFLAGS+=-I${SRCDIR} -I${BASEDIR}
+LDFLAGS+=-static -L${BASEDIR} -lsdb
 
 all:
 	rm -f db.test

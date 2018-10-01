@@ -1,6 +1,15 @@
 #!/bin/sh
 # proof that grep is faster than sdb
 
+SRCDIR=../src
+if [ -z "${BASEDIR}" ]; then
+	BASEDIR="${SRCDIR}"
+fi
+SDB=${BASEDIR}/sdb
+if [ ! -x "${SDB}" ]; then
+	SDB=$(which sdb)
+fi
+
 PATH="../src:$PATH"
 printf "\033[33m[+] Creating test database...  \033[0m"
 sh add10k.sh > /dev/null 2>&1
@@ -21,13 +30,13 @@ echo "\033[32mLines: ${LINES}\033[0m"
 echo
 printf "\033[33m[+] Dump and grep  \033[0m"
 echo "$ sdb $D | grep $G"
-LINES=`sdb $D | grep $G | wc -l`
+LINES=`${SDB} $D | grep $G | wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 
 echo
 printf "\033[33m[+] Internal grep  \033[0m"
 echo "$ sdb -g $G $D"
-LINES=`sdb -g $G $D | wc -l`
+LINES=`${SDB} -g $G $D | wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 
 
@@ -42,6 +51,6 @@ echo "\033[32mLines: ${LINES}\033[0m"
 echo
 printf "\033[33m[+] Sdb get \033[0m"
 echo "$ sdb $D $K"
-LINES=`sdb $D $K | grep -v '^$' | wc -l`
+LINES=`${SDB} $D $K | grep -v '^$' | wc -l`
 echo "\033[32mLines: ${LINES}\033[0m"
 

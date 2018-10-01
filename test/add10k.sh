@@ -3,7 +3,14 @@
 # 100000 = 1.3s
 # 10000 = 0.3s
 
-sdb=../src/sdb
+SRCDIR=../src
+if [ -z "${BASEDIR}" ]; then
+    BASEDIR="${SRCDIR}"
+fi
+SDB=${BASEDIR}/sdb
+if [ ! -x "${SDB}" ]; then
+    SDB=$(which sdb)
+fi
 SIZE=10000
 SIZE=1000000
 #SIZE=1000
@@ -46,10 +53,10 @@ fi
 rm -f test.db
 
 msg "[**] Bundling = database of ${SIZE} keyvalues..."
-time cat a | $sdb test.db =
+time cat a | $SDB test.db =
 
 msg "[**] Counting keys..."
-time $sdb test.db | wc -l | tee test.count
+time $SDB test.db | wc -l | tee test.count
 COUNT=$((0+`cat test.count`))
 if [ ${COUNT} -ne ${SIZE} ]; then
 	err "Database storage is wrong: $SIZE vs ${COUNT}"
@@ -59,22 +66,22 @@ fi
 
 msg "[**] Creating - database of ${SIZE} keyvalues..."
 rm -f test.db
-time cat a | $sdb test.db -
+time cat a | $SDB test.db -
 
 msg "[**] Updating - database of ${SIZE} keyvalues..."
-time cat a | $sdb test.db -
+time cat a | $SDB test.db -
 
 printf "[**] Database size: "
 du -hs test.db
 
 msg "[**] Updating database with ${SIZE} keyvalues..."
-time cat a | $sdb test.db -
+time cat a | $SDB test.db -
 
 #echo "[**] Updating database using stdin..."
-#time cat a | $sdb test.db -
+#time cat a | $SDB test.db -
 
 msg "[**] Fetching a single key..."
-time $sdb test.db key999
+time $SDB test.db key999
 
 msg "[**] Constructing long query... inc $INC size $SIZE"
 KEYS=""
@@ -103,7 +110,7 @@ done
 msg "[**] Many queries... "
 msg "[--] Query length $(echo $KEYS | wc -c)"
 msg "[--] Must be $NK"
-ROWS=$(time $sdb test.db $KEYS | grep testdata | wc -l | awk '{print $1}')
+ROWS=$(time $SDB test.db $KEYS | grep testdata | wc -l | awk '{print $1}')
 if [ "$ROWS" = "$NK" ]; then
 	ok "[OK] $NK rows found"
 else
@@ -112,7 +119,7 @@ else
 fi
 
 msg "[**] Counting stored keyvalues..."
-time $sdb test.db | wc -l | tee test.count
+time $SDB test.db | wc -l | tee test.count
 COUNT=$((0+`cat test.count`))
 if [ ${COUNT} -ne ${SIZE} ]; then
 	err "Database storage is wrong: $SIZE vs ${COUNT}"
