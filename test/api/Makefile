@@ -1,8 +1,17 @@
-all:
-	@$(CC) $(CFLAGS) $(shell pkg-config --cflags --libs sdb)
-	@./a.out
-	@$(CC) $(CFLAGS) $(shell pkg-config --cflags --libs sdb)
-	@./a.out
+SRCDIR=../../src
+BASEDIR?=${SRCDIR}
+CFLAGS+=-I${SRCDIR} -I${BASEDIR}
+LDFLAGS+=-static -L${BASEDIR} -lsdb
+
+all: array refs
+	./array
+	./refs
+
+array: array.c
+	@$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
+
+refs: refs.c
+	@$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f a.out
+	rm -f ./array ./refs

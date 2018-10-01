@@ -4,8 +4,10 @@ BINS=siolpain fmt stack cas hook hook2 stress1 fmtarr
 BINS+=bench-expire expire dumptwice syncget nsabuse drain merge
 BINS+=chkkey
 
-CFLAGS+=$(shell pkg-config --cflags sdb) ${USER_CFLAGS}
-LDFLAGS+=$(shell pkg-config --libs sdb) ${USER_LDFLAGS}
+SRCDIR=../src
+BASEDIR?=${SRCDIR}
+CFLAGS+=-I${SRCDIR} -I${BASEDIR} ${USER_CFLAGS}
+LDFLAGS+=-static -L${BASEDIR} -lsdb ${USER_LDFLAGS}
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
 ALL=all
 

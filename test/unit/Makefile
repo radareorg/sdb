@@ -1,6 +1,8 @@
 OBJECTS = $(patsubst %.c,%,$(wildcard *.c))
-LDFLAGS += $(shell pkg-config --libs sdb)
-CFLAGS += $(shell pkg-config --cflags sdb)
+SRCDIR=../../src
+BASEDIR?=${SRCDIR}
+LDFLAGS += -static -L${BASEDIR} -lsdb
+CFLAGS += -I${SRCDIR} -I${BASEDIR}
 CFLAGS += -g -O0
 # CFLAGS += -fsanitize=address
 

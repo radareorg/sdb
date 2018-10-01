@@ -1,6 +1,9 @@
 #!/bin/sh
 DB=___delkey.db
-SDB=$(which sdb)
+SDB="../src/sdb"
+if [ ! -x "${SDB}" ]; then
+	SDB="${BASEDIR}/sdb"
+fi
 rm -f $DB
 $SDB $DB foo=bar
 R=`$SDB $DB foo= foo`

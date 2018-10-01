@@ -102,3 +102,11 @@ pkgconfig_mod.generate(
   filebase: 'sdb',
   description: 'Simple DataBase'
 )
+
+make_test_executable = find_program('make')
+test('run tests', make_test_executable,
+  args: 'test',
+  env: ['BASEDIR=' + meson.current_build_dir()],
+  workdir: join_paths(meson.current_build_dir(), '..'),
+  depends: [sdb_exe, libsdb]
+)
