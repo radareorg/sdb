@@ -1,7 +1,4 @@
-SRCDIR=../../src
-BASEDIR?=${SRCDIR}
-CFLAGS+=-I${SRCDIR} -I${BASEDIR}
-LDFLAGS+=-static -L${BASEDIR} -lsdb
+include ../sdb-test.mk
 
 all: array refs
 	./array

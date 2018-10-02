@@ -4,10 +4,8 @@ BINS=siolpain fmt stack cas hook hook2 stress1 fmtarr
 BINS+=bench-expire expire dumptwice syncget nsabuse drain merge
 BINS+=chkkey
 
-SRCDIR=../src
-BASEDIR?=${SRCDIR}
-CFLAGS+=-I${SRCDIR} -I${BASEDIR} ${USER_CFLAGS}
-LDFLAGS+=-static -L${BASEDIR} -lsdb ${USER_LDFLAGS}
+include sdb-test.mk
+
 SCRIPTS=createfail.sh testgrep.sh delkey.sh
 ALL=all
 
