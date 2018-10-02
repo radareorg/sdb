@@ -123,7 +123,6 @@ SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize
 }
 
 SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
-	ut32 sz;
 	int i = 0;
 
 	while (i < S_ARRAY_SIZE (ht_primes_sizes) &&
@@ -134,7 +133,7 @@ SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair
 		i = UT32_MAX;
 	}
 
-	sz = compute_size (i, (ut32)(initial_size * (2 - LOAD_FACTOR)));
+	ut32 sz = compute_size (i, (ut32)(initial_size * (2 - LOAD_FACTOR)));
 	return internal_ht_new (sz, i, (HashFunction)sdb_hash,
 		(ListComparator)strcmp, (DupKey)strdup,
 		valdup, pair_free, (CalcSize)strlen, calcsizeV);
@@ -161,10 +160,9 @@ static void internal_ht_grow(SdbHt* ht) {
 	SdbHt swap;
 	HtKv* kv;
 	SdbListIter* iter, *tmp;
-	ut32 i, idx, sz;
-
-	idx = ht->prime_idx != UT32_MAX ? ht->prime_idx + 1 : UT32_MAX;
-	sz = compute_size (idx, ht->size * 2);
+	ut32 idx = ht->prime_idx != UT32_MAX ? ht->prime_idx + 1 : UT32_MAX;
+	ut32 sz = compute_size (idx, ht->size * 2);
+	ut32 i;
 
 	ht2 = internal_ht_new (sz, idx, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
 		ht->freefn, ht->calcsizeK, ht->calcsizeV);
