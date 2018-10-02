@@ -1,14 +1,7 @@
 #!/bin/sh
 # proof that grep is faster than sdb
 
-SRCDIR=../src
-if [ -z "${BASEDIR}" ]; then
-	BASEDIR="${SRCDIR}"
-fi
-SDB=${BASEDIR}/sdb
-if [ ! -x "${SDB}" ]; then
-	SDB=$(which sdb)
-fi
+. ./sdb-test.sh
 
 PATH="../src:$PATH"
 printf "\033[33m[+] Creating test database...  \033[0m"

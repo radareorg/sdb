@@ -1,5 +1,4 @@
-CFLAGS+=-I. -I../../src
-LDFLAGS+=../../src/libsdb.a
+include ../sdb-test.mk
 
 TESTS=array new sync set stack
 BINS=$(addprefix bench-,${TESTS})

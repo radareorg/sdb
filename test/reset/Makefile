@@ -1,8 +1,4 @@
-SRCDIR=../../src
-BASEDIR?=${SRCDIR}
-SDB="${BASEDIR}/sdb"
-CFLAGS+=-I${SRCDIR} -I${BASEDIR}
-LDFLAGS+=-static -L${BASEDIR} -lsdb
+include ../sdb-test.mk
 
 all:
 	rm -f db.test

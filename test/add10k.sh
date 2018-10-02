@@ -3,14 +3,8 @@
 # 100000 = 1.3s
 # 10000 = 0.3s
 
-SRCDIR=../src
-if [ -z "${BASEDIR}" ]; then
-    BASEDIR="${SRCDIR}"
-fi
-SDB=${BASEDIR}/sdb
-if [ ! -x "${SDB}" ]; then
-    SDB=$(which sdb)
-fi
+. ./sdb-test.sh
+
 SIZE=10000
 SIZE=1000000
 #SIZE=1000

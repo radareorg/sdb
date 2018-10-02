@@ -1,10 +1,10 @@
 OBJECTS = $(patsubst %.c,%,$(wildcard *.c))
-SRCDIR=../../src
-BASEDIR?=${SRCDIR}
-LDFLAGS += -static -L${BASEDIR} -lsdb
-CFLAGS += -I${SRCDIR} -I${BASEDIR}
+
+include ../sdb-test.mk
+
 CFLAGS += -g -O0
 # CFLAGS += -fsanitize=address
+
 
 all: $(OBJECTS)
 
