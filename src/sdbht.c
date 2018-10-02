@@ -13,9 +13,9 @@ static bool sdb_ht_internal_insert(SdbHt* ht, const char* key,
 	if (kvp) {
 		kvp->key = strdup ((void *)key);
 		kvp->value = strdup ((void *)value);
-		kvp->key_len = strlen ((void *)kvp->key);
+		kvp->key_len = strlen (SDBKV_KEY (kvp));
+		kvp->value_len = strlen (SDBKV_VALUE (kvp));
 		kvp->expire = 0;
-		kvp->value_len = strlen ((void *)kvp->value);
 		return ht_insert_kv (ht, (HtKv*)kvp, update);
 	}
 	return false;

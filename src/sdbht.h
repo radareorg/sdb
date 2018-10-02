@@ -14,6 +14,11 @@ typedef struct sdb_kv {
 	ut64 expire;
 } SdbKv;
 
+#define SDBKV_KEY(kv) ((kv)->key)
+#define SDBKV_VALUE(kv) ((kv)->value)
+#define SDBKV_KEY_LEN(kv) ((kv)->key_len)
+#define SDBKV_VALUE_LEN(kv) ((kv)->value_len)
+
 SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl);
 extern SdbKv* sdb_kv_new(const char *k, const char *v);
 extern ut32 sdb_hash(const char *key);
