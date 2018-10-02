@@ -3,7 +3,7 @@
 #include "ht.h"
 #include "sdb.h"
 
-#define LOAD_FACTOR 0.9
+#define LOAD_FACTOR 1
 #define S_ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
 
 // Sizes of the ht.
