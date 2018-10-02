@@ -15,7 +15,7 @@ typedef struct ht_kv {
 
 typedef void (*HtKvFreeFunc)(HtKv *);
 typedef char* (*DupKey)(const void *);
-typedef char* (*DupValue)(const void *);
+typedef void* (*DupValue)(const void *);
 typedef size_t (*CalcSize)(const void *);
 typedef ut32 (*HashFunction)(const char *);
 typedef int (*ListComparator)(const char *a, const char *b);
