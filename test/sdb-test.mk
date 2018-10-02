@@ -4,5 +4,5 @@ CURRENT_DIR:=$(abspath $(patsubst %/,%,$(dir $(MAKEFILE_PATH))))
 SRCDIR=${CURRENT_DIR}/../src
 BASEDIR?=${SRCDIR}
 CFLAGS+=-I${SRCDIR} -I${BASEDIR} ${USER_CFLAGS}
-LDFLAGS+=-static -L${BASEDIR} -lsdb ${USER_LDFLAGS}
+LDFLAGS+=${BASEDIR}/libsdb.a ${USER_LDFLAGS}
 SDB=${BASEDIR}/sdb
