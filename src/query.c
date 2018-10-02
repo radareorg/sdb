@@ -376,10 +376,9 @@ next_quote:
 			SdbListIter *li;
 			SdbList *l = sdb_foreach_match (s, cmd + 2, false);
 			ls_foreach (l, li, kv) {
-				out_concat (kv->key);
-				out_concat ("-");
-				out_concat (kv->value);
-				out_concat ("\n");
+				strbuf_append (out, kv->key, 0);
+				strbuf_append (out, "=", 0);
+				strbuf_append (out, kv->value, 1);
 			}
 			fflush (stdout);
 			ls_free (l);
