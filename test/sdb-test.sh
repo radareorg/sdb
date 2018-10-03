@@ -8,3 +8,7 @@ SDB=${BASEDIR}/sdb
 if [ ! -x "${SDB}" ]; then
     SDB=$(which sdb)
 fi
+if [ ! -x "${SDB}" ]; then
+    echo "Cannot find ${SDB}"
+    exit 1
+fi
