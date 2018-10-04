@@ -1,6 +1,11 @@
 #!/bin/sh
 
-SRCDIR=`dirname "$0"`/../src
+CURRENT_DIR=.
+if [ "$#" -eq 1 ]; then
+    CURRENT_DIR=$1
+fi
+
+SRCDIR="${CURRENT_DIR}"/../src
 if [ -z "${BASEDIR}" ]; then
     BASEDIR="${SRCDIR}"
 fi
