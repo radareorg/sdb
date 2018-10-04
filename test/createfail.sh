@@ -6,11 +6,7 @@ if [ "$1" = wine ]; then
 	SDB="wine ../src/sdb.exe"
 fi
 if [ -z "${SDB}" ]; then
-#	if [ -f ../src/sdb.exe ]; then
-#		SDB="wine ../src/sdb.exe"
-#	else
-		SDB="../src/sdb"
-#	fi
+	. ./sdb-test.sh
 fi
 WINEMODE=0
 echo "$SDB" |grep -q wine && WINEMODE=1

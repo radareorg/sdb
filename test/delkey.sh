@@ -1,6 +1,6 @@
 #!/bin/sh
 DB=___delkey.db
-SDB=../src/sdb
+. ./sdb-test.sh
 rm -f $DB
 $SDB $DB foo=bar
 R=`$SDB $DB foo= foo`

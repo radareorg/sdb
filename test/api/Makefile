@@ -1,8 +1,14 @@
-all:
-	@$(CC) $(CFLAGS) -I../../src array.c ../../src/libsdb.a
-	@./a.out
-	@$(CC) $(CFLAGS) -I../../src refs.c ../../src/libsdb.a
-	@./a.out
+include ../sdb-test.mk
+
+all: array refs
+	./array
+	./refs
+
+array: array.c
+	@$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
+
+refs: refs.c
+	@$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f a.out
+	rm -f ./array ./refs

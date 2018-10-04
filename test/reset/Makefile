@@ -1,6 +1,4 @@
-SDB=../../src/sdb
-CFLAGS=-I../../src
-LDFLAGS=../../src/libsdb.a
+include ../sdb-test.mk
 
 all:
 	rm -f db.test
