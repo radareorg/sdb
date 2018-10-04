@@ -335,7 +335,7 @@ next_quote:
 			SdbListIter *iter;
 			SdbKv *kv;
 			ls_foreach (list, iter, kv) {
-				foreach_list_cb (&user, SDBKV_KEY (kv), SDBKV_VALUE (kv));
+				foreach_list_cb (&user, sdbkv_key (kv), sdbkv_value (kv));
 			}
 			ls_free (list);
 			goto fail;
@@ -375,9 +375,9 @@ next_quote:
 			SdbListIter *li;
 			SdbList *l = sdb_foreach_match (s, cmd + 2, false);
 			ls_foreach (l, li, kv) {
-				strbuf_append (out, SDBKV_KEY (kv), 0);
+				strbuf_append (out, sdbkv_key (kv), 0);
 				strbuf_append (out, "=", 0);
-				strbuf_append (out, SDBKV_VALUE (kv), 1);
+				strbuf_append (out, sdbkv_value (kv), 1);
 			}
 			fflush (stdout);
 			ls_free (l);
