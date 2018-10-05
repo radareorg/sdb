@@ -452,7 +452,7 @@ static bool match(const char *str, const char *expr) {
 	return strstr (str, expr);
 }
 
-SDB_API bool sdb_kv_match(SdbKv *kv, const char *expr) {
+SDB_API bool sdbkv_match(SdbKv *kv, const char *expr) {
 	// TODO: add syntax to negate condition
 	// TODO: add syntax to OR k/v instead of AND
 	// [^]str[$]=[^]str[$]
@@ -639,7 +639,7 @@ typedef struct {
 static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 	_match_sdb_user *o = (_match_sdb_user*)user;
 	SdbKv tkv = { .key = (char*)k, .value = (char*)v };
-	if (sdb_kv_match (&tkv, o->expr)) {
+	if (sdbkv_match (&tkv, o->expr)) {
 		SdbKv *kv = R_NEW0 (SdbKv);
 		kv->key = strdup (k);
 		kv->value = strdup (v);
