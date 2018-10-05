@@ -217,6 +217,11 @@ static void free_key(HtKv *kv) {
 	free (kv);
 }
 
+static void free_value(HtKv *kv) {
+	free (kv->value);
+	free (kv);
+}
+
 static void free_key_value(HtKv *kv) {
 	free (kv->key);
 	free (kv->value);
@@ -447,6 +452,36 @@ bool test_grow_4(void) {
 	mu_end;
 }
 
+bool foreach_delete_cb(void *user, const char *k, void *v) {
+	ut32 key = (ut32)(ut64)key;
+	char *value = (char *)v;
+	SdbHt *ht = (SdbHt *)user;
+
+	ht_delete (ht, k);
+	return true;
+}
+
+bool test_foreach_delete(void) {
+	bool found;
+	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)free_value, NULL);
+	ht->hashfn = NULL;
+	ht->cmp = NULL;
+	ht->dupkey = NULL;
+	ht->calcsizeK = NULL;
+
+	// create a collision
+	ht_insert (ht, (char *)0, "value1");
+	ht_insert (ht, (char *)(ut64)ht->size, "value2");
+	ht_insert (ht, (char *)(ut64)(ht->size * 2), "value3");
+	ht_insert (ht, (char *)(ut64)(ht->size * 3), "value4");
+
+	ht_foreach (ht, foreach_delete_cb, ht);
+	ht_foreach (ht, (HtForeachCallback) should_not_be_caled, NULL);
+
+	ht_free (ht);
+	mu_end;
+}
+
 int all_tests() {
 	mu_run_test (test_ht_insert_lookup);
 	mu_run_test (test_ht_update_lookup);
@@ -464,6 +499,7 @@ int all_tests() {
 	mu_run_test (test_grow_2);
 	mu_run_test (test_grow_3);
 	mu_run_test (test_grow_4);
+	mu_run_test (test_foreach_delete);
 	return tests_passed != tests_run;
 }
 
