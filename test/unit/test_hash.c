@@ -51,11 +51,11 @@ bool test_ht_delete(void) {
 
 bool test_ht_insert_kvp(void) {
 	SdbHt *ht = sdb_ht_new ();
-	SdbKv *kv = sdb_kv_new ("AAAA", "vAAAA");
+	SdbKv *kv = sdbkv_new ("AAAA", "vAAAA");
 	mu_assert ("AAAA shouldn't exist", !sdb_ht_find_kvp (ht, "AAAA", NULL));
 	sdb_ht_insert_kvp (ht, kv, false);
 	mu_assert ("AAAA should exist", sdb_ht_find_kvp (ht, "AAAA", NULL));
-	SdbKv *kv2 = sdb_kv_new ("AAAA", "vNEWAAAA");
+	SdbKv *kv2 = sdbkv_new ("AAAA", "vNEWAAAA");
 	mu_assert ("AAAA shouldn't be replaced", !sdb_ht_insert_kvp (ht, kv2, false));
 	mu_assert ("AAAA should be replaced", sdb_ht_insert_kvp (ht, kv2, true));
 
@@ -118,7 +118,7 @@ bool test_ht_grow(void) {
 
 bool test_ht_kvp(void) {
 	SdbHt *ht = sdb_ht_new ();
-	SdbKv *kvp = sdb_kv_new ("AAAA", "vAAAA");
+	SdbKv *kvp = sdbkv_new ("AAAA", "vAAAA");
 
 	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4");
 	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5");

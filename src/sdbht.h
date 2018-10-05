@@ -11,10 +11,27 @@ typedef struct sdb_kv {
 	ut64 expire;
 } SdbKv;
 
-SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl);
-extern SdbKv* sdb_kv_new(const char *k, const char *v);
+static inline char *sdbkv_key(const SdbKv *kv) {
+	return kv->base.key;
+}
+
+static inline char *sdbkv_value(const SdbKv *kv) {
+	return (char *)kv->base.value;
+}
+
+static inline ut32 sdbkv_key_len(const SdbKv *kv) {
+	return kv->base.key_len;
+}
+
+static inline ut32 sdbkv_value_len(const SdbKv *kv) {
+	return kv->base.value_len;
+}
+
+SDB_API SdbKv* sdbkv_new2(const char *k, int kl, const char *v, int vl);
+extern SdbKv* sdbkv_new(const char *k, const char *v);
+extern void sdbkv_free(SdbKv *kv);
+
 extern ut32 sdb_hash(const char *key);
-extern void sdb_kv_free(SdbKv *kv);
 
 SDB_API SdbHt* sdb_ht_new(void);
 // Destroy a hashtable and all of its entries.
