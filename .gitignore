@@ -33,6 +33,13 @@ test/syncget
 test/test.db
 test/unit/test_hash
 test/unit/test_hash.dSYM/
+test/.tmp
+test/api/array
+test/api/refs
+test/unit/.tmp
+test/unit/test_array
+test/unit/test_ls
+test/unit/test_sdb
 src/libsdb.so*
 src/sdb
 src/sdb_version.h
