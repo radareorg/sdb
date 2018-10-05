@@ -15,21 +15,28 @@ int main() {
 
 	if (sdb_count (d) != 2) {
 		fprintf (stderr, "merge: Invalid original destionation length\n");
-		return 1;
+		goto err;
 	}
 	bool ret = sdb_merge (d, s);
 	if (ret == false) {
 		fprintf (stderr, "merge: sdb_merge operation failed\n");
-		return 1;
+		goto err;
 	}
 	if (sdb_count (s) != 3) {
 		fprintf (stderr, "merge: Invalid source length\n");
-		return 1;
+		goto err;
 	}
 	if (sdb_count (d) != 4) {
 		fprintf (stderr, "merge: Invalid destination length\n");
-		return 1;
+		goto err;
 	}
 	fprintf (stderr, "sdb_merge: OK\n");
+	sdb_free (s);
+	sdb_free (d);
 	return 0;
+
+err:
+	sdb_free (s);
+	sdb_free (d);
+	return 1;
 }
