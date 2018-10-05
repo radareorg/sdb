@@ -707,7 +707,7 @@ static bool sdb_foreach_cdb(Sdb *s, SdbForeachCallback cb,
 }
 
 SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
-	SdbListIter *iter;
+	SdbListIter *iter, *tmp;
 	SdbKv *kv;
 	bool result;
 	if (!s) {
@@ -720,7 +720,7 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	}
 	ut32 i;
 	for (i = 0; i < s->ht->size; i++) {
-		ls_foreach (s->ht->table[i], iter, kv) {
+		ls_foreach_safe (s->ht->table[i], iter, tmp, kv) {
 			if (!kv || !sdbkv_value (kv) || !*sdbkv_value (kv)) {
 				continue;
 			}

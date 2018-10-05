@@ -296,9 +296,9 @@ SDB_API void ht_foreach(SdbHt *ht, HtForeachCallback cb, void *user) {
 	}
 	ut32 i = 0;
 	HtKv *kv;
-	SdbListIter *iter;
+	SdbListIter *iter, *tmp;
 	for (i = 0; i < ht->size; i++) {
-		ls_foreach (ht->table[i], iter, kv) {
+		ls_foreach_safe (ht->table[i], iter, tmp, kv) {
 			if (!kv) {
 				continue;
 			}
