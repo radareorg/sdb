@@ -60,7 +60,7 @@ bool test_ht_insert_kvp(void) {
 	mu_assert ("AAAA should be replaced", sdb_ht_insert_kvp (ht, kv2, true));
 
 	SdbKv *foundkv = sdb_ht_find_kvp (ht, "AAAA", NULL);
-	mu_assert_streq (foundkv->value, "vNEWAAAA", "vNEWAAAA should be there");
+	mu_assert_streq (foundkv->base.value, "vNEWAAAA", "vNEWAAAA should be there");
 
 	ht_free (ht);
 	mu_end;
@@ -120,17 +120,17 @@ bool test_ht_kvp(void) {
 	SdbHt *ht = sdb_ht_new ();
 	SdbKv *kvp = sdbkv_new ("AAAA", "vAAAA");
 
-	mu_assert_eq (kvp->key_len, 4, "key_len should be 4");
-	mu_assert_eq (kvp->value_len, 5, "value_len should be 5");
+	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4");
+	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5");
 	mu_assert ("kvp should be inserted", sdb_ht_insert_kvp (ht, kvp, false));
 	kvp = sdb_ht_find_kvp (ht, "AAAA", NULL);
-	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after kvp_insert");
-	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after kvp_insert");
+	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4 after kvp_insert");
+	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5 after kvp_insert");
 
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 	kvp = sdb_ht_find_kvp (ht, "BBBB", NULL);
-	mu_assert_eq (kvp->key_len, 4, "key_len should be 4 after insert");
-	mu_assert_eq (kvp->value_len, 5, "value_len should be 5 after insert");
+	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4 after insert");
+	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5 after insert");
 
 	sdb_ht_free (ht);
 	mu_end;
@@ -204,6 +204,280 @@ bool test_ht_general(void) {
 	mu_assert_streq (p->name, "radare", "wrong person");
 	mu_assert_eq (p->age, 10, "wrong age");
 
+	free (person1->name);
+	free (person1);
+	free (person2->name);
+	free (person2);
+
+	ht_free (ht);
+	mu_end;
+}
+static void free_key(HtKv *kv) {
+	free (kv->key);
+	free (kv);
+}
+
+static void free_value(HtKv *kv) {
+	free (kv->value);
+	free (kv);
+}
+
+static void free_key_value(HtKv *kv) {
+	free (kv->key);
+	free (kv->value);
+	free (kv);
+}
+
+bool should_not_be_caled(void *user, const char *k, void *v) {
+	mu_fail ("this function should not be called");
+	return false;
+}
+
+bool test_empty_ht(void) {
+	SdbHt *ht = ht_new (NULL, NULL, NULL);
+	ht_foreach (ht, (HtForeachCallback) should_not_be_caled, NULL);
+	void *r = ht_find (ht, "key1", NULL);
+	mu_assert_null (r, "key1 should not be present");
+	ht_free (ht);
+	mu_end;
+}
+
+bool test_insert(void) {
+	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	void *r;
+	bool res;
+	bool found;
+
+	res = ht_insert (ht, "key1", "value1");
+	mu_assert ("key1 should be a new element", res);
+	r = ht_find (ht, "key1", &found);
+	mu_assert ("found should be true", found);
+	mu_assert_streq (r, "value1", "value1 should be retrieved");
+
+	res = ht_insert (ht, "key1", "value2");
+	mu_assert ("key1 should be an already existing element", !res);
+	r = ht_find (ht, "key1", &found);
+	mu_assert_streq (r, "value1", "value1 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key2", &found);
+	mu_assert_null (r, "key2 should not be present");
+	mu_assert ("found for key2 should be false", !found);
+
+	ht_free (ht);
+	mu_end;
+}
+
+bool test_update(void) {
+	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	bool found;
+
+	ht_insert (ht, "key1", "value1");
+	ht_update (ht, "key1", "value2");
+	void *r = ht_find (ht, "key1", &found);
+	mu_assert_streq (r, "value2", "value2 should be retrieved");
+	mu_assert ("found should be true", found);
+	ht_free (ht);
+	mu_end;
+}
+
+bool test_delete(void) {
+	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	bool found;
+
+	ht_insert (ht, "key1", "value1");
+	ht_delete (ht, "key1");
+	void *r = ht_find (ht, "key1", &found);
+	mu_assert_null (r, "key1 should not be found");
+	mu_assert ("found should be false", !found);
+	ht_free (ht);
+	mu_end;
+}
+
+static bool grow_1_found[3];
+static bool grow_1_foreach(void *user, const char *k, int v) {
+	grow_1_found[v] = true;
+	return true;
+}
+
+bool test_grow_1(void) {
+	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	int i;
+
+	for (i = 0; i < 3; ++i) {
+		grow_1_found[i] = false;
+	}
+
+	ht_insert (ht, "key0", (void *)0);
+	ht_insert (ht, "key1", (void *)1);
+	ht_insert (ht, "key2", (void *)2);
+
+	ht_foreach (ht, (HtForeachCallback)grow_1_foreach, NULL);
+	for (i = 0; i < 3; ++i) {
+		if (!grow_1_found[i]) {
+			fprintf (stderr, "i = %d\n", i);
+			mu_fail ("An element has not been traversed");
+		}
+	}
+
+	ht_free (ht);
+	mu_end;
+}
+
+bool test_grow_2(void) {
+	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)free_key_value, NULL);
+	char *r;
+	bool found;
+	int i;
+
+	for (i = 0; i < 3000; ++i) {
+		char buf[20], buf2[20];
+		snprintf (buf, 20, "key%d", i);
+		snprintf (buf2, 20, "value%d", i);
+		ht_insert (ht, buf, buf2);
+	}
+
+	r = ht_find (ht, "key1", &found);
+	mu_assert_streq (r, "value1", "value1 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key2000", &found);
+	mu_assert_streq (r, "value2000", "value2000 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key4000", &found);
+	mu_assert_null (r, "key4000 should not be there");
+	mu_assert ("found should be false", !found);
+
+	ht_free (ht);
+	mu_end;
+}
+
+bool test_grow_3(void) {
+	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)free_key_value, NULL);
+	char *r;
+	bool found;
+	int i;
+
+	for (i = 0; i < 3000; ++i) {
+		char buf[20], buf2[20];
+		snprintf (buf, 20, "key%d", i);
+		snprintf (buf2, 20, "value%d", i);
+		ht_insert (ht, buf, buf2);
+	}
+
+	for (i = 0; i < 3000; i += 3) {
+		char buf[20];
+		snprintf (buf, 20, "key%d", i);
+		ht_delete (ht, buf);
+	}
+
+	r = ht_find (ht, "key1", &found);
+	mu_assert_streq (r, "value1", "value1 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key2000", &found);
+	mu_assert_streq (r, "value2000", "value2000 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key4000", &found);
+	mu_assert_null (r, "key4000 should not be there");
+	mu_assert ("found should be false", !found);
+
+	r = ht_find (ht, "key0", &found);
+	mu_assert_null (r, "key0 should not be there");
+	mu_assert ("found should be false", !found);
+
+	for (i = 1; i < 3000; i += 3) {
+		char buf[20];
+		snprintf (buf, 20, "key%d", i);
+		ht_delete (ht, buf);
+	}
+
+	r = ht_find (ht, "key1", &found);
+	mu_assert_null (r, "key1 should not be there");
+	mu_assert ("found should be false", !found);
+
+	ht_free (ht);
+	mu_end;
+}
+
+bool test_grow_4(void) {
+	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key_value, NULL);
+	char *r;
+	bool found;
+	int i;
+
+	for (i = 0; i < 3000; ++i) {
+		char buf[20], *buf2;
+		snprintf (buf, 20, "key%d", i);
+		buf2 = malloc (20);
+		snprintf (buf2, 20, "value%d", i);
+		ht_insert (ht, buf, buf2);
+	}
+
+	r = ht_find (ht, "key1", &found);
+	mu_assert_streq (r, "value1", "value1 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key2000", &found);
+	mu_assert_streq (r, "value2000", "value2000 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	for (i = 0; i < 3000; i += 3) {
+		char buf[20];
+		snprintf (buf, 20, "key%d", i);
+		ht_delete (ht, buf);
+	}
+
+	r = ht_find (ht, "key2000", &found);
+	mu_assert_streq (r, "value2000", "value2000 should be retrieved");
+	mu_assert ("found should be true", found);
+
+	r = ht_find (ht, "key0", &found);
+	mu_assert_null (r, "key0 should not be there");
+	mu_assert ("found should be false", !found);
+
+	for (i = 1; i < 3000; i += 3) {
+		char buf[20];
+		snprintf (buf, 20, "key%d", i);
+		ht_delete (ht, buf);
+	}
+
+	r = ht_find (ht, "key1", &found);
+	mu_assert_null (r, "key1 should not be there");
+	mu_assert ("found should be false", !found);
+
+	ht_free (ht);
+	mu_end;
+}
+
+bool foreach_delete_cb(void *user, const char *k, void *v) {
+	ut32 key = (ut32)(ut64)key;
+	char *value = (char *)v;
+	SdbHt *ht = (SdbHt *)user;
+
+	ht_delete (ht, k);
+	return true;
+}
+
+bool test_foreach_delete(void) {
+	bool found;
+	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)free_value, NULL);
+	ht->hashfn = NULL;
+	ht->cmp = NULL;
+	ht->dupkey = NULL;
+	ht->calcsizeK = NULL;
+
+	// create a collision
+	ht_insert (ht, (char *)0, "value1");
+	ht_insert (ht, (char *)(ut64)ht->size, "value2");
+	ht_insert (ht, (char *)(ut64)(ht->size * 2), "value3");
+	ht_insert (ht, (char *)(ut64)(ht->size * 3), "value4");
+
+	ht_foreach (ht, foreach_delete_cb, ht);
+	ht_foreach (ht, (HtForeachCallback) should_not_be_caled, NULL);
+
 	ht_free (ht);
 	mu_end;
 }
@@ -217,6 +491,15 @@ int all_tests() {
 	mu_run_test (test_ht_grow);
 	mu_run_test (test_ht_kvp);
 	mu_run_test (test_ht_general);
+	mu_run_test (test_empty_ht);
+	mu_run_test (test_insert);
+	mu_run_test (test_update);
+	mu_run_test (test_delete);
+	mu_run_test (test_grow_1);
+	mu_run_test (test_grow_2);
+	mu_run_test (test_grow_3);
+	mu_run_test (test_grow_4);
+	mu_run_test (test_foreach_delete);
 	return tests_passed != tests_run;
 }
 
