@@ -7,7 +7,7 @@
 #define S_ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
 
 // Sizes of the ht.
-static const int ht_primes_sizes[] = {
+static const ut32 ht_primes_sizes[] = {
 	3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131,
 	163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
 	1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861,
@@ -49,7 +49,7 @@ static inline void freefn(SdbHt *ht, HtKv *kv) {
 	}
 }
 
-static inline ut32 compute_size(int idx, ut32 sz) {
+static inline ut32 compute_size(ut32 idx, ut32 sz) {
 	// when possible, use the precomputed prime numbers which help with
 	// collisions, otherwise, at least make the number odd with |1
 	return idx != UT32_MAX ? ht_primes_sizes[idx] : (sz | 1);
@@ -123,7 +123,7 @@ SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize
 }
 
 SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
-	int i = 0;
+	ut32 i = 0;
 
 	while (i < S_ARRAY_SIZE (ht_primes_sizes) &&
 		ht_primes_sizes[i] * LOAD_FACTOR < initial_size) {
