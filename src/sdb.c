@@ -630,6 +630,36 @@ SDB_API SdbList *sdb_foreach_list(Sdb* s, bool sorted) {
 	return list;
 }
 
+struct foreach_list_filter_t {
+	SdbForeachCallback filter;
+	SdbList *list;
+};
+
+static int sdb_foreach_list_filter_cb(void *user, const char *k, const char *v) {
+	struct foreach_list_filter_t *u = (struct foreach_list_filter_t *)user;
+	SdbList *list = u->list;
+
+	if (u->filter (NULL, k, v)) {
+		SdbKv *kv = R_NEW0 (SdbKv);
+		kv->base.key = strdup (k);
+		kv->base.value = strdup (v);
+		ls_append (list, kv);
+	}
+	return 1;
+}
+
+SDB_API SdbList *sdb_foreach_list_filter(Sdb* s, SdbForeachCallback filter, bool sorted) {
+	SdbList *list = ls_newf ((SdbListFree)sdbkv_free);
+	struct foreach_list_filter_t u;
+	u.filter = filter;
+	u.list = list;
+	sdb_foreach (s, sdb_foreach_list_filter_cb, &u);
+	if (sorted) {
+		ls_sort (list, __cmp_asc);
+	}
+	return list;
+}
+
 typedef struct {
 	const char *expr;
 	SdbList *list;
