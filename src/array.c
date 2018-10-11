@@ -211,7 +211,15 @@ SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val,
 
 SDB_API int sdb_array_add_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
-	char *v = sdb_itoa (val, buf, SDB_NUM_BASE);
+	int base = SDB_NUM_BASE;
+	int sz = sdb_array_size (s, key);
+	if (sz > 0) {
+		// We assume the list contains same base...
+		char *f = sdb_array_get (s, key, 0, NULL);
+		base = sdb_num_base (f);
+		free (f);
+	}
+	char *v = sdb_itoa (val, buf, base);
 	return sdb_array_add (s, key, v, cas);
 }
 
