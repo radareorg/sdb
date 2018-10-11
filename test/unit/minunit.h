@@ -22,7 +22,7 @@
 #define MU_TEST_UNBROKEN 0
 #define MU_TEST_BROKEN 1
 
-#include <sdb/types.h>
+#include <types.h>
 
 void sprint_mem(char *out, ut8 *buf, size_t len) {
 	size_t i;

@@ -1,12 +1,12 @@
 #include "sdbht.h"
 
-void sdb_kv_fini(SdbKv *kv) {
+void sdbkv_fini(SdbKv *kv) {
 	free (kv->base.key);
 	free (kv->base.value);
 }
 
 SDB_API SdbHt* sdb_ht_new() {
-	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)sdb_kv_fini, (CalcSize)strlen);
+	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)sdbkv_fini, (CalcSize)strlen);
 	ht->elem_size = sizeof (SdbKv);
 	return ht;
 }

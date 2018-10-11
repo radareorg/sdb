@@ -1,8 +1,14 @@
-all:
-	@$(CC) -o array array.c $(CFLAGS) $(shell pkg-config --cflags --libs sdb)
-	@./array
-	@$(CC) -o refs refs.c $(CFLAGS) $(shell pkg-config --cflags --libs sdb)
-	@./refs
+include ../sdb-test.mk
+
+all: array refs
+	./array
+	./refs
+
+array: array.c
+	@$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
+
+refs: refs.c
+	@$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f a.out
+	rm -f ./array ./refs

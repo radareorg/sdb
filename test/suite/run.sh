@@ -11,11 +11,8 @@ if [ "$1" = wine ]; then
 	WINEMODE=1
 else
 	WINEMODE=0
-	SDB=$(which sdb)
-	if [ ! -x "$SDB" ]; then
-		echo "Cannot find ${SDB}"
-		exit 1
-	fi
+	SDB_TEST_PATH=`dirname "$0"`/..
+	. "${SDB_TEST_PATH}"/sdb-test.sh "${SDB_TEST_PATH}"
 fi
 
 

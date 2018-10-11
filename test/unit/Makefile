@@ -1,6 +1,7 @@
 OBJECTS = $(patsubst %.c,%,$(wildcard *.c))
-LDFLAGS += $(shell pkg-config --libs sdb)
-CFLAGS += $(shell pkg-config --cflags sdb)
+
+include ../sdb-test.mk
+
 CFLAGS += -g -O0
 # CFLAGS += -fsanitize=address
 

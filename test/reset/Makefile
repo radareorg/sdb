@@ -1,6 +1,4 @@
-SDB=$(shell which sdb)
-CFLAGS=$(shell pkg-config --cflags sdb)
-LDFLAGS=$(shell pkg-config --libs sdb)
+include ../sdb-test.mk
 
 all:
 	rm -f db.test

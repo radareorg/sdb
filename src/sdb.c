@@ -98,7 +98,6 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	}
 	s->ht = sdb_ht_new ();
 	s->lock = lock;
-	// s->ht->list->free = (SdbListFree)sdb_kv_free;
 	// if open fails ignore
 	if (global_hook) {
 		sdb_hook (s, global_hook, global_user);
@@ -191,7 +190,7 @@ static void sdb_fini(Sdb* s, int donull) {
 	}
 	free (s->ndump);
 	free (s->dir);
-	free (s->tmpkv.base.value);
+	free (sdbkv_value (&s->tmpkv));
 	s->tmpkv.base.value_len = 0;
 	if (donull) {
 		memset (s, 0, sizeof (Sdb));
@@ -233,7 +232,7 @@ SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *
 	/* search in memory */
 	kv = (SdbKv*) sdb_ht_find_kvp (s->ht, key, &found);
 	if (found) {
-		if (!kv->base.value || !*(char *)kv->base.value) {
+		if (!sdbkv_value (kv) || !*sdbkv_value (kv)) {
 			return NULL;
 		}
 		if (s->timestamped && kv->expire) {
@@ -249,9 +248,9 @@ SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *
 			*cas = kv->cas;
 		}
 		if (vlen) {
-			*vlen = kv->base.value_len;
+			*vlen = sdbkv_value_len (kv);
 		}
-		return kv->base.value;
+		return sdbkv_value (kv);
 	}
 	/* search in disk */
 	if (s->fd == -1) {
@@ -361,7 +360,7 @@ SDB_API bool sdb_exists(Sdb* s, const char *key) {
 	}
 	kv = (SdbKv*)sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && kv) {
-		return *(char *)kv->base.value;
+		return *sdbkv_value (kv);
 	}
 	if (s->fd == -1) {
 		return false;
@@ -460,7 +459,7 @@ static bool match(const char *str, const char *expr) {
 	return strstr (str, expr);
 }
 
-SDB_API bool sdb_kv_match(SdbKv *kv, const char *expr) {
+SDB_API bool sdbkv_match(SdbKv *kv, const char *expr) {
 	// TODO: add syntax to negate condition
 	// TODO: add syntax to OR k/v instead of AND
 	// [^]str[$]=[^]str[$]
@@ -469,19 +468,19 @@ SDB_API bool sdb_kv_match(SdbKv *kv, const char *expr) {
 		char *e = strdup (expr);
 		char *ep = e + (eq - expr);
 		*ep++ = 0;
-		bool res = !*e || match (kv->base.key, e);
-		bool res2 = !*ep || match (kv->base.value, ep);
+		bool res = !*e || match (sdbkv_key (kv), e);
+		bool res2 = !*ep || match (sdbkv_value (kv), ep);
 		free (e);
 		return res && res2;
 	}
-	return match (kv->base.key, expr);
+	return match (sdbkv_key (kv), expr);
 }
 
-SDB_API SdbKv* sdb_kv_new(const char *k, const char *v) {
-	return sdb_kv_new2 (k, strlen (k), v, strlen (v));
+SDB_API SdbKv* sdbkv_new(const char *k, const char *v) {
+	return sdbkv_new2 (k, strlen (k), v, strlen (v));
 }
 
-SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl) {
+SDB_API SdbKv* sdbkv_new2(const char *k, int kl, const char *v, int vl) {
 	SdbKv *kv;
 	if (v) {
 		if (vl >= SDB_VSZ) {
@@ -519,10 +518,10 @@ SDB_API SdbKv* sdb_kv_new2(const char *k, int kl, const char *v, int vl) {
 	return kv;
 }
 
-SDB_API void sdb_kv_free(SdbKv *kv) {
-	free (kv->base.key);
-	free (kv->base.value);
-	free (kv);
+SDB_API void sdbkv_free(SdbKv *kv) {
+	free (sdbkv_key (kv));
+	free (sdbkv_value (kv));
+	R_FREE (kv);
 }
 
 static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
@@ -553,7 +552,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32
 	}
 	cdb_findstart (&s->db);
 	kv = sdb_ht_find_kvp (s->ht, key, &found);
-	if (found && kv->base.value) {
+	if (found && sdbkv_value (kv)) {
 		if (cdb_findnext (&s->db, sdb_hash (key), key, klen)) {
 			if (cas && kv->cas != cas) {
 				if (owned) {
@@ -561,7 +560,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32
 				}
 				return 0;
 			}
-			if (vlen == kv->base.value_len && !strcmp (kv->base.value, val)) {
+			if (vlen == sdbkv_value_len (kv) && !strcmp (sdbkv_value (kv), val)) {
 				sdb_hook_call (s, key, val);
 				return kv->cas;
 			}
@@ -587,13 +586,13 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32
 	// empty values are also stored
 	// TODO store only the ones that are in the CDB
 	if (owned) {
-		kv = sdb_kv_new2 (key, klen, NULL, 0);
+		kv = sdbkv_new2 (key, klen, NULL, 0);
 		if (kv) {
 			kv->base.value = val;
 			kv->base.value_len = vlen;
 		}
 	} else {
-		kv = sdb_kv_new2 (key, klen, val, vlen);
+		kv = sdbkv_new2 (key, klen, val, vlen);
 	}
 	if (kv) {
 		ut32 cas = kv->cas = nextcas ();
@@ -625,14 +624,57 @@ static int sdb_foreach_list_cb(void *user, const char *k, const char *v) {
 }
 
 static int __cmp_asc(const void *a, const void *b) {
-	const SdbKv *ka = a;
-	const SdbKv *kb = b;
-	return strcmp (ka->base.key, kb->base.key);
+	const SdbKv *ka = a, *kb = b;
+	return strcmp (sdbkv_key (ka), sdbkv_key (kb));
 }
 
 SDB_API SdbList *sdb_foreach_list(Sdb* s, bool sorted) {
-	SdbList *list = ls_newf ((SdbListFree)sdb_kv_free);
+	SdbList *list = ls_newf ((SdbListFree)sdbkv_free);
 	sdb_foreach (s, sdb_foreach_list_cb, list);
+	if (sorted) {
+		ls_sort (list, __cmp_asc);
+	}
+	return list;
+}
+
+struct foreach_list_filter_t {
+	SdbForeachCallback filter;
+	SdbList *list;
+};
+
+static int sdb_foreach_list_filter_cb(void *user, const char *k, const char *v) {
+	struct foreach_list_filter_t *u = (struct foreach_list_filter_t *)user;
+	SdbList *list = u->list;
+	SdbKv *kv = NULL;
+
+	if (!u->filter || u->filter (NULL, k, v)) {
+		kv = R_NEW0 (SdbKv);
+		if (!kv) {
+			goto err;
+		}
+		kv->base.key = strdup (k);
+		kv->base.value = strdup (v);
+		if (!kv->base.key || !kv->base.value) {
+			goto err;
+		}
+		ls_append (list, kv);
+	}
+	return 1;
+ err:
+	sdbkv_free (kv);
+	return 0;
+}
+
+SDB_API SdbList *sdb_foreach_list_filter(Sdb* s, SdbForeachCallback filter, bool sorted) {
+	struct foreach_list_filter_t u;
+	SdbList *list = ls_newf ((SdbListFree)sdbkv_free);
+
+	if (!list) {
+		return NULL;
+	}
+	u.filter = filter;
+	u.list = list;
+	sdb_foreach (s, sdb_foreach_list_filter_cb, &u);
 	if (sorted) {
 		ls_sort (list, __cmp_asc);
 	}
@@ -648,7 +690,7 @@ typedef struct {
 static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 	_match_sdb_user *o = (_match_sdb_user*)user;
 	SdbKv tkv = { .base.key = (char*)k, .base.value = (char*)v };
-	if (sdb_kv_match (&tkv, o->expr)) {
+	if (sdbkv_match (&tkv, o->expr)) {
 		SdbKv *kv = R_NEW0 (SdbKv);
 		kv->base.key = strdup (k);
 		kv->base.value = strdup (v);
@@ -661,7 +703,7 @@ static int sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 }
 
 SDB_API SdbList *sdb_foreach_match(Sdb* s, const char *expr, bool single) {
-	SdbList *list = ls_newf ((SdbListFree)sdb_kv_free);
+	SdbList *list = ls_newf ((SdbListFree)sdbkv_free);
 	_match_sdb_user o = { expr, list, single };
 	sdb_foreach (s, sdb_foreach_match_cb, &o);
 #if 0
@@ -696,12 +738,12 @@ static bool sdb_foreach_cdb(Sdb *s, SdbForeachCallback cb,
 		SdbKv *kv = sdb_ht_find_kvp (s->ht, k, &found);
 		if (found) {
 			free (v);
-			if (kv && kv->base.key && kv->base.value) {
-				if (!cb (user, kv->base.key, kv->base.value)) {
+			if (kv && sdbkv_key (kv) && sdbkv_value (kv)) {
+				if (!cb (user, sdbkv_key (kv), sdbkv_value (kv))) {
 					return false;
 				}
 				if (cb2) {
-					cb2 (user, k, kv->base.value);
+					cb2 (user, k, sdbkv_value (kv));
 				}
 			}
 		} else {
@@ -726,15 +768,15 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 		return sdb_foreach_end (s, false);
 	}
 
-	int i;
+	ut32 i;
 	for (i = 0; i < s->ht->size; ++i) {
 		HtBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
-		int j;
+		ut32 j;
 
 		BUCKET_FOREACH (s->ht, bt, j, kv) {
-			if (kv && kv->base.value && *(char *)kv->base.value) {
-				if (!cb (user, kv->base.key, kv->base.value)) {
+			if (kv && sdbkv_value (kv) && *sdbkv_value (kv)) {
+				if (!cb (user, sdbkv_key (kv), sdbkv_value (kv))) {
 					return sdb_foreach_end (s, false);
 				}
 			}
@@ -777,12 +819,12 @@ SDB_API bool sdb_sync(Sdb* s) {
 	for (i = 0; i < s->ht->size; ++i) {
 		HtBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
-		int j;
+		ut32 j;
 
 		BUCKET_FOREACH (s->ht, bt, j, kv) {
-			if (kv->base.key && kv->base.value && *(char *)kv->base.value && !kv->expire) {
-				if (sdb_disk_insert (s, kv->base.key, kv->base.value)) {
-					sdb_remove (s, kv->base.key, 0);
+			if (sdbkv_key (kv) && sdbkv_value (kv) && *sdbkv_value (kv) && !kv->expire) {
+				if (sdb_disk_insert (s, sdbkv_key (kv), sdbkv_value (kv))) {
+					sdb_remove (s, sdbkv_key (kv), 0);
 					// decrement kv and j, otherwise we skip an element
 					kv = PREVKV (s->ht, kv);
 					j--;
@@ -815,9 +857,9 @@ SDB_API SdbKv *sdb_dump_next(Sdb* s) {
 		return NULL;
 	}
 	vl--;
-	strncpy (s->tmpkv.base.key, k, SDB_KSZ - 1);
+	strncpy (sdbkv_key (&s->tmpkv), k, SDB_KSZ - 1);
 	s->tmpkv.base.key[SDB_KSZ - 1] = '\0';
-	free (s->tmpkv.base.value);
+	free (sdbkv_value (&s->tmpkv));
 	s->tmpkv.base.value = v;
 	s->tmpkv.base.value_len = vl;
 	return &s->tmpkv;
@@ -921,7 +963,7 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	}
 	kv = (SdbKv*)sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && kv) {
-		if (*(char *)kv->base.value) {
+		if (*sdbkv_value (kv)) {
 			if (!cas || cas == kv->cas) {
 				kv->expire = parse_expire (expire);
 				return true;
@@ -953,7 +995,7 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 SDB_API ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas) {
 	bool found = false;
 	SdbKv *kv = (SdbKv*)sdb_ht_find_kvp (s->ht, key, &found);
-	if (found && kv && *(char *)kv->base.value) {
+	if (found && kv && *sdbkv_value (kv)) {
 		if (cas) {
 			*cas = kv->cas;
 		}

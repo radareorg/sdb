@@ -155,6 +155,31 @@ bool test_sdb_namespace(void) {
 	mu_end;
 }
 
+static int foreach_filter_cb(void *user, const char *key, const char *val) {
+	return key[0] == 'b';
+}
+
+bool test_sdb_foreach_filter(void) {
+	Sdb *db = sdb_new (NULL, NULL, false);
+	sdb_set (db, "foo", "bar", 0);
+	sdb_set (db, "bar", "cow", 0);
+	sdb_set (db, "boo", "cow", 0);
+	sdb_set (db, "low", "bar", 0);
+	sdb_set (db, "bip", "cow", 0);
+	SdbList *ls = sdb_foreach_list_filter (db, foreach_filter_cb, true);
+	SdbListIter *it = ls_iterator (ls);
+	HtKv *kv = ls_iter_get (it);
+	mu_assert_streq (kv->key, "bar", "list should be sorted");
+	kv = ls_iter_get (it);
+	mu_assert_streq (kv->key, "bip", "list should be sorted");
+	kv = ls_iter_get (it);
+	mu_assert_streq (kv->key, "boo", "list should be sorted");
+	mu_assert_null (it, "list should be terminated");
+	ls_free (ls);
+	sdb_free (db);
+	mu_end;
+}
+
 int all_tests() {
 	// XXX two bugs found with crash
 	mu_run_test (test_sdb_namespace);
@@ -165,6 +190,7 @@ int all_tests() {
 	mu_run_test (test_sdb_milset);
 	mu_run_test (test_sdb_milset_random);
 	mu_run_test (test_sdb_list_big);
+	mu_run_test (test_sdb_foreach_filter);
 	return tests_passed != tests_run;
 }
 
