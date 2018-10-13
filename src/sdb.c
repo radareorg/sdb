@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2011-2017 - pancake */
+/* sdb - MIT - Copyright 2011-2018 - pancake */
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -513,9 +513,11 @@ SDB_API SdbKv* sdbkv_new2(const char *k, int kl, const char *v, int vl) {
 }
 
 SDB_API void sdbkv_free(SdbKv *kv) {
-	free (sdbkv_key (kv));
-	free (sdbkv_value (kv));
-	R_FREE (kv);
+	if (kv) {
+		free (sdbkv_key (kv));
+		free (sdbkv_value (kv));
+		R_FREE (kv);
+	}
 }
 
 static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, int owned, ut32 cas) {
