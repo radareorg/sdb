@@ -20,7 +20,7 @@ static const ut32 ht_primes_sizes[] = {
 };
 
 static inline ut32 hashfn(SdbHt *ht, const void *k) {
-	return ht->hashfn ? ht->hashfn (k) : (ut32)(ut64)(k);
+	return ht->hashfn ? ht->hashfn (k) : (ut32)(size_t)(k);
 }
 
 static inline ut32 bucketfn(SdbHt *ht, const void *k) {
