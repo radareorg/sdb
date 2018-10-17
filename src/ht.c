@@ -1,4 +1,4 @@
-/* radare2 - BSD 3 Clause License - crowell, pancake 2016 */
+/* radare2 - BSD 3 Clause License - crowell, pancake, ret2libc 2018 */
 
 #include "ht.h"
 #include "sdb.h"
@@ -19,15 +19,8 @@ static const ut32 ht_primes_sizes[] = {
 	4166287, 4999559, 5999471, 7199369
 };
 
-#define KV_AT(ht, bt, i) ((HtKv *)((char *)(bt)->arr + (i) * (ht)->elem_size))
-#define NEXTKV(ht, kv) ((HtKv *)((char *)(kv) + (ht)->elem_size))
-
-#define BUCKET_FOREACH(ht, bt, j, kv) \
-	if ((bt)->arr) \
-		for ((j) = 0, (kv) = (bt)->arr; j < (bt)->count; (j)++, (kv) = NEXTKV (ht, kv))
-
 static inline ut32 hashfn(SdbHt *ht, const void *k) {
-	return ht->hashfn ? ht->hashfn (k) : (ut32)(ut64)(k);
+	return ht->hashfn ? ht->hashfn (k) : (ut32)(size_t)(k);
 }
 
 static inline ut32 bucketfn(SdbHt *ht, const void *k) {
@@ -73,6 +66,19 @@ static inline bool is_kv_equal(SdbHt *ht, const char *key, const ut32 key_len, c
 	}
 	return res;
 }
+
+static inline HtKv *kv_at(SdbHt *ht, HtBucket *bt, ut32 i) {
+	return (HtKv *)((char *)bt->arr + i * ht->elem_size);
+}
+
+static inline HtKv *next_kv(SdbHt *ht, HtKv *kv) {
+	return (HtKv *)((char *)kv + ht->elem_size);
+}
+
+#define BUCKET_FOREACH(ht, bt, j, kv)					\
+	if ((bt)->arr)							\
+		for ((j) = 0, (kv) = (bt)->arr; j < (bt)->count; (j)++, (kv) = next_kv (ht, kv))
+
 
 // Create a new hashtable and return a pointer to it.
 // size - number of buckets in the hashtable
@@ -215,7 +221,7 @@ static HtKv *reserve_kv(SdbHt *ht, const char *key, const int key_len, bool upda
 	bt->arr = newkvarr;
 	bt->count++;
 	ht->count++;
-	return KV_AT (ht, bt, bt->count - 1);
+	return kv_at (ht, bt, bt->count - 1);
 }
 
 bool ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
@@ -301,7 +307,7 @@ SDB_API bool ht_delete(SdbHt* ht, const char* key) {
 	BUCKET_FOREACH (ht, bt, j, kv) {
 		if (is_kv_equal (ht, key, key_len, kv)) {
 			freefn (ht, kv);
-			void *src = NEXTKV (ht, kv);
+			void *src = next_kv (ht, kv);
 			memmove (kv, src, (bt->count - j - 1) * ht->elem_size);
 			bt->count--;
 			ht->count--;
