@@ -13,12 +13,19 @@ bool test_sdb_array_push_pop(void) {
 
 	p = sdb_array_pop (db, "foo", NULL);
 	mu_assert_streq (p, "cow", "cow was not at the top");
+	free (p);
+
 	p = sdb_array_pop (db, "foo", NULL);
 	mu_assert_streq (p, "bar", "bar was not at the top");
+	free (p);
+
 	p = sdb_array_pop (db, "foo", NULL);
 	mu_assert_streq (p, "foo", "foo was not at the top");
+	free (p);
+
 	p = sdb_array_pop (db, "foo", NULL);
 	mu_assert_eq ((int)(size_t)p, (int)(size_t)NULL, "there shouldn't be any element in the array");
+	free (p);
 
 	sdb_free (db);
 	mu_end;
