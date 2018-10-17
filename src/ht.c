@@ -120,7 +120,7 @@ SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair
 	ut32 i = 0;
 
 	while (i < S_ARRAY_SIZE (ht_primes_sizes) &&
-	       ht_primes_sizes[i] * LOAD_FACTOR < initial_size) {
+		ht_primes_sizes[i] * LOAD_FACTOR < initial_size) {
 		i++;
 	}
 	if (i == S_ARRAY_SIZE (ht_primes_sizes)) {
