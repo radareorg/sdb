@@ -222,7 +222,6 @@ static void free_key(HtKv *kv) {
 
 static void free_value(HtKv *kv) {
 	free (kv->value);
-	free (kv);
 }
 
 static void free_key_value(HtKv *kv) {

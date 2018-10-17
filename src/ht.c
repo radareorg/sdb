@@ -245,7 +245,7 @@ static bool insert_update(SdbHt *ht, const char *key, void *value, bool update) 
 	kv_dst->key = dupkey (ht, key);
 	kv_dst->key_len = key_len;
 	kv_dst->value = dupval (ht, value);
-	kv_dst->value_len = calcsize_key (ht, value);
+	kv_dst->value_len = calcsize_val (ht, value);
 	check_growing (ht);
 	return true;
 }
@@ -326,8 +326,16 @@ SDB_API void ht_foreach(SdbHt *ht, HtForeachCallback cb, void *user) {
 		ut32 j;
 
 		BUCKET_FOREACH (ht, bt, j, kv) {
+			ut32 count = ht->count;
+
 			if (!cb (user, kv->key, kv->value)) {
 				return;
+			}
+
+			// check if the key was removed during the callback
+			// if it was, decrement j so we don't skip the next element
+			if (count != ht->count) {
+				j--;
 			}
 		}
 	}
