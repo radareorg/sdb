@@ -35,8 +35,10 @@ bool test_sdb_list_delete(void) {
 		//printf ("--> %s\n", kv->key);
 		sdb_unset (db, kv->base.key, 0);
 	}
-	ls_free (list);
-	mu_assert ("List is empty", !ls_length (sdb_foreach_list (db, false)));
+	SdbList *list2 = sdb_foreach_list (db, true);
+	mu_assert ("List is empty", !ls_length (list2));
+	ls_free(list);
+	ls_free(list2);
 	sdb_free (db);
 	mu_end;
 }
@@ -55,6 +57,7 @@ bool test_sdb_list_big(void) {
 	}
 	SdbList *list = sdb_foreach_list (db, true);
 	// TODO: verify if its sorted
+	ls_free(list);
 	sdb_free (db);
 	mu_end;
 }
@@ -69,7 +72,8 @@ bool test_sdb_delete_none(void) {
 	sdb_unset (db, "bar", 0);
 	sdb_unset (db, "pinuts", 0);
 	SdbList *list = sdb_foreach_list (db, false);
-	mu_assert_eq ((int)ls_length (sdb_foreach_list (db, false)), 2, "Unmatched rows");
+	mu_assert_eq ((int)ls_length (list), 2, "Unmatched rows");
+	ls_free(list);
 	sdb_free (db);
 	mu_end;
 }
@@ -87,7 +91,8 @@ bool test_sdb_delete_alot(void) {
 		sdb_unset (db, sdb_fmt (0, "key.%d", i), 0);
 	}
 	SdbList *list = sdb_foreach_list (db, false);
-	mu_assert_eq ((int)ls_length (sdb_foreach_list (db, false)), 0, "Unmatched rows");
+	mu_assert_eq ((int)ls_length (list), 0, "Unmatched rows");
+	ls_free(list);
 	sdb_free (db);
 
 	mu_end;

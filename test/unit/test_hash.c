@@ -162,24 +162,25 @@ size_t calcSizePerson(void *c) {
 	return sizeof (*p);
 }
 bool test_ht_general(void) {
+	int retval = MU_PASSED;
 	bool found = false;
 	Person *p, *person1 = malloc (sizeof (Person));
 	if (!person1) {
-		mu_end;
+		mu_cleanup_fail(err_malloc, "person1 malloc");
 	}
 	person1->name = strdup ("radare");
 	person1->age = 10;
 
 	Person *person2 = malloc (sizeof (Person));
 	if (!person2) {
-		mu_end;
+		mu_cleanup_fail(err_free_person1, "person2 malloc");
 	}
 	person2->name = strdup ("pancake");
 	person2->age = 9000;
 
 	HtPP *ht = ht_pp_new ((HtPPDupValue)duplicate_person, free_kv, (HtPPCalcSizeV)calcSizePerson);
 	if (!ht) {
-		mu_end;
+		mu_cleanup_fail(err_free_persons, "ht alloc");
 	}
 	ht_pp_insert (ht, "radare", (void *)person1);
 	ht_pp_insert (ht, "pancake", (void *)person2);
@@ -209,13 +210,15 @@ bool test_ht_general(void) {
 	mu_assert_streq (p->name, "radare", "wrong person");
 	mu_assert_eq (p->age, 10, "wrong age");
 
-	free (person1->name);
-	free (person1);
+	ht_pp_free (ht);
+ err_free_persons:
 	free (person2->name);
 	free (person2);
-
-	ht_pp_free (ht);
-	mu_end;
+ err_free_person1:
+	free (person1->name);
+	free (person1);
+ err_malloc:
+	mu_cleanup_end;
 }
 static void free_key(HtPPKv *kv) {
 	free (kv->key);
@@ -405,7 +408,7 @@ bool test_grow_3(void) {
 }
 
 bool test_grow_4(void) {
-	HtPP *ht = ht_pp_new0 ();
+	HtPP *ht = ht_pp_new (NULL, (HtPPKvFreeFunc)free_key_value, NULL);
 	char *r;
 	bool found;
 	int i;
