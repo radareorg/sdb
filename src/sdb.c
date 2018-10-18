@@ -8,12 +8,20 @@
 #include <sys/stat.h>
 #include "sdb.h"
 
-#define KV_AT(ht, bt, i) ((SdbKv *)((char *)(bt)->arr + (i) * (ht)->elem_size))
-#define NEXTKV(ht, kv) ((SdbKv *)((char *)(kv) + (ht)->elem_size))
-#define PREVKV(ht, kv) ((SdbKv *)((char *)(kv) - (ht)->elem_size))
+static inline SdbKv *kv_at(SdbHt *ht, HtBucket *bt, ut32 i) {
+	return (SdbKv *)((char *)bt->arr + i * ht->elem_size);
+}
+
+static inline SdbKv *next_kv(SdbHt *ht, SdbKv *kv) {
+	return (SdbKv *)((char *)kv + ht->elem_size);
+}
+
+static inline SdbKv *prev_kv(SdbHt *ht, SdbKv *kv) {
+	return (SdbKv *)((char *)kv - ht->elem_size);
+}
 
 #define BUCKET_FOREACH(ht, bt, j, kv)					\
-	for ((j) = 0, (kv) = (SdbKv *)(bt)->arr; j < (bt)->count; (j)++, (kv) = NEXTKV (ht, kv))
+	for ((j) = 0, (kv) = (SdbKv *)(bt)->arr; j < (bt)->count; (j)++, (kv) = next_kv (ht, kv))
 
 static inline int nextcas(void) {
 	static ut32 cas = 1;
@@ -829,7 +837,7 @@ SDB_API bool sdb_sync(Sdb* s) {
 				if (sdb_disk_insert (s, sdbkv_key (kv), sdbkv_value (kv))) {
 					sdb_remove (s, sdbkv_key (kv), 0);
 					// decrement kv and j, otherwise we skip an element
-					kv = PREVKV (s->ht, kv);
+					kv = prev_kv (s->ht, kv);
 					j--;
 					continue;
 				}
