@@ -796,8 +796,8 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 
 			// check if the key was removed during the callback
 			// if it was, decrement j so we don't skip the next element
-			if (count != ht->count) {
-				kv = prev_kv (ht, kv);
+			if (count != s->ht->count) {
+				kv = prev_kv (s->ht, kv);
 				j--;
 			}
 		}
