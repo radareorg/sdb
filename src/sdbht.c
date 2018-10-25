@@ -7,7 +7,9 @@ void sdbkv_fini(SdbKv *kv) {
 
 SDB_API SdbHt* sdb_ht_new() {
 	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)sdbkv_fini, (CalcSize)strlen);
-	ht->elem_size = sizeof (SdbKv);
+	if (ht) {
+		ht->elem_size = sizeof (SdbKv);
+	}
 	return ht;
 }
 
@@ -16,13 +18,24 @@ static bool sdb_ht_internal_insert(SdbHt* ht, const char* key,
 	if (!ht || !key || !value) {
 		return false;
 	}
-	SdbKv kvp;
+	SdbKv kvp = { 0 };
 	kvp.base.key = strdup ((void *)key);
+	if (!kvp.base.key) {
+		goto err;
+	}
 	kvp.base.value = strdup ((void *)value);
+	if (!kvp.base.value) {
+		goto err;
+	}
 	kvp.base.key_len = strlen ((void *)kvp.base.key);
 	kvp.base.value_len = strlen ((void *)kvp.base.value);
 	kvp.expire = 0;
 	return ht_insert_kv (ht, (HtKv*)&kvp, update);
+
+ err:
+	free (kvp.base.key);
+	free (kvp.base.value);
+	return false;
 }
 
 SDB_API bool sdb_ht_insert(SdbHt* ht, const char* key, const char* value) {
