@@ -786,10 +786,19 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 		ut32 j;
 
 		BUCKET_FOREACH (s->ht, bt, j, kv) {
+			ut32 count = s->ht->count;
+
 			if (kv && sdbkv_value (kv) && *sdbkv_value (kv)) {
 				if (!cb (user, sdbkv_key (kv), sdbkv_value (kv))) {
 					return sdb_foreach_end (s, false);
 				}
+			}
+
+			// check if the key was removed during the callback
+			// if it was, decrement j so we don't skip the next element
+			if (count != ht->count) {
+				kv = prev_kv (ht, kv);
+				j--;
 			}
 		}
 	}
