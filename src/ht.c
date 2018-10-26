@@ -1,4 +1,4 @@
-/* radare2 - BSD 3 Clause License - crowell, pancake, ret2libc 2018 */
+/* radare2 - BSD 3 Clause License - crowell, pancake, ret2libc 2016-2018 */
 
 #include "ht.h"
 #include "sdb.h"
