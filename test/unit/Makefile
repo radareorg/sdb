@@ -5,7 +5,6 @@ include ../sdb-test.mk
 CFLAGS += -g -O0
 # CFLAGS += -fsanitize=address
 
-
 all: $(OBJECTS)
 
 r run: all

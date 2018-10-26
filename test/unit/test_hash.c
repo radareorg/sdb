@@ -54,10 +54,13 @@ bool test_ht_insert_kvp(void) {
 	SdbKv *kv = sdbkv_new ("AAAA", "vAAAA");
 	mu_assert ("AAAA shouldn't exist", !sdb_ht_find_kvp (ht, "AAAA", NULL));
 	sdb_ht_insert_kvp (ht, kv, false);
+	free (kv);
+
 	mu_assert ("AAAA should exist", sdb_ht_find_kvp (ht, "AAAA", NULL));
 	SdbKv *kv2 = sdbkv_new ("AAAA", "vNEWAAAA");
 	mu_assert ("AAAA shouldn't be replaced", !sdb_ht_insert_kvp (ht, kv2, false));
 	mu_assert ("AAAA should be replaced", sdb_ht_insert_kvp (ht, kv2, true));
+	free (kv2);
 
 	SdbKv *foundkv = sdb_ht_find_kvp (ht, "AAAA", NULL);
 	mu_assert_streq (foundkv->base.value, "vNEWAAAA", "vNEWAAAA should be there");
@@ -123,6 +126,8 @@ bool test_ht_kvp(void) {
 	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4");
 	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5");
 	mu_assert ("kvp should be inserted", sdb_ht_insert_kvp (ht, kvp, false));
+	free (kvp);
+
 	kvp = sdb_ht_find_kvp (ht, "AAAA", NULL);
 	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4 after kvp_insert");
 	mu_assert_eq (kvp->base.value_len, 5, "value_len should be 5 after kvp_insert");
@@ -148,7 +153,6 @@ void free_kv(HtKv *kv) {
 	Person *p = kv->value;
 	free (p->name);
 	free (p);
-	free (kv);
 }
 
 size_t calcSizePerson(void *c) {
@@ -214,18 +218,15 @@ bool test_ht_general(void) {
 }
 static void free_key(HtKv *kv) {
 	free (kv->key);
-	free (kv);
 }
 
 static void free_value(HtKv *kv) {
 	free (kv->value);
-	free (kv);
 }
 
 static void free_key_value(HtKv *kv) {
 	free (kv->key);
 	free (kv->value);
-	free (kv);
 }
 
 bool should_not_be_caled(void *user, const char *k, void *v) {

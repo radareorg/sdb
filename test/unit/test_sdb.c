@@ -152,7 +152,7 @@ bool test_sdb_namespace(void) {
 		unlink (dbname);
 	}
 	mu_assert ("namespace sync", solved);
-	return solved;
+	mu_end;
 }
 
 static int foreach_filter_cb(void *user, const char *key, const char *val) {
