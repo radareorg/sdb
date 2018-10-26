@@ -81,7 +81,13 @@ static inline HtKv *prev_kv(SdbHt *ht, HtKv *kv) {
 
 #define BUCKET_FOREACH(ht, bt, j, kv)					\
 	if ((bt)->arr)							\
-		for ((j) = 0, (kv) = (bt)->arr; j < (bt)->count; (j)++, (kv) = next_kv (ht, kv))
+		for ((j) = 0, (kv) = (bt)->arr; (j) < (bt)->count; (j)++, (kv) = next_kv (ht, kv))
+
+#define BUCKET_FOREACH_SAFE(ht, bt, j, count, kv)			\
+	if ((bt)->arr)							\
+		for ((j) = 0, (kv) = (bt)->arr, (count) = (ht)->count;	\
+		     (j) < (bt)->count;					\
+		     (j) = (count) == (ht)->count? j + 1: j, (kv) = (count) == (ht)->count? next_kv (ht, kv): kv, (count) = (ht)->count)
 
 // Create a new hashtable and return a pointer to it.
 // size - number of buckets in the hashtable
@@ -326,20 +332,11 @@ SDB_API void ht_foreach(SdbHt *ht, HtForeachCallback cb, void *user) {
 	for (i = 0; i < ht->size; ++i) {
 		HtBucket *bt = &ht->table[i];
 		HtKv *kv;
-		ut32 j;
+		ut32 j, count;
 
-		BUCKET_FOREACH (ht, bt, j, kv) {
-			ut32 count = ht->count;
-
+		BUCKET_FOREACH_SAFE (ht, bt, j, count, kv) {
 			if (!cb (user, kv->key, kv->value)) {
 				return;
-			}
-
-			// check if the key was removed during the callback
-			// if it was, decrement j so we don't skip the next element
-			if (count != ht->count) {
-				kv = prev_kv (ht, kv);
-				j--;
 			}
 		}
 	}

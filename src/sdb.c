@@ -23,6 +23,12 @@ static inline SdbKv *prev_kv(SdbHt *ht, SdbKv *kv) {
 #define BUCKET_FOREACH(ht, bt, j, kv)					\
 	for ((j) = 0, (kv) = (SdbKv *)(bt)->arr; j < (bt)->count; (j)++, (kv) = next_kv (ht, kv))
 
+#define BUCKET_FOREACH_SAFE(ht, bt, j, count, kv)			\
+	if ((bt)->arr)							\
+		for ((j) = 0, (kv) = (SdbKv *)(bt)->arr, (count) = (ht)->count; \
+		     (j) < (bt)->count;					\
+		     (j) = (count) == (ht)->count? j + 1: j, (kv) = (count) == (ht)->count? next_kv (ht, kv): kv, (count) = (ht)->count)
+
 static inline int nextcas(void) {
 	static ut32 cas = 1;
 	if (!cas) {
@@ -783,22 +789,13 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	for (i = 0; i < s->ht->size; ++i) {
 		HtBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
-		ut32 j;
+		ut32 j, count;
 
-		BUCKET_FOREACH (s->ht, bt, j, kv) {
-			ut32 count = s->ht->count;
-
+		BUCKET_FOREACH_SAFE (s->ht, bt, j, count, kv) {
 			if (kv && sdbkv_value (kv) && *sdbkv_value (kv)) {
 				if (!cb (user, sdbkv_key (kv), sdbkv_value (kv))) {
 					return sdb_foreach_end (s, false);
 				}
-			}
-
-			// check if the key was removed during the callback
-			// if it was, decrement j so we don't skip the next element
-			if (count != s->ht->count) {
-				kv = prev_kv (s->ht, kv);
-				j--;
 			}
 		}
 	}
@@ -839,16 +836,12 @@ SDB_API bool sdb_sync(Sdb* s) {
 	for (i = 0; i < s->ht->size; ++i) {
 		HtBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
-		ut32 j;
+		ut32 j, count;
 
-		BUCKET_FOREACH (s->ht, bt, j, kv) {
+		BUCKET_FOREACH_SAFE (s->ht, bt, j, count, kv) {
 			if (sdbkv_key (kv) && sdbkv_value (kv) && *sdbkv_value (kv) && !kv->expire) {
 				if (sdb_disk_insert (s, sdbkv_key (kv), sdbkv_value (kv))) {
 					sdb_remove (s, sdbkv_key (kv), 0);
-					// decrement kv and j, otherwise we skip an element
-					kv = prev_kv (s->ht, kv);
-					j--;
-					continue;
 				}
 			}
 		}
