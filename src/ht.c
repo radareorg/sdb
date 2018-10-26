@@ -207,8 +207,7 @@ static void check_growing(SdbHt *ht) {
 }
 
 static HtKv *reserve_kv(SdbHt *ht, const char *key, const int key_len, bool update) {
-	ut32 bucket = bucketfn (ht, key);
-	HtBucket *bt = &ht->table[bucket];
+	HtBucket *bt = &ht->table[bucketfn (ht, key)];
 	HtKv *kvtmp;
 	ut32 j;
 
@@ -275,13 +274,11 @@ SDB_API bool ht_update(SdbHt* ht, const char* key, void* value) {
 // If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
 SDB_API HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
-	ut32 bucket = bucketfn (ht, key);
-
 	if (found) {
 		*found = false;
 	}
 
-	HtBucket *bt = &ht->table[bucket];
+	HtBucket *bt = &ht->table[bucketfn (ht, key)];
 	ut32 key_len = calcsize_key (ht, key);
 	HtKv *kv;
 	ut32 j;
@@ -307,8 +304,7 @@ SDB_API void* ht_find(SdbHt* ht, const char* key, bool* found) {
 
 // Deletes a entry from the hash table from the key, if the pair exists.
 SDB_API bool ht_delete(SdbHt* ht, const char* key) {
-	ut32 bucket = bucketfn (ht, key);
-	HtBucket *bt = &ht->table[bucket];
+	HtBucket *bt = &ht->table[bucketfn (ht, key)];
 	ut32 key_len = calcsize_key (ht, key);
 	HtKv *kv;
 	ut32 j;
