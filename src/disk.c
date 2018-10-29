@@ -107,8 +107,12 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 	}
 #if __SDB_WINDOWS__ && UNICODE
 	wchar_t *wstr = r_sys_conv_utf8_to_utf16 (str);
-	s->fdump = _wopen (wstr, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
-	free (wstr);
+	if (wstr) {
+		s->fdump = _wopen (wstr, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
+		free (wstr);
+	} else {
+		s->fdump = -1;
+	}
 #else
 	s->fdump = open (str, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
 #endif
