@@ -35,7 +35,7 @@ static wchar_t *r_utf8_to_utf16_l (const char *cstring, int len) {
 
 #define r_sys_conv_utf8_to_utf16(buf) r_utf8_to_utf16_l ((buf), -1)
 
-static bool r_sys_mkdir(char *path) {
+static bool r_sys_mkdir(const char *path) {
 	LPTSTR path_ = r_sys_conv_utf8_to_utf16 (path);
 	bool ret = CreateDirectory (path_, NULL);
 
