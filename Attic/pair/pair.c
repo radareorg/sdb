@@ -1,6 +1,6 @@
 /* radare - LGPL - Copyright 2011-2018 pancake */
 
-#include "./r_db.h"
+#include "./r_pair.h"
 #include <r_util.h>
 
 R_API void r_pair_set_file (RPair*p, const char *file) {
@@ -100,11 +100,11 @@ static Sdb *pair_sdb_new(RPair *p, const char *dom) {
 }
 
 R_API char *r_pair_get (RPair *p, const char *name) {
-	Sdb *sdb;
 	char *dom, *key, *okey;
 
-	if (p->file)
+	if (p->file) {
 		return sdb_get (p->sdb, name, NULL);
+	}
 
 	key = okey = strdup (name);
 	dom = (char*)r_str_lchr (okey, '.');
@@ -114,9 +114,10 @@ R_API char *r_pair_get (RPair *p, const char *name) {
 		key = dom+1;
 		dom = tmp;
 	} else dom = "";
-	sdb = ht_find (p->ht, dom, NULL);
-	if (!sdb)
+	Sdb *sdb = ht_find (p->ht, dom, NULL);
+	if (!sdb) {
 		sdb = pair_sdb_new (p, dom);
+	}
 	dom = sdb_get (sdb, key, NULL);
 	free (okey);
 	return dom;
@@ -137,9 +138,13 @@ R_API void r_pair_set (RPair *p, const char *name, const char *value) {
 		*dom = 0;
 		key = dom+1;
 		dom = okey;
-	} else dom = "";
+	} else {
+		dom = "";
+	}
 	sdb = ht_find (p->ht, dom, NULL);
-	if (!sdb) sdb = pair_sdb_new (p, dom);
+	if (!sdb) {
+		sdb = pair_sdb_new (p, dom);
+	}
 	sdb_set (sdb, key, value, 0);
 }
 
