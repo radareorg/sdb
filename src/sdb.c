@@ -10,16 +10,16 @@
 
 #if 0
 static inline SdbKv *kv_at(SdbHt *ht, HtBucket *bt, ut32 i) {
-	return (SdbKv *)((char *)bt->arr + i * ht->elem_size);
+	return (SdbKv *)((char *)bt->arr + i * ht->opt.elem_size);
 }
 
 static inline SdbKv *prev_kv(SdbHt *ht, SdbKv *kv) {
-	return (SdbKv *)((char *)kv - ht->elem_size);
+	return (SdbKv *)((char *)kv - ht->opt.elem_size);
 }
 #endif
 
 static inline SdbKv *next_kv(SdbHt *ht, SdbKv *kv) {
-	return (SdbKv *)((char *)kv + ht->elem_size);
+	return (SdbKv *)((char *)kv + ht->opt.elem_size);
 }
 
 #define BUCKET_FOREACH(ht, bt, j, kv)					\
@@ -273,7 +273,7 @@ SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *
 		return NULL;
 	}
 	(void) cdb_findstart (&s->db);
-	if (cdb_findnext (&s->db, s->ht->hashfn (key), key, keylen) < 1) {
+	if (cdb_findnext (&s->db, s->ht->opt.hashfn (key), key, keylen) < 1) {
 		return NULL;
 	}
 	len = cdb_datalen (&s->db);
