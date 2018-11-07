@@ -12,11 +12,19 @@ typedef struct sdb_kv {
 } SdbKv;
 
 static inline char *sdbkv_key(const SdbKv *kv) {
-	return kv->base.key;
+	return (char *)(uintptr_t)kv->base.key;
+}
+
+static inline void sdbkv_set_key(SdbKv *kv, char *key) {
+	kv->base.key = (ut64)(uintptr_t)key;
 }
 
 static inline char *sdbkv_value(const SdbKv *kv) {
-	return (char *)kv->base.value;
+	return (char *)(uintptr_t)kv->base.value;
+}
+
+static inline void sdbkv_set_value(SdbKv *kv, char *value) {
+	kv->base.value = (ut64)(uintptr_t)value;
 }
 
 static inline ut32 sdbkv_key_len(const SdbKv *kv) {

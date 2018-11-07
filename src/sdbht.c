@@ -1,8 +1,8 @@
 #include "sdbht.h"
 
 void sdbkv_fini(SdbKv *kv) {
-	free (kv->base.key);
-	free (kv->base.value);
+	free (sdbkv_key (kv));
+	free (sdbkv_value (kv));
 }
 
 SDB_API SdbHt* sdb_ht_new() {
@@ -19,22 +19,22 @@ static bool sdb_ht_internal_insert(SdbHt* ht, const char* key,
 		return false;
 	}
 	SdbKv kvp = {{ 0 }};
-	kvp.base.key = strdup ((void *)key);
-	if (!kvp.base.key) {
+	sdbkv_set_key (&kvp, strdup (key));
+	if (!sdbkv_key (&kvp)) {
 		goto err;
 	}
-	kvp.base.value = strdup ((void *)value);
-	if (!kvp.base.value) {
+	sdbkv_set_value (&kvp, strdup (value));
+	if (!sdbkv_value (&kvp)) {
 		goto err;
 	}
-	kvp.base.key_len = strlen ((void *)kvp.base.key);
-	kvp.base.value_len = strlen ((void *)kvp.base.value);
+	kvp.base.key_len = strlen (sdbkv_key (&kvp));
+	kvp.base.value_len = strlen (sdbkv_value (&kvp));
 	kvp.expire = 0;
 	return ht_insert_kv (ht, (HtKv*)&kvp, update);
 
  err:
-	free (kvp.base.key);
-	free (kvp.base.value);
+	free (sdbkv_key (&kvp));
+	free (sdbkv_value (&kvp));
 	return false;
 }
 
@@ -51,11 +51,11 @@ SDB_API bool sdb_ht_update(SdbHt *ht, const char *key, const char*value) {
 }
 
 SDB_API SdbKv* sdb_ht_find_kvp(SdbHt* ht, const char* key, bool* found) {
-	return (SdbKv *)ht_find_kv (ht, key, found);
+	return (SdbKv *)ht_find_kv (ht, (ut64)(uintptr_t)key, found);
 }
 
 SDB_API char* sdb_ht_find(SdbHt* ht, const char* key, bool* found) {
-	return (char *)ht_find (ht, key, found);
+	return ht_find_p (ht, key, found);
 }
 
 SDB_API void sdb_ht_free(SdbHt *ht) {
@@ -63,5 +63,5 @@ SDB_API void sdb_ht_free(SdbHt *ht) {
 }
 
 SDB_API bool sdb_ht_delete(SdbHt* ht, const char *key) {
-	return ht_delete (ht, key);
+	return ht_delete_p (ht, key);
 }

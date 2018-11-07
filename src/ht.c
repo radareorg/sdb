@@ -6,6 +6,17 @@
 #define LOAD_FACTOR 1
 #define S_ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
 
+struct p_user {
+	void *user;
+	HtPForeachCallback cb;
+};
+
+struct u_user {
+	void *user;
+	HtUForeachCallback cb;
+};
+
+
 // Sizes of the ht.
 static const ut32 ht_primes_sizes[] = {
 	3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131,
@@ -19,27 +30,27 @@ static const ut32 ht_primes_sizes[] = {
 	4166287, 4999559, 5999471, 7199369
 };
 
-static inline ut32 hashfn(SdbHt *ht, const void *k) {
+static inline ut32 hashfn(SdbHt *ht, ut64 k) {
 	return ht->opt.hashfn ? ht->opt.hashfn (k) : (ut32)(size_t)(k);
 }
 
-static inline ut32 bucketfn(SdbHt *ht, const void *k) {
+static inline ut32 bucketfn(SdbHt *ht, ut64 k) {
 	return hashfn (ht, k) % ht->size;
 }
 
-static inline char *dupkey(SdbHt *ht, const void *k) {
-	return ht->opt.dupkey ? ht->opt.dupkey (k) : (char *)k;
+static inline ut64 dupkey(SdbHt *ht, ut64 k) {
+	return ht->opt.dupkey ? ht->opt.dupkey (k) : k;
 }
 
-static inline void *dupval(SdbHt *ht, const void *v) {
-	return ht->opt.dupvalue ? ht->opt.dupvalue (v) : (void *)v;
+static inline ut64 dupval(SdbHt *ht, ut64 v) {
+	return ht->opt.dupvalue ? ht->opt.dupvalue (v) : v;
 }
 
-static inline ut32 calcsize_key(SdbHt *ht, const void *k) {
+static inline ut32 calcsize_key(SdbHt *ht, ut64 k) {
 	return ht->opt.calcsizeK ? ht->opt.calcsizeK (k) : 0;
 }
 
-static inline ut32 calcsize_val(SdbHt *ht, const void *v) {
+static inline ut32 calcsize_val(SdbHt *ht, ut64 v) {
 	return ht->opt.calcsizeV ? ht->opt.calcsizeV (v) : 0;
 }
 
@@ -55,7 +66,7 @@ static inline ut32 compute_size(ut32 idx, ut32 sz) {
 	return idx != UT32_MAX ? ht_primes_sizes[idx] : (sz | 1);
 }
 
-static inline bool is_kv_equal(SdbHt *ht, const char *key, const ut32 key_len, const HtKv *kv) {
+static inline bool is_kv_equal(SdbHt *ht, ut64 key, const ut32 key_len, const HtKv *kv) {
 	if (key_len != kv->key_len) {
 		return false;
 	}
@@ -135,7 +146,7 @@ SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize
 }
 
 static void free_kv_key(HtKv *kv) {
-	free (kv->key);
+	free ((void *)(uintptr_t)kv->key);
 }
 
 SDB_API SdbHt* ht_new0() {
@@ -218,7 +229,7 @@ static void check_growing(SdbHt *ht) {
 	}
 }
 
-static HtKv *reserve_kv(SdbHt *ht, const char *key, const int key_len, bool update) {
+static HtKv *reserve_kv(SdbHt *ht, ut64 key, const int key_len, bool update) {
 	HtBucket *bt = &ht->table[bucketfn (ht, key)];
 	HtKv *kvtmp;
 	ut32 j;
@@ -255,7 +266,7 @@ SDB_API bool ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 	return true;
 }
 
-static bool insert_update(SdbHt *ht, const char *key, void *value, bool update) {
+static bool insert_update(SdbHt *ht, ut64 key, ut64 value, bool update) {
 	ut32 key_len = calcsize_key (ht, key);
 	HtKv* kv_dst = reserve_kv (ht, key, key_len, update);
 	if (!kv_dst) {
@@ -272,20 +283,20 @@ static bool insert_update(SdbHt *ht, const char *key, void *value, bool update) 
 
 // Inserts the key value pair key, value into the hashtable.
 // Doesn't allow for "update" of the value.
-SDB_API bool ht_insert(SdbHt* ht, const char* key, void* value) {
+SDB_API bool ht_insert(SdbHt* ht, ut64 key, ut64 value) {
 	return insert_update (ht, key, value, false);
 }
 
 // Inserts the key value pair key, value into the hashtable.
 // Does allow for "update" of the value.
-SDB_API bool ht_update(SdbHt* ht, const char* key, void* value) {
+SDB_API bool ht_update(SdbHt* ht, ut64 key, ut64 value) {
 	return insert_update (ht, key, value, true);
 }
 
 // Returns the corresponding SdbKv entry from the key.
 // If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
-SDB_API HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
+SDB_API HtKv* ht_find_kv(SdbHt* ht, ut64 key, bool *found) {
 	if (found) {
 		*found = false;
 	}
@@ -309,13 +320,13 @@ SDB_API HtKv* ht_find_kv(SdbHt* ht, const char* key, bool* found) {
 // Looks up the corresponding value from the key.
 // If `found` is not NULL, it will be set to true if the entry was found, false
 // otherwise.
-SDB_API void* ht_find(SdbHt* ht, const char* key, bool* found) {
+SDB_API ut64 ht_find(SdbHt* ht, ut64 key, bool* found) {
 	HtKv *res = ht_find_kv (ht, key, found);
-	return res ? res->value : NULL;
+	return res ? res->value : 0;
 }
 
 // Deletes a entry from the hash table from the key, if the pair exists.
-SDB_API bool ht_delete(SdbHt* ht, const char* key) {
+SDB_API bool ht_delete(SdbHt* ht, ut64 key) {
 	HtBucket *bt = &ht->table[bucketfn (ht, key)];
 	ut32 key_len = calcsize_key (ht, key);
 	HtKv *kv;
@@ -348,4 +359,26 @@ SDB_API void ht_foreach(SdbHt *ht, HtForeachCallback cb, void *user) {
 			}
 		}
 	}
+}
+
+bool p_foreach_callback(void *user, ut64 key, ut64 value) {
+	struct p_user *pu = user;
+	pu->cb (pu->user, (const void *)(uintptr_t)key, (void *)(uintptr_t)value);
+	return 1;
+}
+
+SDB_API void ht_foreach_p(SdbHt *ht, HtPForeachCallback cb, void *user) {
+	struct p_user pu = {.user = user, .cb = cb};
+	ht_foreach (ht, p_foreach_callback, &pu);
+}
+
+bool u_foreach_callback(void *user, ut64 key, ut64 value) {
+	struct u_user *uu = user;
+	uu->cb (uu->user, key, (void *)(uintptr_t)value);
+	return 1;
+}
+
+SDB_API void ht_foreach_u(SdbHt *ht, HtUForeachCallback cb, void *user) {
+	struct u_user uu = {.user = user, .cb = cb};
+	ht_foreach (ht, u_foreach_callback, &uu);
 }
