@@ -235,7 +235,7 @@ bool should_not_be_caled(void *user, const char *k, void *v) {
 }
 
 bool test_empty_ht(void) {
-	SdbHt *ht = ht_new (NULL, NULL, NULL);
+	SdbHt *ht = ht_new0 ();
 	ht_foreach (ht, (HtForeachCallback) should_not_be_caled, NULL);
 	void *r = ht_find (ht, "key1", NULL);
 	mu_assert_null (r, "key1 should not be present");
@@ -244,7 +244,7 @@ bool test_empty_ht(void) {
 }
 
 bool test_insert(void) {
-	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	SdbHt *ht = ht_new0 ();
 	void *r;
 	bool res;
 	bool found;
@@ -270,7 +270,7 @@ bool test_insert(void) {
 }
 
 bool test_update(void) {
-	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	SdbHt *ht = ht_new0 ();
 	bool found;
 
 	ht_insert (ht, "key1", "value1");
@@ -283,7 +283,7 @@ bool test_update(void) {
 }
 
 bool test_delete(void) {
-	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	SdbHt *ht = ht_new0 ();
 	bool found;
 
 	ht_insert (ht, "key1", "value1");
@@ -302,7 +302,7 @@ static bool grow_1_foreach(void *user, const char *k, int v) {
 }
 
 bool test_grow_1(void) {
-	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key, NULL);
+	SdbHt *ht = ht_new0 ();
 	int i;
 
 	for (i = 0; i < 3; ++i) {
@@ -404,7 +404,7 @@ bool test_grow_3(void) {
 }
 
 bool test_grow_4(void) {
-	SdbHt *ht = ht_new (NULL, (HtKvFreeFunc)free_key_value, NULL);
+	SdbHt *ht = ht_new0 ();
 	char *r;
 	bool found;
 	int i;

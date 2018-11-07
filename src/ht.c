@@ -127,6 +127,14 @@ SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsize
 		valdup, pair_free, (CalcSize)strlen, calcsizeV, sizeof (HtKv));
 }
 
+static void free_kv_key(HtKv *kv) {
+	free (kv->key);
+}
+
+SDB_API SdbHt* ht_new0() {
+	return ht_new (NULL, free_kv_key, NULL);
+}
+
 SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
 	ut32 i = 0;
 
