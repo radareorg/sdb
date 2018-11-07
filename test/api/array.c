@@ -207,7 +207,7 @@ TEST(add_num3)
 TEST(add_num4)
 	sdb_set (s, "key", "0x1,0x2",0);
 	sdb_array_add_num (s, "key", 3, 0);
-	EXPECT("0x1,0x2,0x3");
+	EXPECT("0x1,0x2,3");
 
 TEST(add_num5)
 	sdb_set (s, "key", "1,2",0);
