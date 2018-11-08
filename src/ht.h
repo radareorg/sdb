@@ -46,7 +46,7 @@ typedef struct ht_t {
 // If hashfunction is NULL it will be used sdb_hash internally
 // If keydup or valdup are null it will be used an assignment
 // If keySize or valueSize are null it will be used strlen internally
-SDB_API SdbHt* ht_new0();
+SDB_API SdbHt* ht_new0(void);
 SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize valueSize);
 SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize valueSize);
 // Destroy a hashtable and all of its entries.
