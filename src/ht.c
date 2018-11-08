@@ -142,14 +142,6 @@ SDB_API SdbHt* ht_new0(void) {
 	return ht_new (NULL, free_kv_key, NULL);
 }
 
-static void free_kv_key(HtKv *kv) {
-	free (kv->key);
-}
-
-SDB_API SdbHt* ht_new0(void) {
-	return ht_new (NULL, free_kv_key, NULL);
-}
-
 SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
 	ut32 i = 0;
 
