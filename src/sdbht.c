@@ -6,7 +6,7 @@ void sdbkv_fini(SdbKv *kv) {
 }
 
 SDB_API SdbHt* sdb_ht_new() {
-	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)sdbkv_fini, (CalcSize)strlen);
+	SdbHt *ht = ht_new_p ((PDupValue)strdup, (HtKvFreeFunc)sdbkv_fini, (PCalcSize)strlen);
 	if (ht) {
 		ht->opt.elem_size = sizeof (SdbKv);
 	}

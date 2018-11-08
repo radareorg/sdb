@@ -273,7 +273,7 @@ SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *
 		return NULL;
 	}
 	(void) cdb_findstart (&s->db);
-	if (cdb_findnext (&s->db, s->ht->opt.hashfn ((ut64)(uintptr_t)key), key, keylen) < 1) {
+	if (cdb_findnext (&s->db, s->ht->opt.sub.p.hashfn (key), key, keylen) < 1) {
 		return NULL;
 	}
 	len = cdb_datalen (&s->db);

@@ -31,7 +31,15 @@ static const ut32 ht_primes_sizes[] = {
 };
 
 static inline ut32 hashfn(SdbHt *ht, ut64 k) {
-	return ht->opt.hashfn ? ht->opt.hashfn (k) : (ut32)(size_t)(k);
+	switch (ht->opt.type) {
+	case HT_TYPE_P:
+		return ht->opt.sub.p.hashfn ? ht->opt.sub.p.hashfn (ht_u2ptr (k)) : (ut32)(size_t)(k);
+	case HT_TYPE_U:
+		return ht->opt.sub.u.hashfn ? ht->opt.sub.u.hashfn (k) : (ut32)(size_t)(k);
+	case HT_TYPE_NONE:
+	default:
+		return ht->opt.sub.n.hashfn ? ht->opt.sub.n.hashfn (k) : (ut32)(size_t)(k);
+	}
 }
 
 static inline ut32 bucketfn(SdbHt *ht, ut64 k) {
@@ -39,19 +47,63 @@ static inline ut32 bucketfn(SdbHt *ht, ut64 k) {
 }
 
 static inline ut64 dupkey(SdbHt *ht, ut64 k) {
-	return ht->opt.dupkey ? ht->opt.dupkey (k) : k;
+	switch (ht->opt.type) {
+	case HT_TYPE_P:
+		return ht->opt.sub.p.dupkey ? ht_ptr2u (ht->opt.sub.p.dupkey (ht_u2ptr (k))) : k;
+	case HT_TYPE_U:
+		return ht->opt.sub.u.dupkey ? ht->opt.sub.u.dupkey (k) : k;
+	case HT_TYPE_NONE:
+	default:
+		return ht->opt.sub.n.dupkey ? ht->opt.sub.n.dupkey (k) : k;
+	}
 }
 
 static inline ut64 dupval(SdbHt *ht, ut64 v) {
-	return ht->opt.dupvalue ? ht->opt.dupvalue (v) : v;
+	switch (ht->opt.type) {
+	case HT_TYPE_P:
+		return ht->opt.sub.p.dupvalue ? ht_ptr2u (ht->opt.sub.p.dupvalue (ht_u2ptr (v))) : v;
+	case HT_TYPE_U:
+		return ht->opt.sub.u.dupvalue ? ht_ptr2u (ht->opt.sub.u.dupvalue (ht_u2ptr (v))) : v;
+	case HT_TYPE_NONE:
+	default:
+		return ht->opt.sub.n.dupvalue ? ht->opt.sub.n.dupvalue (v) : v;
+	}
 }
 
 static inline ut32 calcsize_key(SdbHt *ht, ut64 k) {
-	return ht->opt.calcsizeK ? ht->opt.calcsizeK (k) : 0;
+	switch (ht->opt.type) {
+	case HT_TYPE_P:
+		return ht->opt.sub.p.calcsizeK ? ht->opt.sub.p.calcsizeK (ht_u2ptr (k)) : 0;
+	case HT_TYPE_U:
+		return ht->opt.sub.u.calcsizeK ? ht->opt.sub.u.calcsizeK (k) : 0;
+	case HT_TYPE_NONE:
+	default:
+		return ht->opt.sub.n.calcsizeK ? ht->opt.sub.n.calcsizeK (k) : 0;
+	}
 }
 
 static inline ut32 calcsize_val(SdbHt *ht, ut64 v) {
-	return ht->opt.calcsizeV ? ht->opt.calcsizeV (v) : 0;
+	switch (ht->opt.type) {
+	case HT_TYPE_P:
+		return ht->opt.sub.p.calcsizeV ? ht->opt.sub.p.calcsizeV (ht_u2ptr (v)) : 0;
+	case HT_TYPE_U:
+		return ht->opt.sub.u.calcsizeV ? ht->opt.sub.u.calcsizeV (ht_u2ptr (v)) : 0;
+	case HT_TYPE_NONE:
+	default:
+		return ht->opt.sub.n.calcsizeV ? ht->opt.sub.n.calcsizeV (v) : 0;
+	}
+}
+
+static inline bool cmpfn(SdbHt *ht, ut64 key1, ut64 key2) {
+	switch (ht->opt.type) {
+	case HT_TYPE_P:
+		return ht->opt.sub.p.cmp ? !ht->opt.sub.p.cmp (ht_u2ptr (key1), ht_u2ptr (key2)) : false;
+	case HT_TYPE_U:
+		return ht->opt.sub.u.cmp ? !ht->opt.sub.u.cmp (key1, key2) : false;
+	case HT_TYPE_NONE:
+	default:
+		return ht->opt.sub.n.cmp ? !ht->opt.sub.n.cmp (key1, key2) : false;
+	}
 }
 
 static inline void freefn(SdbHt *ht, HtKv *kv) {
@@ -72,8 +124,8 @@ static inline bool is_kv_equal(SdbHt *ht, ut64 key, const ut32 key_len, const Ht
 	}
 
 	bool res = key == kv->key;
-	if (!res && ht->opt.cmp) {
-		res = !ht->opt.cmp (key, kv->key);
+	if (!res) {
+		res = cmpfn (ht, key, kv->key);
 	}
 	return res;
 }
@@ -95,6 +147,30 @@ static inline HtKv *next_kv(SdbHt *ht, HtKv *kv) {
 		for ((j) = 0, (kv) = (bt)->arr, (count) = (ht)->count;	\
 		     (j) < (bt)->count;					\
 		     (j) = (count) == (ht)->count? j + 1: j, (kv) = (count) == (ht)->count? next_kv (ht, kv): kv, (count) = (ht)->count)
+
+SDB_API HtPOptions *ht_p_options_init(HtOptions *opt, HtKvFreeFunc freefn) {
+	memset (opt, 0, sizeof (*opt));
+	opt->elem_size = sizeof (HtKv);
+	opt->type = HT_TYPE_P;
+	opt->freefn = freefn;
+	return &opt->sub.p;
+}
+
+SDB_API HtUOptions *ht_u_options_init(HtOptions *opt, HtKvFreeFunc freefn) {
+	memset (opt, 0, sizeof (*opt));
+	opt->elem_size = sizeof (HtKv);
+	opt->type = HT_TYPE_U;
+	opt->freefn = freefn;
+	return &opt->sub.u;
+}
+
+SDB_API HtNOptions *ht_n_options_init(HtOptions *opt, HtKvFreeFunc freefn) {
+	memset (opt, 0, sizeof (*opt));
+	opt->elem_size = sizeof (HtKv);
+	opt->type = HT_TYPE_NONE;
+	opt->freefn = freefn;
+	return &opt->sub.n;
+}
 
 // Create a new hashtable and return a pointer to it.
 // size - number of buckets in the hashtable
@@ -119,41 +195,60 @@ static SdbHt* internal_ht_new(ut32 size, ut32 prime_idx, HtOptions *opt) {
 		return NULL;
 	}
 	ht->opt = *opt;
-	// if not provided, assume we are dealing with a regular SdbHt, with
-	// HtKv as elements
+	// if type is not provided, assume we are dealing with a NONE SdbHt
+	if (ht->opt.type == 0) {
+		ht->opt.type = HT_TYPE_NONE;
+	}
+
+	// if elem_size is not provided, assume we are dealing with a regular
+	// SdbHt, with HtKv as elements
 	if (ht->opt.elem_size == 0) {
 		ht->opt.elem_size = sizeof (HtKv);
 	}
 	return ht;
 }
 
-static SdbHt* internal_ht_default_new(ut32 size, ut32 prime_idx, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
-	HtOptions opt = {
-		.cmp = (ListComparator)strcmp,
-		.hashfn = (HashFunction)sdb_hash,
-		.dupkey = (DupKey)strdup,
-		.dupvalue = valdup,
-		.calcsizeK = (CalcSize)strlen,
-		.calcsizeV = calcsizeV,
-		.freefn = pair_free,
-		.elem_size = sizeof (HtKv),
-	};
+static void ht_string_options_init(HtOptions *opt, HtKvFreeFunc freefn, PDupValue valdup, PCalcSize calcsizeV) {
+	HtPOptions *popt = ht_p_options_init (opt, freefn);
+	popt->cmp = (PListComparator)strcmp;
+	popt->hashfn = (PHashFunction)sdb_hash;
+	popt->dupkey = (PDupKey)strdup;
+	popt->dupvalue = valdup;
+	popt->calcsizeK = (PCalcSize)strlen;
+	popt->calcsizeV = calcsizeV;
+}
+
+static SdbHt* internal_ht_default_new(ut32 size, ut32 prime_idx, PDupValue valdup, HtKvFreeFunc pair_free, PCalcSize calcsizeV) {
+	HtOptions opt;
+	ht_string_options_init (&opt, pair_free, valdup, calcsizeV);
 	return internal_ht_new (size, prime_idx, &opt);
 }
 
-SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
+SDB_API SdbHt* ht_new_p(PDupValue valdup, HtKvFreeFunc pair_free, PCalcSize calcsizeV) {
 	return internal_ht_default_new (ht_primes_sizes[0], 0, valdup, pair_free, calcsizeV);
+}
+
+SDB_API SdbHt* ht_new_u(PDupValue valdup, HtKvFreeFunc pair_free, PCalcSize calcsizeV) {
+	HtOptions opt;
+	HtUOptions *uopt = ht_u_options_init (&opt, pair_free);
+	uopt->dupvalue = valdup;
+	uopt->calcsizeV = calcsizeV;
+	return internal_ht_new (ht_primes_sizes[0], 0, &opt);
+}
+
+SDB_API SdbHt* ht_new0_u() {
+	return ht_new_u (NULL, NULL, NULL);
 }
 
 static void free_kv_key(HtKv *kv) {
 	free ((void *)(uintptr_t)kv->key);
 }
 
-SDB_API SdbHt* ht_new0() {
-	return ht_new (NULL, free_kv_key, NULL);
+SDB_API SdbHt* ht_new0_p() {
+	return ht_new_p (NULL, free_kv_key, NULL);
 }
 
-SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
+SDB_API SdbHt* ht_new_p_size(ut32 initial_size, PDupValue valdup, HtKvFreeFunc pair_free, PCalcSize calcsizeV) {
 	ut32 i = 0;
 
 	while (i < S_ARRAY_SIZE (ht_primes_sizes) &&
