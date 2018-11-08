@@ -75,7 +75,7 @@ ut32 create_collision(const char *key) {
 
 bool test_ht_insert_collision(void) {
 	SdbHt *ht = sdb_ht_new ();
-	ht->hashfn = create_collision;
+	ht->opt.hashfn = create_collision;
 	ht_insert (ht, "AAAA", "vAAAA");
 	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should be there");
 	ht_insert (ht, "BBBB", "vBBBB");
@@ -98,7 +98,7 @@ bool test_ht_grow(void) {
 	char buf[100];
 	int i;
 
-	ht->hashfn = key2hash;
+	ht->opt.hashfn = key2hash;
 	for (i = 0; i < 20000; ++i) {
 		snprintf (str, 15, "%d", i);
 		snprintf (vstr, 15, "v%d", i);
@@ -464,11 +464,10 @@ bool foreach_delete_cb(void *user, const char *k, void *v) {
 
 bool test_foreach_delete(void) {
 	bool found;
-	SdbHt *ht = ht_new ((DupValue)strdup, (HtKvFreeFunc)free_value, NULL);
-	ht->hashfn = NULL;
-	ht->cmp = NULL;
-	ht->dupkey = NULL;
-	ht->calcsizeK = NULL;
+	HtOptions opt = { 0 };
+	opt.dupvalue = (DupValue)strdup;
+	opt.freefn = (HtKvFreeFunc)free_value;
+	SdbHt *ht = ht_new_opt (&opt);
 
 	// create a collision
 	ht_insert (ht, (char *)0, "value1");

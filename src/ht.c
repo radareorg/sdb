@@ -20,7 +20,7 @@ static const ut32 ht_primes_sizes[] = {
 };
 
 static inline ut32 hashfn(SdbHt *ht, const void *k) {
-	return ht->hashfn ? ht->hashfn (k) : (ut32)(size_t)(k);
+	return ht->opt.hashfn ? ht->opt.hashfn (k) : (ut32)(size_t)(k);
 }
 
 static inline ut32 bucketfn(SdbHt *ht, const void *k) {
@@ -28,24 +28,24 @@ static inline ut32 bucketfn(SdbHt *ht, const void *k) {
 }
 
 static inline char *dupkey(SdbHt *ht, const void *k) {
-	return ht->dupkey ? ht->dupkey (k) : (char *)k;
+	return ht->opt.dupkey ? ht->opt.dupkey (k) : (char *)k;
 }
 
 static inline void *dupval(SdbHt *ht, const void *v) {
-	return ht->dupvalue ? ht->dupvalue (v) : (void *)v;
+	return ht->opt.dupvalue ? ht->opt.dupvalue (v) : (void *)v;
 }
 
 static inline ut32 calcsize_key(SdbHt *ht, const void *k) {
-	return ht->calcsizeK ? ht->calcsizeK (k) : 0;
+	return ht->opt.calcsizeK ? ht->opt.calcsizeK (k) : 0;
 }
 
 static inline ut32 calcsize_val(SdbHt *ht, const void *v) {
-	return ht->calcsizeV ? ht->calcsizeV (v) : 0;
+	return ht->opt.calcsizeV ? ht->opt.calcsizeV (v) : 0;
 }
 
 static inline void freefn(SdbHt *ht, HtKv *kv) {
-	if (ht->freefn) {
-		ht->freefn (kv);
+	if (ht->opt.freefn) {
+		ht->opt.freefn (kv);
 	}
 }
 
@@ -61,18 +61,18 @@ static inline bool is_kv_equal(SdbHt *ht, const char *key, const ut32 key_len, c
 	}
 
 	bool res = key == kv->key;
-	if (!res && ht->cmp) {
-		res = !ht->cmp (key, kv->key);
+	if (!res && ht->opt.cmp) {
+		res = !ht->opt.cmp (key, kv->key);
 	}
 	return res;
 }
 
 static inline HtKv *kv_at(SdbHt *ht, HtBucket *bt, ut32 i) {
-	return (HtKv *)((char *)bt->arr + i * ht->elem_size);
+	return (HtKv *)((char *)bt->arr + i * ht->opt.elem_size);
 }
 
 static inline HtKv *next_kv(SdbHt *ht, HtKv *kv) {
-	return (HtKv *)((char *)kv + ht->elem_size);
+	return (HtKv *)((char *)kv + ht->opt.elem_size);
 }
 
 #define BUCKET_FOREACH(ht, bt, j, kv)					\
@@ -94,10 +94,7 @@ static inline HtKv *next_kv(SdbHt *ht, HtKv *kv) {
 // valdup - same as keydup, but for values but if NULL just assign
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.
-static SdbHt* internal_ht_new(ut32 size, ut32 prime_idx, HashFunction hashfunction,
-				ListComparator comparator, DupKey keydup,
-				DupValue valdup, HtKvFreeFunc pair_free,
-				CalcSize calcsizeK, CalcSize calcsizeV, size_t elem_size) {
+static SdbHt* internal_ht_new(ut32 size, ut32 prime_idx, HtOptions *opt) {
 	SdbHt* ht = calloc (1, sizeof (*ht));
 	if (!ht) {
 		return NULL;
@@ -105,26 +102,36 @@ static SdbHt* internal_ht_new(ut32 size, ut32 prime_idx, HashFunction hashfuncti
 	ht->size = size;
 	ht->count = 0;
 	ht->prime_idx = prime_idx;
-	ht->hashfn = hashfunction;
-	ht->cmp = comparator;
-	ht->dupkey = keydup;
-	ht->dupvalue = valdup;
 	ht->table = calloc (ht->size, sizeof (struct ht_bucket_t));
 	if (!ht->table) {
 		free (ht);
 		return NULL;
 	}
-	ht->calcsizeK = calcsizeK;
-	ht->calcsizeV = calcsizeV;
-	ht->freefn = pair_free;
-	ht->elem_size = elem_size;
+	ht->opt = *opt;
+	// if not provided, assume we are dealing with a regular SdbHt, with
+	// HtKv as elements
+	if (ht->opt.elem_size == 0) {
+		ht->opt.elem_size = sizeof (HtKv);
+	}
 	return ht;
 }
 
+static SdbHt* internal_ht_default_new(ut32 size, ut32 prime_idx, DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
+	HtOptions opt = {
+		.cmp = (ListComparator)strcmp,
+		.hashfn = (HashFunction)sdb_hash,
+		.dupkey = (DupKey)strdup,
+		.dupvalue = valdup,
+		.calcsizeK = (CalcSize)strlen,
+		.calcsizeV = calcsizeV,
+		.freefn = pair_free,
+		.elem_size = sizeof (HtKv),
+	};
+	return internal_ht_new (size, prime_idx, &opt);
+}
+
 SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize calcsizeV) {
-	return internal_ht_new (ht_primes_sizes[0], 0, (HashFunction)sdb_hash,
-		(ListComparator)strcmp, (DupKey)strdup,
-		valdup, pair_free, (CalcSize)strlen, calcsizeV, sizeof (HtKv));
+	return internal_ht_default_new (ht_primes_sizes[0], 0, valdup, pair_free, calcsizeV);
 }
 
 static void free_kv_key(HtKv *kv) {
@@ -147,9 +154,11 @@ SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair
 	}
 
 	ut32 sz = compute_size (i, (ut32)(initial_size * (2 - LOAD_FACTOR)));
-	return internal_ht_new (sz, i, (HashFunction)sdb_hash,
-		(ListComparator)strcmp, (DupKey)strdup,
-		valdup, pair_free, (CalcSize)strlen, calcsizeV, sizeof (HtKv));
+	return internal_ht_default_new (sz, i, valdup, pair_free, calcsizeV);
+}
+
+SDB_API SdbHt *ht_new_opt(HtOptions *opt) {
+	return internal_ht_new (ht_primes_sizes[0], 0, opt);
 }
 
 SDB_API void ht_free(SdbHt* ht) {
@@ -163,9 +172,9 @@ SDB_API void ht_free(SdbHt* ht) {
 		HtKv *kv;
 		ut32 j;
 
-		if (ht->freefn) {
+		if (ht->opt.freefn) {
 			BUCKET_FOREACH (ht, bt, j, kv) {
-				ht->freefn (kv);
+				ht->opt.freefn (kv);
 			}
 		}
 
@@ -183,8 +192,7 @@ static void internal_ht_grow(SdbHt* ht) {
 	ut32 sz = compute_size (idx, ht->size * 2);
 	ut32 i;
 
-	ht2 = internal_ht_new (sz, idx, ht->hashfn, ht->cmp, ht->dupkey, ht->dupvalue,
-		ht->freefn, ht->calcsizeK, ht->calcsizeV, ht->elem_size);
+	ht2 = internal_ht_new (sz, idx, &ht->opt);
 
 	for (i = 0; i < ht->size; i++) {
 		HtBucket *bt = &ht->table[i];
@@ -200,7 +208,7 @@ static void internal_ht_grow(SdbHt* ht) {
 	*ht = *ht2;
 	*ht2 = swap;
 
-	ht2->freefn = NULL;
+	ht2->opt.freefn = NULL;
 	ht_free (ht2);
 }
 
@@ -225,7 +233,7 @@ static HtKv *reserve_kv(SdbHt *ht, const char *key, const int key_len, bool upda
 		}
 	}
 
-	HtKv *newkvarr = realloc (bt->arr, (bt->count + 1) * ht->elem_size);
+	HtKv *newkvarr = realloc (bt->arr, (bt->count + 1) * ht->opt.elem_size);
 	if (!newkvarr) {
 		return NULL;
 	}
@@ -242,7 +250,7 @@ SDB_API bool ht_insert_kv(SdbHt *ht, HtKv *kv, bool update) {
 		return false;
 	}
 
-	memcpy (kv_dst, kv, ht->elem_size);
+	memcpy (kv_dst, kv, ht->opt.elem_size);
 	check_growing (ht);
 	return true;
 }
@@ -317,7 +325,7 @@ SDB_API bool ht_delete(SdbHt* ht, const char* key) {
 		if (is_kv_equal (ht, key, key_len, kv)) {
 			freefn (ht, kv);
 			void *src = next_kv (ht, kv);
-			memmove (kv, src, (bt->count - j - 1) * ht->elem_size);
+			memmove (kv, src, (bt->count - j - 1) * ht->opt.elem_size);
 			bt->count--;
 			ht->count--;
 			return true;

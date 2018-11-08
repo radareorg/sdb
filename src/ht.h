@@ -26,20 +26,24 @@ typedef struct ht_bucket_t {
 	ut32 count;
 } HtBucket;
 
-/** ht **/
-typedef struct ht_t {
-	ut32 size;	    	// size of the hash table in buckets.
-	ut32 count;	   	// number of stored elements.
+typedef struct ht_options_t {
 	ListComparator cmp;   	// Function for comparing values. Returns 0 if eq.
 	HashFunction hashfn;  	// Function for hashing items in the hash table.
-	DupKey dupkey;  		// Function for making a copy of key
+	DupKey dupkey;  	// Function for making a copy of key
 	DupValue dupvalue;  	// Function for making a copy of value
 	CalcSize calcsizeK;     // Function to determine the key's size
 	CalcSize calcsizeV;  	// Function to determine the value's size
 	HtKvFreeFunc freefn;  	// Function to free the keyvalue store
+	size_t elem_size;       // Size of each HtKv element (useful for subclassing like SdbKv)
+} HtOptions;
+
+/** ht **/
+typedef struct ht_t {
+	ut32 size;	  // size of the hash table in buckets.
+	ut32 count;	  // number of stored elements.
 	HtBucket* table;  // Actual table.
 	ut32 prime_idx;
-	size_t elem_size;
+	HtOptions opt;
 } SdbHt;
 
 // Create a new RHashTable.
@@ -49,6 +53,7 @@ typedef struct ht_t {
 SDB_API SdbHt* ht_new0(void);
 SDB_API SdbHt* ht_new(DupValue valdup, HtKvFreeFunc pair_free, CalcSize valueSize);
 SDB_API SdbHt* ht_new_size(ut32 initial_size, DupValue valdup, HtKvFreeFunc pair_free, CalcSize valueSize);
+SDB_API SdbHt* ht_new_opt(HtOptions *opt);
 // Destroy a hashtable and all of its entries.
 SDB_API void ht_free(SdbHt* ht);
 // Insert a new Key-Value pair into the hashtable. If the key already exists, returns false.
