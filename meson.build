@@ -32,6 +32,8 @@ files = [
   'src/disk.c',
   'src/fmt.c',
   'src/ht.c',
+  'src/ht_p.c',
+  'src/ht_u.c',
   'src/journal.c',
   'src/json.c',
   #'src/json/api.c',

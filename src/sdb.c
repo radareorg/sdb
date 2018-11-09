@@ -9,16 +9,16 @@
 #include "sdb.h"
 
 #if 0
-static inline SdbKv *kv_at(SdbHt *ht, HtBucket *bt, ut32 i) {
+static inline SdbKv *kv_at(SdbPHt *ht, HtPBucket *bt, ut32 i) {
 	return (SdbKv *)((char *)bt->arr + i * ht->opt.elem_size);
 }
 
-static inline SdbKv *prev_kv(SdbHt *ht, SdbKv *kv) {
+static inline SdbKv *prev_kv(SdbPHt *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv - ht->opt.elem_size);
 }
 #endif
 
-static inline SdbKv *next_kv(SdbHt *ht, SdbKv *kv) {
+static inline SdbKv *next_kv(SdbPHt *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv + ht->opt.elem_size);
 }
 
@@ -789,7 +789,7 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 
 	ut32 i;
 	for (i = 0; i < s->ht->size; ++i) {
-		HtBucket *bt = &s->ht->table[i];
+		HtPBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
 		ut32 j, count;
 
@@ -836,7 +836,7 @@ SDB_API bool sdb_sync(Sdb* s) {
 
 	/* append new keyvalues */
 	for (i = 0; i < s->ht->size; ++i) {
-		HtBucket *bt = &s->ht->table[i];
+		HtPBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
 		ut32 j, count;
 
@@ -873,7 +873,7 @@ SDB_API SdbKv *sdb_dump_next(Sdb* s) {
 	}
 	vl--;
 	strncpy (sdbkv_key (&s->tmpkv), k, SDB_KSZ - 1);
-	s->tmpkv.base.key[SDB_KSZ - 1] = '\0';
+	sdbkv_key (&s->tmpkv)[SDB_KSZ - 1] = '\0';
 	free (sdbkv_value (&s->tmpkv));
 	s->tmpkv.base.value = v;
 	s->tmpkv.base.value_len = vl;

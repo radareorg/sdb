@@ -1,7 +1,7 @@
 #include <sdb-one.h>
 
 int main(int argc, char **argv) {
-	SdbHt *h = ht_new(free);
+	SdbPHt *h = ht_new(free);
 	char k[128];
 	int i, len = atoi (argv[1]);
 
