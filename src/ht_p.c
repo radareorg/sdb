@@ -17,6 +17,7 @@ static HtName_(Ht)* internal_ht_default_new(ut32 size, ut32 prime_idx, HT_(DupVa
 	return internal_ht_new (size, prime_idx, &opt);
 }
 
+// creates a default HtP that has strings as keys
 SDB_API HtName_(Ht)* Ht_(new)(HT_(DupValue) valdup, HT_(KvFreeFunc) pair_free, HT_(CalcSizeV) calcsizeV) {
 	return internal_ht_default_new (ht_primes_sizes[0], 0, valdup, pair_free, calcsizeV);
 }
@@ -25,6 +26,7 @@ static void free_kv_key(HT_(Kv) *kv) {
 	free (kv->key);
 }
 
+// creates a default HtP that has strings as keys but does not dup, nor free the values
 SDB_API HtName_(Ht)* Ht_(new0)(void) {
 	return Ht_(new) (NULL, free_kv_key, NULL);
 }
