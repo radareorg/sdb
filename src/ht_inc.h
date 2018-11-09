@@ -41,6 +41,7 @@
 #include "ls.h"
 #include "types.h"
 
+/* Kv represents a single key/value element in the hashtable */
 typedef struct Ht_(kv) {
 	KEY_TYPE key;
 	VALUE_TYPE value;
@@ -62,6 +63,7 @@ typedef struct Ht_(bucket_t) {
 	ut32 count;
 } HT_(Bucket);
 
+/* Options contain all the settings of the hashtable */
 typedef struct Ht_(options_t) {
 	HT_(ListComparator) cmp;   	// Function for comparing values. Returns 0 if eq.
 	HT_(HashFunction) hashfn;  	// Function for hashing items in the hash table.
@@ -73,7 +75,7 @@ typedef struct Ht_(options_t) {
 	size_t elem_size;		// Size of each HtKv element (useful for subclassing like SdbKv)
 } HT_(Options);
 
-/** ht **/
+/* Ht is the hashtable structure */
 typedef struct Ht_(t) {
 	ut32 size;	  // size of the hash table in buckets.
 	ut32 count;	  // number of stored elements.
@@ -82,6 +84,7 @@ typedef struct Ht_(t) {
 	HT_(Options) opt;
 } HtName_(Ht);
 
+// Create a new Ht with the provided Options
 SDB_API HtName_(Ht)* Ht_(new_opt)(HT_(Options) *opt);
 // Destroy a hashtable and all of its entries.
 SDB_API void Ht_(free)(HtName_(Ht)* ht);
@@ -93,6 +96,10 @@ SDB_API bool Ht_(update)(HtName_(Ht)* ht, const KEY_TYPE key, VALUE_TYPE value);
 SDB_API bool Ht_(delete)(HtName_(Ht)* ht, const KEY_TYPE key);
 // Find the value corresponding to the matching key.
 SDB_API VALUE_TYPE Ht_(find)(HtName_(Ht)* ht, const KEY_TYPE key, bool* found);
+// Iterates over all elements in the hashtable, calling the cb function on each Kv.
+// If the cb returns false, the iteration is stopped.
+// cb should not modify the hashtable.
+// NOTE: cb can delete the current element, but it should be avoided
 SDB_API void Ht_(foreach)(HtName_(Ht) *ht, HT_(ForeachCallback) cb, void *user);
 
 SDB_API HT_(Kv)* Ht_(find_kv)(HtName_(Ht)* ht, const KEY_TYPE key, bool* found);
