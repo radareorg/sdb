@@ -33,20 +33,20 @@ extern void sdbkv_free(SdbKv *kv);
 
 extern ut32 sdb_hash(const char *key);
 
-SDB_API SdbPHt* sdb_ht_new(void);
+SDB_API HtP* sdb_ht_new(void);
 // Destroy a hashtable and all of its entries.
-SDB_API void sdb_ht_free(SdbPHt* ht);
+SDB_API void sdb_ht_free(HtP* ht);
 // Insert a new Key-Value pair into the hashtable. If the key already exists, returns false.
-SDB_API bool sdb_ht_insert(SdbPHt* ht, const char* key, const char* value);
+SDB_API bool sdb_ht_insert(HtP* ht, const char* key, const char* value);
 // Insert a new Key-Value pair into the hashtable, or updates the value if the key already exists.
-SDB_API bool sdb_ht_insert_kvp(SdbPHt* ht, SdbKv *kvp, bool update);
+SDB_API bool sdb_ht_insert_kvp(HtP* ht, SdbKv *kvp, bool update);
 // Insert a new Key-Value pair into the hashtable, or updates the value if the key already exists.
-SDB_API bool sdb_ht_update(SdbPHt* ht, const char* key, const char* value);
+SDB_API bool sdb_ht_update(HtP* ht, const char* key, const char* value);
 // Delete a key from the hashtable.
-SDB_API bool sdb_ht_delete(SdbPHt* ht, const char* key);
+SDB_API bool sdb_ht_delete(HtP* ht, const char* key);
 // Find the value corresponding to the matching key.
-SDB_API char* sdb_ht_find(SdbPHt* ht, const char* key, bool* found);
+SDB_API char* sdb_ht_find(HtP* ht, const char* key, bool* found);
 // Find the KeyValuePair corresponding to the matching key.
-SDB_API SdbKv* sdb_ht_find_kvp(SdbPHt* ht, const char* key, bool* found);
+SDB_API SdbKv* sdb_ht_find_kvp(HtP* ht, const char* key, bool* found);
 
 #endif // __SDB_HT_H

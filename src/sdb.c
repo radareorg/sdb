@@ -9,16 +9,16 @@
 #include "sdb.h"
 
 #if 0
-static inline SdbKv *kv_at(SdbPHt *ht, HtPBucket *bt, ut32 i) {
+static inline SdbKv *kv_at(HtP *ht, HtPBucket *bt, ut32 i) {
 	return (SdbKv *)((char *)bt->arr + i * ht->opt.elem_size);
 }
 
-static inline SdbKv *prev_kv(SdbPHt *ht, SdbKv *kv) {
+static inline SdbKv *prev_kv(HtP *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv - ht->opt.elem_size);
 }
 #endif
 
-static inline SdbKv *next_kv(SdbPHt *ht, SdbKv *kv) {
+static inline SdbKv *next_kv(HtP *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv + ht->opt.elem_size);
 }
 

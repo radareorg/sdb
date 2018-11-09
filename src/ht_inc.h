@@ -13,7 +13,7 @@
 #endif
 
 #if HT_TYPE == 1
-#define HtName_(name) SdbP##name
+#define HtName_(name) name##P
 #define Ht_(name) ht_p_##name
 #define HT_(name) HtP##name
 #define KEY_TYPE void *
@@ -21,7 +21,7 @@
 #define KEY_TO_HASH(x) ((ut32)(uintptr_t)(x))
 #define HT_NULL_VALUE NULL
 #elif HT_TYPE == 2
-#define HtName_(name) SdbU##name
+#define HtName_(name) name##U
 #define Ht_(name) ht_u_##name
 #define HT_(name) HtU##name
 #define KEY_TYPE ut64
@@ -29,7 +29,7 @@
 #define KEY_TO_HASH(x) ((ut32)(x))
 #define HT_NULL_VALUE 0
 #else
-#define HtName_(name) Sdb##name
+#define HtName_(name) name
 #define Ht_(name) ht_##name
 #define HT_(name) Ht##name
 #define KEY_TYPE ut64

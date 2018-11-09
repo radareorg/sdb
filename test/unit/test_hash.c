@@ -8,7 +8,7 @@ typedef struct _test_struct {
 } Person;
 
 bool test_ht_insert_lookup(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 	sdb_ht_insert (ht, "CCCC", "vCCCC");
@@ -22,7 +22,7 @@ bool test_ht_insert_lookup(void) {
 }
 
 bool test_ht_update_lookup(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 
@@ -39,7 +39,7 @@ bool test_ht_update_lookup(void) {
 }
 
 bool test_ht_delete(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	mu_assert ("nothing should be deleted", !sdb_ht_delete (ht, "non existing"));
 
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
@@ -51,7 +51,7 @@ bool test_ht_delete(void) {
 }
 
 bool test_ht_insert_kvp(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	SdbKv *kv = sdbkv_new ("AAAA", "vAAAA");
 	mu_assert ("AAAA shouldn't exist", !sdb_ht_find_kvp (ht, "AAAA", NULL));
 	sdb_ht_insert_kvp (ht, kv, false);
@@ -75,7 +75,7 @@ ut32 create_collision(const void *key) {
 }
 
 bool test_ht_insert_collision(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	ht->opt.hashfn = create_collision;
 	ht_p_insert (ht, "AAAA", "vAAAA");
 	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA should be there");
@@ -94,7 +94,7 @@ ut32 key2hash(const void *key) {
 }
 
 bool test_ht_grow(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	char str[15], vstr[15];
 	char buf[100];
 	int i;
@@ -121,7 +121,7 @@ bool test_ht_grow(void) {
 }
 
 bool test_ht_kvp(void) {
-	SdbPHt *ht = sdb_ht_new ();
+	HtP *ht = sdb_ht_new ();
 	SdbKv *kvp = sdbkv_new ("AAAA", "vAAAA");
 
 	mu_assert_eq (kvp->base.key_len, 4, "key_len should be 4");
@@ -176,7 +176,7 @@ bool test_ht_general(void) {
 	person2->name = strdup ("pancake");
 	person2->age = 9000;
 
-	SdbPHt *ht = ht_p_new ((HtPDupValue)duplicate_person, free_kv, (HtPCalcSizeV)calcSizePerson);
+	HtP *ht = ht_p_new ((HtPDupValue)duplicate_person, free_kv, (HtPCalcSizeV)calcSizePerson);
 	if (!ht) {
 		mu_end;
 	}
@@ -235,7 +235,7 @@ bool should_not_be_caled(void *user, const char *k, void *v) {
 }
 
 bool test_empty_ht(void) {
-	SdbPHt *ht = ht_p_new0 ();
+	HtP *ht = ht_p_new0 ();
 	ht_p_foreach (ht, (HtPForeachCallback) should_not_be_caled, NULL);
 	void *r = ht_p_find (ht, "key1", NULL);
 	mu_assert_null (r, "key1 should not be present");
@@ -244,7 +244,7 @@ bool test_empty_ht(void) {
 }
 
 bool test_insert(void) {
-	SdbPHt *ht = ht_p_new0 ();
+	HtP *ht = ht_p_new0 ();
 	void *r;
 	bool res;
 	bool found;
@@ -270,7 +270,7 @@ bool test_insert(void) {
 }
 
 bool test_update(void) {
-	SdbPHt *ht = ht_p_new0 ();
+	HtP *ht = ht_p_new0 ();
 	bool found;
 
 	ht_p_insert (ht, "key1", "value1");
@@ -283,7 +283,7 @@ bool test_update(void) {
 }
 
 bool test_delete(void) {
-	SdbPHt *ht = ht_p_new0 ();
+	HtP *ht = ht_p_new0 ();
 	bool found;
 
 	ht_p_insert (ht, "key1", "value1");
@@ -302,7 +302,7 @@ static bool grow_1_foreach(void *user, const char *k, int v) {
 }
 
 bool test_grow_1(void) {
-	SdbPHt *ht = ht_p_new0 ();
+	HtP *ht = ht_p_new0 ();
 	int i;
 
 	for (i = 0; i < 3; ++i) {
@@ -326,7 +326,7 @@ bool test_grow_1(void) {
 }
 
 bool test_grow_2(void) {
-	SdbPHt *ht = ht_p_new ((HtPDupValue)strdup, (HtPKvFreeFunc)free_key_value, NULL);
+	HtP *ht = ht_p_new ((HtPDupValue)strdup, (HtPKvFreeFunc)free_key_value, NULL);
 	char *r;
 	bool found;
 	int i;
@@ -355,7 +355,7 @@ bool test_grow_2(void) {
 }
 
 bool test_grow_3(void) {
-	SdbPHt *ht = ht_p_new ((HtPDupValue)strdup, (HtPKvFreeFunc)free_key_value, NULL);
+	HtP *ht = ht_p_new ((HtPDupValue)strdup, (HtPKvFreeFunc)free_key_value, NULL);
 	char *r;
 	bool found;
 	int i;
@@ -404,7 +404,7 @@ bool test_grow_3(void) {
 }
 
 bool test_grow_4(void) {
-	SdbPHt *ht = ht_p_new0 ();
+	HtP *ht = ht_p_new0 ();
 	char *r;
 	bool found;
 	int i;
@@ -454,7 +454,7 @@ bool test_grow_4(void) {
 }
 
 bool foreach_delete_cb(void *user, const ut64 key, const void *v) {
-	SdbUHt *ht = (SdbUHt *)user;
+	HtU *ht = (HtU *)user;
 
 	ht_u_delete (ht, key);
 	return true;
@@ -466,7 +466,7 @@ static void free_u_value(HtUKv *kv) {
 
 bool test_foreach_delete(void) {
 	bool found;
-	SdbUHt *ht = ht_u_new ((HtUDupValue)strdup, free_u_value, NULL);
+	HtU *ht = ht_u_new ((HtUDupValue)strdup, free_u_value, NULL);
 
 	// create a collision
 	ht_u_insert (ht, 0, "value1");
