@@ -46,7 +46,7 @@ SDB_API bool sdb_ht_insert_kvp(HtPP* ht, SdbKv *kvp, bool update) {
 	return ht_pp_insert_kv (ht, (HtPPKv*)kvp, update);
 }
 
-SDB_API bool sdb_ht_update(HtPP *ht, const char *key, const char*value) {
+SDB_API bool sdb_ht_update(HtPP *ht, const char *key, const char* value) {
 	return sdb_ht_internal_insert (ht, key, value, true);
 }
 

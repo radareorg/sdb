@@ -17,7 +17,7 @@ static const ut32 ht_primes_sizes[] = {
 };
 
 static inline ut32 hashfn(HtName_(Ht) *ht, const KEY_TYPE k) {
-	return ht->opt.hashfn ? ht->opt.hashfn (k) : KEY_TO_HASH(k);
+	return ht->opt.hashfn ? ht->opt.hashfn (k) : KEY_TO_HASH (k);
 }
 
 static inline ut32 bucketfn(HtName_(Ht) *ht, const KEY_TYPE k) {
