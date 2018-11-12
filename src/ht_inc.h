@@ -21,9 +21,9 @@
 #define KEY_TO_HASH(x) ((ut32)(uintptr_t)(x))
 #define HT_NULL_VALUE NULL
 #elif HT_TYPE == 2
-#define HtName_(name) name##U
-#define Ht_(name) ht_u_##name
-#define HT_(name) HtU##name
+#define HtName_(name) name##UP
+#define Ht_(name) ht_up_##name
+#define HT_(name) HtUP##name
 #define KEY_TYPE ut64
 #define VALUE_TYPE void *
 #define KEY_TO_HASH(x) ((ut32)(x))

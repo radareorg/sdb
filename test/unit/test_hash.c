@@ -454,30 +454,30 @@ bool test_grow_4(void) {
 }
 
 bool foreach_delete_cb(void *user, const ut64 key, const void *v) {
-	HtU *ht = (HtU *)user;
+	HtUP *ht = (HtUP *)user;
 
-	ht_u_delete (ht, key);
+	ht_up_delete (ht, key);
 	return true;
 }
 
-static void free_u_value(HtUKv *kv) {
+static void free_up_value(HtUPKv *kv) {
 	free (kv->value);
 }
 
 bool test_foreach_delete(void) {
 	bool found;
-	HtU *ht = ht_u_new ((HtUDupValue)strdup, free_u_value, NULL);
+	HtUP *ht = ht_up_new ((HtUPDupValue)strdup, free_up_value, NULL);
 
 	// create a collision
-	ht_u_insert (ht, 0, "value1");
-	ht_u_insert (ht, ht->size, "value2");
-	ht_u_insert (ht, ht->size * 2, "value3");
-	ht_u_insert (ht, ht->size * 3, "value4");
+	ht_up_insert (ht, 0, "value1");
+	ht_up_insert (ht, ht->size, "value2");
+	ht_up_insert (ht, ht->size * 2, "value3");
+	ht_up_insert (ht, ht->size * 3, "value4");
 
-	ht_u_foreach (ht, foreach_delete_cb, ht);
-	ht_u_foreach (ht, (HtUForeachCallback) should_not_be_caled, NULL);
+	ht_up_foreach (ht, foreach_delete_cb, ht);
+	ht_up_foreach (ht, (HtUPForeachCallback) should_not_be_caled, NULL);
 
-	ht_u_free (ht);
+	ht_up_free (ht);
 	mu_end;
 }
 

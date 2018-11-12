@@ -20,7 +20,7 @@ SDB_API HtName_(Ht)* Ht_(new)(HT_(DupValue) valdup, HT_(KvFreeFunc) pair_free, H
 	return internal_ht_default_new (ht_primes_sizes[0], 0, valdup, pair_free, calcsizeV);
 }
 
-// creates a default HtU that does not dup, nor free the values
+// creates a default HtUP that does not dup, nor free the values
 SDB_API HtName_(Ht)* Ht_(new0)(void) {
 	return Ht_(new) (NULL, NULL, NULL);
 }

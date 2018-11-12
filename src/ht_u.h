@@ -2,8 +2,8 @@
 #define SDB_HT_U_H_
 
 /*
- * This header provides an hashtable HtU that has ut64 as key and void* as
- * value. The API functions starts with "ht_u_" and the types starts with "HtU".
+ * This header provides an hashtable HtUP that has ut64 as key and void* as
+ * value. The API functions starts with "ht_up_" and the types starts with "HtUP".
  */
 #define HT_TYPE 2
 #include "ht_inc.h"
