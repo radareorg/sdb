@@ -9,16 +9,16 @@
 #include "sdb.h"
 
 #if 0
-static inline SdbKv *kv_at(HtP *ht, HtPBucket *bt, ut32 i) {
+static inline SdbKv *kv_at(HtPP *ht, HtPPBucket *bt, ut32 i) {
 	return (SdbKv *)((char *)bt->arr + i * ht->opt.elem_size);
 }
 
-static inline SdbKv *prev_kv(HtP *ht, SdbKv *kv) {
+static inline SdbKv *prev_kv(HtPP *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv - ht->opt.elem_size);
 }
 #endif
 
-static inline SdbKv *next_kv(HtP *ht, SdbKv *kv) {
+static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv + ht->opt.elem_size);
 }
 
@@ -789,7 +789,7 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 
 	ut32 i;
 	for (i = 0; i < s->ht->size; ++i) {
-		HtPBucket *bt = &s->ht->table[i];
+		HtPPBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
 		ut32 j, count;
 
@@ -836,7 +836,7 @@ SDB_API bool sdb_sync(Sdb* s) {
 
 	/* append new keyvalues */
 	for (i = 0; i < s->ht->size; ++i) {
-		HtPBucket *bt = &s->ht->table[i];
+		HtPPBucket *bt = &s->ht->table[i];
 		SdbKv *kv;
 		ut32 j, count;
 

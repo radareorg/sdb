@@ -13,9 +13,9 @@
 #endif
 
 #if HT_TYPE == 1
-#define HtName_(name) name##P
-#define Ht_(name) ht_p_##name
-#define HT_(name) HtP##name
+#define HtName_(name) name##PP
+#define Ht_(name) ht_pp_##name
+#define HT_(name) HtPP##name
 #define KEY_TYPE void *
 #define VALUE_TYPE void *
 #define KEY_TO_HASH(x) ((ut32)(uintptr_t)(x))
