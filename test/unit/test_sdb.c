@@ -168,7 +168,7 @@ bool test_sdb_foreach_filter(void) {
 	sdb_set (db, "bip", "cow", 0);
 	SdbList *ls = sdb_foreach_list_filter (db, foreach_filter_cb, true);
 	SdbListIter *it = ls_iterator (ls);
-	HtKv *kv = ls_iter_get (it);
+	HtPPKv *kv = ls_iter_get (it);
 	mu_assert_streq (kv->key, "bar", "list should be sorted");
 	kv = ls_iter_get (it);
 	mu_assert_streq (kv->key, "bip", "list should be sorted");

@@ -11,7 +11,7 @@ typedef struct r_pair_t {
 	char *dir;
 	char *file;
 	void *sdb;
-	SdbHt *ht;
+	Ht *ht;
 	RList *dbs;
 } RPair;
 
