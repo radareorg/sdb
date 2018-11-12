@@ -29,9 +29,9 @@
 #define KEY_TO_HASH(x) ((ut32)(x))
 #define HT_NULL_VALUE 0
 #else
-#define HtName_(name) name
-#define Ht_(name) ht_##name
-#define HT_(name) Ht##name
+#define HtName_(name) name##UU
+#define Ht_(name) ht_uu_##name
+#define HT_(name) HtUU##name
 #define KEY_TYPE ut64
 #define VALUE_TYPE ut64
 #define KEY_TO_HASH(x) ((ut32)(x))
