@@ -485,6 +485,29 @@ bool test_foreach_delete(void) {
 	mu_end;
 }
 
+bool test_update_key(void) {
+	bool res;
+	HtUP *ht = ht_up_new ((HtUPDupValue)strdup, free_up_value, NULL);
+
+	// create a collision
+	ht_up_insert (ht, 0, "value1");
+	ht_up_insert (ht, 0xdeadbeef, "value2");
+	ht_up_insert (ht, 0xcafebabe, "value3");
+
+	res = ht_up_update_key (ht, 0xcafebabe, 0x10000);
+	mu_assert ("cafebabe should be updated", res);
+	res = ht_up_update_key (ht, 0xdeadbeef, 0x10000);
+	mu_assert ("deadbeef should NOT be updated, because there's already an element at 0x10000", !res);
+
+	const char *v = ht_up_find (ht, 0x10000, NULL);
+	mu_assert_streq (v, "value3", "value3 should be at 0x10000");
+	v = ht_up_find (ht, 0xdeadbeef, NULL);
+	mu_assert_streq (v, "value2", "value2 should remain at 0xdeadbeef");
+
+	ht_up_free (ht);
+	mu_end;
+}
+
 int all_tests() {
 	mu_run_test (test_ht_insert_lookup);
 	mu_run_test (test_ht_update_lookup);
@@ -503,6 +526,7 @@ int all_tests() {
 	mu_run_test (test_grow_3);
 	mu_run_test (test_grow_4);
 	mu_run_test (test_foreach_delete);
+	mu_run_test (test_update_key);
 	return tests_passed != tests_run;
 }
 
