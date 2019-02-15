@@ -1,5 +1,6 @@
 #include "minunit.h"
 #include <sdb.h>
+#include <ht_uu.h>
 #include <ht_up.h>
 #include <ht_pp.h>
 
@@ -457,6 +458,26 @@ bool test_grow_4(void) {
 	mu_end;
 }
 
+bool test_grow_5(void) {
+	HtUU *ht = ht_uu_new0 ();
+	bool found;
+	int i;
+
+	for (i = 0; i < 8010000; ++i) {
+		ht_uu_insert (ht, i, i);
+	}
+
+	for (i = 1; i < 3000; i += 3) {
+		ht_uu_delete (ht, i);
+	}
+
+	ht_uu_find (ht, 1, &found);
+	mu_assert ("found should be false", !found);
+
+	ht_uu_free (ht);
+	mu_end;
+}
+
 bool foreach_delete_cb(void *user, const ut64 key, const void *v) {
 	HtUP *ht = (HtUP *)user;
 
@@ -525,6 +546,7 @@ int all_tests() {
 	mu_run_test (test_grow_2);
 	mu_run_test (test_grow_3);
 	mu_run_test (test_grow_4);
+	mu_run_test (test_grow_5);
 	mu_run_test (test_foreach_delete);
 	mu_run_test (test_update_key);
 	return tests_passed != tests_run;
