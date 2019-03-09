@@ -1,13 +1,39 @@
 /* radare - LGPL - Copyright 2009-2012 - pancake */
 
 #define R_API
+#define R_ABS(x) (((x)<0)?-(x):(x))
+
+#ifdef _MSC_VER
+
+#include "Windows.h"
+
+typedef struct r_prof_t {
+	LARGE_INTEGER begin;
+	double result;
+} RProfile;
+
+R_API void r_prof_start(struct r_prof_t *p) {
+	p->result = 0.0;
+	QueryPerformanceCounter (&p->begin);
+}
+
+R_API double r_prof_end(struct r_prof_t *p) {
+	LARGE_INTEGER end, freq, diff;
+	QueryPerformanceCounter (&end);
+	QueryPerformanceFrequency (&freq);
+	diff.QuadPart = end.QuadPart - p->begin.QuadPart;
+	p->result = R_ABS ((double)diff.QuadPart / freq.QuadPart);
+	return R_ABS (diff.QuadPart < 0);
+}
+
+#else
+
 #include <sys/time.h>
 
 typedef struct r_prof_t {
         struct timeval begin;
         double result;
 } RProfile;
-#define R_ABS(x) (((x)<0)?-(x):(x))
 
 typedef struct timeval tv;
 
@@ -49,3 +75,5 @@ R_API double r_prof_end(struct r_prof_t *p) {
 		+ ((double)diff.tv_usec / 1000000.)));
 	return R_ABS (sign);
 }
+
+#endif
