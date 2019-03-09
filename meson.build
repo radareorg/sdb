@@ -128,7 +128,7 @@ pkgconfig_mod.generate(
   url: 'https://github.com/radare/sdb'
 )
 
-make_test_executable = find_program('make')
+make_test_executable = find_program('make', required: false)
 test('run tests', make_test_executable,
   args: 'test',
   env: ['BASEDIR=' + meson.current_build_dir()],
