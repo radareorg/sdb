@@ -70,7 +70,7 @@ sdb_inc = [
   include_directories(['.', 'src'])
 ]
 
-libsdb = both_libraries('sdb', libsdb_sources,
+libsdb = both_libraries('libsdb', libsdb_sources,
   include_directories: sdb_inc,
   implicit_include_directories: false,
   soversion: sdb_libversion,
