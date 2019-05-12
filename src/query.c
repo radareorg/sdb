@@ -757,6 +757,15 @@ next_quote:
 				*json++ = 0;
 				ok = sdb_json_set (s, cmd, json, val, 0);
 			} else {
+				while (*val && (*val == ' ' || *val == '\t')) {
+					val++;
+				}
+				int i = strlen (cmd) - 1;
+				const char * seps = "\t ";
+				while (i >= 0 && strchr (seps, cmd[i]) != NULL) {
+					cmd[i] = '\0';
+					i--;
+				}
 				ok = sdb_set (s, cmd, val, 0);
 			}
 			if (encode) {
