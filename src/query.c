@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include "sdb.h"
 
 typedef struct {
@@ -757,12 +758,12 @@ next_quote:
 				*json++ = 0;
 				ok = sdb_json_set (s, cmd, json, val, 0);
 			} else {
-				while (*val && (*val == ' ' || *val == '\t')) {
+				while (*val && isspace(*val)) {
 					val++;
 				}
 				int i = strlen (cmd) - 1;
 				const char * seps = "\t ";
-				while (i >= 0 && strchr (seps, cmd[i]) != NULL) {
+				while (i >= 0 && strchr (seps, cmd[i])) {
 					cmd[i] = '\0';
 					i--;
 				}
