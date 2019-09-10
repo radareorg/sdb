@@ -16,6 +16,10 @@ SDB_API bool set_p_contains(SetP *s, void *u) {
 	return ht_pp_find (s, u, NULL) != NULL;
 }
 
+SDB_API void set_p_delete(SetP *s, void *u) {
+	ht_pp_delete (s, u);
+}
+
 SDB_API void set_p_free(SetP *p) {
 	ht_pp_free ((HtPP*)p);
 }
@@ -32,6 +36,10 @@ SDB_API void set_u_add(SetU *s, ut64 u) {
 
 SDB_API bool set_u_contains(SetU *s, ut64 u) {
 	return ht_up_find (s, u, NULL) != NULL;
+}
+
+SDB_API void set_u_delete(SetU *s, ut64 u) {
+	ht_up_delete (s, u);
 }
 
 SDB_API void set_u_free(SetU *s) {
