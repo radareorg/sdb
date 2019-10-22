@@ -368,7 +368,7 @@ static void dbdiff_cb(const SdbDiff *diff, void *user) {
 			goto beach;
 		}
 	}
-	printf ("\x1b[%sm%s\x1b[0m\n", diff->add ? "31" : "32", buf);
+	printf ("\x1b[%sm%s\x1b[0m\n", diff->add ? "32" : "31", buf);
 beach:
 	free (hbuf);
 }
