@@ -2,8 +2,15 @@
 #include <sdb.h>
 #include "minunit.h"
 
-static Sdb *test_sdb_new() {
+// #define SAVE_FILES
+
+static Sdb *test_sdb_new(const char *file) {
+#ifdef SAVE_FILES
+	Sdb *r = sdb_new (NULL, file, 0);
+	//sdb_disk_create (r);
+#else
 	Sdb *r = sdb_new0 ();
+#endif
 	sdb_set (r, "some", "stuff", 0);
 	sdb_set (r, "and", "even", 0);
 	sdb_set (r, "more", "stuff", 0);
@@ -20,6 +27,16 @@ static Sdb *test_sdb_new() {
 	sdb_set (subspace_ns, "are", "saved", 0);
 	sdb_set (subspace_ns, "here", "lol", 0);
 	return r;
+}
+
+static void test_sdb_free(Sdb *sdb) {
+	if (!sdb) {
+		return;
+	}
+#ifdef SAVE_FILES
+	sdb_sync (sdb); // sdb_disk_finish (sdb);
+#endif
+	sdb_free (sdb);
 }
 
 typedef struct {
@@ -59,27 +76,27 @@ bool test_sdb_diff_equal_empty() {
 	mu_assert ("equal db (diff)", diff_str (a, b, &diff));
 	mu_assert_streq (diff, "", "equal db diff");
 	free (diff);
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
 bool test_sdb_diff_equal() {
-	Sdb *a = test_sdb_new ();
-	Sdb *b = test_sdb_new ();
+	Sdb *a = test_sdb_new ("equal_a.sdb");
+	Sdb *b = test_sdb_new ("equal_b.sdb");
 	mu_assert ("equal db (no diff)", diff_str (a, b, NULL));
 	char *diff;
 	mu_assert ("equal db (diff)", diff_str (a, b, &diff));
 	mu_assert_streq (diff, "", "equal db diff");
 	free (diff);
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
 bool test_sdb_diff_ns_empty() {
-	Sdb *a = test_sdb_new ();
-	Sdb *b = test_sdb_new ();
+	Sdb *a = test_sdb_new ("ns_empty_a.sdb");
+	Sdb *b = test_sdb_new ("ns_empty_b.sdb");
 	sdb_ns_unset (b, "emptyns", NULL);
 
 	mu_assert ("empty ns removed (no diff)", !diff_str (a, b, NULL));
@@ -93,14 +110,14 @@ bool test_sdb_diff_ns_empty() {
 	mu_assert_streq (diff, "+NS emptyns\n", "empty ns added diff");
 	free (diff);
 
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
 bool test_sdb_diff_ns() {
-	Sdb *a = test_sdb_new ();
-	Sdb *b = test_sdb_new ();
+	Sdb *a = test_sdb_new ("ns_a.sdb");
+	Sdb *b = test_sdb_new ("ns_b.sdb");
 	sdb_ns_unset (b, "test", NULL);
 
 	mu_assert ("ns removed (no diff)", !diff_str (a, b, NULL));
@@ -130,14 +147,14 @@ bool test_sdb_diff_ns() {
 		"+   test/b=test\n", "ns added diff");
 	free (diff);
 
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
 bool test_sdb_diff_ns_sub() {
-	Sdb *a = test_sdb_new ();
-	Sdb *b = test_sdb_new ();
+	Sdb *a = test_sdb_new ("ns_sub_a.sdb");
+	Sdb *b = test_sdb_new ("ns_sub_b.sdb");
 	sdb_ns_unset (sdb_ns (b, "test", 0), "subspace", NULL);
 
 	mu_assert ("sub ns removed (no diff)", !diff_str (a, b, NULL));
@@ -159,14 +176,14 @@ bool test_sdb_diff_ns_sub() {
 		"+   test/subspace/are=saved\n", "sub ns added diff");
 	free (diff);
 
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
 bool test_sdb_diff_kv() {
-	Sdb *a = test_sdb_new ();
-	Sdb *b = test_sdb_new ();
+	Sdb *a = test_sdb_new ("kv_a.sdb");
+	Sdb *b = test_sdb_new ("kv_b.sdb");
 	sdb_unset (b, "more", 0);
 	sdb_unset (sdb_ns (b, "test", false), "a", 0);
 
@@ -185,14 +202,14 @@ bool test_sdb_diff_kv() {
 		"+   more=stuff\n", "ns added diff");
 	free (diff);
 
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
 bool test_sdb_diff_kv_value() {
-	Sdb *a = test_sdb_new ();
-	Sdb *b = test_sdb_new ();
+	Sdb *a = test_sdb_new ("kv_value_a.sdb");
+	Sdb *b = test_sdb_new ("kv_value_b.sdb");
 	sdb_set (b, "more", "cowbell", 0);
 	sdb_set (sdb_ns (b, "test", false), "a", "reaper", 0);
 
@@ -206,8 +223,8 @@ bool test_sdb_diff_kv_value() {
 		"+   more=cowbell\n", "ns value changed diff");
 	free (diff);
 
-	sdb_free (a);
-	sdb_free (b);
+	test_sdb_free (a);
+	test_sdb_free (b);
 	mu_end;
 }
 
@@ -226,7 +243,7 @@ int main(int argc, char **argv) {
 	//Sdb *sdb = test_sdb_new();
 	//sdb_query (sdb, "*");
 	//sdb_query (sdb, "***");
-	//sdb_free (sdb);
+	//test_sdb_free (sdb);
 	//return 0;
 	return all_tests();
 }
