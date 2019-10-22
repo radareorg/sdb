@@ -40,6 +40,7 @@ test/unit/.tmp
 test/unit/test_array
 test/unit/test_ls
 test/unit/test_sdb
+test/unit/test_diff
 src/libsdb.so*
 src/sdb
 src/sdb_version.h
@@ -47,3 +48,5 @@ memcache/cmds
 memcache/cmds.h
 memcache/mcsdbc
 memcache/mcsdbd
+build
+compile_commands.json
