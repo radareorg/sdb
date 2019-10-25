@@ -185,6 +185,34 @@ bool test_sdb_foreach_filter(void) {
 	mu_end;
 }
 
+bool test_sdb_copy() {
+	Sdb *src = sdb_new0 ();
+	sdb_set (src, "i am", "thou", 0);
+	sdb_set (src, "thou art", "i", 0);
+	Sdb *sub = sdb_ns (src, "subns", true);
+	sdb_set (sub, "radare", "cool", 0);
+	sdb_set (sub, "radare2", "cooler", 0);
+	sdb_set (sub, "cutter", "coolest", 0);
+
+	Sdb *dst = sdb_new0 ();
+	sdb_copy (src, dst);
+	sdb_free (src);
+
+	mu_assert_eq (sdb_count (dst), 2, "root count");
+	mu_assert_streq (sdb_get (dst, "i am", 0), "thou", "root entries");
+	mu_assert_streq (sdb_get (dst, "thou art", 0), "i", "root entries");
+	mu_assert_eq (ls_length (dst->ns), 1, "sub ns count");
+	Sdb *dst_sub = sdb_ns (dst, "subns", false);
+	mu_assert_notnull (dst_sub, "subns");
+	mu_assert_eq (sdb_count (dst_sub), 3, "sub ns entries count");
+	mu_assert_streq (sdb_get (dst_sub, "radare", 0), "cool", "sub ns entries");
+	mu_assert_streq (sdb_get (dst_sub, "radare2", 0), "cooler", "sub ns entries");
+	mu_assert_streq (sdb_get (dst_sub, "cutter", 0), "coolest", "sub ns entries");
+
+	sdb_free (dst);
+	mu_end;
+}
+
 int all_tests() {
 	// XXX two bugs found with crash
 	mu_run_test (test_sdb_namespace);
@@ -196,6 +224,7 @@ int all_tests() {
 	mu_run_test (test_sdb_milset_random);
 	mu_run_test (test_sdb_list_big);
 	mu_run_test (test_sdb_foreach_filter);
+	mu_run_test (test_sdb_copy);
 	return tests_passed != tests_run;
 }
 
