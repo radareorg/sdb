@@ -195,7 +195,7 @@ bool test_sdb_copy() {
 	sdb_set (sub, "cutter", "coolest", 0);
 
 	Sdb *dst = sdb_new0 ();
-	sdb_copy (dst, src);
+	sdb_copy (src, dst);
 	sdb_free (src);
 
 	mu_assert_eq (sdb_count (dst), 2, "root count");
@@ -204,7 +204,7 @@ bool test_sdb_copy() {
 	mu_assert_eq (ls_length (dst->ns), 1, "sub ns count");
 	Sdb *dst_sub = sdb_ns (dst, "subns", false);
 	mu_assert_notnull (dst_sub, "subns");
-	mu_assert_eq (sdb_count (dst_sub), 3, "sub ns count");
+	mu_assert_eq (sdb_count (dst_sub), 3, "sub ns entries count");
 	mu_assert_streq (sdb_get (dst_sub, "radare", 0), "cool", "sub ns entries");
 	mu_assert_streq (sdb_get (dst_sub, "radare2", 0), "cooler", "sub ns entries");
 	mu_assert_streq (sdb_get (dst_sub, "cutter", 0), "coolest", "sub ns entries");

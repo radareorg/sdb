@@ -1123,12 +1123,12 @@ static int copy_foreach_cb(void *user, const char *k, const char *v) {
 	return true;
 }
 
-SDB_API void sdb_copy(Sdb *dst, Sdb *src) {
+SDB_API void sdb_copy(Sdb *src, Sdb *dst) {
 	sdb_foreach (src, copy_foreach_cb, dst);
 	SdbListIter *it;
 	SdbNs *ns;
 	ls_foreach (src->ns, it, ns) {
-		sdb_copy (sdb_ns (dst, ns->name, true), ns->sdb);
+		sdb_copy (ns->sdb, sdb_ns (dst, ns->name, true));
 	}
 }
 

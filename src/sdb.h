@@ -124,7 +124,7 @@ SDB_API void sdb_setup(Sdb* s, int options);
 SDB_API void sdb_drain(Sdb*, Sdb*);
 
 // Copy everything, including namespaces, from src to dst
-SDB_API void sdb_copy(Sdb *dst, Sdb *src);
+SDB_API void sdb_copy(Sdb *src, Sdb *dst);
 
 SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem);
 SDB_API bool sdb_dump_hasnext (Sdb* s);
