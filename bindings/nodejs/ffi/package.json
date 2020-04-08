@@ -1,7 +1,7 @@
 {
   "name": "sdb",
   "version": "0.9.2",
-  "url": "https://www.github.com/radare/sdb",
+  "url": "https://www.github.com/radareorg/sdb",
   "description": "simple keyvalue database with native json support",
   "dependencies": {
     "node-ffi": "*"
