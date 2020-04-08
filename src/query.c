@@ -281,8 +281,7 @@ next_quote:
 		*next = 0;
 	}
 	arroba = strchr (cmd, '/');
-	if (arroba) {
-	next_arroba:
+	while (arroba) {
 		*arroba = 0;
 		s = sdb_ns (s, cmd, eq? 1: 0);
 		if (!s) {
@@ -292,9 +291,6 @@ next_quote:
 		}
 		cmd = arroba + 1;
 		arroba = strchr (cmd, '/');
-		if (arroba) {
-			goto next_arroba;
-		}
 	}
 	if (*cmd=='?') {
 		const char *val = sdb_const_get (s, cmd+1, 0);
