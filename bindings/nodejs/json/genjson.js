@@ -43,7 +43,7 @@ if (depth<1)return null;
 function randObject(rec, depth) {
 	if (depth<1) return null;
 	var obj = {};
-	for (i=0; i<rec; i++) {
+	for (let i=0; i<rec; i++) {
 		var k = randString();
 		obj[k] = randType(rec, depth-1);
 	}
