@@ -41,7 +41,9 @@ test/unit/test_array
 test/unit/test_ls
 test/unit/test_sdb
 test/unit/test_diff
+test/unit/*.dSYM
 src/libsdb.so*
+src/libsdb.dylib
 src/sdb
 src/sdb_version.h
 memcache/cmds
