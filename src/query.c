@@ -262,7 +262,7 @@ next_quote:
 			quot--;
 			if (*quot=='\\') {
 				memmove (quot, quot + 1, strlen (quot));
-				quot += 2;
+				quot++;
 				goto next_quote;
 			}
 			quot++;
