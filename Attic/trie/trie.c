@@ -14,7 +14,7 @@ static int c2_idx(char c) {
 	return 26*2 + 10;
 }
 
-static RTrieNode *r_trie_new_node() {
+static RTrieNode *r_trie_new_node(void) {
 	RTrieNode *n = R_NEW0 (RTrieNode);
 	if (!n) {
 		return NULL;
@@ -110,7 +110,7 @@ static bool r_trie_node_delete(RTrieNode **n, char *name) {
 	return true;
 }
 
-R_API RTrie *r_trie_new() {
+R_API RTrie *r_trie_new(void) {
 	RTrie * n = R_NEW0 (RTrie);
 	if (!n) {
 		return NULL;

@@ -3,7 +3,7 @@
 
 #include "r_slist.h"
 
-R_API RSList *r_slist_new() {
+R_API RSList *r_slist_new(void) {
 	RSList *s = R_NEW0 (RSList);
 	if (!s) {
 		return NULL;
@@ -33,7 +33,7 @@ R_API int r_slist_get_slot(RSList *s, ut64 addr) {
 	return (addr - s->min) / s->mod;
 }
 
-static RSListItem *get_new_item() {
+static RSListItem *get_new_item(void) {
 	// TODO: use slices here!
 	return R_NEW0 (RSListItem);
 }

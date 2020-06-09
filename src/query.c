@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2011-2018 - pancake */
+/* sdb - MIT - Copyright 2011-2020 - pancake */
 
 #include <stdio.h>
 #include <string.h>
@@ -14,7 +14,7 @@ typedef struct {
 	int size;
 } StrBuf;
 
-static StrBuf* strbuf_new() {
+static StrBuf* strbuf_new(void) {
 	return calloc (sizeof (StrBuf), 1);
 }
 

@@ -8,7 +8,7 @@ Configurable options:
  - allow dupped nodes? (two times the same pointer?)
 #endif
 
-R_API RDatabase *r_db_new() {
+R_API RDatabase *r_db_new(void) {
 	RDatabase *db = R_NEW0 (RDatabase);
 	if (db) {
 		db->id_min = -1;
@@ -17,7 +17,7 @@ R_API RDatabase *r_db_new() {
 	return db;
 }
 
-R_API RDatabaseBlock *r_db_block_new() {
+R_API RDatabaseBlock *r_db_block_new(void) {
 	RDatabaseBlock *ptr = R_NEW0 (RDatabaseBlock);
 	return ptr;
 }

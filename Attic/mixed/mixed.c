@@ -6,7 +6,7 @@
 #define STR64OFF(x) sdb_fmt ("%"PFMT64x, x)
 #define STR32OFF(x) sdb_fmt ("%"PFMT32x, x)
 
-R_API RMixed *r_mixed_new () {
+R_API RMixed *r_mixed_new (void) {
 	RMixed *m = R_NEW0 (RMixed);
 	if (!m) {
 		return NULL;
