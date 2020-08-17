@@ -223,6 +223,54 @@ bool test_r_list_sort5(void) {
 	mu_end;
 }
 
+static int cmp_order(const void *a, const void *b) {
+	int ra = *(int *)a;
+	int rb = *(int *)b;
+	return ra > rb;
+}
+
+bool test_r_list_sort6(void) {
+	int values[] = {
+		4640, 5152, 5664, 6176, 6688, 7200, 7712, 32,
+		544, 1056, 1568, 2080, 2592, 3104, 3616, 4128,
+		4640, 5152, 5664, 6176, 6688, 7200, 7712, 8224,
+		8273, 8337, 8356, 8452, 8577, 8625, 8641, 8657,
+		8673, 8689, 8736, 9248, 9760, 10272, 10784, 11296,
+		11808, 12320, 12832, 13344, 13856, 14368, 14880, 15392,
+		15904, 16416, 16928, 17440, 17952, 18464, 18976, 19488,
+		20000, 20512, 21024, 21536, 22048, 22560, 23072, 23584,
+		24096, 24608, 8768, 9792, 10816, 11840, 12864, 13888,
+		14912, 15936, 16960, 17984, 19008, 20032, 21056, 22080,
+		23104, 24128, 25152, 26176, 27200, 28224, 29248, 30272,
+		31296, 32320, 33344, 34368, 35392, 36416, 37440, 38464,
+		39488, 40512, 8832, 10880, 12928, 14976, 17024, 19072,
+		21120, 23168, 25216, 27264, 29312, 31360, 33408, 35456,
+		37504, 39552,
+	};
+	int i;
+	int a, b;
+	SdbListIter *iter;
+	SdbList* list = ls_new ();
+
+	for (i = 0; i < R_ARRAY_SIZE(values); i++) {
+		ls_append (list, (void*)&values[i]);
+	}
+
+	ls_merge_sort (list, (SdbListComparator)cmp_order);
+
+	a = *(int*)list->head->data;
+	for (iter = list->head->n, i = 0; iter; iter = iter->n, i++) {
+		b = *(int*)iter->data;
+#if 0 // Debug print
+		printf("Element %d : %d < %d\n", i+1, a, b);
+#endif
+		mu_assert ("nth element not inferior or equal to next", a <= b);
+		a = b;
+	}
+	ls_free(list);
+	mu_end;
+}
+
 
 bool test_r_list_sort4(void) {
 	SdbList* list = ls_new ();
@@ -301,6 +349,7 @@ int all_tests() {
 	mu_run_test(test_r_list_sort3);
 	mu_run_test(test_r_list_sort4);
 	mu_run_test(test_r_list_sort5);
+	mu_run_test(test_r_list_sort6);
 	mu_run_test(test_ls_length);
 	return tests_passed != tests_run;
 }
