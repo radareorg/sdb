@@ -368,14 +368,11 @@ static int base64decode(void) {
 	if (in) {
 		int declen;
 		out = sdb_decode (in, &declen);
-		len = declen >= 0 ? (size_t)declen : 0;
-		if (out) {
-			if (len >= 0) {
-				(void)write (1, out, len);
-				ret = 0;
-			}
-			free (out);
+		if (out && declen >= 0) {
+			(void)write (1, out, declen);
+			ret = 0;
 		}
+		free (out);
 		free (in);
 	}
 	return ret;
