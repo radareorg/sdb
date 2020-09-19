@@ -144,6 +144,34 @@ EOF
 	fi
 }
 
+test_create_from_files() {
+	NAME="create_from_files"
+	rm -f .a
+	cat > .a.sdb.txt <<EOF
+a=c
+b=d
+EOF
+	cat > .b.sdb.txt <<EOF
+ulu=mulu
+radare2=cool
+EOF
+	$SDB .a == .a.sdb.txt .b.sdb.txt
+	rm -f .a.sdb.txt .b.sdb.txt
+	A="`$SDB .a`"
+	EXPECT=$(cat <<EOF
+a=c
+b=d
+ulu=mulu
+radare2=cool
+EOF
+)
+	if [ "$A" = "$EXPECT" ]; then
+		success .a $NAME
+	else
+		fail .a $NAME
+	fi
+}
+
 test_store() {
 	NAME="store"
 	rm -f .a
@@ -420,6 +448,7 @@ title "Shell"
 test_create
 test_create2
 test_create3
+test_create_from_files
 test_store
 test_store2
 test_restore
