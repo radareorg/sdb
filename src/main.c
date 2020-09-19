@@ -34,12 +34,12 @@ static void write_null(void) {
 #define BS 128
 #define USE_SLURPIN 1
 
-static char *stdin_slurp(int *sz) {
+static char *file_slurp(FILE *f, int *sz) {
 	int blocksize = BS;
 	static int bufsize = BS;
 	static char *next = NULL;
-	static int nextlen = 0;
-	int len, rr, rr2;
+	static size_t nextlen = 0;
+	size_t len, rr, rr2;
 	char *tmp, *buf = NULL;
 	if (sz) {
 		*sz = 0;
@@ -55,11 +55,11 @@ static char *stdin_slurp(int *sz) {
 			return NULL;
 		}
 
-		if (!fgets (buf, buf_size, stdin)) {
+		if (!fgets (buf, buf_size, f)) {
 			free (buf);
 			return NULL;
 		}
-		if (feof (stdin)) {
+		if (feof (f)) {
 			free (buf);
 			return NULL;
 		}
@@ -90,7 +90,7 @@ static char *stdin_slurp(int *sz) {
 			bufsize = nextlen + blocksize;
 			//len = nextlen;
 			rr = nextlen;
-			rr2 = read (0, buf + nextlen, blocksize);
+			rr2 = fread (buf + nextlen, 1, blocksize, f);
 			if (rr2 > 0) {
 				rr += rr2;
 				bufsize += rr2;
@@ -98,7 +98,7 @@ static char *stdin_slurp(int *sz) {
 			next = NULL;
 			nextlen = 0;
 		} else {
-			rr = read (0, buf + len, blocksize);
+			rr = fread (buf + len, 1, blocksize, f);
 		}
 		if (rr < 1) { // EOF
 			buf[len] = 0;
@@ -262,22 +262,50 @@ static int createdb(const char *f, const char **args, int nargs) {
 		eprintf ("Cannot create database\n");
 		return 1;
 	}
-	insertkeys (s, args, nargs, '=');
 	sdb_config (s, options);
-	for (; (line = stdin_slurp (NULL));) {
-		if ((eq = strchr (line, '='))) {
-			*eq++ = 0;
-			sdb_disk_insert (s, line, eq);
+	int ret = 0;
+	if (args) {
+		int i;
+		size_t buf_sz = 256;
+		char *buf = malloc (buf_sz);
+		if (!buf) {
+			ret = 1;
+			goto beach;
 		}
-		free (line);
+		for (i = 0; i < nargs; i++) {
+			FILE *ff = fopen (args[i], "r");
+			if (!ff) {
+				ret = 1;
+				goto beach;
+			}
+			eprintf("process file %s into %s\n", args[i], f);
+			for (; (line = file_slurp (ff, NULL));) {
+				eprintf ("line %s\n", line);
+				if ((eq = strchr (line, '='))) {
+					*eq++ = 0;
+					sdb_disk_insert (s, line, eq);
+				}
+				free (line);
+			}
+			fclose (ff);
+		}
+	} else {
+		for (; (line = file_slurp (stdin, NULL));) {
+			if ((eq = strchr (line, '='))) {
+				*eq++ = 0;
+				sdb_disk_insert (s, line, eq);
+			}
+			free (line);
+		}
 	}
+beach:
 	sdb_disk_finish (s);
-	return 0;
+	return ret;
 }
 
 static int showusage(int o) {
 	printf ("usage: sdb [-0cdehjJv|-D A B] [-|db] "
-		"[.file]|[-=]|[-+][(idx)key[:json|=value] ..]\n");
+		"[.file]|[-=]|==||[-+][(idx)key[:json|=value] ..]\n");
 	if (o == 2) {
 		printf ("  -0      terminate results with \\x00\n"
 			"  -c      count the number of keys database\n"
@@ -302,7 +330,7 @@ static int showversion(void) {
 static int jsonIndent(void) {
 	int len;
 	char *out;
-	char *in = stdin_slurp (&len);
+	char *in = file_slurp (stdin, &len);
 	if (!in) {
 		return 0;
 	}
@@ -320,7 +348,7 @@ static int jsonIndent(void) {
 static int base64encode(void) {
 	char *out;
 	int len = 0;
-	ut8 *in = (ut8 *) stdin_slurp (&len);
+	ut8 *in = (ut8 *) file_slurp (stdin, &len);
 	if (!in) {
 		return 0;
 	}
@@ -338,7 +366,7 @@ static int base64encode(void) {
 static int base64decode(void) {
 	ut8 *out;
 	int len, ret = 1;
-	char *in = (char *) stdin_slurp (&len);
+	char *in = (char *) file_slurp (stdin, &len);
 	if (in) {
 		out = sdb_decode (in, &len);
 		if (out) {
@@ -490,7 +518,7 @@ int main(int argc, const char **argv) {
 			if (kvs < argc) {
 				save |= insertkeys (s, argv + argi + 2, argc - kvs, '-');
 			}
-			for (; (line = stdin_slurp (NULL));) {
+			for (; (line = file_slurp (stdin, NULL));) {
 				save |= sdb_query (s, line);
 				if (fmt) {
 					fflush (stdout);
@@ -501,6 +529,8 @@ int main(int argc, const char **argv) {
 		}
 	} else if (!strcmp (argv[db0 + 1], "=")) {
 		ret = createdb (argv[db0], NULL, 0);
+	} else if (!strcmp (argv[db0 + 1], "==")) {
+		ret = createdb (argv[db0], argv + db0 + 2, argc - (db0 + 2));
 	} else {
 		s = sdb_new (NULL, argv[db0], 0);
 		if (!s) {
