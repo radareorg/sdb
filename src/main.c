@@ -34,7 +34,7 @@ static void write_null(void) {
 #define BS 128
 #define USE_SLURPIN 1
 
-static char *file_slurp(FILE *f, int *sz) {
+static char *slurp(FILE *f, size_t *sz) {
 	int blocksize = BS;
 	static int bufsize = BS;
 	static char *next = NULL;
@@ -278,7 +278,7 @@ static int createdb(const char *f, const char **args, int nargs) {
 				ret = 1;
 				goto beach;
 			}
-			for (; (line = file_slurp (ff, NULL));) {
+			for (; (line = slurp (ff, NULL));) {
 				if ((eq = strchr (line, '='))) {
 					*eq++ = 0;
 					sdb_disk_insert (s, line, eq);
@@ -288,7 +288,7 @@ static int createdb(const char *f, const char **args, int nargs) {
 			fclose (ff);
 		}
 	} else {
-		for (; (line = file_slurp (stdin, NULL));) {
+		for (; (line = slurp (stdin, NULL));) {
 			if ((eq = strchr (line, '='))) {
 				*eq++ = 0;
 				sdb_disk_insert (s, line, eq);
@@ -326,9 +326,9 @@ static int showversion(void) {
 }
 
 static int jsonIndent(void) {
-	int len;
+	size_t len;
 	char *out;
-	char *in = file_slurp (stdin, &len);
+	char *in = slurp (stdin, &len);
 	if (!in) {
 		return 0;
 	}
@@ -345,12 +345,12 @@ static int jsonIndent(void) {
 
 static int base64encode(void) {
 	char *out;
-	int len = 0;
-	ut8 *in = (ut8 *) file_slurp (stdin, &len);
+	size_t len = 0;
+	ut8 *in = (ut8 *) slurp (stdin, &len);
 	if (!in) {
 		return 0;
 	}
-	out = sdb_encode (in, len);
+	out = sdb_encode (in, (int)len);
 	if (!out) {
 		free (in);
 		return 1;
@@ -363,10 +363,12 @@ static int base64encode(void) {
 
 static int base64decode(void) {
 	ut8 *out;
-	int len, ret = 1;
-	char *in = (char *) file_slurp (stdin, &len);
+	size_t len, ret = 1;
+	char *in = (char *) slurp (stdin, &len);
 	if (in) {
-		out = sdb_decode (in, &len);
+		int declen;
+		out = sdb_decode (in, &declen);
+		len = declen >= 0 ? (size_t)declen : 0;
 		if (out) {
 			if (len >= 0) {
 				(void)write (1, out, len);
@@ -516,7 +518,7 @@ int main(int argc, const char **argv) {
 			if (kvs < argc) {
 				save |= insertkeys (s, argv + argi + 2, argc - kvs, '-');
 			}
-			for (; (line = file_slurp (stdin, NULL));) {
+			for (; (line = slurp (stdin, NULL));) {
 				save |= sdb_query (s, line);
 				if (fmt) {
 					fflush (stdout);
