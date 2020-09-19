@@ -278,9 +278,7 @@ static int createdb(const char *f, const char **args, int nargs) {
 				ret = 1;
 				goto beach;
 			}
-			eprintf("process file %s into %s\n", args[i], f);
 			for (; (line = file_slurp (ff, NULL));) {
-				eprintf ("line %s\n", line);
 				if ((eq = strchr (line, '='))) {
 					*eq++ = 0;
 					sdb_disk_insert (s, line, eq);
