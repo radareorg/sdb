@@ -364,7 +364,7 @@ static int base64encode(void) {
 static int base64decode(void) {
 	ut8 *out;
 	size_t len, ret = 1;
-	char *in = (char *) slurp (stdin, &len);
+	char *in = slurp (stdin, &len);
 	if (in) {
 		int declen;
 		out = sdb_decode (in, &declen);
