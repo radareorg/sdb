@@ -207,6 +207,41 @@ bool test_sdb_copy() {
 	mu_end;
 }
 
+#define PERTURBATOR "\\,\";]\n [}{'=/"
+
+bool test_sdb_text_save() {
+#ifdef __linux__
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, PERTURBATOR"key"PERTURBATOR, PERTURBATOR"value"PERTURBATOR, 0);
+	sdb_set (db, "aaa", "stuff", 0);
+	sdb_set (db, "bbb", "other stuff", 0);
+
+	Sdb *sub = sdb_ns (db, "sub"PERTURBATOR"namespace", true);
+	sdb_set (sub, "key"PERTURBATOR"in sub", "value"PERTURBATOR"in sub", 0);
+	sdb_set (sub, "more stuff\n", "\nin\nsub\n", 0);
+
+	Sdb *subsub = sdb_ns (db, "subsub", true);
+	sdb_set (subsub, "some stuff", "also down here", 0);
+
+	char buf[0x1000];
+	memset (buf, 0, sizeof (buf));
+	FILE *f = fmemopen (buf, sizeof (buf) - 1, "w");
+	sdb_text_fsave (db, f, true);
+	fclose (f);
+	sdb_free (db);
+
+	printf("\n--\n%s\n--\n", buf);
+
+	const char *expected = "fuck";
+
+	mu_assert_streq (buf, expected, "text save");
+
+#else
+#warning test_sdb_text_save is disabled on your os.
+#endif
+	mu_end;
+}
+
 int all_tests() {
 	// XXX two bugs found with crash
 	mu_run_test (test_sdb_namespace);
@@ -219,6 +254,7 @@ int all_tests() {
 	mu_run_test (test_sdb_list_big);
 	mu_run_test (test_sdb_foreach_filter);
 	mu_run_test (test_sdb_copy);
+	mu_run_test (test_sdb_text_save);
 	return tests_passed != tests_run;
 }
 

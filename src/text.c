@@ -52,16 +52,30 @@
  *
 */
 
-static bool text_fsave(Sdb *s, FILE *f, bool sort, const char *path) {
+static int cmp_ns(const void *a, const void *b) {
+	const SdbNs *nsa = a;
+	const SdbNs *cia = b;
+	return strcmp (nsa->name, cia->name);
+}
+
+static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 // macro to flush a block of text that doesn't have to be escaped
 // n = position we are currently looking at
 // p = position until we have already written everything
 #define FLUSH do { if (p != n) { fwrite (p, 1, n - p, f); p = n; } } while (0)
 	// path
-	if (path && *path) {
-		fwrite ("/", 1, 1, f);
+	fwrite ("/", 1, 1, f); // always print a /, even if path is empty
+	SdbListIter *it;
+	const char *path_token;
+	bool first = true;
+	ls_foreach (path, it, path_token) {
+		if (first) {
+			first = false;
+		} else {
+			fwrite ("/", 1, 1, f);
+		}
 		// write and escape the path
-		const char *p = path;
+		const char *p = path_token;
 		const char *n = p;
 		while (*n) {
 			switch (*n) {
@@ -81,16 +95,13 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, const char *path) {
 			n++;
 		}
 		FLUSH;
-		fwrite ("\n", 1, 1, f);
-	} else {
-		fwrite ("/\n", 1, 1, f);
 	}
+	fwrite ("\n", 1, 1, f);
 
 	// k=v entries
 	SdbList *l = sdb_foreach_list (s, sort);
-	SdbListIter *it;
 	SdbKv *kv;
-	ls_foreach (l, iter, kv) {
+	ls_foreach (l, it, kv) {
 		const char *k = sdbkv_key (kv);
 		const char *v = sdbkv_value (kv);
 		// escape leading '/'
@@ -143,13 +154,33 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, const char *path) {
 	ls_free (l);
 
 	// sub-namespaces
+	l = s->ns;
+	if (sort) {
+		l = ls_clone (l);
+		ls_sort (l, cmp_ns);
+	}
+	SdbNs *ns;
+	ls_foreach (l, it, ns) {
+		ls_push (path, ns->name);
+		text_fsave(ns->sdb, f, sort, path);
+		ls_pop (path);
+	}
+	if (l != s->ns) {
+		ls_free (l);
+	}
 
 #undef FLUSH
 	return false;
 }
 
 SDB_API bool sdb_text_fsave(Sdb *s, FILE *f, bool sort) {
-	return text_fsave (s, f, sort, NULL);
+	SdbList *path = ls_new ();
+	if (!path) {
+		return false;
+	}
+	bool r = text_fsave (s, f, sort, NULL);
+	ls_free (path);
+	return r;
 }
 
 SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort) {
