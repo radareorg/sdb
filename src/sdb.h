@@ -206,6 +206,12 @@ SDB_API bool sdb_disk_insert(Sdb* s, const char *key, const char *val);
 SDB_API bool sdb_disk_finish(Sdb* s);
 SDB_API bool sdb_disk_unlink(Sdb* s);
 
+/* plaintext sdb files */
+SDB_API bool sdb_text_fsave(Sdb *s, FILE *f, bool sort);
+SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort);
+SDB_API bool sdb_text_fload(Sdb *s, FILE *f);
+SDB_API bool sdb_text_load(Sdb *s, const char *file);
+
 /* iterate */
 SDB_API void sdb_dump_begin(Sdb* s);
 SDB_API SdbKv *sdb_dump_next(Sdb* s);
