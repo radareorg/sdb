@@ -59,10 +59,12 @@ static int cmp_ns(const void *a, const void *b) {
 }
 
 static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
-// macro to flush a block of text that doesn't have to be escaped
 // n = position we are currently looking at
 // p = position until we have already written everything
+// macro to flush a block of text that doesn't have to be escaped
 #define FLUSH do { if (p != n) { fwrite (p, 1, n - p, f); p = n; } } while (0)
+// macro to flush and skip a char
+#define SKIP do { FLUSH; p++; } while (0)
 	// path
 	fwrite ("/", 1, 1, f); // always print a /, even if path is empty
 	SdbListIter *it;
@@ -80,16 +82,16 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 		while (*n) {
 			switch (*n) {
 			case '\\':
-				FLUSH;
-				fwrite ("\\\\", 1, 1, f);
+				SKIP;
+				fwrite ("\\\\", 1, 2, f);
 				break;
 			case '/':
-				FLUSH;
-				fwrite ("\\/", 1, 1, f);
+				SKIP;
+				fwrite ("\\/", 1, 2, f);
 				break;
 			case '\n':
-				FLUSH;
-				fwrite ("\\n", 1, 1, f);
+				SKIP;
+				fwrite ("\\n", 1, 2, f);
 				break;
 			}
 			n++;
@@ -115,16 +117,16 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 		while (*n) {
 			switch (*n) {
 			case '\\':
-				FLUSH;
-				fwrite ("\\\\", 1, 1, f);
+				SKIP;
+				fwrite ("\\\\", 1, 2, f);
 				break;
 			case '=':
-				FLUSH;
-				fwrite ("\\=", 1, 1, f);
+				SKIP;
+				fwrite ("\\=", 1, 2, f);
 				break;
 			case '\n':
-				FLUSH;
-				fwrite ("\\n", 1, 1, f);
+				SKIP;
+				fwrite ("\\n", 1, 2, f);
 				break;
 			}
 			n++;
@@ -139,17 +141,18 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 		while (*n) {
 			switch (*n) {
 			case '\\':
-				FLUSH;
-				fwrite ("\\\\", 1, 1, f);
+				SKIP;
+				fwrite ("\\\\", 1, 2, f);
 				break;
 			case '\n':
-				FLUSH;
+				SKIP;
 				fwrite ("\\n", 1, 1, f);
 				break;
 			}
 			n++;
 		}
 		FLUSH;
+		fwrite ("\n", 1, 1, f);
 	}
 	ls_free (l);
 
@@ -161,8 +164,9 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 	}
 	SdbNs *ns;
 	ls_foreach (l, it, ns) {
+		fwrite ("\n", 1, 1, f);
 		ls_push (path, ns->name);
-		text_fsave(ns->sdb, f, sort, path);
+		text_fsave (ns->sdb, f, sort, path);
 		ls_pop (path);
 	}
 	if (l != s->ns) {
@@ -178,7 +182,7 @@ SDB_API bool sdb_text_fsave(Sdb *s, FILE *f, bool sort) {
 	if (!path) {
 		return false;
 	}
-	bool r = text_fsave (s, f, sort, NULL);
+	bool r = text_fsave (s, f, sort, path);
 	ls_free (path);
 	return r;
 }

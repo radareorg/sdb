@@ -209,6 +209,19 @@ bool test_sdb_copy() {
 
 #define PERTURBATOR "\\,\";]\n [}{'=/"
 
+static const char *text_ref =
+	"/\n"
+	"\\\\,\";]\\n [}{'\\=/key\\\\,\";]\\n [}{'\\=/=\\\\,\";]\\ [}{'=/value\\\\,\";]\\ [}{'=/\n"
+	"aaa=stuff\n"
+	"bbb=other stuff\n"
+	"\n"
+	"/sub\\\\,\";]\\n [}{'=\\/namespace\n"
+	"key\\\\,\";]\\n [}{'\\=/in sub=value\\\\,\";]\\ [}{'=/in sub\n"
+	"more stuff\\n=\\in\\sub\\\n"
+	"\n"
+	"/sub\\\\,\";]\\n [}{'=\\/namespace/subsub\n"
+	"some stuff=also down here\n";
+
 bool test_sdb_text_save() {
 #ifdef __linux__
 	Sdb *db = sdb_new0 ();
@@ -220,7 +233,7 @@ bool test_sdb_text_save() {
 	sdb_set (sub, "key"PERTURBATOR"in sub", "value"PERTURBATOR"in sub", 0);
 	sdb_set (sub, "more stuff\n", "\nin\nsub\n", 0);
 
-	Sdb *subsub = sdb_ns (db, "subsub", true);
+	Sdb *subsub = sdb_ns (sub, "subsub", true);
 	sdb_set (subsub, "some stuff", "also down here", 0);
 
 	char buf[0x1000];
@@ -230,11 +243,7 @@ bool test_sdb_text_save() {
 	fclose (f);
 	sdb_free (db);
 
-	printf("\n--\n%s\n--\n", buf);
-
-	const char *expected = "fuck";
-
-	mu_assert_streq (buf, expected, "text save");
+	mu_assert_streq (buf, text_ref, "text save");
 
 #else
 #warning test_sdb_text_save is disabled on your os.
