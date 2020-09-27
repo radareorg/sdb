@@ -221,13 +221,6 @@ bool test_ht_general(void) {
  err_malloc:
 	mu_cleanup_end;
 }
-static void free_key(HtPPKv *kv) {
-	free (kv->key);
-}
-
-static void free_value(HtPPKv *kv) {
-	free (kv->value);
-}
 
 static void free_key_value(HtPPKv *kv) {
 	free (kv->key);
@@ -470,7 +463,6 @@ static void free_up_value(HtUPKv *kv) {
 }
 
 bool test_foreach_delete(void) {
-	bool found;
 	HtUP *ht = ht_up_new ((HtUPDupValue)strdup, free_up_value, NULL);
 
 	// create a collision

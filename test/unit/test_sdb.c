@@ -1,8 +1,9 @@
 #include "minunit.h"
 #include <sdb.h>
 #include <fcntl.h>
+#include <stdio.h>
 
-static int foreach_delete_cb(void *user, const char *key, const char *val) {
+static bool foreach_delete_cb(void *user, const char *key, const char *val) {
 	if (strcmp (key, "bar")) {
 		sdb_unset (user, key, 0);
 	}
@@ -43,12 +44,6 @@ bool test_sdb_list_delete(void) {
 	mu_end;
 }
 
-static int __cmp_asc(const void *a, const void *b) {
-	const SdbKv *ka = a;
-	const SdbKv *kb = b;
-	return strcmp (ka->base.key, kb->base.key);
-}
-
 bool test_sdb_list_big(void) {
 	Sdb *db = sdb_new0 ();
 	int i;
@@ -72,7 +67,7 @@ bool test_sdb_delete_none(void) {
 	sdb_unset (db, "bar", 0);
 	sdb_unset (db, "pinuts", 0);
 	SdbList *list = sdb_foreach_list (db, false);
-	mu_assert_eq ((int)ls_length (list), 2, "Unmatched rows");
+	mu_assert_eq (ls_length (list), 2, "Unmatched rows");
 	ls_free(list);
 	sdb_free (db);
 	mu_end;
@@ -81,7 +76,6 @@ bool test_sdb_delete_none(void) {
 bool test_sdb_delete_alot(void) {
 	Sdb *db = sdb_new (NULL, NULL, false);
 	const int count = 2048;
-	char key[128];
 	int i;
 
 	for (i = 0; i < count; i++) {
@@ -91,7 +85,7 @@ bool test_sdb_delete_alot(void) {
 		sdb_unset (db, sdb_fmt (0, "key.%d", i), 0);
 	}
 	SdbList *list = sdb_foreach_list (db, false);
-	mu_assert_eq ((int)ls_length (list), 0, "Unmatched rows");
+	mu_assert_eq (ls_length (list), 0, "Unmatched rows");
 	ls_free(list);
 	sdb_free (db);
 
@@ -160,7 +154,7 @@ bool test_sdb_namespace(void) {
 	mu_end;
 }
 
-static int foreach_filter_cb(void *user, const char *key, const char *val) {
+static bool foreach_filter_cb(void *user, const char *key, const char *val) {
 	return key[0] == 'b';
 }
 
@@ -174,11 +168,11 @@ bool test_sdb_foreach_filter(void) {
 	SdbList *ls = sdb_foreach_list_filter (db, foreach_filter_cb, true);
 	SdbListIter *it = ls_iterator (ls);
 	HtPPKv *kv = ls_iter_get (it);
-	mu_assert_streq (kv->key, "bar", "list should be sorted");
+	mu_assert_streq ((const char *)kv->key, "bar", "list should be sorted");
 	kv = ls_iter_get (it);
-	mu_assert_streq (kv->key, "bip", "list should be sorted");
+	mu_assert_streq ((const char *)kv->key, "bip", "list should be sorted");
 	kv = ls_iter_get (it);
-	mu_assert_streq (kv->key, "boo", "list should be sorted");
+	mu_assert_streq ((const char *)kv->key, "boo", "list should be sorted");
 	mu_assert_null (it, "list should be terminated");
 	ls_free (ls);
 	sdb_free (db);
