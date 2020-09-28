@@ -160,9 +160,9 @@ EOF
 	A="`$SDB .a`"
 	EXPECT=$(cat <<EOF
 a=c
+radare2=cool
 b=d
 ulu=mulu
-radare2=cool
 EOF
 )
 	if [ "$A" = "$EXPECT" ]; then
