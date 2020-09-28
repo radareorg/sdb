@@ -1,0 +1,1 @@
+option('enable_tests', type: 'boolean', value: true, description: 'Build unit tests in test/unit')

@@ -149,7 +149,6 @@ bool test_ls_length(void) {
 	SdbList* list = ls_new ();
 	SdbList* list2 = ls_new ();
 	SdbListIter *iter;
-	void *v;
 	int count = 0;
 	int test1 = 33508;
 	int test2 = 33480;
@@ -171,10 +170,10 @@ bool test_ls_length(void) {
 	ls_append (list, (void*)&test1);
 	mu_assert_eq ((int)list->length, 3, "Third length check");
 
-	v = ls_pop (list);
+	ls_pop (list);
 	mu_assert_eq ((int)list->length, 2, "Fourth length check");
 
-	v = ls_pop_head (list);
+	ls_pop_head (list);
 	mu_assert_eq ((int)list->length, 1, "Fifth length check");
 
 	ls_insert (list, 2, (void*)&test2);
