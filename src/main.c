@@ -256,9 +256,8 @@ static int insertkeys(Sdb *s, const char **args, int nargs, int mode) {
 }
 
 static int createdb(const char *f, const char **args, int nargs) {
-	char *line, *eq;
 	s = sdb_new (NULL, f, 0);
-	if (!s || !sdb_disk_create (s)) {
+	if (!s) {
 		eprintf ("Cannot create database\n");
 		return 1;
 	}
@@ -273,31 +272,17 @@ static int createdb(const char *f, const char **args, int nargs) {
 			goto beach;
 		}
 		for (i = 0; i < nargs; i++) {
-			FILE *ff = fopen (args[i], "r");
-			if (!ff) {
-				ret = 1;
-				goto beach;
+			if (!sdb_text_load (s, args[i])) {
+				eprintf ("Failed to load text sdb from %s\n", args[i]);
 			}
-			for (; (line = slurp (ff, NULL));) {
-				if ((eq = strchr (line, '='))) {
-					*eq++ = 0;
-					sdb_disk_insert (s, line, eq);
-				}
-				free (line);
-			}
-			fclose (ff);
 		}
 	} else {
-		for (; (line = slurp (stdin, NULL));) {
-			if ((eq = strchr (line, '='))) {
-				*eq++ = 0;
-				sdb_disk_insert (s, line, eq);
-			}
-			free (line);
+		if (!sdb_text_fload (s, stdin)) {
+			eprintf ("Failed to read text sdb from stdin\n");
 		}
 	}
 beach:
-	sdb_disk_finish (s);
+	sdb_sync (s);
 	return ret;
 }
 
