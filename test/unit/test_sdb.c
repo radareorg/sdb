@@ -209,21 +209,48 @@ bool test_sdb_copy() {
 
 #define PERTURBATOR "\\,\";]\n [}{'=/"
 
+static const char *text_ref_simple =
+	"/\n"
+	"aaa=stuff\n"
+	"bbb=other stuff\n"
+	"somekey=somevalue\n"
+	"\n"
+	"/subnamespace\n"
+	"\\/more stuff=in sub\n"
+	"key in sub=value in sub\n"
+	"\n"
+	"/subnamespace/subsub\n"
+	"some stuff=also down here\n";
+
 static const char *text_ref =
 	"/\n"
-	"\\\\,\";]\\n [}{'\\=/key\\\\,\";]\\n [}{'\\=/=\\\\,\";]\\ [}{'=/value\\\\,\";]\\ [}{'=/\n"
+	"\\\\,\";]\\n [}{'\\=/key\\\\,\";]\\n [}{'\\=/=\\\\,\";]\\n [}{'=/value\\\\,\";]\\n [}{'=/\n"
 	"aaa=stuff\n"
 	"bbb=other stuff\n"
 	"\n"
 	"/sub\\\\,\";]\\n [}{'=\\/namespace\n"
-	"key\\\\,\";]\\n [}{'\\=/in sub=value\\\\,\";]\\ [}{'=/in sub\n"
-	"more stuff\\n=\\in\\sub\\\n"
+	"\\/more stuff\\n=\\nin\\nsub\\n\n"
+	"key\\\\,\";]\\n [}{'\\=/in sub=value\\\\,\";]\\n [}{'=/in sub\n"
 	"\n"
 	"/sub\\\\,\";]\\n [}{'=\\/namespace/subsub\n"
 	"some stuff=also down here\n";
 
-bool test_sdb_text_save() {
-#ifdef __linux__
+static Sdb *text_ref_simple_db() {
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, "somekey", "somevalue", 0);
+	sdb_set (db, "aaa", "stuff", 0);
+	sdb_set (db, "bbb", "other stuff", 0);
+
+	Sdb *sub = sdb_ns (db, "subnamespace", true);
+	sdb_set (sub, "key in sub", "value in sub", 0);
+	sdb_set (sub, "/more stuff", "in sub", 0);
+
+	Sdb *subsub = sdb_ns (sub, "subsub", true);
+	sdb_set (subsub, "some stuff", "also down here", 0);
+	return db;
+}
+
+static Sdb *text_ref_db() {
 	Sdb *db = sdb_new0 ();
 	sdb_set (db, PERTURBATOR"key"PERTURBATOR, PERTURBATOR"value"PERTURBATOR, 0);
 	sdb_set (db, "aaa", "stuff", 0);
@@ -231,22 +258,91 @@ bool test_sdb_text_save() {
 
 	Sdb *sub = sdb_ns (db, "sub"PERTURBATOR"namespace", true);
 	sdb_set (sub, "key"PERTURBATOR"in sub", "value"PERTURBATOR"in sub", 0);
-	sdb_set (sub, "more stuff\n", "\nin\nsub\n", 0);
+	sdb_set (sub, "/more stuff\n", "\nin\nsub\n", 0);
 
 	Sdb *subsub = sdb_ns (sub, "subsub", true);
 	sdb_set (subsub, "some stuff", "also down here", 0);
+	return db;
+}
+
+bool test_sdb_text_save_simple() {
+#ifdef __linux__
+	Sdb *db = text_ref_simple_db ();
 
 	char buf[0x1000];
 	memset (buf, 0, sizeof (buf));
 	FILE *f = fmemopen (buf, sizeof (buf) - 1, "w");
-	sdb_text_fsave (db, f, true);
+	bool succ = sdb_text_fsave (db, f, true);
 	fclose (f);
 	sdb_free (db);
 
+	mu_assert_true (succ, "save success");
+	mu_assert_streq (buf, text_ref_simple, "text save");
+
+#else
+#warning test_sdb_text_save_simple is disabled on your os.
+#endif
+	mu_end;
+}
+
+bool test_sdb_text_save() {
+#ifdef __linux__
+	Sdb *db = text_ref_db ();
+
+	char buf[0x1000];
+	memset (buf, 0, sizeof (buf));
+	FILE *f = fmemopen (buf, sizeof (buf) - 1, "w");
+	bool succ = sdb_text_fsave (db, f, true);
+	fclose (f);
+	sdb_free (db);
+
+	mu_assert_true (succ, "save success");
 	mu_assert_streq (buf, text_ref, "text save");
 
 #else
 #warning test_sdb_text_save is disabled on your os.
+#endif
+	mu_end;
+}
+
+static void diff_cb(const SdbDiff *diff, void *user) {
+	char buf[2048];
+	if (sdb_diff_format (buf, sizeof (buf), diff) < 0) {
+		return;
+	}
+	printf ("%s\n", buf);
+}
+
+bool test_sdb_text_load_simple() {
+#ifdef __linux__
+	FILE *f = fmemopen ((void *)text_ref_simple, strlen (text_ref_simple), "r");
+	Sdb *db = sdb_new0 ();
+	bool succ = sdb_text_fload (db, f);
+	fclose (f);
+
+	mu_assert_true (succ, "load success");
+	Sdb *ref_db = text_ref_simple_db ();
+	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	mu_assert_true (eq, "load correct");
+#else
+#warning test_sdb_text_load_simple is disabled on your os.
+#endif
+	mu_end;
+}
+
+bool test_sdb_text_load() {
+#ifdef __linux__
+	FILE *f = fmemopen ((void *)text_ref, strlen (text_ref), "r");
+	Sdb *db = sdb_new0 ();
+	bool succ = sdb_text_fload (db, f);
+	fclose (f);
+
+	mu_assert_true (succ, "load success");
+	Sdb *ref_db = text_ref_db ();
+	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	mu_assert_true (eq, "load correct");
+#else
+#warning test_sdb_text_load is disabled on your os.
 #endif
 	mu_end;
 }
@@ -263,7 +359,10 @@ int all_tests() {
 	mu_run_test (test_sdb_list_big);
 	mu_run_test (test_sdb_foreach_filter);
 	mu_run_test (test_sdb_copy);
+	mu_run_test (test_sdb_text_save_simple);
+	mu_run_test (test_sdb_text_load_simple);
 	mu_run_test (test_sdb_text_save);
+	mu_run_test (test_sdb_text_load);
 	return tests_passed != tests_run;
 }
 

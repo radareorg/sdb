@@ -146,7 +146,7 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 				break;
 			case '\n':
 				SKIP;
-				fwrite ("\\n", 1, 1, f);
+				fwrite ("\\n", 1, 2, f);
 				break;
 			}
 			n++;
@@ -174,7 +174,7 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 	}
 
 #undef FLUSH
-	return false;
+	return true;
 }
 
 SDB_API bool sdb_text_fsave(Sdb *s, FILE *f, bool sort) {
@@ -198,8 +198,152 @@ SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort) {
 }
 
 SDB_API bool sdb_text_fload(Sdb *s, FILE *f) {
-	// TODO
-	return false;
+	size_t bufsz = 16; // TODO: more
+	char *buf = malloc (bufsz);
+	if (!buf) {
+		return false;
+	}
+	bool ret = true;
+	Sdb *cur_db = s;
+	// can't use pointers here because buf may be moved on realloc
+	size_t pos = 0; // current processing position in the buffer
+	size_t token_begin = 0; // beginning of the currently processed token in the buffer
+	size_t shift = 0; // amount to shift chars to the left (from unescaping)
+	SdbList/*<size_t>*/ *path = ls_new ();
+	if (!path) {
+		free (buf);
+		return false;
+	}
+	enum { STATE_NEWLINE, STATE_PATH, STATE_KEY, STATE_VALUE } state = STATE_NEWLINE;
+	bool unescape = false; // whether the prev char was a backslash, i.e. the current one is escaped
+	while (true) {
+		// realloc if no space
+		if (pos >= bufsz - 1) {
+			size_t newsz = bufsz + bufsz;
+			if (newsz < bufsz) {
+				ret = false;
+				break;
+			}
+			bufsz = newsz;
+			char *newbuf = realloc (buf, bufsz);
+			if (!newbuf) {
+				ret = false;
+				break;
+			}
+			buf = newbuf;
+		}
+		// read full buffer (leave 1 for null-terminating)
+		size_t read = fread (buf + pos, 1, bufsz - 1 - pos, f);
+		if (!read && !feof (f)) {
+			// error
+			ret = false;
+			break;
+		}
+		// process buffer
+		size_t buf_filled = pos + read;
+		if (!read) {
+			goto flush;
+		}
+		while (pos < buf_filled) {
+			if (state == STATE_NEWLINE) {
+				// at the start of a line, decide whether it's a path or a k=v
+				// by whether there is a leading slash.
+				if (buf[pos] == '/') {
+					state = STATE_PATH;
+					token_begin = 1;
+					pos++;
+					continue;
+				} else {
+					state = STATE_KEY;
+				}
+			}
+			if (buf[pos] == '\n') {
+				unescape = false;
+flush:
+				// finish up the line
+				buf[pos - shift] = '\0';
+				switch (state) {
+				case STATE_PATH: {
+					ls_push (path, (void *)token_begin);
+					token_begin = pos + 1;
+					SdbListIter *it;
+					void *token_off_tmp;
+					cur_db = s;
+					ls_foreach (path, it, token_off_tmp) {
+						size_t token_off = (size_t)token_off_tmp;
+						if (!buf[token_off]) {
+							continue;
+						}
+						cur_db = sdb_ns (cur_db, buf + token_off, 1);
+						if (!cur_db) {
+							cur_db = s;
+							break;
+						}
+					}
+					ls_destroy (path);
+					break;
+				}
+				case STATE_VALUE:
+					if (!*buf || !buf[token_begin]) {
+						break;
+					}
+					sdb_set (cur_db, buf, buf + token_begin, 0);
+					break;
+				default:
+					break;
+				}
+				if (buf_filled && pos < buf_filled - 1) {
+					memmove (buf, buf + pos + 1, buf_filled - pos - 1);
+				}
+				// prepare for next line
+				shift = 0;
+				if (pos + 1 <= buf_filled) {
+					buf_filled -= pos + 1;
+				} else {
+					// special case, when at the end of the file
+					// here pos == buf_filled
+					buf_filled = 0;
+				}
+				pos = 0;
+				state = STATE_NEWLINE;
+				continue;
+			} else {
+				if (unescape) {
+					if (buf[pos] == 'n') {
+						buf[pos - shift] = '\n';
+					} else {
+						buf[pos - shift] = buf[pos];
+					}
+					unescape = false;
+				} else if (buf[pos] == '\\') {
+					// got a backslash, the next char, unescape in the next iteration or die!
+					shift++;
+					unescape = true;
+				} else if (state == STATE_PATH && buf[pos] == '/') {
+					// new path token
+					buf[pos - shift] = '\0';
+					ls_push (path, (void *)token_begin);
+					token_begin = pos + 1;
+					shift = 0;
+				} else if (state == STATE_KEY && buf[pos] == '=') {
+					// switch from key into value mode
+					buf[pos - shift] = '\0';
+					token_begin = pos + 1;
+					shift = 0;
+					state = STATE_VALUE;
+				} else if (shift) {
+					// just some char, shift it back if necessary
+					buf[pos - shift] = buf[pos];
+				}
+			}
+			pos++;
+		}
+		if (!read) {
+			break;
+		}
+	}
+	free (buf);
+	return ret;
 }
 
 SDB_API bool sdb_text_load(Sdb *s, const char *file) {
