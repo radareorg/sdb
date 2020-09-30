@@ -265,43 +265,60 @@ static Sdb *text_ref_db() {
 	return db;
 }
 
+static FILE *tmpfile_new (const char *filename, const char *buf, size_t sz) {
+	FILE *f = fopen (filename, "w+");
+	if (!f) {
+		return NULL;
+	}
+	if (!buf) {
+		return f;
+	}
+	size_t w = fwrite (buf, 1, sz, f);
+	if (w < sz) {
+		fclose (f);
+		return NULL;
+	}
+	fseek (f, 0, SEEK_SET);
+	return f;
+}
+
 bool test_sdb_text_save_simple() {
-#ifdef __linux__
 	Sdb *db = text_ref_simple_db ();
 
+	FILE *f = tmpfile_new (".text_save_simple", NULL, 0);
+	bool succ = sdb_text_fsave (db, f, true);
+	fseek (f, 0, SEEK_SET);
 	char buf[0x1000];
 	memset (buf, 0, sizeof (buf));
-	FILE *f = fmemopen (buf, sizeof (buf) - 1, "w");
-	bool succ = sdb_text_fsave (db, f, true);
+	fread (buf, 1, sizeof (buf) - 1, f);
 	fclose (f);
+	unlink (".text_save_simple");
+
 	sdb_free (db);
 
 	mu_assert_true (succ, "save success");
 	mu_assert_streq (buf, text_ref_simple, "text save");
 
-#else
-#warning test_sdb_text_save_simple is disabled on your os.
-#endif
 	mu_end;
 }
 
 bool test_sdb_text_save() {
-#ifdef __linux__
 	Sdb *db = text_ref_db ();
 
+	FILE *f = tmpfile_new (".text_save", NULL, 0);
+	bool succ = sdb_text_fsave (db, f, true);
+	fseek (f, 0, SEEK_SET);
 	char buf[0x1000];
 	memset (buf, 0, sizeof (buf));
-	FILE *f = fmemopen (buf, sizeof (buf) - 1, "w");
-	bool succ = sdb_text_fsave (db, f, true);
+	fread (buf, 1, sizeof (buf) - 1, f);
 	fclose (f);
+	unlink (".text_save");
+
 	sdb_free (db);
 
 	mu_assert_true (succ, "save success");
 	mu_assert_streq (buf, text_ref, "text save");
 
-#else
-#warning test_sdb_text_save is disabled on your os.
-#endif
 	mu_end;
 }
 
@@ -314,11 +331,11 @@ static void diff_cb(const SdbDiff *diff, void *user) {
 }
 
 bool test_sdb_text_load_simple() {
-#ifdef __linux__
-	FILE *f = fmemopen ((void *)text_ref_simple, strlen (text_ref_simple), "r");
+	FILE *f = tmpfile_new (".text_load_simple", text_ref_simple, strlen (text_ref_simple));
 	Sdb *db = sdb_new0 ();
 	bool succ = sdb_text_fload (db, f);
 	fclose (f);
+	unlink (".text_load_simple");
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_simple_db ();
@@ -326,18 +343,15 @@ bool test_sdb_text_load_simple() {
 	sdb_free (ref_db);
 	sdb_free (db);
 	mu_assert_true (eq, "load correct");
-#else
-#warning test_sdb_text_load_simple is disabled on your os.
-#endif
 	mu_end;
 }
 
 bool test_sdb_text_load() {
-#ifdef __linux__
-	FILE *f = fmemopen ((void *)text_ref, strlen (text_ref), "r");
+	FILE *f = tmpfile_new (".text_load", text_ref, strlen (text_ref));
 	Sdb *db = sdb_new0 ();
 	bool succ = sdb_text_fload (db, f);
 	fclose (f);
+	unlink (".text_load");
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_db ();
@@ -345,9 +359,6 @@ bool test_sdb_text_load() {
 	sdb_free (ref_db);
 	sdb_free (db);
 	mu_assert_true (eq, "load correct");
-#else
-#warning test_sdb_text_load is disabled on your os.
-#endif
 	mu_end;
 }
 
