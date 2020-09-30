@@ -58,14 +58,14 @@ static int cmp_ns(const void *a, const void *b) {
 	return strcmp (nsa->name, cia->name);
 }
 
-static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 // n = position we are currently looking at
 // p = position until we have already written everything
 // macro to flush a block of text that doesn't have to be escaped
 #define FLUSH do { if (p != n) { fwrite (p, 1, n - p, f); p = n; } } while (0)
 // macro to flush and skip a char
 #define SKIP do { FLUSH; p++; } while (0)
-	// path
+
+static void write_path(FILE *f, SdbList *path) {
 	fwrite ("/", 1, 1, f); // always print a /, even if path is empty
 	SdbListIter *it;
 	const char *path_token;
@@ -98,6 +98,54 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 		}
 		FLUSH;
 	}
+}
+
+static void write_key(FILE *f, const char *k) {
+	const char *p = k;
+	const char *n = p;
+	while (*n) {
+		switch (*n) {
+		case '\\':
+			SKIP;
+			fwrite ("\\\\", 1, 2, f);
+			break;
+		case '=':
+			SKIP;
+			fwrite ("\\=", 1, 2, f);
+			break;
+		case '\n':
+			SKIP;
+			fwrite ("\\n", 1, 2, f);
+			break;
+		}
+		n++;
+	}
+	FLUSH;
+}
+
+static void write_value(FILE *f, const char *v) {
+	// write and escape value
+	const char *p = v;
+	const char *n = p;
+	while (*n) {
+		switch (*n) {
+		case '\\':
+			SKIP;
+			fwrite ("\\\\", 1, 2, f);
+			break;
+		case '\n':
+			SKIP;
+			fwrite ("\\n", 1, 2, f);
+			break;
+		}
+		n++;
+	}
+	FLUSH;
+}
+
+static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
+	//path
+	write_path (f, path);
 	fwrite ("\n", 1, 1, f);
 
 	// k=v entries
@@ -111,47 +159,10 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 			fwrite ("\\", 1, 1, f);
 		}
 
-		// write and escape key
-		const char *p = k;
-		const char *n = p;
-		while (*n) {
-			switch (*n) {
-			case '\\':
-				SKIP;
-				fwrite ("\\\\", 1, 2, f);
-				break;
-			case '=':
-				SKIP;
-				fwrite ("\\=", 1, 2, f);
-				break;
-			case '\n':
-				SKIP;
-				fwrite ("\\n", 1, 2, f);
-				break;
-			}
-			n++;
-		}
-		FLUSH;
-
+		write_key (f, k);
 		fwrite ("=", 1, 1, f);
+		write_value (f, v);
 
-		// write and escape value
-		p = v;
-		n = p;
-		while (*n) {
-			switch (*n) {
-			case '\\':
-				SKIP;
-				fwrite ("\\\\", 1, 2, f);
-				break;
-			case '\n':
-				SKIP;
-				fwrite ("\\n", 1, 2, f);
-				break;
-			}
-			n++;
-		}
-		FLUSH;
 		fwrite ("\n", 1, 1, f);
 	}
 	ls_free (l);
@@ -173,9 +184,10 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 		ls_free (l);
 	}
 
-#undef FLUSH
 	return true;
 }
+#undef FLUSH
+#undef SKIP
 
 SDB_API bool sdb_text_fsave(Sdb *s, FILE *f, bool sort) {
 	SdbList *path = ls_new ();
