@@ -352,7 +352,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 	ctx->pos++;
 }
 
-#define INITIAL_BUFSZ 16 // TODO: more
+#define INITIAL_BUFSZ 32
 
 SDB_API bool sdb_text_fload(Sdb *s, FILE *f) {
 	LoadCtx ctx = {
