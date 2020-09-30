@@ -323,6 +323,8 @@ bool test_sdb_text_load_simple() {
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_simple_db ();
 	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	sdb_free (ref_db);
+	sdb_free (db);
 	mu_assert_true (eq, "load correct");
 #else
 #warning test_sdb_text_load_simple is disabled on your os.
@@ -340,6 +342,8 @@ bool test_sdb_text_load() {
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_db ();
 	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	sdb_free (ref_db);
+	sdb_free (db);
 	mu_assert_true (eq, "load correct");
 #else
 #warning test_sdb_text_load is disabled on your os.
