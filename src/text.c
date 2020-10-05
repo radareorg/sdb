@@ -244,7 +244,7 @@ static bool load_read_more(LoadCtx *ctx) {
 		if (newsz < ctx->bufsz) {
 			return false;
 		}
-		char *newbuf = realloc (ctx->buf, ctx->bufsz);
+		char *newbuf = realloc (ctx->buf, newsz);
 		if (!newbuf) {
 			return false;
 		}
