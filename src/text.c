@@ -101,6 +101,10 @@ static void write_path(FILE *f, SdbList *path) {
 }
 
 static void write_key(FILE *f, const char *k) {
+	// escape leading '/'
+	if (*k == '/') {
+		fwrite ("\\", 1, 1, f);
+	}
 	const char *p = k;
 	const char *n = p;
 	while (*n) {
@@ -155,10 +159,6 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 	ls_foreach (l, it, kv) {
 		const char *k = sdbkv_key (kv);
 		const char *v = sdbkv_value (kv);
-		// escape leading '/'
-		if (*k == '/') {
-			fwrite ("\\", 1, 1, f);
-		}
 
 		write_key (f, k);
 		fwrite ("=", 1, 1, f);
@@ -210,6 +210,13 @@ SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort) {
 	return r;
 }
 
+typedef enum {
+	STATE_NEWLINE,
+	STATE_PATH,
+	STATE_KEY,
+	STATE_VALUE
+} LoadState;
+
 typedef struct {
 	FILE *f;
 	bool eof;
@@ -223,7 +230,7 @@ typedef struct {
 	size_t token_begin; // beginning of the currently processed token in the buffer
 	size_t shift; // amount to shift chars to the left (from unescaping)
 	SdbList/*<size_t>*/ *path;
-	enum { STATE_NEWLINE, STATE_PATH, STATE_KEY, STATE_VALUE } state;
+	LoadState state;
 	bool unescape; // whether the prev char was a backslash, i.e. the current one is escaped
 } LoadCtx;
 
@@ -237,12 +244,12 @@ static bool load_read_more(LoadCtx *ctx) {
 		if (newsz < ctx->bufsz) {
 			return false;
 		}
-		ctx->bufsz = newsz;
 		char *newbuf = realloc (ctx->buf, ctx->bufsz);
 		if (!newbuf) {
 			return false;
 		}
 		ctx->buf = newbuf;
+		ctx->bufsz = newsz;
 	}
 	// read full buffer (leave 1 for null-terminating)
 	size_t red = fread (ctx->buf + ctx->pos, 1, ctx->bufsz - 1 - ctx->pos, ctx->f);
@@ -265,7 +272,6 @@ static void load_flush_line(LoadCtx *ctx) {
 	switch (ctx->state) {
 	case STATE_PATH: {
 		ls_push (ctx->path, (void *)ctx->token_begin);
-		// TODO: remove ctx->token_begin = ctx->pos + 1;
 		SdbListIter *it;
 		void *token_off_tmp;
 		ctx->cur_db = ctx->root_db;
@@ -309,6 +315,11 @@ static void load_flush_line(LoadCtx *ctx) {
 }
 
 static void load_process_single_char(LoadCtx *ctx) {
+	if (ctx->buf[ctx->pos] == '\n') {
+		load_flush_line (ctx);
+		return;
+	}
+
 	if (ctx->state == STATE_NEWLINE) {
 		// at the start of a line, decide whether it's a path or a k=v
 		// by whether there is a leading slash.
@@ -386,10 +397,6 @@ SDB_API bool sdb_text_fload(Sdb *s, FILE *f) {
 			break;
 		}
 		while (ctx.pos < ctx.buf_filled) {
-			if (ctx.buf[ctx.pos] == '\n') {
-				load_flush_line (&ctx);
-				continue;
-			}
 			load_process_single_char (&ctx);
 		}
 	}
