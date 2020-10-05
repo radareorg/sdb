@@ -207,7 +207,7 @@ bool test_sdb_copy() {
 	mu_end;
 }
 
-#define PERTURBATOR "\\,\";]\n [}{'=/"
+#define PERTURBATOR "\\,\";]\n [\r}{'=/"
 
 static const char *text_ref_simple =
 	"/\n"
@@ -224,16 +224,22 @@ static const char *text_ref_simple =
 
 static const char *text_ref =
 	"/\n"
-	"\\\\,\";]\\n [}{'\\=/key\\\\,\";]\\n [}{'\\=/=\\\\,\";]\\n [}{'=/value\\\\,\";]\\n [}{'=/\n"
+	"\\\\,\";]\\n [\\r}{'\\=/key\\\\,\";]\\n [\\r}{'\\=/=\\\\,\";]\\n [\\r}{'=/value\\\\,\";]\\n [\\r}{'=/\n"
 	"aaa=stuff\n"
 	"bbb=other stuff\n"
 	"\n"
-	"/sub\\\\,\";]\\n [}{'=\\/namespace\n"
+	"/sub\\\\,\";]\\n [\\r}{'=\\/namespace\n"
 	"\\/more stuff\\n=\\nin\\nsub\\n\n"
-	"key\\\\,\";]\\n [}{'\\=/in sub=value\\\\,\";]\\n [}{'=/in sub\n"
+	"key\\\\,\";]\\n [\\r}{'\\=/in sub=value\\\\,\";]\\n [\\r}{'=/in sub\n"
 	"\n"
-	"/sub\\\\,\";]\\n [}{'=\\/namespace/subsub\n"
+	"/sub\\\\,\";]\\n [\\r}{'=\\/namespace/subsub\n"
 	"some stuff=also down here\n";
+
+static const char *text_ref_bad_nl =
+	"/\r\n"
+	"non=unix\r"
+	"newlines=should\n"
+	"be=banned";
 
 static Sdb *text_ref_simple_db() {
 	Sdb *db = sdb_new0 ();
@@ -262,6 +268,14 @@ static Sdb *text_ref_db() {
 
 	Sdb *subsub = sdb_ns (sub, "subsub", true);
 	sdb_set (subsub, "some stuff", "also down here", 0);
+	return db;
+}
+
+static Sdb *text_ref_bad_nl_db() {
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, "non", "unix", 0);
+	sdb_set (db, "newlines", "should", 0);
+	sdb_set (db, "be", "banned", 0);
 	return db;
 }
 
@@ -362,6 +376,23 @@ bool test_sdb_text_load() {
 	mu_end;
 }
 
+bool test_sdb_text_load_bad_nl() {
+	FILE *f = tmpfile_new (".text_load_bad_nl", text_ref_bad_nl, strlen (text_ref_bad_nl));
+	Sdb *db = sdb_new0 ();
+	bool succ = sdb_text_fload (db, f);
+	fclose (f);
+	unlink (".text_load_bad_nl");
+
+	mu_assert_true (succ, "load success");
+	Sdb *ref_db = text_ref_bad_nl_db ();
+	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	sdb_free (ref_db);
+	sdb_free (db);
+	mu_assert_true (eq, "load correct");
+	mu_end;
+
+}
+
 int all_tests() {
 	// XXX two bugs found with crash
 	mu_run_test (test_sdb_namespace);
@@ -378,6 +409,7 @@ int all_tests() {
 	mu_run_test (test_sdb_text_load_simple);
 	mu_run_test (test_sdb_text_save);
 	mu_run_test (test_sdb_text_load);
+	mu_run_test (test_sdb_text_load_bad_nl);
 	return tests_passed != tests_run;
 }
 

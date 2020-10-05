@@ -14,7 +14,7 @@
  *   /some/namespace
  * 
  * The default path is root, just a slash also means root.
- * These paths are always absolute from the root. Characters that must be escaped in a path are: '/', '\\', '\n':
+ * These paths are always absolute from the root. Characters that must be escaped in a path are: '/', '\\', '\n', '\r':
  *
  *   /s\/ome/name\nspa\\ce
  *
@@ -27,7 +27,7 @@
  *
  *   \/slashedkey=somevalue
  *
- * Other than that, at any postion, '\\' and '\n' must be escaped:
+ * Other than that, at any postion, '\\', '\n' and '\r' must be escaped:
  *   
  *   some\\key=some\nvalue
  *
@@ -93,6 +93,10 @@ static void write_path(FILE *f, SdbList *path) {
 				SKIP;
 				fwrite ("\\n", 1, 2, f);
 				break;
+			case '\r':
+				SKIP;
+				fwrite ("\\r", 1, 2, f);
+				break;
 			}
 			n++;
 		}
@@ -121,6 +125,10 @@ static void write_key(FILE *f, const char *k) {
 			SKIP;
 			fwrite ("\\n", 1, 2, f);
 			break;
+		case '\r':
+			SKIP;
+			fwrite ("\\r", 1, 2, f);
+			break;
 		}
 		n++;
 	}
@@ -140,6 +148,10 @@ static void write_value(FILE *f, const char *v) {
 		case '\n':
 			SKIP;
 			fwrite ("\\n", 1, 2, f);
+			break;
+		case '\r':
+			SKIP;
+			fwrite ("\\r", 1, 2, f);
 			break;
 		}
 		n++;
@@ -315,7 +327,7 @@ static void load_flush_line(LoadCtx *ctx) {
 }
 
 static void load_process_single_char(LoadCtx *ctx) {
-	if (ctx->buf[ctx->pos] == '\n') {
+	if (ctx->buf[ctx->pos] == '\n' || ctx->buf[ctx->pos] == '\r') {
 		load_flush_line (ctx);
 		return;
 	}
@@ -334,11 +346,19 @@ static void load_process_single_char(LoadCtx *ctx) {
 	}
 
 	if (ctx->unescape) {
-		if (ctx->buf[ctx->pos] == 'n') {
-			ctx->buf[ctx->pos - ctx->shift] = '\n';
-		} else {
-			ctx->buf[ctx->pos - ctx->shift] = ctx->buf[ctx->pos];
+		char raw_char;
+		switch (ctx->buf[ctx->pos]) {
+			case 'n':
+				raw_char = '\n';
+				break;
+			case 'r':
+				raw_char = '\r';
+				break;
+			default:
+				raw_char = ctx->buf[ctx->pos];
+			break;
 		}
+		ctx->buf[ctx->pos - ctx->shift] = raw_char;
 		ctx->unescape = false;
 	} else if (ctx->buf[ctx->pos] == '\\') {
 		// got a backslash, the next char, unescape in the next iteration or die!
