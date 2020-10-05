@@ -241,6 +241,19 @@ static const char *text_ref_bad_nl =
 	"newlines=should\n"
 	"be=banned";
 
+static const char *text_ref_broken =
+	"/////\n"
+	"just garbage\n"
+	"no\\=equal\\=here\n"
+	"=nokey\n"
+	"novalue=\n"
+	"more/garbage/////\n"
+	"\\/\\/\\/unnecessary=\\/escapes\\u\\x\\a\n"
+	"////some/////subns/\n"
+	"more=equal=signs=than=one=\n"
+	"////some//subns//more\n"
+	"////some//subns//more/further//////";
+
 static Sdb *text_ref_simple_db() {
 	Sdb *db = sdb_new0 ();
 	sdb_set (db, "somekey", "somevalue", 0);
@@ -276,6 +289,17 @@ static Sdb *text_ref_bad_nl_db() {
 	sdb_set (db, "non", "unix", 0);
 	sdb_set (db, "newlines", "should", 0);
 	sdb_set (db, "be", "banned", 0);
+	return db;
+}
+
+static Sdb *text_ref_broken_db() {
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, "///unnecessary", "/escapesuxa", 0);
+	Sdb *a = sdb_ns (db, "some", true);
+	Sdb *b = sdb_ns (a, "subns", true);
+	sdb_set (b, "more", "equal=signs=than=one=", 0);
+	Sdb *c = sdb_ns (b, "more", true);
+	sdb_ns (c, "further", true);
 	return db;
 }
 
@@ -390,7 +414,22 @@ bool test_sdb_text_load_bad_nl() {
 	sdb_free (db);
 	mu_assert_true (eq, "load correct");
 	mu_end;
+}
 
+bool test_sdb_text_load_broken() {
+	FILE *f = tmpfile_new (".text_load_broken", text_ref_broken, strlen (text_ref_broken));
+	Sdb *db = sdb_new0 ();
+	bool succ = sdb_text_fload (db, f);
+	fclose (f);
+	unlink (".text_load_broken");
+
+	mu_assert_true (succ, "load success");
+	Sdb *ref_db = text_ref_broken_db ();
+	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	sdb_free (ref_db);
+	sdb_free (db);
+	mu_assert_true (eq, "load correct");
+	mu_end;
 }
 
 int all_tests() {
@@ -410,6 +449,7 @@ int all_tests() {
 	mu_run_test (test_sdb_text_save);
 	mu_run_test (test_sdb_text_load);
 	mu_run_test (test_sdb_text_load_bad_nl);
+	mu_run_test (test_sdb_text_load_broken);
 	return tests_passed != tests_run;
 }
 
