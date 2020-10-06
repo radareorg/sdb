@@ -252,7 +252,9 @@ static const char *text_ref_broken =
 	"////some/////subns/\n"
 	"more=equal=signs=than=one=\n"
 	"////some//subns//more\n"
-	"////some//subns//more/further//////";
+	"////some//subns//more/further//////\n"
+	"escape=newlines\\\n"
+	"also escape=nothingness\\";
 
 static Sdb *text_ref_simple_db() {
 	Sdb *db = sdb_new0 ();
@@ -299,7 +301,9 @@ static Sdb *text_ref_broken_db() {
 	Sdb *b = sdb_ns (a, "subns", true);
 	sdb_set (b, "more", "equal=signs=than=one=", 0);
 	Sdb *c = sdb_ns (b, "more", true);
-	sdb_ns (c, "further", true);
+	Sdb *d = sdb_ns (c, "further", true);
+	sdb_set (d, "escape", "newlines", 0);
+	sdb_set (d, "also escape", "nothingness", 0);
 	return db;
 }
 
