@@ -352,15 +352,15 @@ static void load_process_single_char(LoadCtx *ctx) {
 	if (ctx->unescape) {
 		char raw_char;
 		switch (ctx->buf[ctx->pos]) {
-			case 'n':
-				raw_char = '\n';
-				break;
-			case 'r':
-				raw_char = '\r';
-				break;
-			default:
-				raw_char = ctx->buf[ctx->pos];
+		case 'n':
+			raw_char = '\n';
 			break;
+		case 'r':
+			raw_char = '\r';
+			break;
+		default:
+			raw_char = ctx->buf[ctx->pos];
+		break;
 		}
 		ctx->buf[ctx->pos - ctx->shift] = raw_char;
 		ctx->unescape = false;
