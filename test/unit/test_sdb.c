@@ -307,33 +307,33 @@ static Sdb *text_ref_broken_db() {
 	return db;
 }
 
-static FILE *tmpfile_new (const char *filename, const char *buf, size_t sz) {
-	FILE *f = fopen (filename, "w+");
-	if (!f) {
-		return NULL;
+static int tmpfile_new (const char *filename, const char *buf, size_t sz) {
+	int fd = open (filename, O_RDWR | O_CREAT | O_TRUNC);
+	if (fd < 0) {
+		return -1;
 	}
 	if (!buf) {
-		return f;
+		return fd;
 	}
-	size_t w = fwrite (buf, 1, sz, f);
-	if (w < sz) {
-		fclose (f);
-		return NULL;
+	int w = write (fd, buf, sz);
+	if (w < (int)sz) {
+		close (fd);
+		return -1;
 	}
-	fseek (f, 0, SEEK_SET);
-	return f;
+	lseek (fd, 0, SEEK_SET);
+	return fd;
 }
 
 bool test_sdb_text_save_simple() {
 	Sdb *db = text_ref_simple_db ();
 
-	FILE *f = tmpfile_new (".text_save_simple", NULL, 0);
-	bool succ = sdb_text_fsave (db, f, true);
-	fseek (f, 0, SEEK_SET);
+	int fd = tmpfile_new (".text_save_simple", NULL, 0);
+	bool succ = sdb_text_save_fd (db, fd, true);
+	lseek (fd, 0, SEEK_SET);
 	char buf[0x1000];
 	memset (buf, 0, sizeof (buf));
-	fread (buf, 1, sizeof (buf) - 1, f);
-	fclose (f);
+	read (fd, buf, sizeof (buf) - 1);
+	close (fd);
 	unlink (".text_save_simple");
 
 	sdb_free (db);
@@ -347,13 +347,13 @@ bool test_sdb_text_save_simple() {
 bool test_sdb_text_save() {
 	Sdb *db = text_ref_db ();
 
-	FILE *f = tmpfile_new (".text_save", NULL, 0);
-	bool succ = sdb_text_fsave (db, f, true);
-	fseek (f, 0, SEEK_SET);
+	int fd = tmpfile_new (".text_save", NULL, 0);
+	bool succ = sdb_text_save_fd (db, fd, true);
+	lseek (fd, 0, SEEK_SET);
 	char buf[0x1000];
 	memset (buf, 0, sizeof (buf));
-	fread (buf, 1, sizeof (buf) - 1, f);
-	fclose (f);
+	read (fd, buf, sizeof (buf) - 1);
+	close (fd);
 	unlink (".text_save");
 
 	sdb_free (db);
@@ -373,10 +373,10 @@ static void diff_cb(const SdbDiff *diff, void *user) {
 }
 
 bool test_sdb_text_load_simple() {
-	FILE *f = tmpfile_new (".text_load_simple", text_ref_simple, strlen (text_ref_simple));
+	int fd = tmpfile_new (".text_load_simple", text_ref_simple, strlen (text_ref_simple));
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_fload (db, f);
-	fclose (f);
+	bool succ = sdb_text_load_fd (db, fd);
+	close (fd);
 	unlink (".text_load_simple");
 
 	mu_assert_true (succ, "load success");
@@ -389,10 +389,10 @@ bool test_sdb_text_load_simple() {
 }
 
 bool test_sdb_text_load() {
-	FILE *f = tmpfile_new (".text_load", text_ref, strlen (text_ref));
+	int fd = tmpfile_new (".text_load", text_ref, strlen (text_ref));
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_fload (db, f);
-	fclose (f);
+	bool succ = sdb_text_load_fd (db, fd);
+	close (fd);
 	unlink (".text_load");
 
 	mu_assert_true (succ, "load success");
@@ -405,10 +405,10 @@ bool test_sdb_text_load() {
 }
 
 bool test_sdb_text_load_bad_nl() {
-	FILE *f = tmpfile_new (".text_load_bad_nl", text_ref_bad_nl, strlen (text_ref_bad_nl));
+	int fd = tmpfile_new (".text_load_bad_nl", text_ref_bad_nl, strlen (text_ref_bad_nl));
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_fload (db, f);
-	fclose (f);
+	bool succ = sdb_text_load_fd (db, fd);
+	close (fd);
 	unlink (".text_load_bad_nl");
 
 	mu_assert_true (succ, "load success");
@@ -421,10 +421,10 @@ bool test_sdb_text_load_bad_nl() {
 }
 
 bool test_sdb_text_load_broken() {
-	FILE *f = tmpfile_new (".text_load_broken", text_ref_broken, strlen (text_ref_broken));
+	int fd = tmpfile_new (".text_load_broken", text_ref_broken, strlen (text_ref_broken));
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_fload (db, f);
-	fclose (f);
+	bool succ = sdb_text_load_fd (db, fd);
+	close (fd);
 	unlink (".text_load_broken");
 
 	mu_assert_true (succ, "load success");

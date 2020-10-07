@@ -277,7 +277,7 @@ static int createdb(const char *f, const char **args, int nargs) {
 			}
 		}
 	} else {
-		if (!sdb_text_fload (s, stdin)) {
+		if (!sdb_text_load_fd (s, STDIN_FILENO)) {
 			eprintf ("Failed to read text sdb from stdin\n");
 		}
 	}

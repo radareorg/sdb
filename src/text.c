@@ -2,6 +2,9 @@
 
 #include "sdb.h"
 
+#include <fcntl.h>
+#include <limits.h>
+
 /**
  * ********************
  * Plaintext SDB Format
@@ -61,12 +64,12 @@ static int cmp_ns(const void *a, const void *b) {
 // n = position we are currently looking at
 // p = position until we have already written everything
 // macro to flush a block of text that doesn't have to be escaped
-#define FLUSH do { if (p != n) { fwrite (p, 1, n - p, f); p = n; } } while (0)
+#define FLUSH do { if (p != n) { write (fd, p, n - p); p = n; } } while (0)
 // macro to flush and skip a char
 #define SKIP do { FLUSH; p++; } while (0)
 
-static void write_path(FILE *f, SdbList *path) {
-	fwrite ("/", 1, 1, f); // always print a /, even if path is empty
+static void write_path(int fd, SdbList *path) {
+	write (fd, "/", 1); // always print a /, even if path is empty
 	SdbListIter *it;
 	const char *path_token;
 	bool first = true;
@@ -74,7 +77,7 @@ static void write_path(FILE *f, SdbList *path) {
 		if (first) {
 			first = false;
 		} else {
-			fwrite ("/", 1, 1, f);
+			write (fd, "/", 1);
 		}
 		// write and escape the path
 		const char *p = path_token;
@@ -83,19 +86,19 @@ static void write_path(FILE *f, SdbList *path) {
 			switch (*n) {
 			case '\\':
 				SKIP;
-				fwrite ("\\\\", 1, 2, f);
+				write (fd, "\\\\", 2);
 				break;
 			case '/':
 				SKIP;
-				fwrite ("\\/", 1, 2, f);
+				write (fd, "\\/", 2);
 				break;
 			case '\n':
 				SKIP;
-				fwrite ("\\n", 1, 2, f);
+				write (fd, "\\n", 2);
 				break;
 			case '\r':
 				SKIP;
-				fwrite ("\\r", 1, 2, f);
+				write (fd, "\\r", 2);
 				break;
 			}
 			n++;
@@ -104,10 +107,10 @@ static void write_path(FILE *f, SdbList *path) {
 	}
 }
 
-static void write_key(FILE *f, const char *k) {
+static void write_key(int fd, const char *k) {
 	// escape leading '/'
 	if (*k == '/') {
-		fwrite ("\\", 1, 1, f);
+		write (fd, "\\", 1);
 	}
 	const char *p = k;
 	const char *n = p;
@@ -115,19 +118,19 @@ static void write_key(FILE *f, const char *k) {
 		switch (*n) {
 		case '\\':
 			SKIP;
-			fwrite ("\\\\", 1, 2, f);
+			write (fd, "\\\\", 2);
 			break;
 		case '=':
 			SKIP;
-			fwrite ("\\=", 1, 2, f);
+			write (fd, "\\=", 2);
 			break;
 		case '\n':
 			SKIP;
-			fwrite ("\\n", 1, 2, f);
+			write (fd, "\\n", 2);
 			break;
 		case '\r':
 			SKIP;
-			fwrite ("\\r", 1, 2, f);
+			write (fd, "\\r", 2);
 			break;
 		}
 		n++;
@@ -135,7 +138,7 @@ static void write_key(FILE *f, const char *k) {
 	FLUSH;
 }
 
-static void write_value(FILE *f, const char *v) {
+static void write_value(int fd, const char *v) {
 	// write and escape value
 	const char *p = v;
 	const char *n = p;
@@ -143,15 +146,15 @@ static void write_value(FILE *f, const char *v) {
 		switch (*n) {
 		case '\\':
 			SKIP;
-			fwrite ("\\\\", 1, 2, f);
+			write (fd, "\\\\", 2);
 			break;
 		case '\n':
 			SKIP;
-			fwrite ("\\n", 1, 2, f);
+			write (fd, "\\n", 2);
 			break;
 		case '\r':
 			SKIP;
-			fwrite ("\\r", 1, 2, f);
+			write (fd, "\\r", 2);
 			break;
 		}
 		n++;
@@ -159,10 +162,10 @@ static void write_value(FILE *f, const char *v) {
 	FLUSH;
 }
 
-static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
+static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 	//path
-	write_path (f, path);
-	fwrite ("\n", 1, 1, f);
+	write_path (fd, path);
+	write (fd, "\n", 1);
 
 	// k=v entries
 	SdbList *l = sdb_foreach_list (s, sort);
@@ -172,11 +175,11 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 		const char *k = sdbkv_key (kv);
 		const char *v = sdbkv_value (kv);
 
-		write_key (f, k);
-		fwrite ("=", 1, 1, f);
-		write_value (f, v);
+		write_key (fd, k);
+		write (fd, "=", 1);
+		write_value (fd, v);
 
-		fwrite ("\n", 1, 1, f);
+		write (fd, "\n", 1);
 	}
 	ls_free (l);
 
@@ -188,9 +191,9 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 	}
 	SdbNs *ns;
 	ls_foreach (l, it, ns) {
-		fwrite ("\n", 1, 1, f);
+		write (fd, "\n", 1);
 		ls_push (path, ns->name);
-		text_fsave (ns->sdb, f, sort, path);
+		text_save (ns->sdb, fd, sort, path);
 		ls_pop (path);
 	}
 	if (l != s->ns) {
@@ -202,23 +205,23 @@ static bool text_fsave(Sdb *s, FILE *f, bool sort, SdbList *path) {
 #undef FLUSH
 #undef SKIP
 
-SDB_API bool sdb_text_fsave(Sdb *s, FILE *f, bool sort) {
+SDB_API bool sdb_text_save_fd(Sdb *s, int fd, bool sort) {
 	SdbList *path = ls_new ();
 	if (!path) {
 		return false;
 	}
-	bool r = text_fsave (s, f, sort, path);
+	bool r = text_save (s, fd, sort, path);
 	ls_free (path);
 	return r;
 }
 
 SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort) {
-	FILE *f = fopen (file, "w");
-	if (!f) {
+	int fd = open (file, O_WRONLY | O_CREAT | O_TRUNC);
+	if (fd < 0) {
 		return false;
 	}
-	bool r = sdb_text_fsave (s, f, sort);
-	fclose (f);
+	bool r = sdb_text_save_fd (s, fd, sort);
+	close (fd);
 	return r;
 }
 
@@ -230,7 +233,7 @@ typedef enum {
 } LoadState;
 
 typedef struct {
-	FILE *f;
+	int fd;
 	bool eof;
 	size_t bufsz;
 	char *buf;
@@ -246,6 +249,7 @@ typedef struct {
 	bool unescape; // whether the prev char was a backslash, i.e. the current one is escaped
 } LoadCtx;
 
+
 // load more data from ctx->f into ctx->buf starting at ctx->pos
 // and update ctx->buf_filled and ctx->eof.
 // may realloc and change ctx->buf and ctx->bufsz.
@@ -253,7 +257,7 @@ static bool load_read_more(LoadCtx *ctx) {
 	// realloc if no space
 	if (ctx->pos >= ctx->bufsz - 1) {
 		size_t newsz = ctx->bufsz + ctx->bufsz;
-		if (newsz < ctx->bufsz) {
+		if (newsz < ctx->bufsz || newsz > (size_t)INT_MAX) {
 			return false;
 		}
 		char *newbuf = realloc (ctx->buf, newsz);
@@ -264,8 +268,8 @@ static bool load_read_more(LoadCtx *ctx) {
 		ctx->bufsz = newsz;
 	}
 	// read full buffer (leave 1 for null-terminating)
-	size_t red = fread (ctx->buf + ctx->pos, 1, ctx->bufsz - 1 - ctx->pos, ctx->f);
-	if (!red && !feof (ctx->f)) {
+	int red = read (ctx->fd, ctx->buf + ctx->pos, ctx->bufsz - 1 - ctx->pos);
+	if (red < 0) {
 		// error
 		return false;
 	}
@@ -385,9 +389,9 @@ static void load_process_single_char(LoadCtx *ctx) {
 
 #define INITIAL_BUFSZ 32
 
-SDB_API bool sdb_text_fload(Sdb *s, FILE *f) {
+SDB_API bool sdb_text_load_fd(Sdb *s, int fd) {
 	LoadCtx ctx = {
-		.f = f,
+		.fd = fd,
 		.eof = false,
 		.bufsz = INITIAL_BUFSZ,
 		.buf = malloc (INITIAL_BUFSZ),
@@ -426,12 +430,12 @@ SDB_API bool sdb_text_fload(Sdb *s, FILE *f) {
 }
 
 SDB_API bool sdb_text_load(Sdb *s, const char *file) {
-	FILE *f = fopen (file, "r");
-	if (!f) {
+	int fd = open (file, O_RDONLY);
+	if (fd < 0) {
 		return false;
 	}
-	bool r = sdb_text_fload (s, f);
-	fclose (f);
+	bool r = sdb_text_load_fd (s, fd);
+	close (fd);
 	return r;
 }
 
