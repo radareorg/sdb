@@ -63,10 +63,24 @@ static int cmp_ns(const void *a, const void *b) {
 
 // n = position we are currently looking at
 // p = position until we have already written everything
-// macro to flush a block of text that doesn't have to be escaped
+// flush a block of text that doesn't have to be escaped
 #define FLUSH do { if (p != n) { write (fd, p, n - p); p = n; } } while (0)
-// macro to flush and skip a char
-#define SKIP do { FLUSH; p++; } while (0)
+// write and escape a string from str to fd
+#define ESCAPE_LOOP(fd, str, escapes) do { \
+		const char *p = str; \
+		const char *n = p; \
+		while (*n) { \
+			switch (*n) { escapes } \
+			n++; \
+		} \
+		FLUSH; \
+	} while (0)
+#define ESCAPE(c, repl, replsz) \
+		case c: \
+			FLUSH; \
+			p++; \
+			write (fd, "\\"repl, replsz + 1); \
+			break;
 
 static void write_path(int fd, SdbList *path) {
 	write (fd, "/", 1); // always print a /, even if path is empty
@@ -79,31 +93,12 @@ static void write_path(int fd, SdbList *path) {
 		} else {
 			write (fd, "/", 1);
 		}
-		// write and escape the path
-		const char *p = path_token;
-		const char *n = p;
-		while (*n) {
-			switch (*n) {
-			case '\\':
-				SKIP;
-				write (fd, "\\\\", 2);
-				break;
-			case '/':
-				SKIP;
-				write (fd, "\\/", 2);
-				break;
-			case '\n':
-				SKIP;
-				write (fd, "\\n", 2);
-				break;
-			case '\r':
-				SKIP;
-				write (fd, "\\r", 2);
-				break;
-			}
-			n++;
-		}
-		FLUSH;
+		ESCAPE_LOOP (fd, path_token,
+			ESCAPE ('\\', "\\", 1);
+			ESCAPE ('/', "/", 1);
+			ESCAPE ('\n', "n", 1);
+			ESCAPE ('\r', "r", 1);
+		);
 	}
 }
 
@@ -112,54 +107,20 @@ static void write_key(int fd, const char *k) {
 	if (*k == '/') {
 		write (fd, "\\", 1);
 	}
-	const char *p = k;
-	const char *n = p;
-	while (*n) {
-		switch (*n) {
-		case '\\':
-			SKIP;
-			write (fd, "\\\\", 2);
-			break;
-		case '=':
-			SKIP;
-			write (fd, "\\=", 2);
-			break;
-		case '\n':
-			SKIP;
-			write (fd, "\\n", 2);
-			break;
-		case '\r':
-			SKIP;
-			write (fd, "\\r", 2);
-			break;
-		}
-		n++;
-	}
-	FLUSH;
+	ESCAPE_LOOP (fd, k,
+		ESCAPE ('\\', "\\", 1);
+		ESCAPE ('=', "=", 1);
+		ESCAPE ('\n', "n", 1);
+		ESCAPE ('\r', "r", 1);
+	);
 }
 
 static void write_value(int fd, const char *v) {
-	// write and escape value
-	const char *p = v;
-	const char *n = p;
-	while (*n) {
-		switch (*n) {
-		case '\\':
-			SKIP;
-			write (fd, "\\\\", 2);
-			break;
-		case '\n':
-			SKIP;
-			write (fd, "\\n", 2);
-			break;
-		case '\r':
-			SKIP;
-			write (fd, "\\r", 2);
-			break;
-		}
-		n++;
-	}
-	FLUSH;
+	ESCAPE_LOOP (fd, v,
+		ESCAPE ('\\', "\\", 1);
+		ESCAPE ('\n', "n", 1);
+		ESCAPE ('\r', "r", 1);
+	);
 }
 
 static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
@@ -203,7 +164,8 @@ static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 	return true;
 }
 #undef FLUSH
-#undef SKIP
+#undef ESCAPE_LOOP
+#undef ESCAPE
 
 SDB_API bool sdb_text_save_fd(Sdb *s, int fd, bool sort) {
 	SdbList *path = ls_new ();
