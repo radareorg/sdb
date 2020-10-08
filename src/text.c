@@ -293,7 +293,8 @@ static void load_flush_line(LoadCtx *ctx) {
 }
 
 static void load_process_single_char(LoadCtx *ctx) {
-	if (ctx->buf[ctx->pos] == '\n' || ctx->buf[ctx->pos] == '\r') {
+	char c = ctx->buf[ctx->pos];
+	if (c == '\n' || c == '\r') {
 		load_flush_line (ctx);
 		return;
 	}
@@ -301,10 +302,11 @@ static void load_process_single_char(LoadCtx *ctx) {
 	if (ctx->state == STATE_NEWLINE) {
 		// at the start of a line, decide whether it's a path or a k=v
 		// by whether there is a leading slash.
-		if (ctx->buf[ctx->pos] == '/') {
+		if (c == '/') {
 			ctx->state = STATE_PATH;
 			ctx->token_begin = 1;
 			ctx->pos++;
+			c = ctx->buf[ctx->pos];
 			return;
 		}
 		ctx->state = STATE_KEY;
@@ -312,7 +314,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 
 	if (ctx->unescape) {
 		char raw_char;
-		switch (ctx->buf[ctx->pos]) {
+		switch (c) {
 		case 'n':
 			raw_char = '\n';
 			break;
@@ -320,22 +322,22 @@ static void load_process_single_char(LoadCtx *ctx) {
 			raw_char = '\r';
 			break;
 		default:
-			raw_char = ctx->buf[ctx->pos];
+			raw_char = c;
 			break;
 		}
 		ctx->buf[ctx->pos - ctx->shift] = raw_char;
 		ctx->unescape = false;
-	} else if (ctx->buf[ctx->pos] == '\\') {
+	} else if (c == '\\') {
 		// got a backslash, the next char, unescape in the next iteration or die!
 		ctx->shift++;
 		ctx->unescape = true;
-	} else if (ctx->state == STATE_PATH && ctx->buf[ctx->pos] == '/') {
+	} else if (ctx->state == STATE_PATH && c == '/') {
 		// new path token
 		ctx->buf[ctx->pos - ctx->shift] = '\0';
 		ls_push (ctx->path, (void *)ctx->token_begin);
 		ctx->token_begin = ctx->pos + 1;
 		ctx->shift = 0;
-	} else if (ctx->state == STATE_KEY && ctx->buf[ctx->pos] == '=') {
+	} else if (ctx->state == STATE_KEY && c == '=') {
 		// switch from key into value mode
 		ctx->buf[ctx->pos - ctx->shift] = '\0';
 		ctx->token_begin = ctx->pos + 1;
@@ -343,7 +345,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 		ctx->state = STATE_VALUE;
 	} else if (ctx->shift) {
 		// just some char, shift it back if necessary
-		ctx->buf[ctx->pos - ctx->shift] = ctx->buf[ctx->pos];
+		ctx->buf[ctx->pos - ctx->shift] = c;
 	}
 	ctx->pos++;
 }
