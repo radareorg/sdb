@@ -163,7 +163,7 @@ static void write_value(int fd, const char *v) {
 }
 
 static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
-	//path
+	// path
 	write_path (fd, path);
 	write (fd, "\n", 1);
 
@@ -343,10 +343,8 @@ static void load_process_single_char(LoadCtx *ctx) {
 			ctx->state = STATE_PATH;
 			ctx->token_begin = 1;
 			ctx->pos++;
-			return;
-		} else {
-			ctx->state = STATE_KEY;
 		}
+		ctx->state = STATE_KEY;
 	}
 
 	if (ctx->unescape) {
@@ -360,7 +358,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 			break;
 		default:
 			raw_char = ctx->buf[ctx->pos];
-		break;
+			break;
 		}
 		ctx->buf[ctx->pos - ctx->shift] = raw_char;
 		ctx->unescape = false;
@@ -410,7 +408,7 @@ SDB_API bool sdb_text_load_fd(Sdb *s, int fd) {
 		return false;
 	}
 	bool ret = true;
-	while (true) {
+	for (;;) {
 		if (!load_read_more (&ctx)) {
 			ret = false;
 			break;
