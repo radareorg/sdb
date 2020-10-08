@@ -350,24 +350,34 @@ static void load_process_single_char(LoadCtx *ctx) {
 
 #define INITIAL_BUFSZ 32
 
+static void load_ctx_fini(LoadCtx *ctx) {
+	free (ctx->buf);
+	ls_free (ctx->path);
+}
+
+static bool load_ctx_init(LoadCtx *ctx, Sdb *s, int fd) {
+	ctx->fd = fd;
+	ctx->eof = false;
+	ctx->bufsz = INITIAL_BUFSZ;
+	ctx->buf = malloc (INITIAL_BUFSZ);
+	ctx->root_db = s;
+	ctx->cur_db = s;
+	ctx->pos = 0;
+	ctx->token_begin = 0;
+	ctx->shift = 0;
+	ctx->path = ls_new ();
+	ctx->state = STATE_NEWLINE;
+	ctx->unescape = false;
+	if (!ctx->buf || !ctx->path) {
+		load_ctx_fini (ctx);
+		return false;
+	}
+	return true;
+}
+
 SDB_API bool sdb_text_load_fd(Sdb *s, int fd) {
-	LoadCtx ctx = {
-		.fd = fd,
-		.eof = false,
-		.bufsz = INITIAL_BUFSZ,
-		.buf = malloc (INITIAL_BUFSZ),
-		.root_db = s,
-		.cur_db = s,
-		.pos = 0,
-		.token_begin = 0,
-		.shift = 0,
-		.path = ls_new (),
-		.state = STATE_NEWLINE,
-		.unescape = false
-	};
-	if (!ctx.buf || !ctx.path) {
-		free (ctx.buf);
-		ls_free (ctx.path);
+	LoadCtx ctx;
+	if (!load_ctx_init (&ctx, s, fd)) {
 		return false;
 	}
 	bool ret = true;
@@ -385,8 +395,7 @@ SDB_API bool sdb_text_load_fd(Sdb *s, int fd) {
 			load_process_single_char (&ctx);
 		}
 	}
-	free (ctx.buf);
-	ls_free (ctx.path);
+	load_ctx_fini (&ctx);
 	return ret;
 }
 
