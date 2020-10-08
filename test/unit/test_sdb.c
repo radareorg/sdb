@@ -324,13 +324,15 @@ static int tmpfile_new (const char *filename, const char *buf, size_t sz) {
 	return fd;
 }
 
+#define TEST_BUF_SZ 0x1000
+
 bool test_sdb_text_save_simple() {
 	Sdb *db = text_ref_simple_db ();
 
 	int fd = tmpfile_new (".text_save_simple", NULL, 0);
 	bool succ = sdb_text_save_fd (db, fd, true);
 	lseek (fd, 0, SEEK_SET);
-	char buf[0x1000];
+	char buf[TEST_BUF_SZ];
 	memset (buf, 0, sizeof (buf));
 	read (fd, buf, sizeof (buf) - 1);
 	close (fd);
@@ -350,7 +352,7 @@ bool test_sdb_text_save() {
 	int fd = tmpfile_new (".text_save", NULL, 0);
 	bool succ = sdb_text_save_fd (db, fd, true);
 	lseek (fd, 0, SEEK_SET);
-	char buf[0x1000];
+	char buf[TEST_BUF_SZ];
 	memset (buf, 0, sizeof (buf));
 	read (fd, buf, sizeof (buf) - 1);
 	close (fd);
