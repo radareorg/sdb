@@ -36,8 +36,8 @@ install:
 
 # Build scripts
 build_script:
-  - cmd: if %builder% == msvc_ninja_64 ( call "%VSVARSALLPATH%" x64 && meson build && ninja -C build )
-  - cmd: if %builder% == msvc_ninja_32 ( call "%VSVARSALLPATH%" x86 && meson build && ninja -C build )
+  - cmd: if %builder% == msvc_ninja_64 ( call "%VSVARSALLPATH%" x64 && meson build && ninja -C build && ninja -C build test )
+  - cmd: if %builder% == msvc_ninja_32 ( call "%VSVARSALLPATH%" x86 && meson build && ninja -C build && ninja -C build test )
 
 ## Artifacts
 #artifacts:
