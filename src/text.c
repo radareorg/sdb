@@ -126,6 +126,9 @@ static void write_value(int fd, const char *v) {
 		ESCAPE ('\r', "r", 1);
 	);
 }
+#undef FLUSH
+#undef ESCAPE_LOOP
+#undef ESCAPE
 
 static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 	// path
@@ -167,9 +170,6 @@ static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 
 	return true;
 }
-#undef FLUSH
-#undef ESCAPE_LOOP
-#undef ESCAPE
 
 SDB_API bool sdb_text_save_fd(Sdb *s, int fd, bool sort) {
 	SdbList *path = ls_new ();
@@ -262,6 +262,8 @@ static inline char unescape_raw_char (char c) {
 		return '\n';
 	case 'r':
 		return '\r';
+	case 't':
+		return '\t';
 	default:
 		return c;
 	}
