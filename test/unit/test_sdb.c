@@ -375,11 +375,9 @@ static void diff_cb(const SdbDiff *diff, void *user) {
 }
 
 bool test_sdb_text_load_simple() {
-	int fd = tmpfile_new (".text_load_simple", text_ref_simple, strlen (text_ref_simple));
+	char *buf = strdup (text_ref_simple);
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_load_fd (db, fd);
-	close (fd);
-	unlink (".text_load_simple");
+	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_simple_db ();
@@ -391,11 +389,9 @@ bool test_sdb_text_load_simple() {
 }
 
 bool test_sdb_text_load() {
-	int fd = tmpfile_new (".text_load", text_ref, strlen (text_ref));
+	char *buf = strdup (text_ref);
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_load_fd (db, fd);
-	close (fd);
-	unlink (".text_load");
+	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_db ();
@@ -407,11 +403,9 @@ bool test_sdb_text_load() {
 }
 
 bool test_sdb_text_load_bad_nl() {
-	int fd = tmpfile_new (".text_load_bad_nl", text_ref_bad_nl, strlen (text_ref_bad_nl));
+	char *buf = strdup (text_ref_bad_nl);
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_load_fd (db, fd);
-	close (fd);
-	unlink (".text_load_bad_nl");
+	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_bad_nl_db ();
@@ -423,11 +417,9 @@ bool test_sdb_text_load_bad_nl() {
 }
 
 bool test_sdb_text_load_broken() {
-	int fd = tmpfile_new (".text_load_broken", text_ref_broken, strlen (text_ref_broken));
+	char *buf = strdup (text_ref_broken);
 	Sdb *db = sdb_new0 ();
-	bool succ = sdb_text_load_fd (db, fd);
-	close (fd);
-	unlink (".text_load_broken");
+	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_broken_db ();

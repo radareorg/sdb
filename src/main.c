@@ -277,9 +277,15 @@ static int createdb(const char *f, const char **args, int nargs) {
 			}
 		}
 	} else {
-		if (!sdb_text_load_fd (s, STDIN_FILENO)) {
+		size_t len;
+		char *in = slurp (stdin, &len);
+		if (!in) {
+			return 0;
+		}
+		if (!sdb_text_load_buf (s, in, len)) {
 			eprintf ("Failed to read text sdb from stdin\n");
 		}
+		free (in);
 	}
 beach:
 	sdb_sync (s);

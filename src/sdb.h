@@ -209,7 +209,7 @@ SDB_API bool sdb_disk_unlink(Sdb* s);
 /* plaintext sdb files */
 SDB_API bool sdb_text_save_fd(Sdb *s, int fd, bool sort);
 SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort);
-SDB_API bool sdb_text_load_fd(Sdb *s, int fd);
+SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz);
 SDB_API bool sdb_text_load(Sdb *s, const char *file);
 
 /* iterate */

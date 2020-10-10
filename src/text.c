@@ -4,6 +4,10 @@
 
 #include <fcntl.h>
 #include <limits.h>
+#include <sys/stat.h>
+#if USE_MMAN
+#include <sys/mman.h>
+#endif
 
 /**
  * ********************
@@ -195,51 +199,19 @@ typedef enum {
 } LoadState;
 
 typedef struct {
-	int fd;
 	bool eof;
-	size_t bufsz;
 	char *buf;
-	size_t buf_filled; // how many bytes of buf are currently filled with data from the file
+	size_t bufsz;
 	Sdb *root_db;
 	Sdb *cur_db; // current namespace, changes when encountering a path line
-	// can't use pointers here because buf may be moved on realloc
 	size_t pos; // current processing position in the buffer
+	size_t line_begin;
 	size_t token_begin; // beginning of the currently processed token in the buffer
 	size_t shift; // amount to shift chars to the left (from unescaping)
 	SdbList/*<size_t>*/ *path;
 	LoadState state;
 	bool unescape; // whether the prev char was a backslash, i.e. the current one is escaped
 } LoadCtx;
-
-
-// load more data from ctx->f into ctx->buf starting at ctx->pos
-// and update ctx->buf_filled and ctx->eof.
-// may realloc and change ctx->buf and ctx->bufsz.
-static bool load_read_more(LoadCtx *ctx) {
-	// realloc if no space
-	if (ctx->pos >= ctx->bufsz - 1) {
-		size_t newsz = ctx->bufsz + ctx->bufsz;
-		if (newsz < ctx->bufsz || newsz > (size_t)INT_MAX) {
-			return false;
-		}
-		char *newbuf = realloc (ctx->buf, newsz);
-		if (!newbuf) {
-			return false;
-		}
-		ctx->buf = newbuf;
-		ctx->bufsz = newsz;
-	}
-	// read full buffer (leave 1 for null-terminating)
-	int red = read (ctx->fd, ctx->buf + ctx->pos, ctx->bufsz - 1 - ctx->pos);
-	if (red < 0) {
-		// error
-		return false;
-	}
-	// process buffer
-	ctx->buf_filled = ctx->pos + red;
-	ctx->eof = red == 0;
-	return true;
-}
 
 // to be called at the end of a line.
 // save all the data processed from the line into the database.
@@ -267,44 +239,49 @@ static void load_flush_line(LoadCtx *ctx) {
 		ls_destroy (ctx->path);
 		break;
 	}
-	case STATE_VALUE:
-		if (!*ctx->buf || !ctx->buf[ctx->token_begin]) {
+	case STATE_VALUE: {
+		const char *k = ctx->buf + ctx->line_begin;
+		const char *v = ctx->buf + ctx->token_begin;
+		if (!*k || !*v) {
 			break;
 		}
-		sdb_set (ctx->cur_db, ctx->buf, ctx->buf + ctx->token_begin, 0);
+		sdb_set (ctx->cur_db, k, v, 0);
 		break;
+	}
 	default:
 		break;
 	}
-	if (ctx->buf_filled && ctx->pos < ctx->buf_filled - 1) {
-		memmove (ctx->buf, ctx->buf + ctx->pos + 1, ctx->buf_filled - ctx->pos - 1);
-	}
 	// prepare for next line
 	ctx->shift = 0;
-	if (ctx->pos + 1 <= ctx->buf_filled) {
-		ctx->buf_filled -= ctx->pos + 1;
-	} else {
-		// special case, when at the end of the file
-		// here pos == buf_filled
-		ctx->buf_filled = 0;
-	}
-	ctx->pos = 0;
 	ctx->state = STATE_NEWLINE;
+}
+
+static inline char unescape_raw_char (char c) {
+	switch (c) {
+	case 'n':
+		return '\n';
+	case 'r':
+		return '\r';
+	default:
+		return c;
+	}
 }
 
 static void load_process_single_char(LoadCtx *ctx) {
 	char c = ctx->buf[ctx->pos];
 	if (c == '\n' || c == '\r') {
 		load_flush_line (ctx);
+		ctx->pos++;
 		return;
 	}
 
 	if (ctx->state == STATE_NEWLINE) {
+		ctx->line_begin = ctx->pos;
 		// at the start of a line, decide whether it's a path or a k=v
 		// by whether there is a leading slash.
 		if (c == '/') {
 			ctx->state = STATE_PATH;
-			ctx->token_begin = 1;
+			ctx->token_begin = ctx->pos + 1;
 			ctx->pos++;
 			c = ctx->buf[ctx->pos];
 			return;
@@ -313,19 +290,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 	}
 
 	if (ctx->unescape) {
-		char raw_char;
-		switch (c) {
-		case 'n':
-			raw_char = '\n';
-			break;
-		case 'r':
-			raw_char = '\r';
-			break;
-		default:
-			raw_char = c;
-			break;
-		}
-		ctx->buf[ctx->pos - ctx->shift] = raw_char;
+		ctx->buf[ctx->pos - ctx->shift] = unescape_raw_char (c);
 		ctx->unescape = false;
 	} else if (c == '\\') {
 		// got a backslash, the next char, unescape in the next iteration or die!
@@ -338,7 +303,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 		ctx->token_begin = ctx->pos + 1;
 		ctx->shift = 0;
 	} else if (ctx->state == STATE_KEY && c == '=') {
-		// switch from key into value mode
+		// switch from key to value mode
 		ctx->buf[ctx->pos - ctx->shift] = '\0';
 		ctx->token_begin = ctx->pos + 1;
 		ctx->shift = 0;
@@ -350,21 +315,19 @@ static void load_process_single_char(LoadCtx *ctx) {
 	ctx->pos++;
 }
 
-#define INITIAL_BUFSZ 32
-
 static void load_ctx_fini(LoadCtx *ctx) {
 	free (ctx->buf);
 	ls_free (ctx->path);
 }
 
-static bool load_ctx_init(LoadCtx *ctx, Sdb *s, int fd) {
-	ctx->fd = fd;
+static bool load_ctx_init(LoadCtx *ctx, Sdb *s, char *buf, size_t sz) {
 	ctx->eof = false;
-	ctx->bufsz = INITIAL_BUFSZ;
-	ctx->buf = malloc (INITIAL_BUFSZ);
+	ctx->buf = buf;
+	ctx->bufsz = sz;
 	ctx->root_db = s;
 	ctx->cur_db = s;
 	ctx->pos = 0;
+	ctx->line_begin = 0;
 	ctx->token_begin = 0;
 	ctx->shift = 0;
 	ctx->path = ls_new ();
@@ -377,26 +340,19 @@ static bool load_ctx_init(LoadCtx *ctx, Sdb *s, int fd) {
 	return true;
 }
 
-SDB_API bool sdb_text_load_fd(Sdb *s, int fd) {
+SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz) {
+	if (!sz) {
+		return true;
+	}
 	LoadCtx ctx;
-	if (!load_ctx_init (&ctx, s, fd)) {
+	if (!load_ctx_init (&ctx, s, buf, sz)) {
 		return false;
 	}
 	bool ret = true;
-	for (;;) {
-		if (!load_read_more (&ctx)) {
-			ret = false;
-			break;
-		}
-		// process buffer
-		if (ctx.eof) {
-			load_flush_line (&ctx);
-			break;
-		}
-		while (ctx.pos < ctx.buf_filled) {
-			load_process_single_char (&ctx);
-		}
+	while (ctx.pos < ctx.bufsz) {
+		load_process_single_char (&ctx);
 	}
+	load_flush_line (&ctx);
 	load_ctx_fini (&ctx);
 	return ret;
 }
@@ -406,7 +362,33 @@ SDB_API bool sdb_text_load(Sdb *s, const char *file) {
 	if (fd < 0) {
 		return false;
 	}
-	bool r = sdb_text_load_fd (s, fd);
+	bool r = false;
+	struct stat st;
+	if (fstat (fd, &st) || !st.st_size) {
+		goto beach;
+	}
+#if USE_MMAN
+	char *x = mmap (0, st.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	if (x == MAP_FAILED) {
+		goto beach;
+	}
+#else
+	char *x = calloc (1, st.st_size);
+	if (!x) {
+		goto beach;
+	}
+	if (read (fd, x, st.st_size) != st.st_size) {
+		free (x);
+		goto beach;
+	}
+#endif
+	r = sdb_text_load_buf (s, x, st.st_size);
+#if USE_MMAN
+	munmap (x, st.st_size);
+#else
+	free (x);
+#endif
+beach:
 	close (fd);
 	return r;
 }
