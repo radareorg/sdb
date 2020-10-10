@@ -316,7 +316,6 @@ static void load_process_single_char(LoadCtx *ctx) {
 }
 
 static void load_ctx_fini(LoadCtx *ctx) {
-	free (ctx->buf);
 	ls_free (ctx->path);
 }
 

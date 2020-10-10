@@ -193,15 +193,15 @@ bool test_sdb_copy() {
 	sdb_free (src);
 
 	mu_assert_eq (sdb_count (dst), 2, "root count");
-	mu_assert_streq (sdb_get (dst, "i am", 0), "thou", "root entries");
-	mu_assert_streq (sdb_get (dst, "thou art", 0), "i", "root entries");
+	mu_assert_streq (sdb_const_get (dst, "i am", 0), "thou", "root entries");
+	mu_assert_streq (sdb_const_get (dst, "thou art", 0), "i", "root entries");
 	mu_assert_eq (ls_length (dst->ns), 1, "sub ns count");
 	Sdb *dst_sub = sdb_ns (dst, "subns", false);
 	mu_assert_notnull (dst_sub, "subns");
 	mu_assert_eq (sdb_count (dst_sub), 3, "sub ns entries count");
-	mu_assert_streq (sdb_get (dst_sub, "radare", 0), "cool", "sub ns entries");
-	mu_assert_streq (sdb_get (dst_sub, "radare2", 0), "cooler", "sub ns entries");
-	mu_assert_streq (sdb_get (dst_sub, "cutter", 0), "coolest", "sub ns entries");
+	mu_assert_streq (sdb_const_get (dst_sub, "radare", 0), "cool", "sub ns entries");
+	mu_assert_streq (sdb_const_get (dst_sub, "radare2", 0), "cooler", "sub ns entries");
+	mu_assert_streq (sdb_const_get (dst_sub, "cutter", 0), "coolest", "sub ns entries");
 
 	sdb_free (dst);
 	mu_end;
@@ -308,7 +308,7 @@ static Sdb *text_ref_broken_db() {
 }
 
 static int tmpfile_new (const char *filename, const char *buf, size_t sz) {
-	int fd = open (filename, O_RDWR | O_CREAT | O_TRUNC);
+	int fd = open (filename, O_RDWR | O_CREAT | O_TRUNC, 0644);
 	if (fd < 0) {
 		return -1;
 	}
@@ -378,6 +378,7 @@ bool test_sdb_text_load_simple() {
 	char *buf = strdup (text_ref_simple);
 	Sdb *db = sdb_new0 ();
 	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
+	free (buf);
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_simple_db ();
@@ -392,6 +393,7 @@ bool test_sdb_text_load() {
 	char *buf = strdup (text_ref);
 	Sdb *db = sdb_new0 ();
 	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
+	free (buf);
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_db ();
@@ -406,6 +408,7 @@ bool test_sdb_text_load_bad_nl() {
 	char *buf = strdup (text_ref_bad_nl);
 	Sdb *db = sdb_new0 ();
 	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
+	free (buf);
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_bad_nl_db ();
@@ -420,9 +423,25 @@ bool test_sdb_text_load_broken() {
 	char *buf = strdup (text_ref_broken);
 	Sdb *db = sdb_new0 ();
 	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
+	free (buf);
 
 	mu_assert_true (succ, "load success");
 	Sdb *ref_db = text_ref_broken_db ();
+	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	sdb_free (ref_db);
+	sdb_free (db);
+	mu_assert_true (eq, "load correct");
+	mu_end;
+}
+
+bool test_sdb_text_load_file() {
+	close (tmpfile_new (".text_load_simple", text_ref_simple, strlen (text_ref_simple)));
+	Sdb *db = sdb_new0 ();
+	bool succ = sdb_text_load (db, ".text_load_simple");
+	unlink (".text_load_simple");
+
+	mu_assert_true (succ, "load success");
+	Sdb *ref_db = text_ref_simple_db ();
 	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
 	sdb_free (ref_db);
 	sdb_free (db);
@@ -448,6 +467,7 @@ int all_tests() {
 	mu_run_test (test_sdb_text_load);
 	mu_run_test (test_sdb_text_load_bad_nl);
 	mu_run_test (test_sdb_text_load_broken);
+	mu_run_test (test_sdb_text_load_file);
 	return tests_passed != tests_run;
 }
 
