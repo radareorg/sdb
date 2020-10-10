@@ -182,7 +182,7 @@ SDB_API bool sdb_text_save_fd(Sdb *s, int fd, bool sort) {
 }
 
 SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort) {
-	int fd = open (file, O_WRONLY | O_CREAT | O_TRUNC);
+	int fd = open (file, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
 	if (fd < 0) {
 		return false;
 	}
@@ -357,7 +357,7 @@ SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz) {
 }
 
 SDB_API bool sdb_text_load(Sdb *s, const char *file) {
-	int fd = open (file, O_RDONLY);
+	int fd = open (file, O_RDONLY | O_BINARY);
 	if (fd < 0) {
 		return false;
 	}

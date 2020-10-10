@@ -308,7 +308,7 @@ static Sdb *text_ref_broken_db() {
 }
 
 static int tmpfile_new (const char *filename, const char *buf, size_t sz) {
-	int fd = open (filename, O_RDWR | O_CREAT | O_TRUNC, 0644);
+	int fd = open (filename, O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0644);
 	if (fd < 0) {
 		return -1;
 	}
