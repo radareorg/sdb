@@ -265,12 +265,6 @@ static int createdb(const char *f, const char **args, int nargs) {
 	int ret = 0;
 	if (args) {
 		int i;
-		size_t buf_sz = 256;
-		char *buf = malloc (buf_sz);
-		if (!buf) {
-			ret = 1;
-			goto beach;
-		}
 		for (i = 0; i < nargs; i++) {
 			if (!sdb_text_load (s, args[i])) {
 				eprintf ("Failed to load text sdb from %s\n", args[i]);
@@ -287,7 +281,6 @@ static int createdb(const char *f, const char **args, int nargs) {
 		}
 		free (in);
 	}
-beach:
 	sdb_sync (s);
 	return ret;
 }
