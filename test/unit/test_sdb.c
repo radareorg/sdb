@@ -346,8 +346,7 @@ bool test_sdb_text_save_simple() {
 	int fd = tmpfile_new (".text_save_simple", NULL, 0);
 	bool succ = sdb_text_save_fd (db, fd, true);
 	lseek (fd, 0, SEEK_SET);
-	char buf[TEST_BUF_SZ];
-	memset (buf, 0, sizeof (buf));
+	char buf[TEST_BUF_SZ] = { 0 };
 	read (fd, buf, sizeof (buf) - 1);
 	close (fd);
 	unlink (".text_save_simple");
@@ -366,8 +365,7 @@ bool test_sdb_text_save_simple_unsorted() {
 	int fd = tmpfile_new (".text_save_simple_unsorted", NULL, 0);
 	bool succ = sdb_text_save_fd (db, fd, false);
 	lseek (fd, 0, SEEK_SET);
-	char buf[TEST_BUF_SZ];
-	memset (buf, 0, sizeof (buf));
+	char buf[TEST_BUF_SZ] = { 0 };
 	read (fd, buf, sizeof (buf) - 1);
 	close (fd);
 	unlink (".text_save_simple_unsorted");
@@ -386,8 +384,7 @@ bool test_sdb_text_save() {
 	int fd = tmpfile_new (".text_save", NULL, 0);
 	bool succ = sdb_text_save_fd (db, fd, true);
 	lseek (fd, 0, SEEK_SET);
-	char buf[TEST_BUF_SZ];
-	memset (buf, 0, sizeof (buf));
+	char buf[TEST_BUF_SZ] = { 0 };
 	read (fd, buf, sizeof (buf) - 1);
 	close (fd);
 	unlink (".text_save");
