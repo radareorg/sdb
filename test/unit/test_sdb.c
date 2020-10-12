@@ -222,6 +222,20 @@ static const char *text_ref_simple =
 	"/subnamespace/subsub\n"
 	"some stuff=also down here\n";
 
+// the order in here is implementation-defined
+static const char *text_ref_simple_unsorted =
+	"/\n"
+	"aaa=stuff\n"
+	"somekey=somevalue\n"
+	"bbb=other stuff\n"
+	"\n"
+	"/subnamespace\n"
+	"key in sub=value in sub\n"
+	"\\/more stuff=in sub\n"
+	"\n"
+	"/subnamespace/subsub\n"
+	"some stuff=also down here\n";
+
 static const char *text_ref =
 	"/\n"
 	"\\\\,\";]\\n [\\r}{'\\=/key\\\\,\";]\\n [\\r}{'\\=/=\\\\,\";]\\n [\\r}{'=/value\\\\,\";]\\n [\\r}{'=/\n"
@@ -346,6 +360,26 @@ bool test_sdb_text_save_simple() {
 	mu_end;
 }
 
+bool test_sdb_text_save_simple_unsorted() {
+	Sdb *db = text_ref_simple_db ();
+
+	int fd = tmpfile_new (".text_save_simple_unsorted", NULL, 0);
+	bool succ = sdb_text_save_fd (db, fd, false);
+	lseek (fd, 0, SEEK_SET);
+	char buf[TEST_BUF_SZ];
+	memset (buf, 0, sizeof (buf));
+	read (fd, buf, sizeof (buf) - 1);
+	close (fd);
+	unlink (".text_save_simple_unsorted");
+
+	sdb_free (db);
+
+	mu_assert_true (succ, "save success");
+	mu_assert_streq (buf, text_ref_simple_unsorted, "text save");
+
+	mu_end;
+}
+
 bool test_sdb_text_save() {
 	Sdb *db = text_ref_db ();
 
@@ -462,6 +496,7 @@ int all_tests() {
 	mu_run_test (test_sdb_foreach_filter);
 	mu_run_test (test_sdb_copy);
 	mu_run_test (test_sdb_text_save_simple);
+	mu_run_test (test_sdb_text_save_simple_unsorted);
 	mu_run_test (test_sdb_text_load_simple);
 	mu_run_test (test_sdb_text_save);
 	mu_run_test (test_sdb_text_load);

@@ -130,34 +130,42 @@ static void write_value(int fd, const char *v) {
 #undef ESCAPE_LOOP
 #undef ESCAPE
 
+static bool save_kv_cb(void *user, const char *k, const char *v) {
+	int fd = *(int *)user;
+	write_key (fd, k);
+	write (fd, "=", 1);
+	write_value (fd, v);
+	write (fd, "\n", 1);
+	return true;
+}
+
 static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 	// path
 	write_path (fd, path);
 	write (fd, "\n", 1);
 
 	// k=v entries
-	SdbList *l = sdb_foreach_list (s, sort);
-	SdbKv *kv;
-	SdbListIter *it;
-	ls_foreach (l, it, kv) {
-		const char *k = sdbkv_key (kv);
-		const char *v = sdbkv_value (kv);
-
-		write_key (fd, k);
-		write (fd, "=", 1);
-		write_value (fd, v);
-
-		write (fd, "\n", 1);
+	if (sort) {
+		SdbList *l = sdb_foreach_list (s, true);
+		SdbKv *kv;
+		SdbListIter *it;
+		ls_foreach (l, it, kv) {
+			save_kv_cb (&fd, sdbkv_key (kv), sdbkv_value (kv));
+		}
+		ls_free (l);
+	} else {
+		// This is faster when sorting is not needed.
+		sdb_foreach (s, save_kv_cb, &fd);
 	}
-	ls_free (l);
 
 	// sub-namespaces
-	l = s->ns;
+	SdbList *l = s->ns;
 	if (sort) {
 		l = ls_clone (l);
 		ls_sort (l, cmp_ns);
 	}
 	SdbNs *ns;
+	SdbListIter *it;
 	ls_foreach (l, it, ns) {
 		write (fd, "\n", 1);
 		ls_push (path, ns->name);
