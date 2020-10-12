@@ -60,6 +60,7 @@ libsdb_sources = [
   'src/sdb.c',
   'src/sdbht.c',
   'src/util.c',
+  'src/text.c'
 ]
 
 sdb_inc = include_directories(['.', 'src'])

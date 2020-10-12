@@ -33,6 +33,7 @@ test/syncget
 test/test.db
 test/unit/test_hash
 test/unit/test_hash.dSYM/
+/.tmp
 test/.tmp
 test/api/array
 test/api/refs
