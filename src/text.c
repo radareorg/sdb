@@ -190,7 +190,7 @@ SDB_API bool sdb_text_save_fd(Sdb *s, int fd, bool sort) {
 }
 
 SDB_API bool sdb_text_save(Sdb *s, const char *file, bool sort) {
-	int fd = open (file, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
+	int fd = open (file, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
 	if (fd < 0) {
 		return false;
 	}
