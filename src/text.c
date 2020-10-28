@@ -223,6 +223,7 @@ typedef struct {
 
 // to be called at the end of a line.
 // save all the data processed from the line into the database.
+// assumes that the ctx->buf is allocated until ctx->buf[ctx->pos] inclusive!
 static void load_flush_line(LoadCtx *ctx) {
 	ctx->unescape = false;
 	// finish up the line
@@ -361,7 +362,30 @@ SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz) {
 	while (ctx.pos < ctx.bufsz) {
 		load_process_single_char (&ctx);
 	}
-	load_flush_line (&ctx);
+	if (ctx.line_begin < ctx.bufsz) {
+		// load_flush_line needs ctx.buf[ctx.pos] to be allocated!
+		// so we need room for one additional byte after the buffer.
+		size_t linesz = ctx.bufsz - ctx.line_begin;
+		char *linebuf = malloc (linesz + 1);
+		if (linebuf) {
+			memcpy (linebuf, ctx.buf + ctx.line_begin, linesz);
+			ctx.buf = linebuf;
+			// shift everything by the size we skipped
+			ctx.bufsz -= ctx.line_begin;
+			ctx.pos = linesz;
+			ctx.token_begin -= ctx.line_begin;
+			SdbListIter *it;
+			void *token_off_tmp;
+			ls_foreach (ctx.path, it, token_off_tmp) {
+				it->data = (void *)((size_t)token_off_tmp - ctx.line_begin);
+			}
+			ctx.line_begin = 0;
+			load_flush_line (&ctx);
+			free (linebuf);
+		} else {
+			ret = false;
+		}
+	}
 	load_ctx_fini (&ctx);
 	return ret;
 }
