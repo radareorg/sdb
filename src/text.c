@@ -382,7 +382,7 @@ SDB_API bool sdb_text_load(Sdb *s, const char *file) {
 		goto beach;
 	}
 #else
-	char *x = calloc (1, st.st_size);
+	char *x = calloc (1, st.st_size + 1);
 	if (!x) {
 		goto beach;
 	}
