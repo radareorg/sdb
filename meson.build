@@ -64,12 +64,19 @@ libsdb_sources = [
 ]
 
 sdb_inc = include_directories(['.', 'src'])
+rpath_lib = ''
+rpath_exe = ''
+if get_option('local') and get_option('default_library') == 'shared'
+  rpath_lib = '$ORIGIN'
+  rpath_exe = '$ORIGIN/../' + get_option('libdir')
+endif
 
 libsdb = both_libraries('sdb', libsdb_sources,
   include_directories: sdb_inc,
   implicit_include_directories: false,
   soversion: sdb_libversion,
-  install: not meson.is_subproject()
+  install: not meson.is_subproject(),
+  install_rpath: rpath_lib
 )
 
 sdb_dep = declare_dependency(
@@ -107,6 +114,7 @@ sdb_exe = executable('sdb', 'src/main.c',
   include_directories: sdb_inc,
   link_with: [link_with],
   install: not meson.is_subproject(),
+  install_rpath: rpath_exe,
   implicit_include_directories: false
 )
 

@@ -1,1 +1,2 @@
 option('enable_tests', type: 'boolean', value: true, description: 'Build unit tests in test/unit')
+option('local', type: 'boolean', value: false, description: 'Adds support for local/side-by-side installation (sets rpath if needed)')
