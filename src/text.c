@@ -362,7 +362,7 @@ SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz) {
 	while (ctx.pos < ctx.bufsz) {
 		load_process_single_char (&ctx);
 	}
-	if (ctx.line_begin < ctx.bufsz) {
+	if (ctx.line_begin < ctx.bufsz && ctx.state != STATE_NEWLINE) {
 		// load_flush_line needs ctx.buf[ctx.pos] to be allocated!
 		// so we need room for one additional byte after the buffer.
 		size_t linesz = ctx.bufsz - ctx.line_begin;
