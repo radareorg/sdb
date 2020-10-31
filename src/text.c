@@ -326,6 +326,32 @@ static void load_process_single_char(LoadCtx *ctx) {
 	ctx->pos++;
 }
 
+static bool load_process_final_line(LoadCtx *ctx) {
+	// load_flush_line needs ctx.buf[ctx.pos] to be allocated!
+	// so we need room for one additional byte after the buffer.
+	size_t linesz = ctx->bufsz - ctx->line_begin;
+	char *linebuf = malloc (linesz + 1);
+	if (!linebuf) {
+		return false;
+	}
+	memcpy (linebuf, ctx->buf + ctx->line_begin, linesz);
+	ctx->buf = linebuf;
+	// shift everything by the size we skipped
+	ctx->bufsz -= ctx->line_begin;
+	ctx->pos = linesz;
+	ctx->token_begin -= ctx->line_begin;
+	SdbListIter *it;
+	void *token_off_tmp;
+	ls_foreach (ctx->path, it, token_off_tmp) {
+		it->data = (void *)((size_t)token_off_tmp - ctx->line_begin);
+	}
+	ctx->line_begin = 0;
+	load_flush_line (ctx);
+	free (linebuf);
+	ctx->buf = NULL;
+	return true;
+}
+
 static void load_ctx_fini(LoadCtx *ctx) {
 	ls_free (ctx->path);
 }
@@ -363,29 +389,7 @@ SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz) {
 		load_process_single_char (&ctx);
 	}
 	if (ctx.line_begin < ctx.bufsz && ctx.state != STATE_NEWLINE) {
-		// load_flush_line needs ctx.buf[ctx.pos] to be allocated!
-		// so we need room for one additional byte after the buffer.
-		size_t linesz = ctx.bufsz - ctx.line_begin;
-		char *linebuf = malloc (linesz + 1);
-		if (linebuf) {
-			memcpy (linebuf, ctx.buf + ctx.line_begin, linesz);
-			ctx.buf = linebuf;
-			// shift everything by the size we skipped
-			ctx.bufsz -= ctx.line_begin;
-			ctx.pos = linesz;
-			ctx.token_begin -= ctx.line_begin;
-			SdbListIter *it;
-			void *token_off_tmp;
-			ls_foreach (ctx.path, it, token_off_tmp) {
-				it->data = (void *)((size_t)token_off_tmp - ctx.line_begin);
-			}
-			ctx.line_begin = 0;
-			load_flush_line (&ctx);
-			free (linebuf);
-			ctx.buf = NULL;
-		} else {
-			ret = false;
-		}
+		load_process_final_line(&ctx);
 	}
 	load_ctx_fini (&ctx);
 	return ret;
