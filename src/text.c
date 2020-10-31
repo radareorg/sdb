@@ -382,6 +382,7 @@ SDB_API bool sdb_text_load_buf(Sdb *s, char *buf, size_t sz) {
 			ctx.line_begin = 0;
 			load_flush_line (&ctx);
 			free (linebuf);
+			ctx.buf = NULL;
 		} else {
 			ret = false;
 		}
