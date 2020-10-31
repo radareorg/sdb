@@ -224,7 +224,7 @@ typedef struct {
 // to be called at the end of a line.
 // save all the data processed from the line into the database.
 // assumes that the ctx->buf is allocated until ctx->buf[ctx->pos] inclusive!
-static void load_flush_line(LoadCtx *ctx) {
+static void load_process_line(LoadCtx *ctx) {
 	ctx->unescape = false;
 	// finish up the line
 	ctx->buf[ctx->pos - ctx->shift] = '\0';
@@ -281,7 +281,7 @@ static inline char unescape_raw_char (char c) {
 static void load_process_single_char(LoadCtx *ctx) {
 	char c = ctx->buf[ctx->pos];
 	if (c == '\n' || c == '\r') {
-		load_flush_line (ctx);
+		load_process_line (ctx);
 		ctx->pos++;
 		return;
 	}
@@ -327,7 +327,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 }
 
 static bool load_process_final_line(LoadCtx *ctx) {
-	// load_flush_line needs ctx.buf[ctx.pos] to be allocated!
+	// load_process_line needs ctx.buf[ctx.pos] to be allocated!
 	// so we need room for one additional byte after the buffer.
 	size_t linesz = ctx->bufsz - ctx->line_begin;
 	char *linebuf = malloc (linesz + 1);
@@ -346,7 +346,7 @@ static bool load_process_final_line(LoadCtx *ctx) {
 		it->data = (void *)((size_t)token_off_tmp - ctx->line_begin);
 	}
 	ctx->line_begin = 0;
-	load_flush_line (ctx);
+	load_process_line (ctx);
 	free (linebuf);
 	ctx->buf = NULL;
 	return true;
