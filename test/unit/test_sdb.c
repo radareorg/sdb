@@ -270,6 +270,11 @@ static const char *text_ref_broken =
 	"escape=newlines\\\n"
 	"also escape=nothingness\\";
 
+static const char *text_ref_path_last_line =
+	"/\r\n"
+	"some=stuff\r"
+	"/a/useless/namespace";
+
 static Sdb *text_ref_simple_db() {
 	Sdb *db = sdb_new0 ();
 	sdb_set (db, "somekey", "somevalue", 0);
@@ -318,6 +323,15 @@ static Sdb *text_ref_broken_db() {
 	Sdb *d = sdb_ns (c, "further", true);
 	sdb_set (d, "escape", "newlines", 0);
 	sdb_set (d, "also escape", "nothingness", 0);
+	return db;
+}
+
+static Sdb *text_ref_path_last_line_db() {
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, "some", "stuff", 0);
+	Sdb *a = sdb_ns (db, "a", true);
+	Sdb *b = sdb_ns (a, "useless", true);
+	sdb_ns (b, "namespace", true);
 	return db;
 }
 
@@ -465,6 +479,21 @@ bool test_sdb_text_load_broken() {
 	mu_end;
 }
 
+bool test_sdb_text_load_path_last_line() {
+	char *buf = strdup (text_ref_path_last_line);
+	Sdb *db = sdb_new0 ();
+	bool succ = sdb_text_load_buf (db, buf, strlen (buf));
+	free (buf);
+
+	mu_assert_true (succ, "load success");
+	Sdb *ref_db = text_ref_path_last_line_db ();
+	bool eq = sdb_diff (ref_db, db, diff_cb, NULL);
+	sdb_free (ref_db);
+	sdb_free (db);
+	mu_assert_true (eq, "load correct");
+	mu_end;
+}
+
 bool test_sdb_text_load_file() {
 	close (tmpfile_new (".text_load_simple", text_ref_simple, strlen (text_ref_simple)));
 	Sdb *db = sdb_new0 ();
@@ -499,6 +528,7 @@ int all_tests() {
 	mu_run_test (test_sdb_text_load);
 	mu_run_test (test_sdb_text_load_bad_nl);
 	mu_run_test (test_sdb_text_load_broken);
+	mu_run_test (test_sdb_text_load_path_last_line);
 	mu_run_test (test_sdb_text_load_file);
 	return tests_passed != tests_run;
 }
