@@ -28,6 +28,13 @@ extern "C" {
 #define SZT_ADD_OVFCHK(x, y) ((SIZE_MAX - (x)) <= (y))
 #endif
 
+	/* printf format check attributes */
+#if defined(__clang__) || defined(__GNUC__)
+#define SDB_PRINTF_CHECK(fmt, dots) __attribute__ ((format (printf, fmt, dots)))
+#else
+#define SDB_PRINTF_CHECK(fmt, dots)
+#endif
+
 #if __SDB_WINDOWS__ && !__CYGWIN__
 #include <windows.h>
 #include <fcntl.h>
@@ -369,7 +376,7 @@ SDB_API void sdb_encode_raw(char *bout, const ut8 *bin, int len);
 SDB_API int sdb_decode_raw(ut8 *bout, const char *bin, int len);
 
 // binfmt
-SDB_API char *sdb_fmt(const char *fmt, ...);
+SDB_API char *sdb_fmt(const char *fmt, ...) SDB_PRINTF_CHECK(1, 2);
 SDB_API int sdb_fmt_init(void *p, const char *fmt);
 SDB_API void sdb_fmt_free(void *p, const char *fmt);
 SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru);
