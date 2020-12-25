@@ -1,6 +1,6 @@
 .PHONY: all reset
 
-BINS=siolpain fmt stack cas hook hook2 stress1 fmtarr
+BINS=siolpain fmt stack cas hook hook2 stress1 fmtarr ns
 BINS+=bench-expire expire dumptwice syncget nsabuse drain merge
 BINS+=chkkey
 
