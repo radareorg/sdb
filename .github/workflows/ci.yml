@@ -1,5 +1,3 @@
-# This is a basic workflow that is manually triggered
-
 name: ci
 
 on: push
@@ -9,8 +7,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Cloning Repo
-      run: git clone https://github.com/radareorg/sdb
+      run: git clone --depth=1 https://github.com/radareorg/sdb
     - name: Building Sdb
       run: cd sdb && make -j4 && cd ..
+    - name: Packaging
+      run: cd sdb/dist/debian && make -j4 && cd ../../..
     - name: Running tests
       run: cd sdb && make test && cd ..
+    - name: Pub
+      uses: actions/upload-artifact@v2
+      with:
+        path: sdb/dist/debian/*.deb
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Cloning Repo
+      run: git clone --depth=1 https://github.com/radareorg/sdb
+    - name: Building Sdb
+      run: cd sdb && make -j4 && cd ..
+    - name: Packaging
+      run: cd sdb/dist/macos && make -j4 && cd ../../..
+    - name: Running tests
+      run: cd sdb && make test && cd ..
+    - name: Pub
+      uses: actions/upload-artifact@v2
+      with:
+        path: sdb/dist/macos/*.pkg
