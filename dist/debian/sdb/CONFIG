@@ -1,0 +1,4 @@
+PACKAGE=sdb
+DEPENDS=
+
+include ../CONFIG
