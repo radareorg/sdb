@@ -48,7 +48,7 @@ bool test_sdb_list_big(void) {
 	Sdb *db = sdb_new0 ();
 	int i;
 	for (i = 0; i < 500000; i++) {
-    	sdb_num_set (db, sdb_fmt (0, "%d", i), i + 1, 0);
+		sdb_num_set (db, sdb_fmt ("%d", i), i + 1, 0);
 	}
 	SdbList *list = sdb_foreach_list (db, true);
 	// TODO: verify if its sorted
@@ -79,10 +79,10 @@ bool test_sdb_delete_alot(void) {
 	int i;
 
 	for (i = 0; i < count; i++) {
-		sdb_set (db, sdb_fmt (0, "key.%d", i), "bar", 0);
+		sdb_set (db, sdb_fmt ("key.%d", i), "bar", 0);
 	}
 	for (i = 0; i < count; i++) {
-		sdb_unset (db, sdb_fmt (0, "key.%d", i), 0);
+		sdb_unset (db, sdb_fmt ("key.%d", i), 0);
 	}
 	SdbList *list = sdb_foreach_list (db, false);
 	mu_assert_eq (ls_length (list), 0, "Unmatched rows");
@@ -114,7 +114,7 @@ bool test_sdb_milset_random(void) {
 	Sdb *s = sdb_new0 ();
 	sdb_set (s, "foo", "bar", 0);
 	for (i = 0; i < MAX ; i++) {
-		char *v = sdb_fmt (0, "bar%d", i);
+		char *v = sdb_fmt ("bar%d", i);
 		if (!sdb_set (s, "foo", v, 0)) {
 			solved = false;
 			break;
