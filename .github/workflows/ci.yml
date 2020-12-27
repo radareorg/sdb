@@ -1,0 +1,16 @@
+# This is a basic workflow that is manually triggered
+
+name: ci
+
+on: push
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cloning Repo
+      run: git clone https://github.com/radareorg/sdb
+    - name: Building Sdb
+      run: cd sdb && make -j4 && cd ..
+    - name: Running tests
+      run: cd sdb && make test && cd ..
