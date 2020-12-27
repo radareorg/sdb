@@ -1,37 +1,24 @@
 #include <time.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <sdb.h>
 
 int main(int argc, char **argv) {
-	int opt, key_num = 100;
-	char *key, *value;
+	int key_num = 100;
 	size_t i;
-	Sdb *s;
 
-	while ((opt = getopt (argc, argv, "hn:")) != -1) {
-		switch (opt) {
-		case 'n':
-			key_num = atoi (optarg);
-			break;
-		case 'h':
-		default:
-			fprintf (stderr, "Usage: %s [-n number of keys to insert]\n",
-					argv[0]);
-			return 0;
-		}
-	}
-
-	key = malloc (sizeof(char*) * SDB_KSZ);
-	value = malloc (sizeof(char*) * SDB_KSZ);
-	s = sdb_new ("./", "f", 0);
+	char *key = malloc (sizeof (char*) * SDB_KSZ);
+	char *value = malloc (sizeof (char*) * SDB_KSZ);
+	Sdb *s = sdb_new ("./", "f", 0);
 
 	if (!key || !value || !s) {
 		fprintf (stderr, "Failed to allocate sdb\n");
 		return -1;
+	}
+	if (argc > 1) {
+		key_num = atoi (argv[1]);
 	}
 
 	srand (time (NULL));
