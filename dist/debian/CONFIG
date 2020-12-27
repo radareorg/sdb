@@ -1,0 +1,6 @@
+include ../../../config.mk
+SECTION=databass
+PRIORITY=optional
+MAINTAINER=pancake <pancake@nopcode.org>
+ARCH?=amd64
+VERSION?=$(SDBVER)
