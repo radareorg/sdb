@@ -14,9 +14,18 @@ jobs:
     - name: Building Sdb
       run: cd sdb && meson build && ninja -C build
     - name: Pub
+      uses: actions/upload-artifact@v2-preview
       uses: actions/upload-artifact@v2
       with:
         path: sdb/src/*.exe
+    - name: Rls
+      - run: |
+         upload_url=$(curl -sL https://api.github.com/repos/actions/checkout/releases/latest | jq -r '.upload_url')
+         echo ::set-env name=UPLOAD_URL::$upload_url
+        shell: bash
+      - uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ env.UPLOAD_URL }}
   build-linux:
     runs-on: ubuntu-latest
     steps:
