@@ -3,6 +3,20 @@ name: ci
 on: push
 
 jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Cloning Repo
+      run: git clone --depth=1 https://github.com/radareorg/sdb
+    - name: Windows Dependencies
+      run: |
+        pip install meson ninja
+    - name: Building Sdb
+      run: cd sdb && meson build && ninja -C build
+    - name: Pub
+      uses: actions/upload-artifact@v2
+      with:
+        path: sdb/src/*.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
