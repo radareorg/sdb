@@ -16,7 +16,7 @@ jobs:
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
-        path: sdb/src/*.exe
+        path: sdb/build/*.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +31,7 @@ jobs:
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
-        path: sdb/dist/debian/*.deb
+        path: sdb/dist/debian/sdb/*.deb
   build-macos:
     runs-on: macos-latest
     steps:
