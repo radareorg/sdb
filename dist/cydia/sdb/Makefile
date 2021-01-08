@@ -2,7 +2,7 @@ PACKAGE_DIR=$(shell pwd)
 include ./CONFIG
 DEPENDS=
 
-all:
+all: root
 	sudo rm -rf control data
 	${MAKE} clean
 	mkdir -p data
