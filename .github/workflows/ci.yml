@@ -40,10 +40,23 @@ jobs:
     - name: Building Sdb
       run: cd sdb && make -j4 && cd ..
     - name: Packaging
-      run: cd sdb/dist/macos && make -j4 && cd ../../..
+      run: cd sdb/dist/macos && make && cd ../../..
     - name: Running tests
       run: cd sdb && make test && cd ..
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
         path: sdb/dist/macos/*.pkg
+  build-cydia:
+    runs-on: macos-latest
+    steps:
+    - name: Cloning Repo
+      run: git clone --depth=1 https://github.com/radareorg/sdb
+    - name: Building Sdb
+      run: cd sdb && make ios && cd ..
+    - name: Packaging
+      run: cd sdb/dist/cydia && make && cd ../../..
+    - name: Pub
+      uses: actions/upload-artifact@v2
+      with:
+        path: sdb/dist/cydia/*.deb
