@@ -1,0 +1,9 @@
+PACKAGE?=sdb-dev
+ARCH=iphoneos-arm
+SECTION=user/shell
+DEPENDS=sdb
+PRIORITY=optional
+MAINTAINER=pancake <pancake@nopcode.org>
+
+include ../../../config.mk
+VERSION=${SDBVER}

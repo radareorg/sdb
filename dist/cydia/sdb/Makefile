@@ -10,6 +10,7 @@ all: root
 	rm -rf data${LIBDIR}/pkgconfig
 	rm -rf data${LIBDIR}/*.a
 	rm -rf data${INCDIR}
+	rm -rf data/usr/share/vala
 	${MAKE} deb
 
 .PHONY: data

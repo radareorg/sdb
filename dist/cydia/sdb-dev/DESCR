@@ -1,0 +1,2 @@
+String DataBase library and commandline tool
+Opensource disk and memory hashtable compatible with memcache provides a complete in memory kv database with easy serialization.
