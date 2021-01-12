@@ -1,6 +1,8 @@
 name: ci
 
-on: push
+on:
+  push:
+  master:
 
 jobs:
   build-windows:
@@ -23,7 +25,7 @@ jobs:
     - name: Cloning Repo
       run: git clone --depth=1 https://github.com/radareorg/sdb
     - name: Building Sdb
-      run: cd sdb && make -j4 && cd ..
+      run: export CFLAGS="-Werror -Wall"; cd sdb && make -j4 && cd ..
     - name: Packaging
       run: cd sdb/dist/debian && make -j4 && cd ../../..
     - name: Running tests
