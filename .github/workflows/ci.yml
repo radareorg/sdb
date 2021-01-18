@@ -8,47 +8,43 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - name: Cloning Repo
-      run: git clone --depth=1 https://github.com/radareorg/sdb
+    - uses: actions/checkout@v2
     - name: Windows Dependencies
-      run: |
-        pip install meson ninja
+      run: pip install meson ninja
     - name: Building Sdb
-      run: cd sdb && meson build && ninja -C build
+      run: meson build && ninja -C build
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
-        path: sdb/build/*.exe
+        path: build/*.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - name: Cloning Repo
-      run: git clone --depth=1 https://github.com/radareorg/sdb
+    - uses: actions/checkout@v2
     - name: Building Sdb
-      run: export CFLAGS="-Werror -Wall"; cd sdb && make -j4 && cd ..
+      run: export CFLAGS="-Werror -Wall" && make -j4
     - name: Packaging
-      run: cd sdb/dist/debian && make -j4 && cd ../../..
+      run: make -C dist/debian
     - name: Running tests
-      run: cd sdb && make test && cd ..
+      run: make test
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
-        path: sdb/dist/debian/sdb/*.deb
+        path: dist/debian/sdb/*.deb
   build-macos:
     runs-on: macos-latest
     steps:
-    - name: Cloning Repo
-      run: git clone --depth=1 https://github.com/radareorg/sdb
+    - uses: actions/checkout@v2
     - name: Building Sdb
-      run: cd sdb && make -j4 && cd ..
+      run: make -j4 && cd ..
     - name: Packaging
-      run: cd sdb/dist/macos && make && cd ../../..
+      run: cd dist/macos && make && cd ../../..
     - name: Running tests
-      run: cd sdb && make test && cd ..
+      run: make test
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
-        path: sdb/dist/macos/*.pkg
+        path: dist/macos/*.pkg
   build-cydia:
     runs-on: macos-latest
     steps:
