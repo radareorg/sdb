@@ -198,7 +198,6 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 		printf ("// gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", cname, cname);
 		printf ("#include <stdio.h>\n");
 		printf ("#include <ctype.h>\n");
-		printf ("#include \"%s.h\"\n", cname);
 		printf ("%%}\n");
 		printf ("\n");
 		printf ("struct kv { const char *name; const char *value; };\n");
@@ -224,7 +223,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 			comma = ",";
 			break;
 		case MODE_CGEN:
-			printf ("%s,\"%s\",\n", k, v);
+			printf ("%s,\"%s\"\n", k, v);
 			break;
 		case MODE_ZERO:
 			printf ("%s=%s", k, v);
@@ -253,7 +252,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 printf (
 "#if MAIN\n"
 "int main () {\n"
-"	char line [1024];\n"
+"	char line[1024];\n"
 "	FILE *fd = fopen (\"%s.gperf\", \"r\");\n"
 "	int mode = 0;\n"
 "	printf (\"#ifndef INCLUDE_%s_H\\n\");\n"
@@ -466,7 +465,7 @@ static bool dbdiff(const char *a, const char *b) {
 	return equal;
 }
 
-int showcount(const char *db) {
+static int showcount(const char *db) {
 	ut32 d;
 	s = sdb_new (NULL, db, 0);
 	if (sdb_stats (s, &d, NULL)) {
@@ -475,6 +474,47 @@ int showcount(const char *db) {
 	// TODO: show version, timestamp information
 	sdb_free (s);
 	return 0;
+}
+
+static int gen_gperf(const char *file, const char *name) {
+	const size_t bufsz = 4096;
+	char *buf = malloc (bufsz);
+	
+	char *out = malloc (strlen (file) +32);
+	snprintf(out, strlen (file) + 32, "%s.gperf", name);
+	int wd = open (out, O_RDWR);
+	ftruncate (wd, 0);
+	int rc = 0;
+	if (wd != -1) {
+		dup2 (1, 999);
+		dup2 (wd, 1);
+		rc = sdb_dump (file, MODE_CGEN);
+		fflush (stdout);
+		close (wd);
+		dup2 (999, 1);
+	} else {
+		snprintf (buf, bufsz, "sdb -G %s > %s.gperf\n", file, name);
+		rc = system (buf);
+	}
+	if (rc == 0) {
+		snprintf (buf, bufsz, "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
+				" -N sdb_get_c_%s -t %s.gperf > %s.c\n", name, name, name, name);
+		rc = system (buf);
+		if (rc == 0) {
+			snprintf (buf, bufsz, "gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", name, name);
+			rc = system (buf);
+			if (rc == 0) {
+				eprintf ("Generated %s.c and %s.h\n", name, name);
+			}
+		} else {
+			eprintf ("%s\n", buf);
+			eprintf ("Cannot run gperf\n");
+		}
+	} else {
+		eprintf ("Outdated sdb binary in PATH?\n");
+	}
+	free (buf);
+	return rc;
 }
 
 int main(int argc, const char **argv) {
@@ -528,33 +568,12 @@ int main(int argc, const char **argv) {
 			return (argc < 3)? showusage (1): showcount (argv[2]);
 		case 'C':
 			if (argc > 2) {
-				const size_t bufsz = 4096;
-				char *buf = malloc (bufsz);
 				const char *file = argv[db0 + 1];
 				char *name = strdup (file);
 				char *p = strchr (name, '.');
 				if (p) *p = 0;
-				snprintf (buf, bufsz, "./sdb -G %s > %s.gperf\n", file, name);
-				int rc = system (buf);
-				if (rc == 0) {
-					snprintf (buf, bufsz, "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
-						" -N sdb_get_c_%s -t %s.gperf > %s.c\n", name, name, name, name);
-					rc = system (buf);
-					if (rc == 0) {
-						snprintf (buf, bufsz, "gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", name, name);
-						rc = system (buf);
-						if (rc == 0) {
-							eprintf ("Generated %s.c and %s.h\n", name, name);
-						}
-					} else {
-						eprintf ("%s\n", buf);
-						eprintf ("Cannot run gperf\n");
-					}
-				} else {
-					eprintf ("Outdated sdb binary in PATH?\n");
-				}
+				int rc = gen_gperf (file, name);
 				free (name);
-				free (buf);
 				return rc;
 			}
 			return showusage (1);
