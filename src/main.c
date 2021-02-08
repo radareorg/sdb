@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#if USE_DLSYSTEM
+#include <dlfcn.h>
+#endif
 #include "sdb.h"
 
 #define MODE_ZERO '0'
@@ -477,14 +480,23 @@ static int showcount(const char *db) {
 }
 
 static int gen_gperf(const char *file, const char *name) {
+	int (*_system)(const char *cmd);
 	const size_t bufsz = 4096;
 	char *buf = malloc (bufsz);
-	
-	char *out = malloc (strlen (file) +32);
-	snprintf(out, strlen (file) + 32, "%s.gperf", name);
+	char *out = malloc (strlen (file) + 32);
+	snprintf (out, strlen (file) + 32, "%s.gperf", name);
 	int wd = open (out, O_RDWR);
 	ftruncate (wd, 0);
 	int rc = 0;
+#if USE_DLSYSTEM
+	_system = dlsym (NULL, "system");
+	if (!_system) {
+		_system = puts;
+		return -1;
+	}
+#else
+	_system = system;
+#endif
 	if (wd != -1) {
 		dup2 (1, 999);
 		dup2 (wd, 1);
@@ -494,21 +506,21 @@ static int gen_gperf(const char *file, const char *name) {
 		dup2 (999, 1);
 	} else {
 		snprintf (buf, bufsz, "sdb -G %s > %s.gperf\n", file, name);
-		rc = system (buf);
+		rc = _system (buf);
 	}
 	if (rc == 0) {
 		snprintf (buf, bufsz, "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
 				" -N sdb_get_c_%s -t %s.gperf > %s.c\n", name, name, name, name);
-		rc = system (buf);
+		rc = _system (buf);
 		if (rc == 0) {
 			snprintf (buf, bufsz, "gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", name, name);
-			rc = system (buf);
+			rc = _system (buf);
 			if (rc == 0) {
 				eprintf ("Generated %s.c and %s.h\n", name, name);
 			}
 		} else {
-			eprintf ("%s\n", buf);
 			eprintf ("Cannot run gperf\n");
+			eprintf ("%s\n", buf);
 		}
 	} else {
 		eprintf ("Outdated sdb binary in PATH?\n");

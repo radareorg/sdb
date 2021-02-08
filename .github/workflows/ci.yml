@@ -2,7 +2,9 @@ name: ci
 
 on:
   push:
-  master:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build-windows:
@@ -57,4 +59,4 @@ jobs:
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
-        path: sdb/dist/cydia/*.deb
+        path: sdb/dist/cydia/*/*.deb
