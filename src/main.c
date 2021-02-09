@@ -256,6 +256,12 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 				*p = (*p == '"')? '\'': *p;
 				p++;
 			}
+			for (p = k; *p; p++) {
+				if (*p == ',') {
+					eprintf ("Keys cant contain a comma in gperf.\n");
+					*p = '.';
+				}
+			}
 			printf ("%s,\"%s\"\n", k, v);
 			}
 			break;
