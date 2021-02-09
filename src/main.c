@@ -226,7 +226,14 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 			comma = ",";
 			break;
 		case MODE_CGEN:
+			{
+			char *p = v;
+			while (*p) {
+				*p = (*p == '"')? *p: '\'';
+				p++;
+			}
 			printf ("%s,\"%s\"\n", k, v);
+			}
 			break;
 		case MODE_ZERO:
 			printf ("%s=%s", k, v);
