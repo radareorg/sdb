@@ -82,6 +82,7 @@ extern char *strdup (const char *);
 #define SDB_VSZ 0xffffff
 
 typedef struct sdb_gperf_t {
+	const char *name;
 	const char *(*get)(const char *k);
 	unsigned int *(*hash)(const char *k);
 } SdbGperf;
