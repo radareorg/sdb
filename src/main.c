@@ -229,7 +229,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 			{
 			char *p = v;
 			while (*p) {
-				*p = (*p == '"')? *p: '\'';
+				*p = (*p == '"')? '\'': *p;
 				p++;
 			}
 			printf ("%s,\"%s\"\n", k, v);
@@ -252,11 +252,11 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 	case MODE_CGEN:
 		printf ("%%%%\n");
 		printf ("// SDB-CGEN V"SDB_VERSION"\n");
-		printf ("const char* %s_get(const char *s) {\n", cname);
+		printf ("const char* gperf_%s_get(const char *s) {\n", cname);
 		printf ("\tconst struct kv *o = sdb_get_c_%s (s, strlen(s));\n", cname);
 		printf ("\treturn o? o->value: NULL;\n");
 		printf ("}\n");
-		printf ("const unsigned int %s_hash(const char *s) {\n", cname);
+		printf ("const unsigned int gperf_%s_hash(const char *s) {\n", cname);
 		printf ("\treturn sdb_hash_c_%s(s, strlen (s));\n", cname);
 		printf ("}\n");
 printf (
@@ -276,7 +276,7 @@ printf (
 "				*comma = 0;\n"
 "				char *up = strdup(line);\n"
 "				char *p = up;while(*p){*p=toupper(*p);p++;}\n"
-"				printf (\"#define %s_%%s %%d\\n\",\n"
+"				printf (\"#define GPERF_%s_%%s %%d\\n\",\n"
 "					line, sdb_hash_c_%s (line, comma-line));\n"
 "			}\n"
 "		}\n"
