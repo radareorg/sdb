@@ -285,7 +285,8 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 		printf ("\treturn sdb_hash_c_%s(s, strlen (s));\n", cname);
 		printf ("}\n");
 		printf (
-"struct {void*get;void*hash;} gperf_%s = {\n"
+"struct {const char*name;void*get;void*hash;} gperf_%s = {\n"
+"\t.name = \"%s\",\n"
 "\t.get = &gperf_%s_get,\n"
 "\t.hash = &gperf_%s_hash\n"
 "};\n"
@@ -320,7 +321,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 "	printf (\"#endif\\n\");\n"
 "}\n"
 "#endif\n",
-		cname, cname,
+		cname, cname, cname,
 		cname, name, name,
 		cname, cname,
 		cname, cname
