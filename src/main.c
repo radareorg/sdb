@@ -171,24 +171,48 @@ static void synchronize(int sig UNUSED) {
 }
 #endif
 
-static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
-                         const char *expgrep) {
-	char cname[SDB_MAX_KEY];
-	char *v, k[SDB_MAX_KEY] = { 0 };
-	char *d = cname;
-	const char *comma = "";
+static char* get_name(const char*name) {
+	char *n = strdup (name);
+	char *v, *d = n;
 	// local db beacuse is readonly and we dont need to finalize in case of ^C
-	for (v=(char*)dbname;*v;v++) {
+	for (v=(char*)n; *v; v++) {
 		if (*v == '.') {
 			break;
 		}
 		*d++ = *v;
 	}
 	*d++ = 0;
+	return n;
+}
+
+static char* get_cname(const char*name) {
+	char *n = strdup (name);
+	char *v, *d = n;
+	// local db beacuse is readonly and we dont need to finalize in case of ^C
+	for (v=(char*)n; *v; v++) {
+		if (*v == '/') {
+			*d++ = '_';
+			continue;
+		}
+		if (*v == '.') {
+			break;
+		}
+		*d++ = *v;
+	}
+	*d++ = 0;
+	return n;
+}
+
+static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
+                         const char *expgrep) {
+	char *v, k[SDB_MAX_KEY] = { 0 };
+	const char *comma = "";
 	Sdb *db = sdb_new (NULL, dbname, 0);
 	if (!db) {
 		return 1;
 	}
+	char *cname = get_cname (dbname);
+	char *name = get_name (dbname);
 	sdb_config (db, options);
 	sdb_dump_begin (db);
 	switch (fmt) {
@@ -252,6 +276,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 	case MODE_CGEN:
 		printf ("%%%%\n");
 		printf ("// SDB-CGEN V"SDB_VERSION"\n");
+		printf ("// %p\n", cname);
 		printf ("const char* gperf_%s_get(const char *s) {\n", cname);
 		printf ("\tconst struct kv *o = sdb_get_c_%s (s, strlen(s));\n", cname);
 		printf ("\treturn o? o->value: NULL;\n");
@@ -259,25 +284,34 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep,
 		printf ("const unsigned int gperf_%s_hash(const char *s) {\n", cname);
 		printf ("\treturn sdb_hash_c_%s(s, strlen (s));\n", cname);
 		printf ("}\n");
-printf (
+		printf (
+"struct {void*get;void*hash;} gperf_%s = {\n"
+"\t.get = &gperf_%s_get,\n"
+"\t.hash = &gperf_%s_hash\n"
+"};\n"
+"\n"
 "#if MAIN\n"
 "int main () {\n"
 "	char line[1024];\n"
 "	FILE *fd = fopen (\"%s.gperf\", \"r\");\n"
+"	if (!fd) {\n"
+"		fprintf (stderr, \"Cannot open %s.gperf\\n\");\n"
+"		return 1;\n"
+"	}\n"
 "	int mode = 0;\n"
 "	printf (\"#ifndef INCLUDE_%s_H\\n\");\n"
 "	printf (\"#define INCLUDE_%s_H 1\\n\");\n"
 "	while (!feof (fd)) {\n"
 "		*line = 0;\n"
-"		fgets(line,sizeof(line),fd);\n"
+"		fgets (line, sizeof (line), fd);\n"
 "		if (mode == 1) {\n"
 "			char *comma = strchr (line, ',');\n"
-"			if(comma) {\n"
+"			if (comma) {\n"
 "				*comma = 0;\n"
-"				char *up = strdup(line);\n"
-"				char *p = up;while(*p){*p=toupper(*p);p++;}\n"
+"				char *up = strdup (line);\n"
+"				char *p = up; while (*p) { *p = toupper (*p); p++; }\n"
 "				printf (\"#define GPERF_%s_%%s %%d\\n\",\n"
-"					line, sdb_hash_c_%s (line, comma-line));\n"
+"					line, sdb_hash_c_%s (line, comma - line));\n"
 "			}\n"
 "		}\n"
 "		if (*line == '%%' && line[1] == '%%')\n"
@@ -286,10 +320,11 @@ printf (
 "	printf (\"#endif\\n\");\n"
 "}\n"
 "#endif\n",
-cname, cname,
-cname, cname,
-cname
-);
+		cname, cname,
+		cname, name, name,
+		cname, cname,
+		cname, cname
+		);
 		printf ("\n");
 		break;
 	case MODE_JSON:
@@ -297,6 +332,8 @@ cname
 		break;
 	}
 	sdb_free (db);
+	free (cname);
+	free (name);
 	return 0;
 }
 
@@ -516,8 +553,10 @@ static int gen_gperf(const char *file, const char *name) {
 		rc = _system (buf);
 	}
 	if (rc == 0) {
+		char *cname = get_cname (name);
 		snprintf (buf, bufsz, "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
-				" -N sdb_get_c_%s -t %s.gperf > %s.c\n", name, name, name, name);
+				" -N sdb_get_c_%s -t %s.gperf > %s.c\n", cname, cname, name, name);
+		free (cname);
 		rc = _system (buf);
 		if (rc == 0) {
 			snprintf (buf, bufsz, "gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", name, name);
