@@ -536,9 +536,13 @@ static int gen_gperf(const char *file, const char *name) {
 	char *buf = malloc (bufsz);
 	char *out = malloc (strlen (file) + 32);
 	snprintf (out, strlen (file) + 32, "%s.gperf", name);
-	int wd = open (out, O_RDWR);
-	ftruncate (wd, 0);
-	int rc = 0;
+	int wd = open (out, O_RDWR | O_CREAT);
+	if (wd == -1) {
+		wd = open (out, O_RDWR | O_CREAT);
+	} else {
+		ftruncate (wd, 0);
+	}
+	int rc = -1;
 #if USE_DLSYSTEM
 	_system = dlsym (NULL, "system");
 	if (!_system) {
@@ -555,9 +559,11 @@ static int gen_gperf(const char *file, const char *name) {
 		fflush (stdout);
 		close (wd);
 		dup2 (999, 1);
+#if 0
 	} else {
 		snprintf (buf, bufsz, "sdb -G %s > %s.gperf\n", file, name);
 		rc = _system (buf);
+#endif
 	}
 	if (rc == 0) {
 		char *cname = get_cname (name);
