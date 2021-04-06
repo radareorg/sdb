@@ -231,7 +231,9 @@ static void sdb_grep_dump_cb(int fmt, const char *k, const char *v, const char *
 				*p = '.';
 			}
 		}
-		printf ("%s,\"%s\"\n", k, v);
+		printf ("%s,\"%s\"\n", a, b);
+		free (a);
+		free (b);
 		}
 		break;
 	case MODE_ZERO:
