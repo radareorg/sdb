@@ -209,7 +209,7 @@ static void sdb_grep_dump_cb(int fmt, const char *k, const char *v, const char *
 		if (!strcmp (v, "true") || !strcmp (v, "false")) {
 			printf ("%s\"%s\":%s", comma, k, v);
 		} else if (sdb_isnum (v)) {
-			printf ("%s\"%s\":%llu", comma, k, sdb_atoi (v));
+			printf ("%s\"%s\":%"ULLFMT"u", comma, k, sdb_atoi (v));
 		} else if (*v == '{' || *v == '[') {
 			printf ("%s\"%s\":%s", comma, k, v);
 		} else {
@@ -578,7 +578,6 @@ static int gen_gperf(const char *file, const char *name) {
 		dup2 (wd, 1);
 		rc = sdb_dump (file, MODE_CGEN);
 		fflush (stdout);
-		fsync (wd);
 		close (wd);
 		dup2 (999, 1);
 #if 0
