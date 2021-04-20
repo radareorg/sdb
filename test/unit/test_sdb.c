@@ -47,10 +47,16 @@ bool test_sdb_list_delete(void) {
 bool test_sdb_list_big(void) {
 	Sdb *db = sdb_new0 ();
 	int i;
-	for (i = 0; i < 500000; i++) {
-		sdb_num_set (db, sdb_fmt ("%d", i), i + 1, 0);
+	for (i = 0; i < 5000000; i++) {
+		sdb_num_set (db, sdb_fmt ("%d", rand()), i + 1, 0);
 	}
+	for (i = 0; i < 500000; i++) {
+		sdb_num_set (db, sdb_fmt ("0x%x", rand()), i + 1, 0);
+	}
+	ut64 now = sdb_now ();
 	SdbList *list = sdb_foreach_list (db, true);
+	ut64 then = sdb_now ();
+	printf ("TIME DIFF = %d%c", (int)(then - now), 10);
 	// TODO: verify if its sorted
 	ls_free(list);
 	sdb_free (db);

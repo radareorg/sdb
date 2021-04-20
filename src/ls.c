@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2007-2017 - pancake, alvaro */
+/* sdb - MIT - Copyright 2007-2021 - pancake, alvaro */
 
 #include <string.h>
 #include "ls.h"
@@ -67,8 +67,7 @@ static SdbListIter *_merge(SdbListIter *first, SdbListIter *second, SdbListCompa
 	return head;
 }
 
-static SdbListIter * _sdb_list_split(SdbListIter *head) {
-	SdbListIter *tmp;
+static SdbListIter * _sdb_list_split(SdbListIter *head, int *count) {
 	SdbListIter *fast;
 	SdbListIter *slow;
 	if (!head || !head->n) {
@@ -79,21 +78,28 @@ static SdbListIter * _sdb_list_split(SdbListIter *head) {
 	while (fast && fast->n && fast->n->n) {
 		fast = fast->n->n;
 		slow = slow->n;
+		(*count)++;
 	}
-	tmp = slow->n;
-	slow->n = NULL;
+	SdbListIter *tmp = slow->n;
+	if (*count > 43) {
+		slow->n = NULL;
+	}
 	return tmp;
 }
 
 static SdbListIter * _merge_sort(SdbListIter *head, SdbListComparator cmp) {
-	SdbListIter *second;
 	if (!head || !head->n) {
 		return head;
 	}
-	second = _sdb_list_split (head);
-	head = _merge_sort (head, cmp);
-	second = _merge_sort (second, cmp);
-	return _merge (head, second, cmp);
+	int count = 0;
+	SdbListIter *second = _sdb_list_split (head, &count);
+	if (count > 43) {
+		head = _merge_sort (head, cmp);
+		second = _merge_sort (second, cmp);
+		return _merge (head, second, cmp);
+	}
+	ls_insertion_sort_iter (head, cmp);
+	return head;
 }
 
 SDB_API bool ls_merge_sort(SdbList *list, SdbListComparator cmp) {
