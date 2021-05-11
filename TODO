@@ -9,20 +9,16 @@ TODO
 ----
 * Add disk database file checksum to verify if its broken or valid file
 * ht->ls is wrong! dups appear
-* support plain text databases
 * implement mmap for w32
 * implement sdb_ainc/sdb_adec
 * implement io filters for load/save databases (io wrap)
-* support json 2.0 ({foo:"bar"}) <- no need for quotes in name
 * create string pool for a list of sizes 
 	newpool (sizeof (char), 10, 100, 1000);
 * Add api to store serialized in memory
 * Add api for raw bytes
 * Add api and syntax for json_length()
-* Add comparision stuff
 * Add support for socket file for memcached api
 * add api to create db without caching it before
-* remove buffer
 
 Syncronization
 --------------
@@ -42,12 +38,6 @@ Optimization
 * rewrite mcsdb in luvit
 * use 16 bit key and 16 bit value // dont think so
 * use kernel's linked list? it should be faster..
-
-BUGS
-----
-* hashtable is not cleaned up when sync
-  - must honor expire time entries
-* key and value boundaries are probably not properly handled
 
 StringPool
 ----------
