@@ -81,10 +81,12 @@ extern char *strdup (const char *);
 #define SDB_KSZ 0xff
 #define SDB_VSZ 0xffffff
 
+typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);
 typedef struct sdb_gperf_t {
 	const char *name;
 	const char *(*get)(const char *k);
 	unsigned int *(*hash)(const char *k);
+	bool (*foreach)(GperfForeachCallback cb, void *user);
 } SdbGperf;
 
 typedef struct sdb_t {

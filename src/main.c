@@ -295,6 +295,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 		printf ("// gperf -aclEDCIG --null-strings -H sdb_hash_c_%s -N sdb_get_c_%s -t %s.gperf > %s.c\n", cname, cname, cname, cname);
 		printf ("// gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", cname, cname);
 		printf ("#include <stdio.h>\n");
+		printf ("#include <string.h>\n");
 		printf ("#include <ctype.h>\n");
 		printf ("%%}\n");
 		printf ("\n");
@@ -338,6 +339,13 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 		printf ("%%%%\n");
 		printf ("// SDB-CGEN V"SDB_VERSION"\n");
 		printf ("// %p\n", cname);
+		printf ("typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);\n");
+		printf ("int gperf_%s_foreach(GperfForeachCallback cb, void *user) {\n", cname);
+		printf ("\tint i;for (i=0;i<TOTAL_KEYWORDS;i++) {\n");
+		printf ("\tconst struct kv *w = &wordlist[i];\n");
+		printf ("\tif (!cb (user, w->name, w->value)) return 0;\n");
+		printf ("}\n");
+		printf ("return 1;}\n");
 		printf ("const char* gperf_%s_get(const char *s) {\n", cname);
 		printf ("\tconst struct kv *o = sdb_get_c_%s (s, strlen(s));\n", cname);
 		printf ("\treturn o? o->value: NULL;\n");
@@ -346,10 +354,11 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 		printf ("\treturn sdb_hash_c_%s(s, strlen (s));\n", cname);
 		printf ("}\n");
 		printf (
-"struct {const char*name;void*get;void*hash;} gperf_%s = {\n"
+"struct {const char*name;void*get;void*hash;void *foreach;} gperf_%s = {\n"
 "\t.name = \"%s\",\n"
 "\t.get = &gperf_%s_get,\n"
-"\t.hash = &gperf_%s_hash\n"
+"\t.hash = &gperf_%s_hash,\n"
+"\t.foreach = &gperf_%s_foreach\n"
 "};\n"
 "\n"
 "#if MAIN\n"
@@ -382,10 +391,9 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 "	printf (\"#endif\\n\");\n"
 "}\n"
 "#endif\n",
-		cname, cname, cname,
-		cname, name, name,
-		cname, cname,
-		cname, cname
+		cname, cname, cname, cname, cname,
+		name, name,
+		cname, cname, cname, cname
 		);
 		printf ("\n");
 		break;
