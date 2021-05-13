@@ -190,7 +190,7 @@ static char* get_cname(const char*name) {
 	char *v, *d = n;
 	// local db beacuse is readonly and we dont need to finalize in case of ^C
 	for (v=(char*)n; *v; v++) {
-		if (*v == '/') {
+		if (*v == '/' || *v == '-') {
 			*d++ = '_';
 			continue;
 		}
