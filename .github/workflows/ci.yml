@@ -25,10 +25,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: Building Sdb
       run: export CFLAGS="-Werror -Wall" && make -j4
+    - name: Install gperf
+      run: sudo apt install gperf
     - name: Packaging
       run: make -C dist/debian
     - name: Running tests
       run: make test
+    - name: Testing gperf
+      run: make -C test/gperf
     - name: Pub
       uses: actions/upload-artifact@v2
       with:
