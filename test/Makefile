@@ -13,6 +13,7 @@ all: $(BINS) $(SCRIPTS) reset
 	@suite/run.sh
 	@$(MAKE) -C api
 	@$(MAKE) -C unit run
+	# @$(MAKE) -C gperf
 
 me:
 	$(MAKE) -C ../src
