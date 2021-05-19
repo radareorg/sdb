@@ -44,18 +44,20 @@ bool test_sdb_list_delete(void) {
 	mu_end;
 }
 
-static int fakerand() {
-	static unsigned int n = 0x6F8914Ac;
-	n ^= ((n << 8) | ((n >> 24) & 0xff));
-	return (int)n;
+static inline int fakerand() {
+	static int i = 1;
+	return i++;
 }
 
-bool test_sdb_list_big(void) {
+static bool test_sdb_list_big(void) {
 	Sdb *db = sdb_new0 ();
 	int i;
+#if 0
+	// 6-7s
 	for (i = 0; i < 5000000; i++) {
 		sdb_num_set (db, sdb_fmt ("%d", fakerand()), i + 1, 0);
 	}
+#endif
 	for (i = 0; i < 500000; i++) {
 		sdb_num_set (db, sdb_fmt ("0x%x", fakerand()), i + 1, 0);
 	}
@@ -119,7 +121,7 @@ bool test_sdb_milset(void) {
 	mu_end;
 }
 
-bool test_sdb_milset_random(void) {
+static bool test_sdb_milset_random(void) {
 	int i = 0;
 	const int MAX = 19999999;
 	bool solved = true;
