@@ -309,6 +309,11 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 
 	if (db->fd == -1) {
 		SdbList *l = sdb_foreach_list (db, true);
+		if (fmt == MODE_CGEN && ls_length (l) > SDB_MAX_GPERF_KEYS) {
+			ls_free (l);
+			eprintf ("Error: gperf doesn't work with datasets with more than 15.000 keys.\n");
+			return -1;
+		}
 		SdbKv *kv;
 		SdbListIter *it;
 		ls_foreach (l, it, kv) {
@@ -320,6 +325,7 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 		}
 		ls_free (l);
 	} else {
+		int count = 0;
 		while (sdb_dump_dupnext (db, k, &v, NULL)) {
 			if (grep && !strstr (k, expgrep) && !strstr (v, expgrep)) {
 				free (v);
@@ -328,6 +334,10 @@ static int sdb_grep_dump(const char *dbname, int fmt, bool grep, const char *exp
 			sdb_grep_dump_cb (fmt, k, v, comma);
 			comma = ",";
 			free (v);
+			if (fmt == MODE_CGEN && count++ > SDB_MAX_GPERF_KEYS) {
+				eprintf ("Error: gperf doesn't work with datasets with more than 15.000 keys.\n");
+				return -1;
+			}
 		}
 	}
 	switch (fmt) {
@@ -597,8 +607,15 @@ static int gen_gperf(const char *file, const char *name) {
 	int (*_system)(const char *cmd);
 	const size_t buf_size = 4096;
 	char *buf = malloc (buf_size);
+	if (!buf) {
+		return -1;
+	}
 	size_t out_size = strlen (file) + 32;
 	char *out = malloc (out_size);
+	if (!out) {
+		free (buf);
+		return -1;
+	}
 	snprintf (out, out_size, "%s.gperf", name);
 	int wd = open (out, O_RDWR, 0644);
 	if (wd == -1) {
@@ -619,17 +636,12 @@ static int gen_gperf(const char *file, const char *name) {
 	if (wd != -1) {
 		dup2 (1, 999);
 		dup2 (wd, 1);
-		rc = sdb_dump (file, MODE_CGEN);
+		rc = sdb_grep_dump (file, MODE_CGEN, false, NULL);
 		fflush (stdout);
 		close (wd);
 		dup2 (999, 1);
-#if 0
 	} else {
-		snprintf (buf, bufsz, "sdb -G %s > %s.gperf\n", file, name);
-		rc = _system (buf);
-#endif
-	} else {
-		eprintf ("Cannot create .gperf%c", 10);
+		eprintf ("Cannot create .gperf\n");
 	}
 	if (rc == 0) {
 		char *cname = get_cname (name);
@@ -708,7 +720,9 @@ int main(int argc, const char **argv) {
 				const char *file = argv[db0 + 1];
 				char *name = strdup (file);
 				char *p = strchr (name, '.');
-				if (p) *p = 0;
+				if (p) {
+					*p = 0;
+				}
 				int rc = gen_gperf (file, name);
 				free (name);
 				return rc;
