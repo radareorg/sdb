@@ -44,14 +44,20 @@ bool test_sdb_list_delete(void) {
 	mu_end;
 }
 
+static int fakerand() {
+	static unsigned int n = 0x6F8914Ac;
+	n ^= ((n << 8) | ((n >> 24) & 0xff));
+	return (int)n;
+}
+
 bool test_sdb_list_big(void) {
 	Sdb *db = sdb_new0 ();
 	int i;
 	for (i = 0; i < 5000000; i++) {
-		sdb_num_set (db, sdb_fmt ("%d", rand()), i + 1, 0);
+		sdb_num_set (db, sdb_fmt ("%d", fakerand()), i + 1, 0);
 	}
 	for (i = 0; i < 500000; i++) {
-		sdb_num_set (db, sdb_fmt ("0x%x", rand()), i + 1, 0);
+		sdb_num_set (db, sdb_fmt ("0x%x", fakerand()), i + 1, 0);
 	}
 	ut64 now = sdb_now ();
 	SdbList *list = sdb_foreach_list (db, true);
