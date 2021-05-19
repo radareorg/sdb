@@ -64,7 +64,7 @@ static bool test_sdb_list_big(void) {
 	ut64 now = sdb_now ();
 	SdbList *list = sdb_foreach_list (db, true);
 	ut64 then = sdb_now ();
-	printf ("TIME DIFF = %d%c", (int)(then - now), 10);
+	printf ("(TIME DIFF = %d) ", (int)(then - now));
 	// TODO: verify if its sorted
 	ls_free(list);
 	sdb_free (db);
