@@ -28,7 +28,7 @@ $(SCRIPTS):
 	./$@
 
 $(BINS):
-	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS)
+	$(CC) -o $@ $@.c $(LDFLAGS) $(CFLAGS) $(SDB_CFLAGS) $(SDB_LDFLAGS)
 	bash -c "time ./$@"
 	#$(SHELL) -c "./$@"
 

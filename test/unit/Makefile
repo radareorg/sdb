@@ -11,7 +11,7 @@ r run: all
 	./run.sh
 
 $(OBJECTS):%:%.c
-	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
+	$(CC) $(SDB_CFLAGS) $(CFLAGS) $< -o $@ $(LDFLAGS) $(SDB_LDFLAGS)
 
 clean:
 	rm -f $(OBJECTS)

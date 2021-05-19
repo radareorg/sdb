@@ -44,13 +44,27 @@ bool test_sdb_list_delete(void) {
 	mu_end;
 }
 
-bool test_sdb_list_big(void) {
+static inline int fakerand() {
+	static int i = 1;
+	return i++;
+}
+
+static bool test_sdb_list_big(void) {
 	Sdb *db = sdb_new0 ();
 	int i;
-	for (i = 0; i < 500000; i++) {
-		sdb_num_set (db, sdb_fmt ("%d", i), i + 1, 0);
+#if 0
+	// 6-7s
+	for (i = 0; i < 5000000; i++) {
+		sdb_num_set (db, sdb_fmt ("%d", fakerand()), i + 1, 0);
 	}
+#endif
+	for (i = 0; i < 500000; i++) {
+		sdb_num_set (db, sdb_fmt ("0x%x", fakerand()), i + 1, 0);
+	}
+	ut64 now = sdb_now ();
 	SdbList *list = sdb_foreach_list (db, true);
+	ut64 then = sdb_now ();
+	printf ("(TIME DIFF = %d) ", (int)(then - now));
 	// TODO: verify if its sorted
 	ls_free(list);
 	sdb_free (db);
@@ -107,7 +121,7 @@ bool test_sdb_milset(void) {
 	mu_end;
 }
 
-bool test_sdb_milset_random(void) {
+static bool test_sdb_milset_random(void) {
 	int i = 0;
 	const int MAX = 19999999;
 	bool solved = true;

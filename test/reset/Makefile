@@ -3,7 +3,7 @@ include ../sdb-test.mk
 all:
 	rm -f db.test
 	${SDB} db.test foo=old
-	$(CC) test-reset.c -o test-reset $(CFLAGS) $(LDFLAGS)
+	$(CC) test-reset.c -o test-reset $(CFLAGS) $(LDFLAGS) $(SDB_CFLAGS) $(SDB_LDFLAGS)
 	./test-reset
 
 asan:
