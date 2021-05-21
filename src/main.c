@@ -9,12 +9,6 @@
 #endif
 #include "sdb.h"
 
-#define MODE_ZERO '0'
-#define MODE_JSON 'j'
-#define MODE_CGEN 'c'
-#define MODE_TEXT 0 // default in plaintext
-#define MODE_DFLT 0
-
 typedef enum {
 	text,
 	zero,
@@ -853,7 +847,7 @@ static MainOptions *main_argparse(int argc, const char **argv) {
 
 int main(int argc, const char **argv) {
 	char *line;
-	int i, fmt = MODE_DFLT;
+	int i;
 
 	/* terminate flags */
 	if (argc < 2) {
@@ -920,7 +914,7 @@ int main(int argc, const char **argv) {
 			}
 			for (; (line = slurp (stdin, NULL));) {
 				save |= sdb_query (s, line);
-				if (fmt) {
+				if (mo->format) {
 					fflush (stdout);
 					write_null ();
 				}
@@ -947,7 +941,7 @@ int main(int argc, const char **argv) {
 		if (mo->argi + 1 < mo->argc) {
 			for (i = mo->db0 + 1; i < argc; i++) {
 				save |= sdb_query (s, mo->argv[i]);
-				if (fmt) {
+				if (mo->format) {
 					fflush (stdout);
 					write_null ();
 				}
