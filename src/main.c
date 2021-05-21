@@ -398,8 +398,8 @@ static void cgen_footer(const char *name, const char *cname) {
 
 static int sdb_dump(MainOptions *mo) {
 	const char *dbname = mo->db;
-	bool grep = mo->grep;
 	const char *expgrep = mo->grep;
+	const bool grep = mo->grep;
 
 	char *v, k[SDB_MAX_KEY] = { 0 };
 	const char *comma = "";
@@ -428,6 +428,8 @@ static int sdb_dump(MainOptions *mo) {
 		if (mo->format == cgen && ls_length (l) > SDB_MAX_GPERF_KEYS) {
 			ls_free (l);
 			eprintf ("Error: gperf doesn't work with datasets with more than 15.000 keys.\n");
+			free (name);
+			free (cname);
 			return -1;
 		}
 		SdbKv *kv;
@@ -452,6 +454,8 @@ static int sdb_dump(MainOptions *mo) {
 			free (v);
 			if (mo->format == cgen && count++ > SDB_MAX_GPERF_KEYS) {
 				eprintf ("Error: gperf doesn't work with datasets with more than 15.000 keys.\n");
+				free (name);
+				free (cname);
 				return -1;
 			}
 		}
