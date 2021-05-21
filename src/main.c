@@ -897,6 +897,8 @@ int main(int argc, const char **argv) {
 		if (!strcmp (mo->db, "-")) {
 			mo->create = dash;
 			mo->db = NULL;
+			mo->argi--;
+			mo->db0 = mo->argi;
 		}
 	}
 #if USE_MMAN
@@ -909,16 +911,26 @@ int main(int argc, const char **argv) {
 		if ((s = sdb_new (NULL, mo->db, 0))) {
 			sdb_config (s, options);
 			int kvs = mo->db0 + 2;
-			if (kvs < argc) {
-				save |= insertkeys (s, argv + mo->argi + 2, argc - kvs, '-');
-			}
-			for (; (line = slurp (stdin, NULL));) {
-				save |= sdb_query (s, line);
-				if (mo->format) {
-					fflush (stdout);
-					write_null ();
+			if (mo->argi + 2 < mo->argc) {
+				for (i = mo->argi + 2; i < argc; i++) {
+					save |= sdb_query (s, mo->argv[i]);
+					if (mo->format) {
+						fflush (stdout);
+						write_null ();
+					}
 				}
-				free (line);
+			} else {
+				if (kvs < argc) {
+					save |= insertkeys (s, argv + mo->argi + 2, argc - kvs, '-');
+				}
+				for (; (line = slurp (stdin, NULL));) {
+					save |= sdb_query (s, line);
+					if (mo->format) {
+						fflush (stdout);
+						write_null ();
+					}
+					free (line);
+				}
 			}
 		}
 		break;

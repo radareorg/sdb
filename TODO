@@ -1,5 +1,3 @@
-* do we want to specify the maximum depth of nested namespaces?
-
 BUGS
 ----
 * expire time may be affected by timezone and system time change (NOTE)
