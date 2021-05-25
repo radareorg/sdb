@@ -33,7 +33,7 @@ Contains
 - namespaces (multiple sdb paths)
 - atomic database sync (never corrupted)
 - bindings for vala, luvit, newlisp and nodejs
-- commandline frontend for sdb databases
+- command-line frontend for sdb databases
 - memcache client and server with sdb backend
 - arrays support (syntax sugar)
 - json parser/getter (js0n.c)

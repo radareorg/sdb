@@ -25,7 +25,7 @@ The Sdb.Encode and Sdb.Decode static functions are the ones responsible for doin
 Note that if we pass -1 to Sdb.Decode it will perform an strlen() to the first argument to determine its length. If the value is >=0, then it asumes that size to be read from the pointer passed as first argument.
 
 
-The '%' operator in Sdb.Query can be used to encode or decode an Sdb key from the shell. This eases the usage from commandline for data extraction.
+The '%' operator in Sdb.Query can be used to encode or decode an Sdb key from the shell. This eases the usage from command-line for data extraction.
 
 	> %foo=bar
 

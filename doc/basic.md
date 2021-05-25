@@ -25,7 +25,7 @@ Let's play with json:
 	$ sdb - user='{"id":123}' user:id=99 user:id
 	99
 
-Using the commandline without any disk database:
+Using the command-line without any disk database:
 
 	$ sdb - foo=bar foo a=3 +a -a
 	bar
