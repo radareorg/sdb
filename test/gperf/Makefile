@@ -1,6 +1,6 @@
 SDB=../../src/sdb
 
-all: plain text bin
+all: plain text text2 bin
 
 plain:
 	$(SDB) -G data.sdb.txt > data.c
@@ -8,7 +8,12 @@ plain:
 text:
 	$(SDB) -t -G data.sdb.txt > data-text.c
 	gcc -DMAIN=1 -o b.out data-text.c
-	./b.out
+	./b.out | grep bar
+
+text2:
+	$(SDB) -t -C -o data-text2.c data.sdb.txt
+	gcc -DMAIN=1 -o b.out data-text2.c
+	./b.out | grep bar
 
 bin:
 	$(SDB) data.sdb = < data.sdb.txt
