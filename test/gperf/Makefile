@@ -3,7 +3,7 @@ SDB=../../src/sdb
 all: plain text text2 bin
 
 plain:
-	$(SDB) -G data.sdb.txt > data.c
+	$(SDB) -G data.sdb.txt > data-plain.c
 
 text:
 	$(SDB) -t -G data.sdb.txt > data-text.c
