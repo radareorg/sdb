@@ -788,6 +788,7 @@ static int gen_gperf(MainOptions *mo, const char *file, const char *name) {
 			eprintf ("Outdated sdb binary in PATH?\n");
 		}
 	}
+	free (out);
 	free (buf);
 	return rc;
 }
@@ -868,8 +869,7 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 	return true;
 }
 
-static MainOptions *main_argparse(int argc, const char **argv) {
-	MainOptions *mo = (MainOptions*)calloc (sizeof (MainOptions), 1);
+static MainOptions *main_argparse(MainOptions *mo, int argc, const char **argv) {
 	if (!mo) {
 		return NULL;
 	}
@@ -934,12 +934,11 @@ int main(int argc, const char **argv) {
 		return showusage (1);
 	}
 
-	MainOptions *mo = main_argparse (argc, argv);
+	MainOptions _mo = {0};
+	MainOptions *mo = &_mo;
+	main_argparse (mo, argc, argv);
 	if (!mo) {
 		return 1;
-	}
-	if (mo->outfile) {
-		eprintf ("OUTPUT %s%c", mo->outfile, 10);
 	}
 	// -j json return sdb_dump (argv[db0 + 1], MODE_JSON);
 	// -G sdb_dump (argv[db0 + 1], MODE_CGEN); // gperf

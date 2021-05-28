@@ -6,7 +6,7 @@
 #include <sdb.h>
 
 int main(int argc, char **argv) {
-	int key_num = 100;
+	ut64 key_num = 100;
 	size_t i;
 
 	char *key = malloc (sizeof (char*) * SDB_KSZ);

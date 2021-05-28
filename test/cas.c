@@ -1,11 +1,11 @@
 #include <sdb.h>
 
 int main(int argc, char **argv) {
-	int r, rc = 0;
+	int rc = 0;
 	ut32 cas;
 
 	Sdb *s = sdb_new (NULL, NULL, 0);
-	r = sdb_set (s, "hello", "world", 1);
+	ut32 r = sdb_set (s, "hello", "world", 1);
 	sdb_const_get (s, "hello", &cas);
 	printf ("[test] r%d = c%u\n", r, cas);
 	if (r != cas) {

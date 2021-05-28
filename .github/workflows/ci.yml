@@ -19,6 +19,19 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         path: build/*.exe
+  build-asan:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install gperf
+      run: sudo apt install gperf
+    - name: Building Sdb
+      run: make asan
+    - name: Running tests
+      run: make asantest
+    - name: Testing gperf
+      run: make -C test/gperf
   build-linux:
     runs-on: ubuntu-latest
     steps:

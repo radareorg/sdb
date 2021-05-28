@@ -1,10 +1,10 @@
 #include <sdb.h>
 
 int main() {
-	int i;
+	ut64 i;
 	/* test array of numbers */
 	ut64 *nums = sdb_fmt_array_num("1,3,,5,8,10,0x33");
-	int chks[] = {1,3,0,5,8,10,0x33};
+	ut64 chks[] = {1,3,0,5,8,10,0x33};
 	for (i=0;i<*nums;i++) {
 		printf ("%d.. ", (int)nums[i+1]);
 		if (chks[i] != nums[i+1]) {
