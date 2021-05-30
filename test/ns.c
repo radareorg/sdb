@@ -20,6 +20,7 @@ int main() {
 				eprintf ("Works\n");
 				oks++;
 			}
+			free (o);
 		}
 	}
 	if (oks == 2) {
