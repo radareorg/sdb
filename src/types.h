@@ -57,6 +57,11 @@
 #define ULLFMT "ll"
 #endif
 
+#if __wasi__
+#undef HAVE_MMAN
+#define HAVE_MMAN 0
+#endif
+
 #ifndef USE_MMAN
 #define USE_MMAN HAVE_MMAN
 #endif
