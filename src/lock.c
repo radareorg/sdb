@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include "sdb.h"
 #ifdef __wasi__
-static int getpid() { return 0; }
+static int getpid(void) { return 0; }
 #endif
 
 SDB_API const char *sdb_lock_file(const char *f) {
