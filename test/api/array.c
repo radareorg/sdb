@@ -255,12 +255,12 @@ int main() {
 	s = sdb_new (NULL, NULL, 0);
 	for (i = 0; tests[i]; i++) {
 		res |= !!! test (tests[i]);
-}
+	}
 	sdb_free (s);
 	printf ("TOTAL   %d\n", i);
 	printf ("SUCCESS %d\n", success);
-	printf ("FAILED  %d\n", i-success);
-	printf ("RATIO   %d%%\n", (100*success)/i);
-eprintf ("RES = %d\n", res);
+	printf ("FAILED  %d\n", i - success);
+	printf ("RATIO   %d%%\n", (100 * success) / i);
+	eprintf ("RES = %d\n", res);
 	return !! res;
 }
