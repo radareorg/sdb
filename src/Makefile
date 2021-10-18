@@ -28,7 +28,7 @@ shared: sdb_version.h
 	$(MAKE) libsdb${SOVER}
 
 static: sdb_version.h
-	$(MAKE) libsdb.a
+	$(MAKE) libsdb$(EXT_AR)
 
 sdb_objs: sdb_version.h
 	$(MAKE) ${OBJ}
@@ -36,7 +36,7 @@ sdb_objs: sdb_version.h
 sdb_objs2: sdb_version.h
 	$(MAKE) ${SOBJ}
 
-libsdb$(EXT_AR): sdb_objs
+libsdb.lib libsdb$(EXT_AR): sdb_objs
 ifneq ($(SILENT),)
 	@echo AR libsdb$(EXT_AR)
 endif
@@ -45,10 +45,10 @@ endif
 	${RANLIB} libsdb$(EXT_AR)
 
 ifeq ($(CC),tcc)
-libsdb.lib libsdb${SOVER}:
+libsdb${SOVER}:
 	@echo TCC doesnt support shared libs on macos
 else
-libsdb.lib libsdb${SOVER}: sdb_objs2
+libsdb${SOVER}: sdb_objs2
 endif
 ifneq ($(EXT_SO),${SOVER})
 	ln -fs libsdb${SOVER} libsdb${EXT_SO}
