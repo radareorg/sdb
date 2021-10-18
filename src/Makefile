@@ -45,10 +45,10 @@ endif
 	${RANLIB} libsdb$(EXT_AR)
 
 ifeq ($(CC),tcc)
-libsdb${SOVER}:
+libsdb.lib libsdb${SOVER}:
 	@echo TCC doesnt support shared libs on macos
 else
-libsdb${SOVER}: sdb_objs2
+libsdb.lib libsdb${SOVER}: sdb_objs2
 endif
 ifneq ($(EXT_SO),${SOVER})
 	ln -fs libsdb${SOVER} libsdb${EXT_SO}
