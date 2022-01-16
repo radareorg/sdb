@@ -1,8 +1,9 @@
-/* sdb - MIT - Copyright 2011-2021 - pancake */
+/* sdb - MIT - Copyright 2011-2022 - pancake */
 
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <threads.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -32,15 +33,15 @@ static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
 		     (j) = (count) == (ht)->count? j + 1: j, (kv) = (count) == (ht)->count? next_kv (ht, kv): kv, (count) = (ht)->count)
 
 static inline int nextcas(void) {
-	static ut32 cas = 1;
+	static __thread ut32 cas = 1;
 	if (!cas) {
 		cas++;
 	}
 	return cas++;
 }
 
-static SdbHook global_hook = NULL;
-static void* global_user = NULL;
+static __thread SdbHook global_hook = NULL;
+static __thread void* global_user = NULL;
 
 SDB_API void sdb_global_hook(SdbHook hook, void *user) {
 	global_hook = hook;
