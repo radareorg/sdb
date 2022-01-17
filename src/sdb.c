@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <threads.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -33,15 +32,15 @@ static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
 		     (j) = (count) == (ht)->count? j + 1: j, (kv) = (count) == (ht)->count? next_kv (ht, kv): kv, (count) = (ht)->count)
 
 static inline int nextcas(void) {
-	static __thread ut32 cas = 1;
+	static TLSVAR ut32 cas = 1;
 	if (!cas) {
 		cas++;
 	}
 	return cas++;
 }
 
-static __thread SdbHook global_hook = NULL;
-static __thread void* global_user = NULL;
+static TLSVAR SdbHook global_hook = NULL;
+static TLSVAR void* global_user = NULL;
 
 SDB_API void sdb_global_hook(SdbHook hook, void *user) {
 	global_hook = hook;

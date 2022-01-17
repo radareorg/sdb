@@ -18,6 +18,13 @@ extern "C" {
 #include "cdb_make.h"
 #include "sdb_version.h"
 
+#if SDB_WANT_THREADS
+#include <threads.h>
+#define TLSVAR __thread
+#else
+#define TLSVAR
+#endif
+
 /* Key value sizes */
 #define SDB_MIN_VALUE 1
 #define SDB_MAX_VALUE 0xffffff
