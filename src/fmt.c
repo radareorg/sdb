@@ -23,8 +23,8 @@
 SDB_API char *sdb_fmt(const char *fmt, ...) {
 #define KL 256
 #define KN 16
-	static char Key[KN][KL];
-	static int n = 0;
+	static __thread char Key[KN][KL];
+	static __thread int n = 0;
 	va_list ap;
 	va_start (ap, fmt);
 	n = (n + 1) % KN;
