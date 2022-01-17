@@ -42,6 +42,8 @@ TEST(refs2)
 	Sdb *n2 = sdb_new0 ();
 	sdb_ns_set (n2, "foo", n);
 	sdb_num_set (s, "key", n->refs, 0);
+	sdb_free (n);
+	sdb_free (n2);
 	EXPECT("0x2");
 
 static TestFcn *tests[] = {

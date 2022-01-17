@@ -132,8 +132,7 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 SDB_API int sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val,
 				  ut32 cas) {
 	char valstr[64];
-	return sdb_array_insert (s, key, idx,
-				 sdb_itoa (val, valstr, SDB_NUM_BASE), cas);
+	return sdb_array_insert (s, key, idx, sdb_itoa (val, valstr, SDB_NUM_BASE), cas);
 }
 
 // TODO: done, but there's room for improvement
@@ -202,11 +201,9 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val,
 	return sdb_set_owned (s, key, x, cas);
 }
 
-SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val,
-			       ut32 cas) {
+SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[SDB_NUM_BUFSZ];
-	return sdb_array_set (s, key, idx, sdb_itoa (val, valstr, SDB_NUM_BASE),
-			      cas);
+	return sdb_array_set (s, key, idx, sdb_itoa (val, valstr, SDB_NUM_BASE), cas);
 }
 
 SDB_API int sdb_array_add_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
@@ -391,7 +388,9 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
 			ptr[lval] = SDB_RS;
 			strcpy (ptr + lval + 1, usr);
 		}
-		return sdb_set_owned (s, key, nstr, 0);
+		int ret = sdb_set (s, key, nstr, cas);
+		free (nstr);
+		return ret;
 	}
 	return 0;
 }
@@ -481,8 +480,9 @@ SDB_API int sdb_array_delete(Sdb *s, const char *key, int idx, ut32 cas) {
 	if (n) {
 		memmove (p, n + 1, strlen (n));
 	} else {
-		if (p != str)
+		if (p != str) {
 			p--; // remove tailing SDB_RS
+		}
 		*p = 0;
 		p[1] = 0;
 	}
