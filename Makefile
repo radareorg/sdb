@@ -8,8 +8,6 @@ ASANOPTS=address undefined signed-integer-overflow leak
 CFLAGS_ASAN=$(addprefix -fsanitize=,$(ASANOPTS))
 MKDIR=mkdir
 
-# CFLAGS+=-DSDB_WANT_THREADS=1
-
 all: pkgconfig src/sdb_version.h
 	${MAKE} -C src
 ifeq ($(BUILD_MEMCACHE),1)
