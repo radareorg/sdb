@@ -50,16 +50,12 @@ static inline int fakerand() {
 }
 
 static bool test_sdb_list_big(void) {
+	char buffer[256];
 	Sdb *db = sdb_new0 ();
 	int i;
-#if 0
-	// 6-7s
-	for (i = 0; i < 5000000; i++) {
-		sdb_num_set (db, sdb_fmt ("%d", fakerand()), i + 1, 0);
-	}
-#endif
 	for (i = 0; i < 500000; i++) {
-		sdb_num_set (db, sdb_fmt ("0x%x", fakerand()), i + 1, 0);
+		(void)snprintf (buffer, sizeof (buffer), "0x%x", fakerand ());
+		sdb_num_set (db, buffer, i + 1, 0);
 	}
 	ut64 now = sdb_now ();
 	SdbList *list = sdb_foreach_list (db, true);
@@ -89,14 +85,17 @@ bool test_sdb_delete_none(void) {
 
 bool test_sdb_delete_alot(void) {
 	Sdb *db = sdb_new (NULL, NULL, false);
+	char buffer[32];
 	const int count = 2048;
 	int i;
 
 	for (i = 0; i < count; i++) {
-		sdb_set (db, sdb_fmt ("key.%d", i), "bar", 0);
+		(void)snprintf (buffer, sizeof (buffer), "key.%d", i);
+		sdb_set (db, buffer, "bar", 0);
 	}
 	for (i = 0; i < count; i++) {
-		sdb_unset (db, sdb_fmt ("key.%d", i), 0);
+		(void)snprintf (buffer, sizeof (buffer), "key.%d", i);
+		sdb_unset (db, buffer, 0);
 	}
 	SdbList *list = sdb_foreach_list (db, false);
 	mu_assert_eq (ls_length (list), 0, "Unmatched rows");
@@ -125,11 +124,12 @@ static bool test_sdb_milset_random(void) {
 	int i = 0;
 	const int MAX = 19999999;
 	bool solved = true;
+	char buffer[256];
 	Sdb *s = sdb_new0 ();
 	sdb_set (s, "foo", "bar", 0);
 	for (i = 0; i < MAX ; i++) {
-		char *v = sdb_fmt ("bar%d", i);
-		if (!sdb_set (s, "foo", v, 0)) {
+		(void)snprintf (buffer, sizeof (buffer), "bar%d", i);
+		if (!sdb_set (s, "foo", buffer, 0)) {
 			solved = false;
 			break;
 		}
