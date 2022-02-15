@@ -1,1 +1,1 @@
-string key/value database
+simple and fast string key/value database
