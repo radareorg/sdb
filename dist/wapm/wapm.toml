@@ -1,6 +1,6 @@
 [package]
 name = "pancake/sdb"
-version = "1.8.4"
+version = "1.8.5"
 description = "Unix-Like Reverse Engineering Framework"
 readme = "README.md"
 license = "LGPL3"
