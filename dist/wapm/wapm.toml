@@ -1,0 +1,15 @@
+[package]
+name = "pancake/sdb"
+version = "1.8.4"
+description = "Unix-Like Reverse Engineering Framework"
+readme = "README.md"
+license = "LGPL3"
+
+[[module]]
+name = "sdb"
+abi = "wasi"
+source = "sdb.wasm"
+
+[[command]]
+name = "sdb"
+module = "sdb"
