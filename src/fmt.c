@@ -1,8 +1,6 @@
 /* sdb - MIT - Copyright 2014-2022 - pancake */
 
 #include "sdb.h"
-#include <stdarg.h>
-#include <string.h>
 
 // TODO: convert into a function
 // TODO: Add 'a' format for array of pointers null terminated??

@@ -8,10 +8,9 @@ MCPKGCFG+=--define-variable=libdir=../../memcache --define-variable=includedir=.
 MCSDB_FLAGS=$(shell ${MCPKGCFG} mcsdb) ${SDB_FLAGS}
 GFLAGS=$(shell pkg-config gobject-2.0 --libs --cflags)
 
-ifeq ($(BUILD_MEMCACHE),1)
-ALL_DEPS=test mctest
-else
 ALL_DEPS=test
+ifeq ($(BUILD_MEMCACHE),1)
+ALL_DEPS+=mctest
 endif
 
 all: $(ALL_DEPS)

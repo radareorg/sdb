@@ -14,18 +14,19 @@
 static char netbuf[MCSDB_MAX_BUFFER];
 static size_t netbuflen = 0;
 
-
 char *net_readnl(int fd) {
 	int i = -1;
 	char buf[MCSDB_MAX_BUFFER];
 	do {
 		i++;
-		if (i==sizeof (buf))
+		if (i == sizeof (buf)) {
 			return NULL;
-		if (read (fd, buf+i, 1) != 1)
+		}
+		if (read (fd, buf+i, 1) != 1) {
 			return NULL;
-	} while (buf[i]!='\n');
-	buf[i-1] = 0;// chop \r
+		}
+	} while (buf[i] != '\n');
+	buf[i - 1] = 0; // chop \r
 	return strdup (buf);
 }
 
@@ -33,8 +34,12 @@ char *net_readnl(int fd) {
 
 int net_flush(int fd) {
 	int n;
-	if (netbuflen<1) return 0;
-	if (fd==-1) fd = 1; //stdout
+	if (netbuflen < 1) {
+		return 0;
+	}
+	if (fd == -1) {
+		fd = 1; //stdout
+	}
 	n = write (fd, netbuf, netbuflen);
 	netbuflen = 0;
 	return n;
@@ -47,11 +52,13 @@ int net_printf (int fd, const char *fmt, ...) {
 	va_start (ap, fmt);
 	n = vsnprintf (buf, sizeof (buf)-1, fmt, ap);
 	va_end (ap);
-	if (n < 0)
+	if (n < 0) {
 		return 0;
-	if (netbuflen+n>sizeof (netbuf))
+	}
+	if (netbuflen+n > sizeof (netbuf)) {
 		net_flush (fd);
-	strcpy (netbuf+netbuflen, buf);
+	}
+	strcpy (netbuf + netbuflen, buf);
 	netbuflen += n;
 	return n;
 }
@@ -87,8 +94,9 @@ int net_listen (int port) {
         }
         (void)fcntl (fd, F_SETFL, O_NONBLOCK, 0);
         signal (SIGPIPE, SIG_IGN);
-        if (listen (fd, 1) != -1)
+        if (listen (fd, 1) != -1) {
 		return fd;
+	}
 	close (fd);
 	return -1;
 }

@@ -1,13 +1,14 @@
-/* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
+/* mcsdb - LGPLv3 - Copyright 2011-2022 - pancake */
 
 #include "mcsdb.h"
 #include <ctype.h>
 #include <sys/resource.h>
 
-static inline void strtolower (char *s) {
+static inline void strtolower(char *s) {
 	int i = 0;
-	for (i=0; s[i]; i++)
-		s[i] = tolower(s[i]);
+	for (i = 0; s[i]; i++) {
+		s[i] = tolower (s[i]);
+	}
 }
 
 static void handle_get(McSdb *ms, int fd, char *key, int smode) {
@@ -24,22 +25,23 @@ static void handle_get(McSdb *ms, int fd, char *key, int smode) {
 		if (k) *k = 0;
 		s = mcsdb_get (ms, K, &exptime, &cas);
 		if (s) {
-			if (smode) net_printf (fd, 
-				"VALUE %s %llu %d %d\r\n",
-				K, exptime, (int)strlen (s), cas);
-			else net_printf (fd,
-				"VALUE %s %llu %d\r\n", K, exptime, (int)strlen (s));
+			if (smode) {
+				net_printf (fd, "VALUE %s %llu %d %d\r\n",
+					K, exptime, (int)strlen (s), cas);
+			} else {
+				net_printf (fd, "VALUE %s %llu %d\r\n",
+					K, exptime, (int)strlen (s));
+			}
 			net_printf (fd, "%s\r\n", s);
 			free (s);
 			n++;
-//break;
 		}
 		if (k) K = k + 1;
 	} while (k);
 	net_printf (fd, "END\r\n"); // no elements found
 }
 
-int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
+int protocol_handle(McSdb *ms, McSdbClient *c, char *buf) {
 	struct rusage ru;
 	int fd, ret, reply, stored = 1;
 	char *b, *p, *q, *cmd = buf, *key = NULL;
@@ -120,10 +122,13 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 		}
 		n = strtoull (p, &q, 10);
 		if (q) {
-			p--; *p=0;
-			if (cmdhash==MCSDB_CMD_INCR)
+			p--;
+			*p=0;
+			if (cmdhash == MCSDB_CMD_INCR) {
 				p = mcsdb_incr (ms, key, n);
-			else p = mcsdb_decr (ms, key, n);
+			} else {
+				p = mcsdb_decr (ms, key, n);
+			}
 			if (p) {
 				net_printf (fd, "%s\r\n", p);
 				free (p);
@@ -162,16 +167,23 @@ int protocol_handle (McSdb *ms, McSdbClient *c, char *buf) {
 		p = strchr (key, ' ');
 		if (p) {
 			*p = 0;
-			if (!memcmp (p+1, "noreply", 7))
+			if (!memcmp (p+1, "noreply", 7)) {
 				reply = 0;
-			else reply = 1;
-		} else reply = 1;
+			} else {
+				reply = 1;
+			}
+		} else {
+			reply = 1;
+		}
 		c->exptime = 0LL;
 		sscanf (key, "%llu", &c->exptime);
 		ret = mcsdb_remove (ms, key, c->exptime);
 		if (reply) {
-			if (ret) net_printf (fd, "DELETED\r\n");
-			else net_printf (fd, "NOT_FOUND\r\n");
+			if (ret) {
+				net_printf (fd, "DELETED\r\n");
+			} else {
+				net_printf (fd, "NOT_FOUND\r\n");
+			}
 		}
 		break;
 	case MCSDB_CMD_ADD:

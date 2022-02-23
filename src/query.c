@@ -1,9 +1,7 @@
 /* sdb - MIT - Copyright 2011-2022 - pancake */
 
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
 #include <fcntl.h>
+#include <stdarg.h>
 #include <ctype.h>
 #include "sdb.h"
 

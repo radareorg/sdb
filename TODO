@@ -5,6 +5,7 @@ BUGS
 
 TODO
 ----
+* Remove all calls to eprintf in the library functions
 * Add disk database file checksum to verify if its broken or valid file
 * ht->ls is wrong! dups appear
 * implement mmap for w32
