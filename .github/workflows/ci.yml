@@ -19,6 +19,15 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         path: build/*.exe
+  build-cxx:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Building Sdb
+      run: make xxx
+    - name: Testing gperf
+      run: make -C test
   build-asan:
     runs-on: ubuntu-latest
     continue-on-error: true
