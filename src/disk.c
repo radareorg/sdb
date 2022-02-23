@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2013-2018 - pancake */
+/* sdb - MIT - Copyright 2013-2022 - pancake */
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -93,7 +93,7 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 	dir = s->dir ? s->dir : "./";
 	R_FREE (s->ndump);
 	nlen = strlen (dir);
-	str = malloc (nlen + 5);
+	str = (char *)malloc (nlen + 5);
 	if (!str) {
 		return false;
 	}

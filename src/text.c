@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2020-2021 - thestr4ng3r */
+/* sdb - MIT - Copyright 2020-2022 - pancake, thestr4ng3r */
 
 #include "sdb.h"
 
@@ -8,6 +8,9 @@
 #if USE_MMAN
 #include <sys/mman.h>
 #endif
+
+// TODO: set this to 0 when properly reviewed and cleaned
+#define OLD_MAGIC 1
 
 /**
  * ********************
@@ -60,15 +63,18 @@
 */
 
 static int cmp_ns(const void *a, const void *b) {
-	const SdbNs *nsa = a;
-	const SdbNs *cia = b;
+	const SdbNs *nsa = (const SdbNs *)a;
+	const SdbNs *cia = (const SdbNs *)b;
 	return strcmp (nsa->name, cia->name);
 }
+
 
 // n = position we are currently looking at
 // p = position until we have already written everything
 // flush a block of text that doesn't have to be escaped
 #define FLUSH do { if (p != n) { (void)write (fd, p, n - p); p = n; } } while (0)
+
+#if OLD_MAGIC
 // write and escape a string from str to fd
 #define ESCAPE_LOOP(fd, str, escapes) do { \
 		const char *p = str; \
@@ -79,12 +85,44 @@ static int cmp_ns(const void *a, const void *b) {
 		} \
 		FLUSH; \
 	} while (0)
-#define ESCAPE(c, repl, replsz) \
+
+#define ESCAPE(c, repl) \
 		case c: \
 			FLUSH; \
 			p++; \
-			if (write (fd, "\\"repl, replsz + 1) != replsz + 1) { return false; }; \
+			if (write (fd, "\\" repl, 2) != 2) { return false; }; \
 			break;
+
+#else
+static bool escape_loop(int fd, const char *str, char ch) {
+	const char *p = str;
+	const char *n = p;
+	while (*n) {
+		switch (*n) {
+		case '\\':
+			if (write (fd, "\\\\", 2) != 2) { return false; }
+			break;
+		case '\r':
+			if (write (fd, "\\r", 2) != 2) { return false; }
+			break;
+		case '\n':
+			if (write (fd, "\\n", 2) != 2) { return false; }
+			break;
+		default:
+			if (ch) {
+				if (*n == ch) {
+					char pair[2] = {ch, 0};
+					if (write (fd, pair, 2) != 2) { return false; }
+				}
+			}
+			break;
+		}
+		n++;
+	}
+	FLUSH;
+	return true;
+}
+#endif
 
 static bool write_path(int fd, SdbList *path) {
 	if (write (fd, "/", 1) != 1) { // always print a /, even if path is empty
@@ -93,7 +131,7 @@ static bool write_path(int fd, SdbList *path) {
 	SdbListIter *it;
 	const char *path_token;
 	bool first = true;
-	ls_foreach (path, it, path_token) {
+	ls_foreach_cast (path, it, const char *, path_token) {
 		if (first) {
 			first = false;
 		} else {
@@ -101,12 +139,16 @@ static bool write_path(int fd, SdbList *path) {
 				return false;
 			}
 		}
+#if OLD_MAGIC
 		ESCAPE_LOOP (fd, path_token,
-			ESCAPE ('\\', "\\", 1);
-			ESCAPE ('/', "/", 1);
-			ESCAPE ('\n', "n", 1);
-			ESCAPE ('\r', "r", 1);
+			ESCAPE ('\\', "\\");
+			ESCAPE ('/', "/");
+			ESCAPE ('\n', "n");
+			ESCAPE ('\r', "r");
 		);
+#else
+		escape_loop (fd, path_token, '/');
+#endif
 	}
 	return true;
 }
@@ -118,29 +160,37 @@ static bool write_key(int fd, const char *k) {
 			return false;
 		}
 	}
+#if OLD_MAGIC
 	ESCAPE_LOOP (fd, k,
-		ESCAPE ('\\', "\\", 1);
-		ESCAPE ('=', "=", 1);
-		ESCAPE ('\n', "n", 1);
-		ESCAPE ('\r', "r", 1);
+		ESCAPE ('\\', "\\");
+		ESCAPE ('=', "=");
+		ESCAPE ('\n', "n");
+		ESCAPE ('\r', "r");
 	);
 	return true;
+#else
+	return escape_loop (fd, k, '=');
+#endif
 }
 
 static bool write_value(int fd, const char *v) {
+#if OLD_MAGIC
 	ESCAPE_LOOP (fd, v,
-		ESCAPE ('\\', "\\", 1);
-		ESCAPE ('\n', "n", 1);
-		ESCAPE ('\r', "r", 1);
+		ESCAPE ('\\', "\\");
+		ESCAPE ('\n', "n");
+		ESCAPE ('\r', "r");
 	);
 	return true;
+#else
+	return escape_loop (fd, v, 0);
+#endif
 }
 #undef FLUSH
 #undef ESCAPE_LOOP
 #undef ESCAPE
 
 static bool save_kv_cb(void *user, const char *k, const char *v) {
-	int fd = *(int *)user;
+	int fd = *((int *)user);
 	if (!write_key (fd, k) || write (fd, "=", 1) != 1) {
 		return false;
 	}
@@ -161,7 +211,7 @@ static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 		SdbList *l = sdb_foreach_list (s, true);
 		SdbKv *kv;
 		SdbListIter *it;
-		ls_foreach (l, it, kv) {
+		ls_foreach_cast (l, it, SdbKv*, kv) {
 			save_kv_cb (&fd, sdbkv_key (kv), sdbkv_value (kv));
 		}
 		ls_free (l);
@@ -178,7 +228,7 @@ static bool text_save(Sdb *s, int fd, bool sort, SdbList *path) {
 	}
 	SdbNs *ns;
 	SdbListIter *it;
-	ls_foreach (l, it, ns) {
+	ls_foreach_cast (l, it, SdbNs*, ns) {
 		if (write (fd, "\n", 1) != 1) {
 			ls_free (l);
 			return false;
@@ -249,7 +299,7 @@ static void load_process_line(LoadCtx *ctx) {
 		SdbListIter *it;
 		void *token_off_tmp;
 		ctx->cur_db = ctx->root_db;
-		ls_foreach (ctx->path, it, token_off_tmp) {
+		ls_foreach_cast (ctx->path, it, void*, token_off_tmp) {
 			size_t token_off = (size_t)token_off_tmp;
 			if (!ctx->buf[token_off]) {
 				continue;
@@ -345,7 +395,7 @@ static bool load_process_final_line(LoadCtx *ctx) {
 	// load_process_line needs ctx.buf[ctx.pos] to be allocated!
 	// so we need room for one additional byte after the buffer.
 	size_t linesz = ctx->bufsz - ctx->line_begin;
-	char *linebuf = malloc (linesz + 1);
+	char *linebuf = (char *)malloc (linesz + 1);
 	if (!linebuf) {
 		return false;
 	}
@@ -357,7 +407,7 @@ static bool load_process_final_line(LoadCtx *ctx) {
 	ctx->token_begin -= ctx->line_begin;
 	SdbListIter *it;
 	void *token_off_tmp;
-	ls_foreach (ctx->path, it, token_off_tmp) {
+	ls_foreach_cast (ctx->path, it, void*, token_off_tmp) {
 		it->data = (void *)((size_t)token_off_tmp - ctx->line_begin);
 	}
 	ctx->line_begin = 0;
@@ -416,17 +466,18 @@ SDB_API bool sdb_text_load(Sdb *s, const char *file) {
 		return false;
 	}
 	bool r = false;
+	char *x = NULL;
 	struct stat st;
 	if (fstat (fd, &st) || !st.st_size) {
 		goto beach;
 	}
 #if USE_MMAN
-	char *x = mmap (0, st.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	x = (char *)mmap (0, st.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	if (x == MAP_FAILED) {
 		goto beach;
 	}
 #else
-	char *x = calloc (1, st.st_size);
+	x = (char *)calloc (1, st.st_size);
 	if (!x) {
 		goto beach;
 	}
