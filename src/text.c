@@ -9,9 +9,6 @@
 #include <sys/mman.h>
 #endif
 
-// TODO: set this to 0 when properly reviewed and cleaned
-#define OLD_MAGIC 1
-
 /**
  * ********************
  * Plaintext SDB Format
@@ -72,57 +69,45 @@ static int cmp_ns(const void *a, const void *b) {
 // n = position we are currently looking at
 // p = position until we have already written everything
 // flush a block of text that doesn't have to be escaped
-#define FLUSH do { if (p != n) { (void)write (fd, p, n - p); p = n; } } while (0)
 
-#if OLD_MAGIC
-// write and escape a string from str to fd
-#define ESCAPE_LOOP(fd, str, escapes) do { \
-		const char *p = str; \
-		const char *n = p; \
-		while (*n) { \
-			switch (*n) { escapes } \
-			n++; \
-		} \
-		FLUSH; \
-	} while (0)
+static bool escape_flush(int fd, const char *p, const char *n) {
+	if (p != n && write (fd, p, n - p) != n - p) {
+		return false;
+	}
+	return true;
+}
 
-#define ESCAPE(c, repl) \
-		case c: \
-			FLUSH; \
-			p++; \
-			if (write (fd, "\\" repl, 2) != 2) { return false; }; \
-			break;
-
-#else
 static bool escape_loop(int fd, const char *str, char ch) {
 	const char *p = str;
 	const char *n = p;
-	while (*n) {
+	bool ok = true;
+	while (*n && ok) {
+		ok = true;
 		switch (*n) {
 		case '\\':
-			if (write (fd, "\\\\", 2) != 2) { return false; }
+			ok = escape_flush (fd, p, n) && write (fd, "\\\\", 2) == 2;
+			p = n + 1;
 			break;
 		case '\r':
-			if (write (fd, "\\r", 2) != 2) { return false; }
+			ok = escape_flush (fd, p, n) && write (fd, "\\r", 2) == 2;
+			p = n + 1;
 			break;
 		case '\n':
-			if (write (fd, "\\n", 2) != 2) { return false; }
+			ok = escape_flush (fd, p, n) && write (fd, "\\n", 2) == 2;
+			p = n + 1;
 			break;
 		default:
-			if (ch) {
-				if (*n == ch) {
-					char pair[2] = {ch, 0};
-					if (write (fd, pair, 2) != 2) { return false; }
-				}
+			if (ch && *n == ch) {
+				char pair[2] = { '\\', ch };
+				ok = escape_flush (fd, p, n) && write (fd, &pair, 2) == 2;
+				p = n + 1;
 			}
 			break;
 		}
 		n++;
 	}
-	FLUSH;
-	return true;
+	return ok && escape_flush (fd, p, n);
 }
-#endif
 
 static bool write_path(int fd, SdbList *path) {
 	if (write (fd, "/", 1) != 1) { // always print a /, even if path is empty
@@ -139,16 +124,9 @@ static bool write_path(int fd, SdbList *path) {
 				return false;
 			}
 		}
-#if OLD_MAGIC
-		ESCAPE_LOOP (fd, path_token,
-			ESCAPE ('\\', "\\");
-			ESCAPE ('/', "/");
-			ESCAPE ('\n', "n");
-			ESCAPE ('\r', "r");
-		);
-#else
-		escape_loop (fd, path_token, '/');
-#endif
+		if (!escape_loop (fd, path_token, '/')) {
+			return false;
+		}
 	}
 	return true;
 }
@@ -160,34 +138,12 @@ static bool write_key(int fd, const char *k) {
 			return false;
 		}
 	}
-#if OLD_MAGIC
-	ESCAPE_LOOP (fd, k,
-		ESCAPE ('\\', "\\");
-		ESCAPE ('=', "=");
-		ESCAPE ('\n', "n");
-		ESCAPE ('\r', "r");
-	);
-	return true;
-#else
 	return escape_loop (fd, k, '=');
-#endif
 }
 
 static bool write_value(int fd, const char *v) {
-#if OLD_MAGIC
-	ESCAPE_LOOP (fd, v,
-		ESCAPE ('\\', "\\");
-		ESCAPE ('\n', "n");
-		ESCAPE ('\r', "r");
-	);
-	return true;
-#else
 	return escape_loop (fd, v, 0);
-#endif
 }
-#undef FLUSH
-#undef ESCAPE_LOOP
-#undef ESCAPE
 
 static bool save_kv_cb(void *user, const char *k, const char *v) {
 	int fd = *((int *)user);
