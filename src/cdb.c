@@ -1,7 +1,5 @@
 /* Public domain - author D. J. Bernstein, modified by pancake - 2014-2016 */
 
-#include <stdio.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include "cdb.h"
 #if USE_MMAN

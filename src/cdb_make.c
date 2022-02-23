@@ -1,7 +1,5 @@
 /* Public domain. */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "sdb.h"
 #include "cdb.h"
 #include "cdb_make.h"

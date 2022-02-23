@@ -1,8 +1,6 @@
 /* sdb - MIT - Copyright 2011-2022 - pancake */
 
 #include <signal.h>
-#include <stdio.h>
-#include <string.h>
 #include <fcntl.h>
 #ifndef HAVE_SYSTEM
 #define HAVE_SYSTEM 1

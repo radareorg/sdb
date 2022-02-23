@@ -1,8 +1,5 @@
 /* base64 enc/dec - MIT - Copyright 2011-2022 - pancake */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "sdb.h"
 
 #define SZ 1024
