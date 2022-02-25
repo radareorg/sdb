@@ -41,7 +41,7 @@ SDB_API void dict_fini(dict *m) {
 			for (i = 0; i < m->size; i++) {
 				dictkv *kv = (dictkv *)m->table[i];
 				if (kv) {
-					while (kv->k != MHTNO) {
+					while (kv->k != 0) {
 						m->f (kv->u);
 						kv++;
 					}
@@ -71,7 +71,7 @@ SDB_API dicti dict_hash(const char *s) {
 }
 
 SDB_API bool dict_set(dict *m, dicti k, dicti v, void *u) {
-	if (!m || !m->size || k == MHTNO) {
+	if (!m || !m->size || k == 0) {
 		return false;
 	}
 	const int bucket = dict_bucket (m, k);
@@ -80,15 +80,15 @@ SDB_API bool dict_set(dict *m, dicti k, dicti v, void *u) {
 		kv = (dictkv *)calloc (sizeof (dictkv), 2);
 		if (kv) {
 			m->table[bucket] = kv;
-			kv->k = MHTNO;
-			kv->v = MHTNO;
+			kv->k = 0;
+			kv->v = 0;
 			kv->u = NULL;
 			return dict_set (m, k, v, u);
 		}
 		return false;
 	}
 	dictkv *tmp = kv;
-	while (kv->k != MHTNO) {
+	while (kv->k != 0) {
 		if (kv->k == k) {
 			kv->v = v;
 			kv->u = u;
@@ -106,24 +106,23 @@ SDB_API bool dict_set(dict *m, dicti k, dicti v, void *u) {
 		kv->v = v;
 		kv->u = u;
 		kv++;
-		kv->k = MHTNO;
-		kv->v = MHTNO;
+		kv->k = 0;
+		kv->v = 0;
 		kv->u = NULL;
 		return true;
 	}
 	return false;
 }
 
-SDB_API ut32 dict_stats(dict *m, int nb) {
-	ut32 i, j;
-	if (nb < 0) {
+SDB_API ut32 dict_stats(dict *m, ut32 nb) {
+	if (((int)nb) < 0) {
 		return m->size - 1;
 	}
 	if (nb < m->size) {
-		j = 0;
-		dictkv *kv = (dictkv *)m->table[i];
+		ut32 j = 0;
+		dictkv *kv = (dictkv *)m->table[nb];
 		if (kv) {
-			while (kv->k != MHTNO) {
+			while (kv->k != 0) {
 				j++;
 				kv++;
 			}
@@ -140,7 +139,7 @@ SDB_API dictkv *dict_getr(dict *m, dicti k) {
 	int bucket = dict_bucket (m, k);
 	dictkv *kv = (dictkv *)m->table[bucket];
 	if (kv) {
-		while (kv->k != MHTNO) {
+		while (kv->k != 0) {
 			if (kv->k == k) {
 				return kv;
 			}
@@ -152,7 +151,7 @@ SDB_API dictkv *dict_getr(dict *m, dicti k) {
 
 SDB_API dicti dict_get(dict *m, dicti k) {
 	dictkv *kv = dict_getr (m, k);
-	return kv ? kv->v : MHTNO;
+	return kv ? kv->v : 0;
 }
 
 SDB_API void *dict_getu(dict *m, dicti k) {
@@ -168,21 +167,21 @@ SDB_API bool dict_add(dict *m, dicti k, dicti v, void *u) {
 
 SDB_API bool dict_del(dict *m, dicti k) {
 	int bucket = dict_bucket (m, k);
-	if (k == MHTNO) {
+	if (k == 0) {
 		return false;
 	}
 	dictkv *kv = (dictkv *)m->table[bucket];
 	if (kv) {
-		while (kv->k != MHTNO) {
+		while (kv->k != 0) {
 			if (kv->k == k) {
 				if (m->f) {
 					m->f (kv->u);
 				}
 				dictkv *n = (dictkv *)(kv + 1);
-				while (n->k != MHTNO) {
+				while (n->k != 0) {
 					*kv++ = *n++;
 				}
-				kv->k = MHTNO;
+				kv->k = 0;
 				return true;
 			}
 			kv++;
@@ -203,9 +202,9 @@ SDB_API void dict_foreach(dict *m, dictkv_cb cb, void *u) {
 	for (i = 0; i < m->size && iterate; i++) {
 		dictkv *kv = (dictkv *)m->table[i];
 		if (kv) {
-			while (kv->k != MHTNO) {
+			while (kv->k) {
 				int res = cb (kv, u);
-				if (res != 0) {
+				if (res) {
 					iterate = false;
 					break;
 				}
