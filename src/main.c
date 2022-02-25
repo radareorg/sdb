@@ -291,7 +291,7 @@ static void sdb_dump_cb(MainOptions *mo, const char *k, const char *v, const cha
 		if (!strcmp (v, "true") || !strcmp (v, "false")) {
 			printf ("%s\"%s\":%s", comma, k, v);
 		} else if (sdb_isnum (v)) {
-			printf ("%s\"%s\":%" ULLFMT "u", comma, k, sdb_atoi (v));
+			printf ("%s\"%s\":%" PRIu64, comma, k, sdb_atoi (v));
 		} else if (*v == '{' || *v == '[') {
 			printf ("%s\"%s\":%s", comma, k, v);
 		} else {
