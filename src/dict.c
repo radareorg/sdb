@@ -114,11 +114,12 @@ SDB_API bool dict_set(dict *m, dicti k, dicti v, void *u) {
 	return false;
 }
 
-#if 0
-SDB_API void dict_stats(dict *m) {
+SDB_API ut32 dict_stats(dict *m, int nb) {
 	ut32 i, j;
-	for (i = 0; i < m->size; i++) {
-		printf ("%d: ", i);
+	if (nb < 0) {
+		return m->size - 1;
+	}
+	if (nb < m->size) {
 		j = 0;
 		dictkv *kv = (dictkv *)m->table[i];
 		if (kv) {
@@ -127,10 +128,10 @@ SDB_API void dict_stats(dict *m) {
 				kv++;
 			}
 		}
-		printf ("%d\n", j);
+		return j;
 	}
+	return 0;
 }
-#endif
 
 SDB_API dictkv *dict_getr(dict *m, dicti k) {
 	if (!m->size) {
