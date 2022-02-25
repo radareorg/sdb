@@ -94,7 +94,7 @@ void sprint_mem(char *out, const char *buf, size_t len) {
 		ut64 exp__ = (ut64)(expected); \
 		if ((exp__) != (act__)) { \
 			char _meqstr[2048]; \
-			sprintf(_meqstr, "%s: expected %lld, got %lld.", (message), (long long)(exp__), (ut64)(act__)); \
+			sprintf(_meqstr, "%s: expected %" PRId64 ", got %" PRId64 ".", (message), (ut64)(exp__), (ut64)(act__)); \
 			mu_assert(_meqstr, false); \
 		} \
 	} while(0)
@@ -103,7 +103,7 @@ void sprint_mem(char *out, const char *buf, size_t len) {
 		char _meqstr[2048]; \
 		ut64 act__ = (ut64)(actual); \
 		ut64 exp__ = (ut64)(expected); \
-		sprintf(_meqstr, "%s: expected not %lld, got %lld.", (message), (long long)(exp__), (act__)); \
+		sprintf(_meqstr, "%s: expected not %" PRId64 ", got %" PRId64 ".", (message), (ut64)(exp__), (act__)); \
 		mu_assert(_meqstr, (exp__) != (act__)); \
 	} while(0)
 

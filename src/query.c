@@ -465,7 +465,7 @@ next_quote:
 			}
 			// keep base
 			if (base == 16) {
-				w = snprintf (buf, len - 1, "0x%" ULLFMT "x", n);
+				w = snprintf (buf, len - 1, "0x%" PRIx64, n);
 				if (w < 0 || (size_t)w > len) {
 					if (bufset && len < 0xff) {
 						free (buf);
@@ -475,10 +475,10 @@ next_quote:
 						}
 					}
 					bufset = true;
-					snprintf (buf, 0xff, "0x%" ULLFMT "x", n);
+					snprintf (buf, 0xff, "0x%" PRIx64, n);
 				}
 			} else {
-				w = snprintf (buf, len-1, "%" ULLFMT "d", n);
+				w = snprintf (buf, len-1, "%" PRId64, n);
 				if (w < 0 || (size_t)w > len) {
 					if (bufset && len < 0xff) {
 						free (buf);
@@ -488,7 +488,7 @@ next_quote:
 						}
 					}
 					bufset = true;
-					snprintf (buf, 0xff, "%" ULLFMT "d", n);
+					snprintf (buf, 0xff, "%" PRId64, n);
 				}
 			}
 		}

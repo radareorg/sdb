@@ -15,7 +15,7 @@ int main() {
 	sdb_fmt_init (&p, "dsqd");
 	sdb_fmt_tobin ("123,bar,321,1", "dsqd", &p);
 	eprintf ("--> %d,%s\n", p.foo, p.str);
-	eprintf ("--> %lld,%d\n", p.fin, p.end);
+	eprintf ("--> %" ULLFMT ",%d\n", p.fin, p.end);
 
 	{
 		char *o = sdb_fmt_tostr (&p, "dsqd");
