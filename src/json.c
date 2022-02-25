@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2012-2021 - pancake */
+/* sdb - MIT - Copyright 2012-2022 - pancake */
 
 #include <stdarg.h>
 #include "sdb.h"
