@@ -1,4 +1,3 @@
-// #include "minunit.h"
 #include <sdb.h>
 
 int main() {
@@ -24,6 +23,7 @@ int main() {
 	}
 
 	int buckets = dict_stats (&m, -1);
+	int i;
 	for (i = 0; i < buckets; i++) {
 		printf ("%d: %d\n", i, dict_stats (&m, i));
 	}
