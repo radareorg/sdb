@@ -759,6 +759,8 @@ static int gen_gperf(MainOptions *mo, const char *file, const char *name) {
 		wd = open (out, O_RDWR | O_CREAT, 0644);
 	} else {
 		if (ftruncate (wd, 0) == -1) {
+			free (out);
+			free (buf);
 			close (wd);
 			return -1;
 		}
