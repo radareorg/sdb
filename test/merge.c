@@ -2,7 +2,6 @@
 #include <sdb.h>
 
 int main() {
-	const char *v;
 	Sdb *s = sdb_new0 ();
 	Sdb *d = sdb_new0 ();
 

@@ -212,7 +212,7 @@ TEST(add_num4)
 TEST(add_num5)
 	sdb_set (s, "key", "1,2",0);
 	sdb_array_add_num (s, "key", 3, 0);
-	EXPECT("0x1,0x2,0x3");
+	EXPECT("1,2,3");
 
 static TestFcn *tests[] = {
 	test_array_get,
@@ -247,6 +247,7 @@ static TestFcn *tests[] = {
 	test_array_add_num2,
 	test_array_add_num3,
 	test_array_add_num4,
+	test_array_add_num5,
 	NULL
 };
 

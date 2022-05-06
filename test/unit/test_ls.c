@@ -251,7 +251,7 @@ bool test_r_list_sort6(void) {
 	SdbListIter *iter;
 	SdbList* list = ls_new ();
 
-	for (i = 0; i < R_ARRAY_SIZE(values); i++) {
+	for (i = 0; i < (int)R_ARRAY_SIZE(values); i++) {
 		ls_append (list, (void*)&values[i]);
 	}
 
@@ -290,7 +290,7 @@ bool test_r_list_sort4(void) {
 	int i;
 
 	// Put in not sorted order.
-	for (i = 0; i < R_ARRAY_SIZE (ins_tests_odd); ++i) {
+	for (i = 0; i < (int)R_ARRAY_SIZE (ins_tests_odd); ++i) {
 		ls_append (list, (void*)ins_tests_odd[i]);
 	}
 	// Sort.
@@ -298,7 +298,7 @@ bool test_r_list_sort4(void) {
 
 	// Check that the list (odd-length) is actually sorted.
 	SdbListIter *next = list->head;
-	for (i = 0; i < R_ARRAY_SIZE (exp_tests_odd); ++i) {
+	for (i = 0; i < (int)R_ARRAY_SIZE (exp_tests_odd); ++i) {
 		char buf[BUF_LENGTH];
 		snprintf(buf, BUF_LENGTH, "%d-th value in sorted list", i);
 		mu_assert_streq ((char*)next->data, exp_tests_odd[i], buf);
@@ -327,7 +327,7 @@ bool test_r_list_sort4(void) {
 	}
 	// Check that the list (even-length) is actually sorted.
 	next = list->head;
-	for (i = 0; i < R_ARRAY_SIZE (exp_tests_even); ++i) {
+	for (i = 0; i < (int)R_ARRAY_SIZE (exp_tests_even); i++) {
 		char buf[BUF_LENGTH];
 		snprintf(buf, BUF_LENGTH, "%d-th value in sorted list", i);
 		mu_assert_streq ((char*)next->data, exp_tests_even[i], buf);
