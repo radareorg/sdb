@@ -743,7 +743,7 @@ static bool sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 	tkv.base.value = (char *)v;
 	if (sdbkv_match (&tkv, o->expr)) {
 		SdbKv *kv = R_NEW0 (SdbKv);
-		if (!kv){
+		if (!kv) {
 			return false;
 		}
 		kv->base.key = strdup (k);
