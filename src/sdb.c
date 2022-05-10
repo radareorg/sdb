@@ -536,7 +536,7 @@ SDB_API SdbKv* sdbkv_new2(const char *k, int kl, const char *v, int vl) {
 		return NULL;
 	}
 	kv = R_NEW0 (SdbKv);
-	if (!kv){
+	if (!kv) {
 		return NULL;
 	}
 	kv->base.key_len = kl;
