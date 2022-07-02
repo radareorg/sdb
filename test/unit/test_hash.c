@@ -102,13 +102,13 @@ bool test_ht_grow(void) {
 	int i;
 
 	ht->opt.hashfn = key2hash;
-	for (i = 0; i < 20000; ++i) {
+	for (i = 0; i < 20000; i++) {
 		snprintf (str, 15, "%d", i);
 		snprintf (vstr, 15, "v%d", i);
 		sdb_ht_insert (ht, str, vstr);
 	}
 
-	for (i = 0; i < 20000; ++i) {
+	for (i = 0; i < 20000; i++) {
 		snprintf (str, 15, "%d", i);
 		snprintf (vstr, 15, "v%d", i);
 		char *v = sdb_ht_find (ht, str, NULL);
@@ -303,7 +303,7 @@ bool test_grow_1(void) {
 	HtPP *ht = ht_pp_new0 ();
 	int i;
 
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < 3; i++) {
 		grow_1_found[i] = false;
 	}
 
@@ -312,7 +312,7 @@ bool test_grow_1(void) {
 	ht_pp_insert (ht, "key2", (void *)2);
 
 	ht_pp_foreach (ht, (HtPPForeachCallback)grow_1_foreach, NULL);
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < 3; i++) {
 		if (!grow_1_found[i]) {
 			fprintf (stderr, "i = %d\n", i);
 			mu_fail ("An element has not been traversed");
@@ -329,7 +329,7 @@ bool test_grow_2(void) {
 	bool found;
 	int i;
 
-	for (i = 0; i < 3000; ++i) {
+	for (i = 0; i < 3000; i++) {
 		char buf[20], buf2[20];
 		snprintf (buf, 20, "key%d", i);
 		snprintf (buf2, 20, "value%d", i);
@@ -358,7 +358,7 @@ bool test_grow_3(void) {
 	bool found;
 	int i;
 
-	for (i = 0; i < 3000; ++i) {
+	for (i = 0; i < 3000; i++) {
 		char buf[20], buf2[20];
 		snprintf (buf, 20, "key%d", i);
 		snprintf (buf2, 20, "value%d", i);
@@ -407,7 +407,7 @@ bool test_grow_4(void) {
 	bool found;
 	int i;
 
-	for (i = 0; i < 3000; ++i) {
+	for (i = 0; i < 3000; i++) {
 		char buf[20], *buf2;
 		snprintf (buf, 20, "key%d", i);
 		buf2 = malloc (20);

@@ -10,12 +10,12 @@ bool test_r_list_size(void) {
 	SdbList* list = ls_new ();
 	intptr_t test = 0x101010;
 	// Add 100 items.
-	for (i = 0; i < 100; ++i) {
+	for (i = 0; i < 100; i++) {
 		ls_append (list, (void*)test);
 		mu_assert_eq ((int)ls_length (list), i + 1, "ls_length failed on append");
 	}
 	// Delete 50 of them.
-	for (i = 0; i < 50; ++i) {
+	for (i = 0; i < 50; i++) {
 		(void)ls_pop (list);
 		mu_assert_eq(99 - i, (int)ls_length (list), "ls_length failed on pop");
 	}
@@ -290,7 +290,7 @@ bool test_r_list_sort4(void) {
 	int i;
 
 	// Put in not sorted order.
-	for (i = 0; i < (int)R_ARRAY_SIZE (ins_tests_odd); ++i) {
+	for (i = 0; i < (int)R_ARRAY_SIZE (ins_tests_odd); i++) {
 		ls_append (list, (void*)ins_tests_odd[i]);
 	}
 	// Sort.
@@ -298,7 +298,7 @@ bool test_r_list_sort4(void) {
 
 	// Check that the list (odd-length) is actually sorted.
 	SdbListIter *next = list->head;
-	for (i = 0; i < (int)R_ARRAY_SIZE (exp_tests_odd); ++i) {
+	for (i = 0; i < (int)R_ARRAY_SIZE (exp_tests_odd); i++) {
 		char buf[BUF_LENGTH];
 		snprintf(buf, BUF_LENGTH, "%d-th value in sorted list", i);
 		mu_assert_streq ((char*)next->data, exp_tests_odd[i], buf);
