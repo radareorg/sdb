@@ -1,5 +1,5 @@
 #include <Python.h>
-#include <sdb.h>
+#include "../sdbsrc/sdb.h"
 
 PyObject * hello(PyObject * self) {
 	Sdb *db = sdb_new0();
@@ -39,7 +39,18 @@ PyObject * get(PyObject * self, PyObject *args) {
 	return res;
 }
 
-PyObject * open(PyObject * self, PyObject *args) {
+PyObject * nsdb_query(PyObject * self, PyObject *args) {
+	void *db = NULL;
+	const char *q = NULL;
+	if (!PyArg_ParseTuple(args, "ls", &db, &q)) {
+		return NULL;
+	}
+	char *s = sdb_querys (db, NULL, 0, q);
+	PyObject * res = PyUnicode_FromFormat(s);
+	return res;
+}
+
+PyObject * nsdb_open(PyObject * self, PyObject *args) {
 	void *db = NULL;
 	const char * path = NULL;
 	if (!PyArg_ParseTuple(args, "ls", &db, &path)) {
@@ -78,8 +89,12 @@ PyMethodDef sdb_funcs[] = {
 		(PyCFunction)set,
 		METH_VARARGS,
 		hellofunc_docs},
+	{	"query",
+		(PyCFunction)nsdb_query,
+		METH_VARARGS,
+		hellofunc_docs},
 	{	"open",
-		(PyCFunction)open,
+		(PyCFunction)nsdb_open,
 		METH_VARARGS,
 		hellofunc_docs},
 	{	"free",

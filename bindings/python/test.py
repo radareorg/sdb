@@ -1,21 +1,12 @@
 #!/usr/bin/env python3
 
-import sdb
+import r2sdb
 
-s = sdb.new()
+s = r2sdb.new()
 s.set("foo", "bar")
 a = s.get("foo")
 print(a)
 a = s.get("bar")
 print(a)
-
-#db = sdb.open("test.sdb")
-#print(db)
-
-#db.set("hello", "world")
-#s = db.get("hello")
-#print(s)
-#db.close()
-
-#print(sdb.hello());
-# help(sdb);
+s.set("world", "loops")
+print(s.query("*"))

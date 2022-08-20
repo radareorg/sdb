@@ -11,6 +11,8 @@ class Sdb:
         return nsdb.get(self.db, key)
     def set(self, key, val):
         nsdb.set(self.db, key, val)
+    def query(self, q):
+        return nsdb.query(self.db, q)
 
 def new():
     return Sdb()
