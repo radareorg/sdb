@@ -1,6 +1,8 @@
 include ../sdb-test.mk
 
 TESTS=array new sync set reset stack
+CFLAGS+=-I../../src
+LDFLAGS+=../../src/libsdb.a
 BINS=$(addprefix bench-,${TESTS})
 OBJS=$(addsuffix .o,${BINS})
 

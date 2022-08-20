@@ -1,5 +1,5 @@
 all:
-	valabind --ctypes --module sdb -l sdb ../vala/sdb.vapi
+	python setup.py build_ext -j 8 -i -I../../src
 
-pub publish:
-	LC_CTYPE=C python setup.py sdist upload
+clean:
+	rm -rf *.out *.bin *.exe *.o *.a *.so test build

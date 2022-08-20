@@ -7,7 +7,7 @@ void arradd (int count) {
 	int i;
 	Sdb *db = sdb_new (NULL, NULL, 0);
 	r_prof_start (&p);
-	for (i=0; i<count; i++) {
+	for (i=0; i < count; i++) {
 		sprintf (rkey, "%d", i);
 		sdb_array_set (db, "foo", -1, rkey, 0);
 	}

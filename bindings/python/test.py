@@ -1,11 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-from sdb import *
+import sdb
 
-db = Sdb(None, "test.sdb", False)
-db.set("foo", "World",0)
-print("Hello "+db.get("foo", None))
-db.query(b"foo=Patata")
-#print("--> "+db.querys(None, 0, ("foo").decode("utf-8"), 0, None))
-#print("--> "+db.querys(None, 0, "foo"))
-db.sync()
+db = sdb.open("test.sdb")
+print(db)
+
+#db.set("hello", "world")
+#s = db.get("hello")
+#print(s)
+#db.close()
+
+print(sdb.hello());
+# help(sdb);
