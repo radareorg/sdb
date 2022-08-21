@@ -15,4 +15,4 @@ print(s.query("*"))
 print(s.add("afoo", "bar"))
 print(s.add("afoo", "bar"))
 s.sync()
-# s.sync()
+

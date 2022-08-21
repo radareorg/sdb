@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 
 setup(
 	name = "r2sdb",
-	version = "1.8.1",
+	version = "1.8.2",
 	description = "string database from radareorg",
 	author = "pancake",
 	author_email = "pancake@nopcode.org",

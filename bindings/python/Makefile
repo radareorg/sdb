@@ -14,6 +14,7 @@ install i:
 	python setup.py install
 
 clean:
+	rm -rf dist
 	rm -rf *.out *.bin *.exe *.o *.a *.so test build
 
 sdist d dist: sdbsrc

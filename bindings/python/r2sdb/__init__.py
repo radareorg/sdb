@@ -28,7 +28,7 @@ def new():
     return Sdb()
 
 def version():
-    return "1.8.1"
+    return "1.8.2"
 
 def now():
     return nsdb.now()
