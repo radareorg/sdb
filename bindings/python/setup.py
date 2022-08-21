@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 
 setup(
 	name = "r2sdb",
-	version = "1.8.0",
+	version = "1.8.1",
 	description = "string database from radareorg",
 	author = "pancake",
 	author_email = "pancake@nopcode.org",
@@ -12,7 +12,7 @@ setup(
 	license = "MIT",
 	include_package_data = True,
 	package_data = {
-		'sdbsrc': ['sdbsrc/*.c'],
+		'sdbsrc': ['sdbsrc/*.h'],
 		'static': ['*.md'],
 	},
 	packages=["r2sdb"],
@@ -54,8 +54,7 @@ setup(
 			"sdbsrc/fmt.c",
 			"sdbsrc/ns.c",
 			],
-			include_dirs = ["sdbsrc"],
-			extra_files= []
+			include_dirs = ["sdbsrc"]
 		)
 	]
 	#extra_compile_args = ["-L../../src", "../../src/libsdb.a"])]

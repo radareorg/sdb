@@ -5,6 +5,7 @@ sdbsrc:
 	git clone ../.. sdbsrc-git
 	mv sdbsrc-git/src sdbsrc
 	rm -rf sdbsrc-git
+	cp ../../src/sdb_version.h sdbsrc
 
 test t:
 	python test.py
@@ -15,9 +16,11 @@ install i:
 clean:
 	rm -rf *.out *.bin *.exe *.o *.a *.so test build
 
-sdist d dist:
+sdist d dist: sdbsrc
 	python setup.py sdist
-	python setup.py bdist
+	# python setup.py bdist
+	tar xzvf dist/*1.8.0.tar.gz
+	cd r2sdb-1.8.0 && python setup.py build
 
 pub: sdist
 	twine upload --repository-url https://upload.pypi.org/legacy/ --verbose dist/*

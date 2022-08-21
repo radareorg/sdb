@@ -1,0 +1,7 @@
+include setup.py
+include r2sdb/__init__.py
+include nsdb/lib.c
+recursive-include sdbsrc/ *.c *.h *.inc
+include LICENSE
+include README.md
+include MANIFEST.in
