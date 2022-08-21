@@ -14,6 +14,7 @@ setup(
 	package_data = {
 		'sdbsrc': ['sdbsrc/*.h'],
 		'static': ['*.md'],
+		'test.py': ['test.py'],
 	},
 	packages=["r2sdb"],
 	ext_modules = [
