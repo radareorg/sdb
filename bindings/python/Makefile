@@ -19,8 +19,8 @@ clean:
 sdist d dist: sdbsrc
 	python setup.py sdist
 	# python setup.py bdist
-	tar xzvf dist/*1.8.0.tar.gz
-	cd r2sdb-1.8.0 && python setup.py build
+	tar xzvf dist/r2sdb-*.tar.gz
+	cd r2sdb-* && python setup.py build
 
 pub: sdist
 	twine upload --repository-url https://upload.pypi.org/legacy/ --verbose dist/*

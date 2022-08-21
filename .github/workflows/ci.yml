@@ -28,6 +28,15 @@ jobs:
       run: make xxx
     - name: Testing gperf
       run: make -C test
+  build-python:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Building Sdb
+      run: export CFLAGS=-O0 ; make
+    - name: Building python bindings
+      run: make -C bindings/python
   build-asan:
     runs-on: ubuntu-latest
     continue-on-error: true
