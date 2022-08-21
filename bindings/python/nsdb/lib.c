@@ -1,19 +1,39 @@
 #include <Python.h>
 #include "../sdbsrc/sdb.h"
 
-PyObject * hello(PyObject * self) {
-	Sdb *db = sdb_new0();
-	sdb_set (db, "foo", "bar", 0);
-	sdb_free (db);
-	return PyUnicode_FromFormat("Hello C extension!");
-}
-
-PyObject * new0(PyObject * self, PyObject *args) {
+PyObject * nsdb_new0(PyObject * self, PyObject *args) {
 	void *fd = sdb_new0();
 	return PyLong_FromLong((size_t)fd);
 }
 
-PyObject * set(PyObject * self, PyObject *args) {
+PyObject * nsdb_now(PyObject * self, PyObject *args) {
+	return PyLong_FromLong(sdb_now());
+}
+PyObject * nsdb_unow(PyObject * self, PyObject *args) {
+	return PyLong_FromLong(sdb_unow());
+}
+
+PyObject * nsdb_sync(PyObject * self, PyObject *args) {
+	void *p = NULL;
+	if (!PyArg_ParseTuple(args, "l", &p)) {
+		return Py_None;
+	}
+	sdb_sync (p);
+	return Py_None;
+}
+
+PyObject * nsdb_add(PyObject * self, PyObject *args) {
+	const char * k = NULL;
+	const char * v = NULL;
+	void *p = NULL;
+	if (!PyArg_ParseTuple(args, "lss", &p, &k, &v)) {
+		return Py_None;
+	}
+	int res = sdb_add (p, k, v, 0);
+	return PyBool_FromLong (res);
+}
+
+PyObject * nsdb_set(PyObject * self, PyObject *args) {
 	const char * k = NULL;
 	const char * v = NULL;
 	void *p = NULL;
@@ -24,7 +44,7 @@ PyObject * set(PyObject * self, PyObject *args) {
 	return Py_None;
 }
 
-PyObject * get(PyObject * self, PyObject *args) {
+PyObject * nsdb_get(PyObject * self, PyObject *args) {
 	const char * k = NULL;
 	void *p = NULL;
 	if (!PyArg_ParseTuple(args, "ls", &p, &k)) {
@@ -73,20 +93,32 @@ PyObject * pysdb_free(PyObject * self, PyObject *args) {
 const char hellofunc_docs[] = "Hello world description.";
 
 PyMethodDef sdb_funcs[] = {
-	{	"hello",
-		(PyCFunction)hello,
+	{	"now",
+		(PyCFunction)nsdb_now,
 		METH_NOARGS,
 		hellofunc_docs},
+	{	"unow",
+		(PyCFunction)nsdb_unow,
+		METH_NOARGS,
+		hellofunc_docs},
+	{	"sync",
+		(PyCFunction)nsdb_sync,
+		METH_VARARGS,
+		hellofunc_docs},
 	{	"new0",
-		(PyCFunction)new0,
+		(PyCFunction)nsdb_new0,
 		METH_NOARGS,
 		hellofunc_docs},
 	{	"get",
-		(PyCFunction)get,
+		(PyCFunction)nsdb_get,
+		METH_VARARGS,
+		hellofunc_docs},
+	{	"add",
+		(PyCFunction)nsdb_add,
 		METH_VARARGS,
 		hellofunc_docs},
 	{	"set",
-		(PyCFunction)set,
+		(PyCFunction)nsdb_set,
 		METH_VARARGS,
 		hellofunc_docs},
 	{	"query",
