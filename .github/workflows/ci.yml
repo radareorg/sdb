@@ -37,6 +37,8 @@ jobs:
       run: export CFLAGS=-O0 ; make
     - name: Building python bindings
       run: make -C bindings/python
+    - name: Testing python bindings
+      run: cd bindings/python && python3 test.py
   build-asan:
     runs-on: ubuntu-latest
     continue-on-error: true
