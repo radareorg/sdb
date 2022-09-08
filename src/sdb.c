@@ -305,8 +305,18 @@ SDB_API char *sdb_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_get_len (s, key, NULL, cas);
 }
 
+SDB_API char *sdb_nget(Sdb* s, ut64 nkey, ut32 *cas) {
+	char buf[32];
+	const char *key = sdb_itoa (nkey, buf, 16);
+	return sdb_get_len (s, key, NULL, cas);
+}
+
 SDB_API int sdb_unset(Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
+}
+
+SDB_API int sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
+	return sdb_nset (s, nkey, "", cas);
 }
 
 /* remove from memory */
@@ -367,6 +377,12 @@ SDB_API int sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
 		return 0;
 	}
 	return sdb_set (s, key, val, cas);
+}
+
+SDB_API int sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
+	char buf[64];
+	const char *key = sdb_itoa (nkey, buf, 16);
+	return sdb_add (s, key, val, cas);
 }
 
 SDB_API bool sdb_exists(Sdb* s, const char *key) {
@@ -658,6 +674,13 @@ SDB_API int sdb_set_owned(Sdb* s, const char *key, char *val, ut32 cas) {
 }
 
 SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
+	return sdb_set_internal (s, key, (char *)val, false, cas);
+}
+
+SDB_API int sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
+	char buf[64];
+	const char *key = sdb_itoa (nkey, buf, 16);
+	eprintf ("KEY %s\n", buf);
 	return sdb_set_internal (s, key, (char *)val, false, cas);
 }
 
