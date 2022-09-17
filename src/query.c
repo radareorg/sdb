@@ -419,7 +419,7 @@ next_quote:
 				} else {
 					// never happens
 				}
-				nstr = sdb_itoa (curnum, numstr, 10);
+				nstr = sdb_itoa (curnum, numstr, sizeof (numstr), 10);
 				strbuf_append (out, nstr, 1);
 			}
 		} else if (val) {

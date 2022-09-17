@@ -29,16 +29,16 @@ SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
 		n = 4;
 		switch (*fmt) {
 		case 'b':
-			concat (sdb_itoa ((ut64)*((ut8*)p + len), buf, 10));
+			concat (sdb_itoa ((ut64)*((ut8*)p + len), buf, sizeof (buf), 10));
 			break;
 		case 'h':
-			concat (sdb_itoa ((ut64)*((short*)((ut8*)p + len)), buf, 10));
+			concat (sdb_itoa ((ut64)*((short*)((ut8*)p + len)), buf, sizeof (buf), 10));
 			break;
 		case 'd':
-			concat (sdb_itoa ((ut64)*((int*)((ut8*)p + len)), buf, 10));
+			concat (sdb_itoa ((ut64)*((int*)((ut8*)p + len)), buf, sizeof (buf), 10));
 			break;
 		case 'q':
-			concat (sdb_itoa (*((ut64*)((ut8*)p + len)), buf, 10));
+			concat (sdb_itoa (*((ut64*)((ut8*)p + len)), buf, sizeof (buf), 10));
 			n = 8;
 			break;
 		case 'z':
@@ -50,7 +50,7 @@ SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
 			free (e_str);
 			break;
 		case 'p':
-			concat (sdb_itoa ((ut64)*((size_t*)((ut8*)p + len)), buf, 16));
+			concat (sdb_itoa ((ut64)*((size_t*)((ut8*)p + len)), buf, sizeof (buf), 16));
 			n = sizeof (size_t);
 			break;
 		}

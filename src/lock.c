@@ -30,7 +30,7 @@ SDB_API bool sdb_lock(const char *s) {
 	if (fd == -1) {
 		return false;
 	}
-	char *pid = sdb_itoa (getpid (), pidstr, 10);
+	char *pid = sdb_itoa (getpid (), pidstr, sizeof (pidstr), 10);
 	if (pid) {
 		if ((write (fd, pid, strlen (pid)) < 0)
 			|| (write (fd, "\n", 1) < 0)) {
