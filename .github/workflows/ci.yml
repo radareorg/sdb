@@ -39,18 +39,30 @@ jobs:
       run: make -C bindings/python
     - name: Testing python bindings
       run: cd bindings/python && python3 test.py
-  build-asan:
+  test-asan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: install gperf
+      run: sudo apt install gperf
+    - name: building sdb
+      run: make asan
+    - name: running tests
+      run: make asantest
+    - name: testing gperf
+      run: make -C test/gperf
+  test-leaks:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
     - uses: actions/checkout@v2
-    - name: Install gperf
+    - name: install gperf
       run: sudo apt install gperf
-    - name: Building Sdb
+    - name: building sdb
       run: make asan
-    - name: Running tests
-      run: make asantest
-    - name: Testing gperf
+    - name: running tests
+      run: make leaktest
+    - name: testing gperf
       run: make -C test/gperf
   build-linux:
     runs-on: ubuntu-latest
