@@ -306,8 +306,8 @@ SDB_API char *sdb_get(Sdb* s, const char *key, ut32 *cas) {
 }
 
 SDB_API char *sdb_nget(Sdb* s, ut64 nkey, ut32 *cas) {
-	char buf[64];
-	const char *key = sdb_itoa (nkey, buf, sizeof (buf), 16);
+	char buf[SDB_NUM_BUFSZ];
+	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_get_len (s, key, NULL, cas);
 }
 
@@ -380,8 +380,8 @@ SDB_API int sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
 }
 
 SDB_API int sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
-	char buf[64];
-	const char *key = sdb_itoa (nkey, buf, sizeof (buf), 16);
+	char buf[SDB_NUM_BUFSZ];
+	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_add (s, key, val, cas);
 }
 
@@ -678,8 +678,8 @@ SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
 }
 
 SDB_API int sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
-	char buf[64];
-	const char *key = sdb_itoa (nkey, buf, sizeof (buf), 16);
+	char buf[SDB_NUM_BUFSZ];
+	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_set_internal (s, key, (char *)val, false, cas);
 }
 

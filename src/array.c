@@ -129,8 +129,8 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 }
 
 SDB_API int sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
-	char valstr[64];
-	sdb_itoa (val, valstr, sizeof (valstr), SDB_NUM_BASE);
+	char valstr[SDB_NUM_BUFSZ];
+	sdb_itoa (val, 0, valstr, sizeof (valstr));
 	return sdb_array_insert (s, key, idx, valstr, cas);
 }
 
@@ -201,16 +201,16 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 
 SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[SDB_NUM_BUFSZ];
-	sdb_itoa (val, valstr, sizeof (valstr), SDB_NUM_BASE);
+	sdb_itoa (val, 0, valstr, sizeof (valstr));
 	return sdb_array_set (s, key, idx, valstr, cas);
 }
 
 SDB_API int sdb_array_add_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
-	char *v = sdb_itoa (val, buf, sizeof (buf), SDB_NUM_BASE);
+	char *v = sdb_itoa (val, 0, buf, sizeof (buf));
 	if (!sdb_array_contains (s, key, v, NULL)) {
 		if (val < 256) {
-			v = sdb_itoa (val, buf, sizeof (buf), 10);
+			v = sdb_itoa (val, 10, buf, sizeof (buf));
 		}
 	}
 	return sdb_array_add (s, key, v, cas);
@@ -283,14 +283,13 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 	return 0;
 }
 
-SDB_API int sdb_array_add_sorted_num(Sdb *s, const char *key, ut64 val,
-				      ut32 cas) {
+SDB_API int sdb_array_add_sorted_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	int i;
 	char valstr[SDB_NUM_BUFSZ];
 	const char *str = sdb_const_get (s, key, 0);
 	const char *n = str;
 	if (!str || !*str) {
-		return sdb_set (s, key, sdb_itoa (val, valstr, sizeof (valstr), SDB_NUM_BASE), cas);
+		return sdb_set (s, key, sdb_itoa (val, 0, valstr, sizeof (valstr)), cas);
 	}
 	for (i = 0; n; i++) {
 		if (val <= sdb_atoi (n)) {
@@ -491,7 +490,7 @@ SDB_API int sdb_array_delete(Sdb *s, const char *key, int idx, ut32 cas) {
 // XXX Doesnt work if numbers are stored in different base
 SDB_API bool sdb_array_contains_num(Sdb *s, const char *key, ut64 num, ut32 *cas) {
 	char val[SDB_NUM_BUFSZ];
-	char *nval = sdb_itoa (num, val, sizeof (val), SDB_NUM_BASE);
+	char *nval = sdb_itoa (num, 0, val, sizeof (val));
 	return sdb_array_contains (s, key, nval, cas);
 }
 
@@ -528,7 +527,7 @@ SDB_API int sdb_array_length(Sdb *s, const char *key) {
 
 SDB_API int sdb_array_push_num(Sdb *s, const char *key, ut64 num, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
-	char *n = sdb_itoa (num, buf, sizeof (buf), SDB_NUM_BASE);
+	char *n = sdb_itoa (num, 0, buf, sizeof (buf));
 	return sdb_array_push (s, key, n, cas);
 }
 
@@ -542,7 +541,7 @@ SDB_API bool sdb_array_push(Sdb *s, const char *key, const char *val, ut32 cas) 
 
 SDB_API bool sdb_array_prepend_num(Sdb *s, const char *key, ut64 num, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
-	char *n = sdb_itoa (num, buf, sizeof (buf), SDB_NUM_BASE);
+	char *n = sdb_itoa (num, 0, buf, sizeof (buf));
 	return sdb_array_push (s, key, n, cas);
 }
 

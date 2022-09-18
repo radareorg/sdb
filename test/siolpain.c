@@ -5,7 +5,7 @@ int main () {
 	int ret;
 	Sdb *db = sdb_new0 ();
 	s[0] = 0;
-	sdb_itoa (3, s, sizeof (s), 10);
+	sdb_itoa (3, 10, s, sizeof (s));
 	eprintf ("IOTA: %s\n", s);
 	sdb_num_set (db, s, 3, 0);
 	ret = !sdb_num_exists (db, s);

@@ -95,8 +95,10 @@ SDB_API ut8 sdb_hash_byte(const char *s) {
 	return h[0] ^ h[1] ^ h[2] ^ h[3];
 }
 
-// if s is null, the returned pointer must be freed!!
-SDB_API char *sdb_itoa(ut64 n, char *os, int oslen, int base) {
+SDB_API char *sdb_itoa(ut64 n, int base, char *os, int oslen) {
+	if (base < 1) {
+		base = SDB_NUM_BASE;
+	}
 	static const char *const lookup = "0123456789abcdef";
 	char tmpbuf[64], *s = NULL;
 	int sl, copy_string = 1;
@@ -150,6 +152,10 @@ SDB_API char *sdb_itoa(ut64 n, char *os, int oslen, int base) {
 		return os;
 	}
 	return os + i + 1;
+}
+
+SDB_API char *sdb_itoas(ut64 n, int base) {
+	return sdb_itoa (n, base, NULL, 0);
 }
 
 SDB_API ut64 sdb_atoi(const char *s) {
