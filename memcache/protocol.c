@@ -136,16 +136,18 @@ int protocol_handle(McSdb *ms, McSdbClient *c, char *buf) {
 		} else net_printf (fd, "ERROR\r\n");
 		break;
 	case MCSDB_CMD_STATS:
-		getrusage (0, &ru);
 		net_printf (fd, "STAT pid %d\r\n", getpid ());
 		net_printf (fd, "STAT version "MCSDB_VERSION"\r\n");
 		net_printf (fd, "STAT pointer_size %u\r\n", (int)sizeof (void*)*8);
 		net_printf (fd, "STAT time %llu\r\n", sdb_now ());
 		net_printf (fd, "STAT uptime %llu\r\n", sdb_now ()-ms->time);
+#ifndef __wasi__
+		getrusage (0, &ru);
 		net_printf (fd, "STAT rusage_user %u.%u\r\n",
 			(ut32)ru.ru_utime.tv_sec, (ut32)ru.ru_utime.tv_usec);
 		net_printf (fd, "STAT rusage_system %u.%u\r\n",
 			(ut32)ru.ru_stime.tv_sec, (ut32)ru.ru_stime.tv_usec);
+#endif
 		net_printf (fd, "STAT curr_connections %u\r\n", ms->nfds-1);
 		net_printf (fd, "STAT total_connections %u\r\n", ms->tfds);
 		net_printf (fd, "STAT cmd_get %llu\r\n", ms->gets);
