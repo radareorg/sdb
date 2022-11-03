@@ -1,33 +1,36 @@
 import std.stdio;
-import std.stdio;
 import std.conv;
 import std.string;
 import core.stdc.string;
 
 extern (C) {
-	void* sdb_new (const char *dir, int lock);
+	void* sdb_new (const char *dir, const char *name, int lock);
 	char* sdb_get (void*, const char *key, uint* cas);
 	const (char*) sdb_const_get (void*, const char *key, uint* cas);
 	int sdb_unset (void*, const char *key, uint cas);
 	int sdb_set (void*, const char *key, const char *data, uint cas);
 	void sdb_free (void* s);
+	bool sdb_sync (void* s);
 }
 
-class Sdb {
+public class Sdb {
 	private void *db;
 
 	~this () {
 		sdb_free (db);
 	}
 
-	this () {
-		db = sdb_new (null, 0);
+	public this () {
+		db = sdb_new (null, null, 0);
 		writeln ("Hello World");
 	}
 
 	this (const char *file) {
-		db = sdb_new (file, 0);
-		writeln ("Hello World on file ", file);
+		db = sdb_new (".", file, 0);
+	}
+
+	public bool sync () {
+		return sdb_sync (db);
 	}
 
 	public bool unset(string key, uint cas=0) {
@@ -42,18 +45,4 @@ class Sdb {
 		auto s = sdb_const_get (db, cast(char*)key, cas);
 		return s? to!string (s): null;
 	}
-}
-
-int main() {
-	auto s = new Sdb ("jaja");
-
-	s.set ("Hello", "hello");
-	writeln ("output: ", s.get ("Hello"));
-	s.set ("Hello", "world");
-	writeln ("output: ", s.get ("Hello"));
-	s.set ("Hello", "world");
-	writeln ("output: ", s.get ("Hello"));
-	s.unset ("Hello");
-	writeln ("output: ", s.get ("Hello"));
-	return 0;
 }

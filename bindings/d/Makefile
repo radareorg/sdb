@@ -1,6 +1,12 @@
+DCC=ldc2
+DFLAGS+=-boundscheck=off
+#DFLAGS+=-flto=thin
+#DFLAGS+=-Oz
+# DCC=gcc
+
 all:
-	dmd sdb ../../src/libsdb.a
-	./sdb
+	$(DCC) $(DFLAGS) main sdb ../../src/libsdb.a 2>&1 | (grep -v version || true)
+	./main
 
 clean:
-	rm -f sdb sdb.o
+	rm -f main main.o sdb sdb.o
