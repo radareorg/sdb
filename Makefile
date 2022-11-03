@@ -54,8 +54,9 @@ asantest:
 leak:
 	$(MAKE) src/sdb_version.h
 	CC=gcc LDFLAGS="$(CFLAGS_LEAK)" CFLAGS="$(CFLAGS_LEAK)" $(MAKE) -C src all
+
 leaktest:
-	CC=gcc CFLAGS="$(CFLAGS_LEAK)" $(MAKE) -C test
+	CC=gcc CFLAGS="$(CFLAGS_LEAK)" LDFLAGS="$(CFLAGS_LEAK)" $(MAKE) -C test
 
 pkgconfig:
 	[ -d pkgconfig ] && ${MAKE} -C pkgconfig || true
