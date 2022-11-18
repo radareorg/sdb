@@ -1,4 +1,4 @@
-#include "sdb.h"
+#include <sdb/sdb.h>
 
 void ptr(Sdb *s, void *user, const char *k, const char *v) {
 	printf ("%s %s\n", k, v);

@@ -8,7 +8,7 @@
 #if USE_DLSYSTEM
 #include <dlfcn.h>
 #endif
-#include "sdb.h"
+#include "sdb/sdb.h"
 
 typedef enum {
 	text,

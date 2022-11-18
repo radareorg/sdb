@@ -2,7 +2,7 @@
 #define _INCLUDE_RANGSTR_H_
 
 #include <sys/types.h>
-#include "../types.h"
+#include "sdb/types.h"
 
 #define RangstrType unsigned int
 

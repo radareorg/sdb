@@ -11,12 +11,12 @@ extern "C" {
 #endif
 
 #include "types.h"
-#include "sdbht.h"
+#include "ht.h"
 #include "ls.h"
 #include "dict.h"
 #include "cdb.h"
 #include "cdb_make.h"
-#include "sdb_version.h"
+#include "version.h"
 
 /* Key value sizes */
 #define SDB_MIN_VALUE 1

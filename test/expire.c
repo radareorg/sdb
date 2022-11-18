@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 #if defined _WIN32
 #include <synchapi.h>
 #define sleep(x) Sleep(x*1000)

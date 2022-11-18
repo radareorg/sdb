@@ -1,8 +1,8 @@
 #include "minunit.h"
-#include <sdb.h>
-#include <ht_uu.h>
-#include <ht_up.h>
-#include <ht_pp.h>
+#include <sdb/sdb.h>
+#include <sdb/ht_uu.h>
+#include <sdb/ht_up.h>
+#include <sdb/ht_pp.h>
 
 typedef struct _test_struct {
 	char *name;

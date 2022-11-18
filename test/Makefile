@@ -20,6 +20,7 @@ me:
 	$(MAKE)
 
 ASAN_CFLAGS=-fsanitize=address -fsanitize=undefined
+CFLAGS+=-I../include
 
 asan:
 	$(MAKE) CFLAGS="${ASAN_CFLAGS} ${CFLAGS}" ALL=asan all

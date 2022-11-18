@@ -1,4 +1,5 @@
-#include <sdb-one.h>
+// XXX
+#include "sdb-one.h"
 
 int main(int argc, char **argv) {
 	HtPP *h = ht_new (free);

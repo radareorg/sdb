@@ -1,5 +1,5 @@
 
-#include <sdb.h>
+#include <sdb/sdb.h>
 #include "minunit.h"
 
 // #define SAVE_FILES

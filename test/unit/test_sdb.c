@@ -1,5 +1,5 @@
 #include "minunit.h"
-#include <sdb.h>
+#include <sdb/sdb.h>
 #include <fcntl.h>
 #include <stdio.h>
 

@@ -2,7 +2,7 @@
 
 #include <node.h>
 #include <nan.h>
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 using namespace v8;
 

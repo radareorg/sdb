@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 #define DBFILE "dumptwice.db"
 

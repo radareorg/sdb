@@ -1,7 +1,7 @@
 /* mcsdb - LGPLv3 - Copyright 2011-2014 - pancake */
 
-#include "types.h"
 #include "mcsdb.h"
+#include <sdb/types.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <poll.h>

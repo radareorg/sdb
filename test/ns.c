@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 int main() {
 	int rc = 1;

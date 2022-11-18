@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 int main(int argc, char **argv) {
 	ut64 key_num = 100;

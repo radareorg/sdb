@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 #define MAX 19999999
 

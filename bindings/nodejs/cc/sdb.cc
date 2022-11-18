@@ -4,7 +4,7 @@
 #include <string>
 #include <node.h>
 #include <v8.h>
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 using namespace node;
 using namespace v8;

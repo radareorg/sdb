@@ -1,5 +1,5 @@
 #include <leveldb/c.h>
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 int main() {
 	struct leveldb_t *db;

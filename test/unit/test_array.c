@@ -1,5 +1,5 @@
 #include "minunit.h"
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 bool test_sdb_array_push_pop(void) {
 	Sdb *db = sdb_new (NULL, NULL, false);

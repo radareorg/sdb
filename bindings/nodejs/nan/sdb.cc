@@ -2,7 +2,7 @@
 
 #include <node.h>
 #include <nan.h>
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 #define MyNanReturnThis() info.GetReturnValue().Set(info.This())
 

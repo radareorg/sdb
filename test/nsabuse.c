@@ -1,4 +1,4 @@
-#include "sdb.h"
+#include <sdb/sdb.h>
 
 int main () {
 	//Sdb *s = sdb_new (NULL, "/tmp/", 1);

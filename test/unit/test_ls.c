@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 #include "minunit.h"
 #define BUF_LENGTH 100
 

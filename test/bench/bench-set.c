@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 #include "prof.c"
 
 void dosync (int count) {

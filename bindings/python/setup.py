@@ -55,7 +55,7 @@ setup(
 			"sdbsrc/fmt.c",
 			"sdbsrc/ns.c",
 			],
-			include_dirs = ["sdbsrc"]
+			include_dirs = ["../../include"]
 		)
 	]
 	#extra_compile_args = ["-L../../src", "../../src/libsdb.a"])]

@@ -1,9 +1,8 @@
 /* sdb api testsuite - Copyright 2014 - pancake */
 
-#include <sdb.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <sdb/sdb.h>
 
 #define OK "\x1b[32mOK\x1b[0m"
 #define ER "\x1b[31mER\x1b[0m"

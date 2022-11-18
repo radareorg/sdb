@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "../sdbsrc/sdb.h"
+#include <sdb/sdb.h>
 
 PyObject * nsdb_new0(PyObject * self, PyObject *args) {
 	void *fd = sdb_new0();

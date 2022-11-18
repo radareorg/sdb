@@ -2,7 +2,7 @@
 
 #include <signal.h>
 #include "mcsdb.h"
-#include "../src/types.h"
+#include <sdb/types.h>
 #include <fcntl.h>
 #if __SDB_WINDOWS__
 #include <windows.h>

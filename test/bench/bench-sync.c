@@ -1,4 +1,4 @@
-#include <sdb.h>
+#include <sdb/sdb.h>
 #include "prof.c"
 
 #define DBFILE "bench-sync.sdb"

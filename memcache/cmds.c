@@ -1,6 +1,6 @@
 /* mcsdb - LGPLv3 - Copyright 2011-2015 - pancake */
 
-#include "sdb.h"
+#include <sdb/sdb.h>
 #include <ctype.h>
 
 static void cmdhash(const char *s) {

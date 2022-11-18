@@ -1,7 +1,7 @@
 #ifndef _INCLUDE_SDB_MCSDB_H_
 #define _INCLUDE_SDB_MCSDB_H_
 
-#include "sdb.h"
+#include <sdb/sdb.h>
 #if !__SDB_WINDOWS__
 #include <poll.h>
 #endif

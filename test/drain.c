@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sdb.h>
+#include <sdb/sdb.h>
 
 int main() {
 	const char *v;
