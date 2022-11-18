@@ -22,19 +22,19 @@ json.o: json/api.c json/js0n.c json/path.c json/rangstr.c json/indent.c
 install:
 	$(MAKE) -C .. install
 
-include/sdb/version.h:
+../include/sdb/version.h:
 	$(MAKE) -C .. include/sdb/version.h
 
-shared: include/sdb/version.h
+shared: ../include/sdb/version.h
 	$(MAKE) libsdb${SOVER}
 
-static: include/sdb/version.h
+static: ../include/sdb/version.h
 	$(MAKE) libsdb$(EXT_AR)
 
-sdb_objs: include/sdb/version.h
+sdb_objs: ../include/sdb/version.h
 	$(MAKE) ${OBJ}
 
-sdb_objs2: include/sdb/version.h
+sdb_objs2: ../include/sdb/version.h
 	$(MAKE) ${SOBJ}
 
 libsdb.lib libsdb$(EXT_AR): sdb_objs
@@ -59,7 +59,7 @@ ifneq ($(SILENT),)
 endif
 	$(CC) ${LDFLAGS} $(LDFLAGS_SHARED) -o $@ ${SOBJ}
 
-bin_deps: include/sdb/version.h
+bin_deps: ../include/sdb/version.h
 	$(MAKE) libsdb.a main.o
 
 bin $(BIN): bin_deps
