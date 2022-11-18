@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "rangstr.c"
+#include "sdb/rangstr.h"
+#include "sdb/sdb.h"
 #include "sdb/types.h"
 
 SDB_IPI void json_path_first(Rangstr *s) {

@@ -32,7 +32,7 @@ else
   libsdb_name = 'sdb'
 endif
 
-# Create sdb_version.h
+# Create include/sdb/version.h
 conf_data = configuration_data()
 conf_data.set_quoted('SDB_VERSION', sdb_version, description : 'From config.mk')
 configure_file(
