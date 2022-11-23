@@ -5,7 +5,7 @@
 #include "sdb/cdb_make.h"
 
 #define ALIGNMENT sizeof (void*)
-#define USE_GHA 0
+#define USE_GHA 1
 
 static char *cdb_alloc(ut32 n) {
 #if USE_GHA
