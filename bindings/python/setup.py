@@ -27,6 +27,7 @@ setup(
 			"sdbsrc/diff.c",
 			"sdbsrc/buffer.c",
 			"sdbsrc/ls.c",
+			"sdbsrc/heap.c",
 			"sdbsrc/util.c",
 			"sdbsrc/array.c",
 			"sdbsrc/cdb.c",
