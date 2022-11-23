@@ -7,7 +7,7 @@
 #define ALIGNMENT sizeof (void*)
 #define USE_GHA 0
 
-char *cdb_alloc(ut32 n) {
+static char *cdb_alloc(ut32 n) {
 #if USE_GHA
 	return sdb_gh_malloc (n);
 #else
@@ -22,7 +22,7 @@ char *cdb_alloc(ut32 n) {
 #endif
 }
 
-void cdb_alloc_free(void *x) {
+static void cdb_alloc_free(void *x) {
 #if USE_GHA
 	sdb_gh_free (x);
 #else

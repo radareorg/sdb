@@ -24,7 +24,7 @@ static inline void sdb_gh_use(const SdbGlobalHeap *gh) {
 	}
 }
 
-static inline void sdb_gh_fini() {
+static inline void sdb_gh_fini(void) {
 	if (Gheap.fini) {
 		Gheap.fini (Gheap.data);
 	}
@@ -32,7 +32,9 @@ static inline void sdb_gh_fini() {
 
 static inline void *sdb_gh_malloc(size_t size) {
 	if (Gheap.realloc) {
-		return Gheap.realloc (Gheap.data, NULL, size);
+		void *ptr = Gheap.realloc (Gheap.data, NULL, size);
+//		eprintf ("malloc %p\n" , ptr);
+		return ptr;
 	}
 	return malloc (size);
 }
@@ -45,11 +47,24 @@ static inline void *sdb_gh_realloc(void *ptr, size_t size) {
 }
 
 static inline void sdb_gh_free(void *ptr) {
+	if (!ptr) {
+		return;
+	}
 	if (Gheap.realloc) {
+// 		eprintf ("free ptr %p\n" , ptr);
 		Gheap.realloc (Gheap.data, ptr, 0);
 	} else {
 		free (ptr);
 	}
+}
+
+static inline void *sdb_gh_calloc(size_t count, size_t size) {
+	size_t total = count * size; // TODO: detect overflow
+	void *res = sdb_gh_malloc (total);
+	if (res) {
+		memset (res, 0, total);
+	}
+	return res;
 }
 
 #endif

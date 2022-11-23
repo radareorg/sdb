@@ -99,12 +99,12 @@ static inline HT_(Kv) *next_kv(HtName_(Ht) *ht, HT_(Kv) *kv) {
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.
 static HtName_(Ht)* internal_ht_new(ut32 size, ut32 prime_idx, HT_(Options) *opt) {
-	HtName_(Ht)* ht = (HtName_(Ht)*)calloc (1, sizeof (*ht));
+	HtName_(Ht)* ht = (HtName_(Ht)*)sdb_gh_calloc (1, sizeof (*ht));
 	if (SDB_LIKELY (ht)) {
 		ht->size = size;
 		ht->count = 0;
 		ht->prime_idx = prime_idx;
-		ht->table = (HT_(Bucket)*)calloc (ht->size, sizeof (*ht->table));
+		ht->table = (HT_(Bucket)*)sdb_gh_calloc (ht->size, sizeof (*ht->table));
 		if (!ht->table) {
 			sdb_gh_free (ht);
 			return NULL;
