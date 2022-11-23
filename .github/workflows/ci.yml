@@ -10,20 +10,20 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Windows Dependencies
       run: pip install meson ninja
     - name: Building Sdb
       run: meson build && ninja -C build
     - name: Pub
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: build/*.exe
   build-cxx:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Building Sdb
       run: make xxx
     - name: Testing gperf
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Building Sdb
       run: export CFLAGS=-O0 ; make
     - name: Building python bindings
@@ -42,7 +42,7 @@ jobs:
   test-asan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: install gperf
       run: sudo apt install gperf
     - name: building sdb
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: install gperf
       run: sudo apt install gperf
     - name: building sdb
@@ -67,7 +67,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Building Sdb
       run: export CFLAGS="-Werror -Wall" && make -j4
     - name: Install gperf
@@ -79,13 +79,13 @@ jobs:
     - name: Testing gperf
       run: make -C test/gperf
     - name: Pub
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: dist/debian/sdb/*.deb
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Building Sdb
       run: make -j4 && cd ..
     - name: Packaging
@@ -93,7 +93,7 @@ jobs:
     - name: Running tests
       run: make test
     - name: Pub
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: dist/macos/*.pkg
   build-cydia:
@@ -106,6 +106,6 @@ jobs:
     - name: Packaging
       run: cd sdb/dist/cydia && make && cd ../../..
     - name: Pub
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: sdb/dist/cydia/*/*.deb
