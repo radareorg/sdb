@@ -9,7 +9,7 @@ HAVE_PERL=$(shell perl -h)
 
 CFLAGS+=`pkg-config --cflags sdb`
 LDFLAGS+=`pkg-config --libs sdb`
-#CFLAGS+=-I../src
+#CFLAGS+=-I../include
 #LDFLAGS+=-L../src -lsdb
 CFLAGS+=-Wall -O3
 

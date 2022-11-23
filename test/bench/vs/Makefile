@@ -1,6 +1,6 @@
 LEVELDB_CFLAGS?=-I/opt/local/include/
 LEVELDB_LDFLAGS?=-lleveldb -L/opt/local/lib
-SDB_CFLAGS?=-I../../../src
+SDB_CFLAGS?=-I../../../include
 SDB_LDFLAGS?=../../../src/libsdb.a
 
 CC?=gcc
