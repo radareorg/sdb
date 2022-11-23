@@ -1,5 +1,5 @@
 all: sdbsrc
-	python setup.py build_ext -j 8 -i -I../../src
+	python setup.py build_ext -j 8 -i -I../../include
 
 sdbsrc:
 	git clone ../.. sdbsrc-git

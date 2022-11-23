@@ -10,23 +10,23 @@ INCFILES+=ls.h
 INCFILES+=ht_uu_cpp.h
 INCFILES+=ht_up_cpp.h
 INCFILES+=ht_pp_cpp.h
-# INCFILES+=sdbht.h
+# INCFILES+=ht.h
 INCFILES+=dict.h
 INCFILES+=cdb.h
 INCFILES+=cdb_make.h
 INCFILES+=json/json.h
 INCFILES+=version.h
 INCFILES+=sdb.h
-IFILES=$(addprefix ../src/,$(INCFILES))
+IFILES=$(addprefix ../include/sdb/,$(INCFILES))
 
 CPPFILES=ht_uu_cpp.h
 CPPFILES+=ht_up_cpp.h
 CPPFILES+=ht_pp_cpp.h
 
 cpp:
-	cpp ../src/ht_uu.h > ../src/ht_uu_cpp.h
-	cpp ../src/ht_up.h > ../src/ht_up_cpp.h
-	cpp ../src/ht_pp.h > ../src/ht_pp_cpp.h
+	cpp ../include/sdb/ht_uu.h > ../include/sdb/ht_uu_cpp.h
+	cpp ../include/sdb/ht_up.h > ../include/sdb/ht_up_cpp.h
+	cpp ../include/sdb/ht_pp.h > ../include/sdb/ht_pp_cpp.h
 
 SRCFILES+=array.c
 SRCFILES+=base64.c

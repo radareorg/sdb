@@ -35,7 +35,7 @@ setup(
 			"sdbsrc/set.c",
 			"sdbsrc/sdb.c",
 			"sdbsrc/ht_pu.c",
-			"sdbsrc/sdbht.c",
+			"sdbsrc/ht.c",
 			#"sdbsrc/json/api.c",
 			#"sdbsrc/json/rangstr.c",
 			#"sdbsrc/json/main.c",
