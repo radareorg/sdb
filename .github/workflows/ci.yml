@@ -82,6 +82,17 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         path: dist/debian/sdb/*.deb
+  build-heap:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v3
+    - name: Building Sdb
+      run: export CFLAGS="-DUSE_SDB_HEAP=1 -Werror -Wall" && make -j4
+    - name: Running tests
+      run: make test
+    - name: Testing gperf
+      run: make -C test/gperf
   build-macos:
     runs-on: macos-latest
     steps:

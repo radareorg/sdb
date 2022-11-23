@@ -958,9 +958,11 @@ int main(int argc, const char **argv) {
 	if (argc < 2) {
 		return showusage (1);
 	}
-
-	// sdb_gh_use (&sdb_gh_custom); // WIP crashes
-	sdb_gh_use (&sdb_gh_libc); // works
+#if USE_SDB_HEAP
+	sdb_gh_use (&sdb_gh_custom);
+#else
+	sdb_gh_use (&sdb_gh_libc);
+#endif
 	MainOptions _mo = {0};
 	MainOptions *mo = &_mo;
 	main_argparse (mo, argc, argv);
