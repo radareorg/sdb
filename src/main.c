@@ -950,7 +950,7 @@ static MainOptions *main_argparse(MainOptions *mo, int argc, const char **argv) 
 	return mo;
 }
 
-int sdb_main(int argc, const char **argv) {
+SDB_API int sdb_main(int argc, const char **argv) {
 	char *line;
 	int i;
 
