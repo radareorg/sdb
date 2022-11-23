@@ -33,7 +33,7 @@ x xxx cxx:
 	$(MAKE) CC=g++ CFLAGS="-fPIC -x c++ -Wall -fpermissive"
 
 o xo xoxo ox:
-	g++ -o sdb src/*.c  -I src/
+	g++ -o sdb src/*.c  -I include/
 
 wasi wasm: $(WASI_SDK)
 	${MAKE} include/sdb/version.h
@@ -70,7 +70,7 @@ EMCCFLAGS=-O2 -s EXPORTED_FUNCTIONS="['_sdb_querys','_sdb_new0']"
 #EMCCFLAGS+=--embed-file sdb.data
 
 sdb.js: include/sdb/version.h
-	cd src ; emcc ${EMCCFLAGS} -I. -o ../sdb.js ${CFILES}
+	cd src ; emcc ${EMCCFLAGS} -I../include -o ../sdb.js ${CFILES}
 
 clean:
 	rm -f include/sdb/version.h
