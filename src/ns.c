@@ -78,11 +78,9 @@ SDB_API void sdb_ns_free(Sdb *s) {
 	}
 	list = ls_new ();
 	list->free = NULL;
-#if 0
 	ns_free (s, list);
 	ls_free (list);
 	ls_free (s->ns);
-#endif
 	s->ns = NULL;
 }
 
