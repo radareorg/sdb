@@ -107,11 +107,7 @@ static char *slurp(FILE *f, size_t *sz) {
 		}
 
 		char *newbuf = (char *)sdb_gh_realloc (buf, buf_len + 1);
-		// sdb_gh_realloc behaves like free if buf_len is 0
-		if (!newbuf) {
-			return buf;
-		}
-		return newbuf;
+		return newbuf? newbuf: buf;
 	}
 #endif
 	buf = (char *)sdb_gh_calloc (BS + 1, 1);
@@ -1035,7 +1031,7 @@ SDB_API int sdb_main(int argc, const char **argv) {
 						fflush (stdout);
 						ret = write_null ();
 					}
-					sdb_gh_free (line);
+					// sdb_gh_free (line);
 				}
 			}
 		}

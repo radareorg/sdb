@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef SDB_TYPES_H
+#define SDB_TYPES_H
 
 #include <sys/types.h>
 #include <stdbool.h>

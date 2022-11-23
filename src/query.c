@@ -23,7 +23,7 @@ static StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl) {
 	}
 	int len = strlen (str);
 	if ((sb->len + len + 2) >= sb->size) {
-		int newsize = sb->size + len + 256;
+		size_t newsize = sb->size + len + 256;
 		char *b = (char *)sdb_gh_realloc (sb->buf, newsize);
 		/// TODO perform free and force all callers to update the ref?
 		if (!b) {
