@@ -5,7 +5,7 @@ sdbsrc:
 	git clone ../.. sdbsrc-git
 	mv sdbsrc-git/src sdbsrc
 	rm -rf sdbsrc-git
-	cp ../../src/sdb_version.h sdbsrc
+	cp -f ../../include/sdb/version.h sdbsrc
 
 test t:
 	python test.py
