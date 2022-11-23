@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 #include <sys/time.h>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdint.h>
@@ -12,6 +10,15 @@
 
 // generic global
 SdbGlobalHeap Gheap = {NULL, NULL};
+// local heap allocator api
+const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
+
+#if __SDB_WINDOWS__
+#include <windows.h>
+#else
+#include <sys/mman.h>
+#include <unistd.h>
+
 
 // Size 16
 typedef struct free_list {
@@ -36,8 +43,6 @@ const SdbGlobalHeap sdb_gh_custom = {
 	(SdbHeapFini)sdb_heap_fini,
 	&sdb_gh_custom_data
 };
-// local heap allocator api
-const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
 
 #define USED false
 #define FREE true
@@ -352,12 +357,14 @@ SDB_API void sdb_heap_init(SdbHeap *heap) {
 }
 
 SDB_API void sdb_heap_fini(SdbHeap *heap) {
+#if 1
 	free_list *current = heap->free_list_start;
 	while (current) {
 		free_list *next = current->next;
 		sdb_heap_free (heap, current);
 		current = next;
 	}
+#endif
 }
 
 SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size) {
@@ -418,3 +425,4 @@ SDB_API char *sdb_strdup(const char *s) {
 	}
 	return p;
 }
+#endif

@@ -950,7 +950,7 @@ static MainOptions *main_argparse(MainOptions *mo, int argc, const char **argv) 
 	return mo;
 }
 
-int main(int argc, const char **argv) {
+int sdb_main(int argc, const char **argv) {
 	char *line;
 	int i;
 
@@ -958,11 +958,6 @@ int main(int argc, const char **argv) {
 	if (argc < 2) {
 		return showusage (1);
 	}
-#if USE_SDB_HEAP
-	sdb_gh_use (&sdb_gh_custom);
-#else
-	sdb_gh_use (&sdb_gh_libc);
-#endif
 	MainOptions _mo = {0};
 	MainOptions *mo = &_mo;
 	main_argparse (mo, argc, argv);

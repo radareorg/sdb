@@ -2,6 +2,7 @@
 
 #include <sys/stat.h>
 #include "sdb/cdb.h"
+#include "sdb/heap.h"
 #if USE_MMAN
 #include <sys/mman.h>
 #endif
