@@ -71,7 +71,8 @@ libsdb_sources = [
   'src/text.c'
 ]
 
-sdb_inc = include_directories(['include'])
+# . = b/version.h
+sdb_inc = include_directories(['.', 'include'])
 rpath_lib = ''
 rpath_exe = ''
 if get_option('local') and get_option('default_library') == 'shared'
