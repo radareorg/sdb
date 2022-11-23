@@ -21,7 +21,6 @@ jobs:
         path: build/*.exe
   build-cxx:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Building Sdb
@@ -30,7 +29,6 @@ jobs:
       run: make -C test
   build-python:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Building Sdb
@@ -41,6 +39,7 @@ jobs:
       run: cd bindings/python && python3 test.py
   test-asan:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: install gperf
@@ -68,6 +67,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Meson Sdb
+      run: |
+        pip install meson ninja
+        meson b && ninja -C b
     - name: Building Sdb
       run: export CFLAGS="-Werror -Wall" && make -j4
     - name: Install gperf

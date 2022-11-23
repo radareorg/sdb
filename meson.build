@@ -53,6 +53,7 @@ libsdb_sources = [
   'src/disk.c',
   'src/fmt.c',
   'src/heap.c',
+  'src/main.c',
   'src/ht_uu.c',
   'src/ht_up.c',
   'src/ht_pp.c',
@@ -121,7 +122,7 @@ if not meson.is_subproject()
   install_headers(include_files, subdir: 'sdb')
 endif
 
-sdb_exe = executable('sdb', join_paths('src','main.c'),
+sdb_exe = executable('sdb', join_paths('src','entry.c'),
   include_directories: sdb_inc,
   link_with: [link_with],
   install: not meson.is_subproject(),
@@ -130,7 +131,7 @@ sdb_exe = executable('sdb', join_paths('src','main.c'),
 )
 
 if meson.is_cross_build()
-  sdb_native_exe = executable('sdb_native', join_paths('src','main.c'),
+  sdb_native_exe = executable('sdb_native', join_paths('src','entry.c'),
     include_directories: sdb_inc,
     link_with: [link_with],
     install: false,

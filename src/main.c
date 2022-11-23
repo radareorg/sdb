@@ -5,10 +5,14 @@
 #ifndef HAVE_SYSTEM
 #define HAVE_SYSTEM 1
 #endif
+#include <sdb/sdb.h>
 #if USE_DLSYSTEM
 #include <dlfcn.h>
 #endif
-#include "sdb/sdb.h"
+
+#if __SDB_WINDOWS__
+#define ftruncate _chsize
+#endif
 
 // TODO: enums must be uppercase
 typedef enum {
@@ -1031,9 +1035,11 @@ SDB_API int sdb_main(int argc, const char **argv) {
 						fflush (stdout);
 						ret = write_null ();
 					}
-					// sdb_gh_free (line);
+					sdb_gh_free (line);
 				}
 			}
+		} else {
+			eprintf ("Cannot create database\n");
 		}
 		break;
 	case eqeq: // "="

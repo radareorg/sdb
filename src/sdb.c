@@ -5,16 +5,6 @@
 #include <sys/stat.h>
 #include "sdb/sdb.h"
 
-#if 0
-static inline SdbKv *kv_at(HtPP *ht, HtPPBucket *bt, ut32 i) {
-	return (SdbKv *)((char *)bt->arr + i * ht->opt.elem_size);
-}
-
-static inline SdbKv *prev_kv(HtPP *ht, SdbKv *kv) {
-	return (SdbKv *)((char *)kv - ht->opt.elem_size);
-}
-#endif
-
 static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
 	return (SdbKv *)((char *)kv + ht->opt.elem_size);
 }
@@ -35,13 +25,12 @@ static inline int nextcas(SdbKv const *kv) {
 	return kv->cas + 1;
 }
 
-// TODO: use mmap instead of read.. much faster!
 SDB_API Sdb* sdb_new0(void) {
 	return sdb_new (NULL, NULL, 0);
 }
 
 SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
-	Sdb* s = R_NEW0 (Sdb);
+	Sdb* s = (Sdb*)sdb_gh_calloc (1, sizeof (Sdb));
 	if (!s) {
 		return NULL;
 	}
@@ -448,7 +437,6 @@ SDB_API int sdb_open(Sdb *s, const char *file) {
 	s->last = 0LL;
 	if (s->fd != -1 && fstat (s->fd, &st) != -1) {
 		if ((S_IFREG & st.st_mode) != S_IFREG) {
-			// eprintf ("Database must be a file\n");
 			close (s->fd);
 			s->fd = -1;
 			return -1;
