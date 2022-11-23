@@ -30,7 +30,7 @@ include wasi.mk
 
 x xxx cxx:
 	# $(MAKE) CC="gcc -x c++ -Wall -fpermissive"
-	$(MAKE) CC=g++ CFLAGS="-fPIC -x c++ -Wall -fpermissive"
+	$(MAKE) CC=g++ CFLAGS="-fPIC -x c++ -Wall -fpermissive -I../include -Werror"
 
 o xo xoxo ox:
 	g++ -o sdb src/*.c  -I include/
