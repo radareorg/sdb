@@ -174,12 +174,12 @@ static free_list *find_free_block(SdbHeap *heap, int size) {
 // (requested + the rest).
 static void split(SdbHeap *heap, void *start_ptr, int total, int requested) {
 	void *new_block_ptr = (void*)((ut8*)start_ptr + requested);
-	size_t block_size = total - requested;
+	int block_size = total - requested;
 
 	// Size that was left after allocating memory.
 	// Needs to be large enough to store another block (min size is needed in order
 	// to store free list element there after it is freed).
-	if (block_size < MIN_SIZE) {
+	if (block_size < (int)MIN_SIZE) {
 		// Not enough size to split.
 		return;
 	}

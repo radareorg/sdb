@@ -979,7 +979,6 @@ int main(int argc, const char **argv) {
 	case cgen:
 		{
 			if (mo->db0 >= argc) {
-				terminate (1);
 				return showusage (1);
 			}
 			const char *file = mo->argv[mo->db0];
@@ -990,7 +989,6 @@ int main(int argc, const char **argv) {
 			}
 			int rc = gen_gperf (mo, file, name);
 			sdb_gh_free (name);
-			terminate (rc);
 			return rc;
 		}
 	default:
@@ -1058,7 +1056,6 @@ int main(int argc, const char **argv) {
 		// "sdb test.db"
 		s = sdb_new (NULL, mo->db, 0);
 		if (!s) {
-			terminate (1);
 			return 1;
 		}
 		sdb_config (s, options);
@@ -1073,11 +1070,9 @@ int main(int argc, const char **argv) {
 				}
 			}
 		} else {
-			terminate (0);
 			return sdb_dump (mo);
 		}
 		break;
 	}
-	terminate (ret);
 	return ret;
 }
