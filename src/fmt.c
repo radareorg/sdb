@@ -8,7 +8,7 @@
 #define concat(x) if (x) { \
 	int size = 2 + strlen (x? x: "")+(out? strlen (out) + 4: 0); \
 	if (out) { \
-		char *o = (char *)realloc (out, size); \
+		char *o = (char *)sdb_gh_realloc (out, size); \
 		if (o) { \
 			strcat (o, ","); \
 			strcat (o, x); \
@@ -48,7 +48,7 @@ SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
 		case 's':
 			e_str = sdb_encode ((const ut8*)*((char**)nbuf), -1);
 			concat (e_str);
-			free (e_str);
+			sdb_gh_free (e_str);
 			break;
 		case 'p':
 			concat (sdb_itoa ((ut64)*((size_t*)(nbuf)), 16, buf, sizeof (buf)));
@@ -118,7 +118,7 @@ SDB_API void sdb_fmt_free (void *stru, const char *fmt) {
 			break;
 		case 'z':
 		case 's':
-			free ((void*)*((char**)((ut8*)stru + len)));
+			sdb_gh_free ((void*)*((char**)((ut8*)stru + len)));
 			break;
 		}
 		len += R_MAX ((long)sizeof (void*), n); // align
@@ -164,7 +164,7 @@ SDB_API ut64* sdb_fmt_array_num(const char *list) {
 		if (size < len) {
 			return NULL;
 		}
-		retp = ret = (ut64*) malloc (size);
+		retp = ret = (ut64*) sdb_gh_malloc (size);
 		if (!ret) {
 			return NULL;
 		}
@@ -184,7 +184,7 @@ SDB_API char** sdb_fmt_array(const char *list) {
 	const char *next, *ptr = list;
 	if (list && *list) {
 		int len = sdb_alen (list);
-		retp = ret = (char**) malloc (2 * strlen (list) +
+		retp = ret = (char**) sdb_gh_malloc (2 * strlen (list) +
 			((len + 1) * sizeof (char *)) + 1);
 		_s = (char *)ret + ((len + 1) * sizeof (char *));
 		if (!ret) {

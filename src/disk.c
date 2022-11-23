@@ -33,7 +33,7 @@ static wchar_t *r_utf8_to_utf16_l (const char *cstring, int len) {
 static bool r_sys_mkdir(const char *path) {
 	LPTSTR path_ = r_sys_conv_utf8_to_utf16 (path);
 	bool ret = CreateDirectory (path_, NULL);
-	free (path_);
+	sdb_gh_free (path_);
 	return ret;
 }
 #else
@@ -88,7 +88,7 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 	dir = s->dir ? s->dir : "./";
 	R_FREE (s->ndump);
 	nlen = strlen (dir);
-	str = (char *)malloc (nlen + 5);
+	str = (char *)sdb_gh_malloc (nlen + 5);
 	if (!str) {
 		return false;
 	}
@@ -102,7 +102,7 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 	wchar_t *wstr = r_sys_conv_utf8_to_utf16 (str);
 	if (wstr) {
 		s->fdump = _wopen (wstr, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
-		free (wstr);
+		sdb_gh_free (wstr);
 	} else {
 		s->fdump = -1;
 	}
@@ -111,7 +111,7 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 #endif
 	if (s->fdump == -1) {
 		// eprintf ("sdb: Cannot open '%s' for writing.\n", str);
-		free (str);
+		sdb_gh_free (str);
 		return false;
 	}
 	cdb_make_start (&s->m, s->fdump);
@@ -150,14 +150,14 @@ SDB_API bool sdb_disk_finish (Sdb* s) {
 	if (MoveFileEx (ndump_, dir_, MOVEFILE_REPLACE_EXISTING)) {
 		//eprintf ("Error 0x%02x\n", GetLastError ());
 	}
-	free (ndump_);
-	free (dir_);
+	sdb_gh_free (ndump_);
+	sdb_gh_free (dir_);
 #else
 	if (s->ndump && s->dir) {
 		IFRET (rename (s->ndump, s->dir));
 	}
 #endif
-	free (s->ndump);
+	sdb_gh_free (s->ndump);
 	s->ndump = NULL;
 	// reopen if was open before
 	reopen = true; // always reopen if possible

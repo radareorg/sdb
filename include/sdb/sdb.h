@@ -18,6 +18,7 @@ extern "C" {
 #include "cdb_make.h"
 #include "version.h"
 #include "rangstr.h"
+#include "heap.h"
 
 /* Key value sizes */
 #define SDB_MIN_VALUE 1

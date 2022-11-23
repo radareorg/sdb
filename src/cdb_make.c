@@ -11,17 +11,17 @@ char *cdb_alloc(ut32 n) {
 	void *ret = NULL;
 	return (char *)(posix_memalign (&ret, ALIGNMENT, n)? NULL: ret);
 #elif __SDB_WINDOWS__ && !__CYGWIN__
-	return (char *)_aligned_malloc (n, ALIGNMENT);
+	return (char *)_aligned_sdb_gh_malloc (n, ALIGNMENT);
 #else
-	return (char *)malloc (n);
+	return (char *)sdb_gh_malloc (n);
 #endif
 }
 
 void cdb_alloc_free(void *x) {
 #if __SDB_WINDOWS__ && !__CYGWIN__
-	_aligned_free (x);
+	_aligned_sdb_gh_free (x);
 #else
-	free (x);
+	sdb_gh_free (x);
 #endif
 }
 

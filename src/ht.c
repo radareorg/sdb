@@ -3,8 +3,8 @@
 #include "sdb/ht.h"
 
 void sdbkv_fini(SdbKv *kv) {
-	free (kv->base.key);
-	free (kv->base.value);
+	sdb_gh_free (kv->base.key);
+	sdb_gh_free (kv->base.value);
 }
 
 SDB_API HtPP* sdb_ht_new(void) {
@@ -34,8 +34,8 @@ static bool sdb_ht_internal_insert(HtPP* ht, const char* key, const char* value,
 	return ht_pp_insert_kv (ht, (HtPPKv*)&kvp, update);
 
  err:
-	free (kvp.base.key);
-	free (kvp.base.value);
+	sdb_gh_free (kvp.base.key);
+	sdb_gh_free (kvp.base.value);
 	return false;
 }
 

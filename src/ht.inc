@@ -106,7 +106,7 @@ static HtName_(Ht)* internal_ht_new(ut32 size, ut32 prime_idx, HT_(Options) *opt
 		ht->prime_idx = prime_idx;
 		ht->table = (HT_(Bucket)*)calloc (ht->size, sizeof (*ht->table));
 		if (!ht->table) {
-			free (ht);
+			sdb_gh_free (ht);
 			return NULL;
 		}
 		ht->opt = *opt;
@@ -136,10 +136,10 @@ SDB_API void Ht_(free)(HtName_(Ht)* ht) {
 					ht->opt.freefn (kv);
 				}
 			}
-			free (bt->arr);
+			sdb_gh_free (bt->arr);
 		}
-		free (ht->table);
-		free (ht);
+		sdb_gh_free (ht->table);
+		sdb_gh_free (ht);
 	}
 }
 
@@ -199,7 +199,7 @@ static HT_(Kv) *reserve_kv(HtName_(Ht) *ht, const KEY_TYPE key, const int key_le
 
 	if (bt->count + 1 >= bt->size) {
 		bt->size = (bt->count + 5) * 2;
-		HT_(Kv) *newkvarr = (HT_(Kv)*)realloc (bt->arr, (bt->size) * ht->opt.elem_size);
+		HT_(Kv) *newkvarr = (HT_(Kv)*)sdb_gh_realloc (bt->arr, (bt->size) * ht->opt.elem_size);
 		if (SDB_LIKELY (newkvarr)) {
 			bt->arr = newkvarr;
 		} else {

@@ -29,7 +29,7 @@ void cdb_free(struct cdb *c) {
 #if USE_MMAN
 	(void)munmap (c->map, c->size);
 #else
-	free (c->map);
+	sdb_gh_free (c->map);
 #endif
 	c->map = NULL;
 }
@@ -70,7 +70,7 @@ bool cdb_init(struct cdb *c, int fd) {
 		if (read (fd, x, st.st_size) != st.st_size) {
 			/* handle read error */
 		}
-		free (c->map);
+		sdb_gh_free (c->map);
 #endif
 		c->map = x;
 		c->size = st.st_size;

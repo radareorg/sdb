@@ -24,7 +24,7 @@ SDB_API HtName_(Ht)* Ht_(new)(HT_(DupValue) valdup, HT_(KvFreeFunc) pair_free, H
 }
 
 static void free_kv_key(HT_(Kv) *kv) {
-	free (kv->key);
+	sdb_gh_free (kv->key);
 }
 
 // creates a default HtPP that has strings as keys but does not dup, nor free the values

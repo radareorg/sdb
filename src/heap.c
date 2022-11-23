@@ -13,12 +13,31 @@
 // generic global
 SdbGlobalHeap Gheap = {NULL, NULL};
 
-#if 0
-SdbHeap myheap;
-sdb_heap_init (&myheap);
-sdb_gh_use ({&sdb_heap_realloc, &myheap});
-sdb_heap_fini (&myheap);
-#endif
+// Size 16
+typedef struct free_list {
+	struct free_list *next;
+	struct free_list *prev;
+} free_list;
+
+typedef struct sdb_heap_t {
+	// Globals
+	int *last_address;
+	free_list *free_list_start;
+	// To reduce number of mmap calls.
+	int last_mapped_size; // 1;
+} SdbHeap;
+
+SDB_API void sdb_heap_fini(SdbHeap *heap);
+SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size);
+
+static SdbHeap sdb_gh_custom_data = { NULL, NULL, 1};
+const SdbGlobalHeap sdb_gh_custom = {
+	(SdbHeapRealloc)sdb_heap_realloc,
+	(SdbHeapFini)sdb_heap_fini,
+	&sdb_gh_custom_data
+};
+// local heap allocator api
+const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
 
 #define USED false
 #define FREE true
@@ -86,7 +105,7 @@ static inline void setSizeFooter(void *ptr, int size) {
 
 // Get size of the free list item.
 static inline int getSize(void *ptr) {
-	return ((Header *)remove_offset(ptr))->size;
+	return ((Header *)remove_offset (ptr))->size;
 }
 
 static void remove_from_free_list(SdbHeap *heap, void *block) {
@@ -177,7 +196,7 @@ static void split(SdbHeap *heap, void *start_ptr, int total, int requested) {
 	append_to_free_list (heap, new_block_header);
 }
 
-SDB_API void *sdb_heap_malloc(SdbHeap *heap, int size) {
+static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 	if (size <= 0) {
 		return NULL;
 	}

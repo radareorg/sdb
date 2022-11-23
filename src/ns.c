@@ -99,7 +99,7 @@ static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	} else {
 		dir[0] = 0;
 	}
-	ns = (SdbNs *)malloc (sizeof (SdbNs));
+	ns = (SdbNs *)sdb_gh_malloc (sizeof (SdbNs));
 	if (!ns) {
 		return NULL;
 	}
@@ -110,18 +110,18 @@ static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	// TODO: generate path
 
 	if (ns->sdb) {
-		free (ns->sdb->path);
+		sdb_gh_free (ns->sdb->path);
 		ns->sdb->path = NULL;
 		if (*dir) {
 			ns->sdb->path = sdb_strdup (dir);
 		}
-		free (ns->sdb->name);
+		sdb_gh_free (ns->sdb->name);
 		if (name && *name) {
 			ns->sdb->name = sdb_strdup (name);
 		}
 	} else {
-		free (ns->name);
-		free (ns);
+		sdb_gh_free (ns->name);
+		sdb_gh_free (ns);
 		ns = NULL;
 	}
 	return ns;
@@ -172,7 +172,7 @@ SDB_API int sdb_ns_set(Sdb *s, const char *name, Sdb *r) {
 	}
 	ns->name = sdb_strdup (name);
 	if (!ns->name) {
-		free (ns);
+		sdb_gh_free (ns);
 		return 0;
 	}
 	ns->hash = hash;
@@ -226,7 +226,7 @@ SDB_API Sdb *sdb_ns_path(Sdb *s, const char *path, int create) {
 		if (slash)
 			ptr = slash+1;
 	} while (slash);
-	free (str);
+	sdb_gh_free (str);
 	return s;
 }
 

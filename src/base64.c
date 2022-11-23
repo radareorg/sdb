@@ -100,7 +100,7 @@ SDB_API ut8 *sdb_decode(const char *in, int *len) {
 	}
 	olen = sdb_decode_raw (out, in, ilen);
 	if (!olen) {
-		free (out);
+		sdb_gh_free (out);
 		return NULL;
 	}
 	out[olen] = 0;

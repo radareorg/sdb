@@ -5,7 +5,7 @@
 #include "ht.inc"
 
 static void free_kv_key(HT_(Kv) *kv) {
-	free (kv->key);
+	sdb_gh_free (kv->key);
 }
 
 // creates a default HtPU that has strings as keys
