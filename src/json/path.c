@@ -124,7 +124,7 @@ SDB_IPI Rangstr json_find (const char *s, Rangstr *rs) {
 
 	len = strlen (s);
 	if (len > RESFIXSZ) {
-		res = (RangstrType *)calloc (len + 1, sizeof (RangstrType));
+		res = (RangstrType *)sdb_gh_calloc (len + 1, sizeof (RangstrType));
 		if (!res) {
 			// eprintf ("Cannot allocate %d byte%s\n", len + 1, (len > 1)? "s": "");
 			return rangstr_null ();

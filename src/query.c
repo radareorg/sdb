@@ -12,7 +12,7 @@ typedef struct {
 } StrBuf;
 
 static StrBuf* strbuf_new(void) {
-	return (StrBuf*) calloc (sizeof (StrBuf), 1);
+	return (StrBuf*) sdb_gh_calloc (sizeof (StrBuf), 1);
 }
 
 #define NEWLINE_AFTER_QUERY 1
@@ -175,7 +175,7 @@ SDB_API char *sdb_querys(Sdb *r, char *buf, size_t len, const char *_cmd) {
 	if ((int)len < 1 || !buf) {
 		bufset = true;
 		len = 64;
-		buf = (char *)calloc (1, len);
+		buf = (char *)sdb_gh_calloc (1, len);
 		if (!buf) {
 			strbuf_free (out);
 			return NULL;
@@ -378,7 +378,7 @@ next_quote:
 	} else if (*cmd == '+' || *cmd == '-') {
 		d = 1;
 		if (!buf) {
-			buf = (char *)calloc (1, len);
+			buf = (char *)sdb_gh_calloc (1, len);
 			if (!buf) {
 				goto fail;
 			}

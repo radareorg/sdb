@@ -3,7 +3,7 @@
 #include "sdb/sdb.h"
 
 SDB_API dict *dict_new(ut32 size, dict_freecb f) {
-	dict *m = (dict *)calloc (1, sizeof (dict));
+	dict *m = (dict *)sdb_gh_calloc (1, sizeof (dict));
 	if (!dict_init (m, R_MAX (size, 1), f)) {
 		sdb_gh_free (m);
 		m = NULL;
@@ -23,7 +23,7 @@ SDB_API bool dict_init(dict *m, ut32 size, dict_freecb f) {
 	if (m) {
 		memset (m, 0, sizeof (dict));
 		if (size > 0) {
-			m->table = (void **)calloc (size, sizeof (dictkv));
+			m->table = (void **)sdb_gh_calloc (size, sizeof (dictkv));
 			if (!m->table) {
 				return false;
 			}
@@ -77,7 +77,7 @@ SDB_API bool dict_set(dict *m, dicti k, dicti v, void *u) {
 	const int bucket = dict_bucket (m, k);
 	dictkv *kv = (dictkv *)m->table[bucket];
 	if (!kv) {
-		kv = (dictkv *)calloc (sizeof (dictkv), 2);
+		kv = (dictkv *)sdb_gh_calloc (sizeof (dictkv), 2);
 		if (kv) {
 			m->table[bucket] = kv;
 			kv->k = 0;

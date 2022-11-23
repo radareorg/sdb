@@ -57,8 +57,8 @@ static void terminate(int sig UNUSED) {
 		s = NULL;
 		exit (1);
 	}
-	sdb_free (s);
 	sdb_gh_fini ();
+	//sdb_free (s);
 	exit (sig < 2? sig: 0);
 }
 
@@ -87,7 +87,7 @@ static char *slurp(FILE *f, size_t *sz) {
 		/* run test/add10k.sh script to benchmark */
 		const int buf_size = 96096;
 
-		buf = (char *)calloc (1, buf_size);
+		buf = (char *)sdb_gh_calloc (1, buf_size);
 		if (!buf) {
 			return NULL;
 		}
@@ -114,7 +114,7 @@ static char *slurp(FILE *f, size_t *sz) {
 		return newbuf;
 	}
 #endif
-	buf = (char *)calloc (BS + 1, 1);
+	buf = (char *)sdb_gh_calloc (BS + 1, 1);
 	if (!buf) {
 		return NULL;
 	}
@@ -257,7 +257,7 @@ static char* get_cname(const char*name) {
 }
 
 static char *escape(const char *b, int ch) {
-	char *a = (char *)calloc ((1 + strlen (b)), 4);
+	char *a = (char *)sdb_gh_calloc ((1 + strlen (b)), 4);
 	char *c = a;
 	while (*b) {
 		if (*b == ch) {
@@ -538,7 +538,7 @@ static int sdb_dump(MainOptions *mo) {
 			break;
 		}
 	}
-	sdb_free (db);
+	// sdb_free (db);
 	sdb_gh_free (cname);
 	sdb_gh_free (name);
 	return ret;

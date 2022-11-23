@@ -590,7 +590,6 @@ SDB_API void sdbkv_free(SdbKv *kv) {
 
 static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut32 cas) {
 	ut32 vlen, klen;
-	SdbKv *kv;
 	bool found;
 	if (!s || !key) {
 		return 0;
@@ -615,7 +614,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 		sdb_journal_log (s, key, val);
 	}
 	cdb_findstart (&s->db);
-	kv = sdb_ht_find_kvp (s->ht, key, &found);
+	SdbKv *kv = sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && sdbkv_value (kv)) {
 		if (cdb_findnext (&s->db, sdb_hash (key), key, klen)) {
 			if (cas && kv->cas != cas) {
@@ -661,8 +660,8 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 	if (kv) {
 		cas = kv->cas = nextcas (kv);
 		sdb_ht_insert_kvp (s->ht, kv, true /*update*/);
-		sdb_gh_free (kv);
 		sdb_hook_call (s, key, val);
+		sdb_gh_free (kv);
 		return cas;
 	}
 	// kv set failed, no need to callback	sdb_hook_call (s, key, val);
@@ -1064,7 +1063,7 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	if (len < 1 || len >= INT32_MAX) {
 		return false;
 	}
-	if (!(buf = (char *)calloc (1, len + 1))) {
+	if (!(buf = (char *)sdb_gh_calloc (1, len + 1))) {
 		return false;
 	}
 	cdb_read (&s->db, buf, len, pos);
@@ -1270,7 +1269,7 @@ SDB_API char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback
 		lcd.val = NULL;
 	}
 	lcd.array_size = sizeof (char*) * 2;
-	lcd.array = (const char **)calloc (lcd.array_size, 1); // XXX shouldnt be const
+	lcd.array = (const char **)sdb_gh_calloc (lcd.array_size, 1); // XXX shouldnt be const
 	if (!lcd.array) {
 		return NULL;
 	}

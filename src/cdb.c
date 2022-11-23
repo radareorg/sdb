@@ -62,7 +62,7 @@ bool cdb_init(struct cdb *c, int fd) {
 			munmap (c->map, c->size);
 		}
 #else
-		char *x = calloc (1, st.st_size);
+		char *x = sdb_gh_calloc (1, st.st_size);
 		if (!x) {
 			// eprintf ("Cannot malloc %d\n", (int)st.st_size);
 			return false;

@@ -18,5 +18,11 @@ MILF=$(addprefix mimalloc/src/,$(MIFILES))
 all: mimalloc
 	$(CC) -I../../include main.c $(MILF) -I mimalloc/include ../../src/libsdb.a
 
+asan: mimalloc
+	$(MAKE) -C ../.. clean ; make -C ../..  CFLAGS="-g -O0 -fsanitize=address" LDFLAGS="-fsanitize=address"; make asan2
+
+asan2:
+	$(CC) -I../../include main.c $(MILF) -I mimalloc/include ../../src/libsdb.a -fsanitize=address
+
 mimalloc:
 	git clone https://github.com/microsoft/mimalloc

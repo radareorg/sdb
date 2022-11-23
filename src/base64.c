@@ -68,7 +68,7 @@ SDB_API char *sdb_encode(const ut8 *bin, int len) {
 	if (!len) {
 		return sdb_strdup ("");
 	}
-	out = (char *)calloc (8 + (len * 2), sizeof (char));
+	out = (char *)sdb_gh_calloc (8 + (len * 2), sizeof (char));
 	if (!out) {
 		return NULL;
 	}
@@ -94,7 +94,7 @@ SDB_API ut8 *sdb_decode(const char *in, int *len) {
 	if (size < (ut32)ilen) {
 		return NULL;
 	}
-	out = (ut8 *)calloc (1, size);
+	out = (ut8 *)sdb_gh_calloc (1, size);
 	if (!out) {
 		return NULL;
 	}
