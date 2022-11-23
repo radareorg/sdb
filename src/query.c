@@ -182,7 +182,7 @@ SDB_API char *sdb_querys(Sdb *r, char *buf, size_t len, const char *_cmd) {
 		}
 	}
 	if (_cmd) {
-		cmd = original_cmd = strdup (_cmd);
+		cmd = original_cmd = sdb_strdup (_cmd);
 		if (!cmd) {
 			strbuf_free (out);
 			if (bufset) {
@@ -347,7 +347,7 @@ next_quote:
 	if (*cmd == '$') {
 		free (newcmd);
 		char *nc = sdb_get (s, cmd + 1, 0);
-		cmd = newcmd = (nc) ? nc : strdup ("");
+		cmd = newcmd = (nc) ? nc : sdb_strdup ("");
 	}
 	// cmd = val
 	// cmd is key and val is value
@@ -859,7 +859,7 @@ SDB_API int sdb_query_lines(Sdb *s, const char *cmd) {
 	if (!s || !cmd) {
 		return 0;
 	}
-	op = strdup (cmd);
+	op = sdb_strdup (cmd);
 	if (!op) {
 		return 0;
 	}

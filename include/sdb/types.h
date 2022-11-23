@@ -153,6 +153,8 @@ static inline void ut32_unpack(char s[4], ut32 *u) {
 	*u = result;
 }
 
+SDB_API char *sdb_strdup(const char *s);
+
 #ifdef __cplusplus
 }
 #endif

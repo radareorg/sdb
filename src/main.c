@@ -213,7 +213,7 @@ static char* get_name(const char*name) {
 		}
 		l--;
 	}
-	char *n = strdup (name);
+	char *n = sdb_strdup (name);
 	char *v, *d = n;
 	for (v = (char*)n; *v; v++) {
 		if (*v == '.') {
@@ -237,7 +237,7 @@ static char* get_cname(const char*name) {
 		}
 		l--;
 	}
-	char *n = strdup (name);
+	char *n = sdb_strdup (name);
 	char *v, *d = n;
 	for (v = (char*)n; *v; v++) {
 		if (*v == '/' || *v == '-') {
@@ -433,7 +433,7 @@ static void cgen_footer(MainOptions *mo, const char *name, const char *cname) {
 		"			char *comma = strchr (line, ',');\n"
 		"			if (comma) {\n"
 		"				*comma = 0;\n"
-		"				char *up = strdup (line);\n"
+		"				char *up = sdb_strdup (line);\n"
 		"				char *p = up; while (*p) { *p = toupper (*p); p++; }\n"
 		"				printf (\"#define GPERF_%s_%%s %%d\\n\",\n"
 		"					line, sdb_hash_c_%s (line, comma - line));\n"
@@ -554,7 +554,7 @@ static int insertkeys(Sdb *db, const char **args, int nargs, int mode) {
 				break;
 			case '=':
 				if (strchr (args[i], '=')) {
-					char *v, *kv = (char *) strdup (args[i]);
+					char *v, *kv = (char *) sdb_strdup (args[i]);
 					v = strchr (kv, '=');
 					if (v) {
 						*v++ = 0;
@@ -977,7 +977,7 @@ int main(int argc, const char **argv) {
 				return showusage (1);
 			}
 			const char *file = mo->argv[mo->db0];
-			char *name = strdup (file);
+			char *name = sdb_strdup (file);
 			char *p = strchr (name, '.');
 			if (p) {
 				*p = 0;

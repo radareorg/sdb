@@ -15,7 +15,7 @@
 			out = o; \
 		} \
 	} else { \
-		out = strdup (x); \
+		out = sdb_strdup (x); \
 	} \
 }
 
@@ -68,7 +68,7 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 	if (!_str || !*_str || !fmt) {
 		return 0;
 	}
-	str = ptr = strdup (_str);
+	str = ptr = sdb_strdup (_str);
 	for (; *fmt; fmt++) {
 		word = sdb_anext (ptr, &next);
 		if (!word || !*word) {
@@ -83,10 +83,10 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 		case 'h': *((short*)(stru8 + idx)) = (short)sdb_atoi (word); break;
 		case 's':
 			e_str = (char*)sdb_decode (word, 0);
-			*((char**)(stru8 + idx)) = e_str? e_str: strdup (word);
+			*((char**)(stru8 + idx)) = e_str? e_str: sdb_strdup (word);
 			break;
 		case 'z':
-			*((char**)(stru8 + idx)) = (char*)strdup (word);
+			*((char**)(stru8 + idx)) = (char*)sdb_strdup (word);
 			break;
 		case 'p':
 			*((void**)(stru8 + idx)) = (void*)(size_t)sdb_atoi (word);

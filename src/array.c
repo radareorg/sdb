@@ -98,7 +98,7 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 	if (!idx) {
 		n = strchr ((char *)str, SDB_RS);
 		if (!n) {
-			return strdup (str);
+			return sdb_strdup (str);
 		}
 		len = n - str;
 		o = (char *)malloc (len + 1);
@@ -116,7 +116,7 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 	}
 	n = strchr ((char *)p, SDB_RS);
 	if (!n) {
-		return strdup (p);
+		return sdb_strdup (p);
 	}
 	len = n - p;
 	o = (char *)malloc (len + 1);
@@ -638,7 +638,7 @@ SDB_API char *sdb_array_pop_tail(Sdb *s, const char *key, ut32 *cas) {
 	}
 	sdb_set_owned (s, key, str, 0);
 	// XXX: probably wrong
-	return strdup (end);
+	return sdb_strdup (end);
 }
 
 SDB_API void sdb_array_sort(Sdb *s, const char *key, ut32 cas) {

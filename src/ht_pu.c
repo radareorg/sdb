@@ -13,7 +13,7 @@ SDB_API HtName_(Ht)* Ht_(new0)(void) {
 	HT_(Options) opt = {
 		.cmp = (HT_(ListComparator))strcmp,
 		.hashfn = (HT_(HashFunction))sdb_hash,
-		.dupkey = (HT_(DupKey))strdup,
+		.dupkey = (HT_(DupKey))sdb_strdup,
 		.dupvalue = NULL,
 		.calcsizeK = (HT_(CalcSizeK))strlen,
 		.calcsizeV = NULL,

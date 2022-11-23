@@ -94,7 +94,7 @@ static inline HT_(Kv) *next_kv(HtName_(Ht) *ht, HT_(Kv) *kv) {
 // hashfunction - the function that does the hashing, must not be null.
 // comparator - the function to check if values are equal, if NULL, just checks
 // == (for storing ints).
-// keydup - function to duplicate to key (eg strdup), if NULL just does strup.
+// keydup - function to duplicate to key (eg sdb_strdup), if NULL just does strup.
 // valdup - same as keydup, but for values but if NULL just assign
 // pair_free - function for freeing a keyvaluepair - if NULL just does free.
 // calcsize - function to calculate the size of a value. if NULL, just stores 0.

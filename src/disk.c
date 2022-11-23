@@ -37,7 +37,7 @@ static bool r_sys_mkdir(const char *path) {
 	return ret;
 }
 #else
-#define r_sys_conv_utf8_to_utf16(buf) strdup (buf)
+#define r_sys_conv_utf8_to_utf16(buf) sdb_strdup (buf)
 #define r_sys_mkdir(x) CreateDirectory (x, NULL)
 #endif
 #ifndef ERROR_ALREADY_EXISTS
@@ -83,7 +83,7 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 		return false; // cannot re-create
 	}
 	if (!s->dir && s->name) {
-		s->dir = strdup (s->name);
+		s->dir = sdb_strdup (s->name);
 	}
 	dir = s->dir ? s->dir : "./";
 	R_FREE (s->ndump);

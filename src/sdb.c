@@ -67,9 +67,9 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 			memcpy (s->dir, path, plen);
 			s->dir[plen] = '/';
 			memcpy (s->dir + plen + 1, name, nlen + 1);
-			s->path = strdup (path);
+			s->path = sdb_strdup (path);
 		} else {
-			s->dir = strdup (name);
+			s->dir = sdb_strdup (name);
 		}
 		switch (lock) {
 		case 1:
@@ -93,7 +93,7 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 			s->last = s->timestamped? sdb_now (): 0LL;
 			// TODO: must fail if we cant open for write in sync
 		}
-		s->name = strdup (name);
+		s->name = sdb_strdup (name);
 	} else {
 		s->last = s->timestamped? sdb_now (): 0LL;
 		s->fd = -1;
@@ -133,7 +133,7 @@ SDB_API void sdb_file(Sdb* s, const char *dir) {
 		sdb_unlock (buf);
 	}
 	free (s->dir);
-	s->dir = (dir && *dir)? strdup (dir): NULL;
+	s->dir = (dir && *dir)? sdb_strdup (dir): NULL;
 	if (s->lock) {
 		sdb_lock_file (s->dir, buf, sizeof (buf));
 		sdb_lock (buf);
@@ -298,7 +298,7 @@ SDB_API const char *sdb_const_get(Sdb* s, const char *key, ut32 *cas) {
 
 SDB_API char *sdb_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas) {
 	const char *value = sdb_const_get_len (s, key, vlen, cas);
-	return value ? strdup (value) : NULL;
+	return value ? sdb_strdup (value) : NULL;
 }
 
 SDB_API char *sdb_get(Sdb* s, const char *key, ut32 *cas) {
@@ -441,7 +441,7 @@ SDB_API int sdb_open(Sdb *s, const char *file) {
 		s->fd = open (file, O_RDONLY | O_BINARY);
 		if (file != s->dir) {
 			free (s->dir);
-			s->dir = strdup (file);
+			s->dir = sdb_strdup (file);
 			s->path = NULL; // TODO: path is important
 		}
 	}
@@ -524,7 +524,7 @@ SDB_API bool sdbkv_match(SdbKv *kv, const char *expr) {
 	// [^]str[$]=[^]str[$]
 	const char *eq = strchr (expr, '=');
 	if (eq) {
-		char *e = strdup (expr);
+		char *e = sdb_strdup (expr);
 		char *ep = e + (eq - expr);
 		*ep++ = 0;
 		bool res = !*e || match (sdbkv_key (kv), e);
@@ -597,7 +597,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 	}
 	if (!val) {
 		if (owned) {
-			val = strdup ("");
+			val = sdb_strdup ("");
 		} else {
 			val = (char *)"";
 		}
@@ -700,8 +700,8 @@ static bool sdb_foreach_list_cb(void *user, const char *k, const char *v) {
 	SdbKv *kv = R_NEW0 (SdbKv);
 	if (kv) {
 		/* seems like some k/v are constructed in the stack and cant be used after returning */
-		kv->base.key = strdup (k);
-		kv->base.value = strdup (v);
+		kv->base.key = sdb_strdup (k);
+		kv->base.value = sdb_strdup (v);
 		ls_append (list, kv);
 		return true;
 	}
@@ -738,8 +738,8 @@ static bool sdb_foreach_list_filter_cb(void *user, const char *k, const char *v)
 		if (!kv) {
 			goto err;
 		}
-		kv->base.key = strdup (k);
-		kv->base.value = strdup (v);
+		kv->base.key = sdb_strdup (k);
+		kv->base.value = sdb_strdup (v);
 		if (!kv->base.key || !kv->base.value) {
 			goto err;
 		}
@@ -783,8 +783,8 @@ static bool sdb_foreach_match_cb(void *user, const char *k, const char *v) {
 		if (!kv) {
 			return false;
 		}
-		kv->base.key = strdup (k);
-		kv->base.value = strdup (v);
+		kv->base.key = sdb_strdup (k);
+		kv->base.value = sdb_strdup (v);
 		ls_append (o->list, kv);
 		if (o->single) {
 			return false;
