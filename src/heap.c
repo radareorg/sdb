@@ -13,6 +13,15 @@ SdbGlobalHeap Gheap = {NULL, NULL};
 // local heap allocator api
 const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
 
+SDB_API char *sdb_strdup(const char *s) {
+	size_t sl = strlen (s) + 1;
+	char *p = (char *)sdb_gh_malloc (sl);
+	if (p) {
+		memcpy (p, s, sl);
+	}
+	return p;
+}
+
 #if __SDB_WINDOWS__
 #include <windows.h>
 #else
@@ -225,7 +234,8 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 	// No free block was found. Allocate size requested + header (in full pages).
 	// Each next allocation will be doubled in size from the previous one
 	// (to decrease the number of mmap sys calls we make).
-	int bytes = MAX (PAGES (required_size), heap->last_mapped_size) * PAGE_SIZE;
+	// int bytes = MAX (PAGES (required_size), heap->last_mapped_size) * PAGE_SIZE;
+	size_t bytes = PAGES(MAX (PAGES (required_size), heap->last_mapped_size)) * PAGE_SIZE;
 	heap->last_mapped_size *= 2;
 
 	// last_address my not be returned by mmap, but makes it more efficient if it happens.
@@ -234,10 +244,11 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 #endif
 	void *new_region = mmap (heap->last_address, bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (new_region == MAP_FAILED) {
+		perror ("mmap");
 		return NULL;
 	}
 	// Create a header/footer for new block.
-	Header header = {bytes, USED, false, false};
+	Header header = {(int)bytes, USED, false, false};
 	Header *header_ptr = (Header *)new_region;
 	*header_ptr = header;
 	Footer footer = {};
@@ -417,12 +428,4 @@ SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size) {
 	return new_ptr;
 }
 
-SDB_API char *sdb_strdup(const char *s) {
-	size_t sl = strlen (s) + 1;
-	char *p = (char *)sdb_gh_malloc (sl);
-	if (p) {
-		memcpy (p, s, sl);
-	}
-	return p;
-}
 #endif

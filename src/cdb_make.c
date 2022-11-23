@@ -9,7 +9,7 @@
 
 static char *cdb_alloc(ut32 n) {
 #if USE_GHA
-	return sdb_gh_malloc (n);
+	return (char *)sdb_gh_malloc (n);
 #else
 #if __APPLE__ && !__POWERPC__
 	void *ret = NULL;
