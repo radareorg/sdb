@@ -71,16 +71,16 @@ typedef struct Footer {
 
 // Get pointer to the payload (passing the pointer to the header).
 static void *add_offset(void *ptr) {
-	return ptr + HEADER_SIZE;
+	return (void *)((const ut8*)ptr + HEADER_SIZE);
 }
 
 // Get poiner to the header (passing pointer to the payload).
 static void *remove_offset(void *ptr) {
-	return ptr - HEADER_SIZE;
+	return (void *)((const ut8*)ptr - HEADER_SIZE);
 }
 
 static void *getFooter(void *header_ptr) {
-	return header_ptr + ((Header *)header_ptr)->size - FOOTER_SIZE;
+	return (void*)((ut8*)header_ptr + ((Header *)header_ptr)->size - FOOTER_SIZE);
 }
 
 static void setFree(void *ptr, int val) {
@@ -138,9 +138,9 @@ static void remove_from_free_list(SdbHeap *heap, void *block) {
 static void append_to_free_list(SdbHeap *heap, void *ptr) {
 	setFree (ptr, FREE);
 
-	free_list new = {};
+	free_list eew = {};
 	free_list *new_ptr = (free_list *)add_offset (ptr);
-	*new_ptr = new;
+	*new_ptr = eew;
 
 	if (heap->free_list_start) {
 		// Insert in the beginning.
@@ -173,7 +173,7 @@ static free_list *find_free_block(SdbHeap *heap, int size) {
 // Split memory into multiple blocks after some part of it was requested
 // (requested + the rest).
 static void split(SdbHeap *heap, void *start_ptr, int total, int requested) {
-	void *new_block_ptr = start_ptr + requested;
+	void *new_block_ptr = (void*)((ut8*)start_ptr + requested);
 	size_t block_size = total - requested;
 
 	// Size that was left after allocating memory.
@@ -249,7 +249,7 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 	// Split new region.
 	split (heap, new_region, bytes, required_size);
 	// Update last_address for the next allocation.
-	heap->last_address = new_region + bytes;
+	heap->last_address = (int*)((ut8*)new_region + bytes);
 	// Return address behind the header (i.e. header is hidden).
 	return add_offset (new_region);
 }
@@ -257,10 +257,10 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 static void coalesce(SdbHeap *heap, void *ptr) {
 	Header *current_header = (Header *)ptr;
 	Footer *current_footer = (Footer *)getFooter(ptr);
-	if (current_header->has_prev && ((Footer *)(ptr - FOOTER_SIZE))->free) {
-		int prev_size = ((Footer *)(ptr - FOOTER_SIZE))->size;
-		Header *prev_header = (Header *)(ptr - prev_size);
-		Footer *prev_footer = (Footer *)((Footer *)(ptr - FOOTER_SIZE));
+	if (current_header->has_prev && ((Footer *)((ut8*)ptr - FOOTER_SIZE))->free) {
+		int prev_size = ((Footer *)((ut8*)ptr - FOOTER_SIZE))->size;
+		Header *prev_header = (Header *)((ut8*)ptr - prev_size);
+		Footer *prev_footer = (Footer *)((Footer *)((ut8*)ptr - FOOTER_SIZE));
 
 		// Merge with previous block.
 		remove_from_free_list (heap, current_header);
@@ -269,11 +269,11 @@ static void coalesce(SdbHeap *heap, void *ptr) {
 		prev_footer->size = prev_header->size;
 		current_header = prev_header;
 	}
-	void *next = ptr + current_header->size;
+	void *next = (void*)((ut8*)ptr + current_header->size);
 	if (current_header->has_next && ((Header *)next)->free) {
 		int size = ((Header *)next)->size;
 		// merge with next block.
-		remove_from_free_list (heap, ptr + current_header->size);
+		remove_from_free_list (heap, (ut8*)ptr + current_header->size);
 		// Add size of next block to the size of current block.
 		current_header->size += size;
 		current_footer->size = current_header->size;
@@ -286,20 +286,20 @@ static int unmap(SdbHeap *heap, void *start_address, int size) {
 	Header *header = (Header *)start_address;
 	if (header->has_prev) {
 		// Get prev header, set has_next to false.
-		int prev_size = ((Footer *)(start_address - FOOTER_SIZE))->size;
-		Header *prev_header = (Header *)(start_address - prev_size);
+		int prev_size = ((Footer *)((ut8*)start_address - FOOTER_SIZE))->size;
+		Header *prev_header = (Header *)((ut8*)start_address - prev_size);
 		prev_header->has_next = false;
 	} 
 	if (header->has_next) {
 		// Get next header, set has_prev to false.
 		int this_size = header->size;
-		Header *next_header = (Header *)(start_address + this_size);
+		Header *next_header = (Header *)((ut8*)start_address + this_size);
 		next_header->has_prev = false;
 	}
 
 	// If this is the last block we've allocated using mmap, need to change last_address.
 	if (heap->last_address == start_address) {
-		heap->last_address = start_address - size;
+		heap->last_address = (int *)((ut8*)start_address - size);
 	}
 	return munmap (start_address, (size_t)size);
 }
@@ -384,10 +384,10 @@ SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size) {
 	Footer *current_footer = (Footer *)getFooter(ptr);
 	// Next block exists and is free.
 	if (current_header->has_next && ((Header *)ptr + current_size)->free) {
-		int available_size = current_size + getSize(ptr + current_size);
+		int available_size = current_size + getSize ((ut8*)ptr + current_size);
 		// Size is enough.
 		if (available_size >= required_size) {
-			Header *next_header = (Header *)(ptr + current_size);
+			Header *next_header = (Header *)((ut8*)ptr + current_size);
 			remove_from_free_list (heap, next_header);
 			// Add size of next block to the size of current block.
 			current_header->size += size;
@@ -412,7 +412,7 @@ SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size) {
 
 SDB_API char *sdb_strdup(const char *s) {
 	size_t sl = strlen (s) + 1;
-	void *p = sdb_gh_malloc (sl);
+	char *p = (char *)sdb_gh_malloc (sl);
 	if (p) {
 		memcpy (p, s, sl);
 	}
