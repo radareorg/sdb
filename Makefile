@@ -105,8 +105,9 @@ install-dirs:
 	$(INSTALL_DIR) ${DESTDIR}${MANDIR} ${DESTDIR}${LIBDIR}/pkgconfig ${DESTDIR}${BINDIR} 
 	$(INSTALL_DIR) ${DESTDIR}${DATADIR}/vala/vapi ${DESTDIR}${INCDIR}/sdb
 
-INCFLS=sdb.h version.h cdb.h ht_uu.h ht_up.h ht_pp.h types.h
+INCFLS=sdb.h version.h cdb.h ht_uu.h ht_up.h ht_pp.h types.h heap.h
 INCFLS+=ls.h cdb_make.h buffer.h config.h ht.h dict.h set.h ht_inc.h
+INCFLS+=rangstr.h
 INCFILES=$(addprefix include/sdb/,$(INCFLS))
 
 install: pkgconfig install-dirs
