@@ -8,8 +8,8 @@
 
 // TODO: missing num_{inc/dec} functions
 
-static const char *Aindexof(const char *str, int idx) {
-	int len = 0;
+static const char *Aindexof(const char *str, size_t idx) {
+	size_t len = 0;
 	const char *n, *p = str;
 	for (len = 0; ; len++) {
 		if (len == idx) {
@@ -62,8 +62,8 @@ static inline int int_cmp(const void *a, const void *b) {
 	return 0;
 } 
 
-SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, int idx, ut32 *cas) {
-	int i;
+SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, size_t idx, ut32 *cas) {
+	size_t i;
 	const char *n, *str = sdb_const_get (s, key, cas);
 	if (!str || !*str) {
 		return 0LL;
@@ -80,16 +80,16 @@ SDB_API ut64 sdb_array_get_num(Sdb *s, const char *key, int idx, ut32 *cas) {
 	return sdb_atoi (str);
 }
 
-SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
+SDB_API char *sdb_array_get(Sdb *s, const char *key, size_t idx, ut32 *cas) {
 	const char *str = sdb_const_get (s, key, cas);
 	const char *p = str;
 	char *o, *n;
-	int i, len;
+	size_t i, len;
 	if (!str || !*str) {
 		return NULL;
 	}
 	if (idx < 0) {
-		int alen = sdb_alen (str);
+		size_t alen = sdb_alen (str);
 		if (-idx > alen) {
 			return NULL;
 		}
@@ -128,14 +128,14 @@ SDB_API char *sdb_array_get(Sdb *s, const char *key, int idx, ut32 *cas) {
 	return NULL;
 }
 
-SDB_API int sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+SDB_API ut32 sdb_array_insert_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[SDB_NUM_BUFSZ];
 	sdb_itoa (val, 0, valstr, sizeof (valstr));
 	return sdb_array_insert (s, key, idx, valstr, cas);
 }
 
 // TODO: done, but there's room for improvement
-SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+SDB_API ut32 sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
 	int lnstr, lstr;
 	size_t lval;
 	char *x, *ptr;
@@ -199,7 +199,7 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 	return sdb_set_owned (s, key, x, cas);
 }
 
-SDB_API int sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
+SDB_API ut32 sdb_array_set_num(Sdb *s, const char *key, int idx, ut64 val, ut32 cas) {
 	char valstr[SDB_NUM_BUFSZ];
 	sdb_itoa (val, 0, valstr, sizeof (valstr));
 	return sdb_array_set (s, key, idx, valstr, cas);
@@ -300,7 +300,7 @@ SDB_API int sdb_array_add_sorted_num(Sdb *s, const char *key, ut64 val, ut32 cas
 	return sdb_array_insert_num (s, key, n? i: -1, val, cas);
 }
 
-SDB_API int sdb_array_unset(Sdb *s, const char *key, int idx, ut32 cas) {
+SDB_API ut32 sdb_array_unset(Sdb *s, const char *key, int idx, ut32 cas) {
 	return sdb_array_set (s, key, idx, "", cas);
 }
 
@@ -338,9 +338,8 @@ SDB_API bool sdb_array_append_num(Sdb *s, const char *key, ut64 val, ut32 cas) {
 	return sdb_array_set_num (s, key, -1, val, cas);
 }
 
-SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
-			   ut32 cas) {
-	int lstr, lval, len;
+SDB_API ut32 sdb_array_set(Sdb *s, const char *key, int idx, const char *val, ut32 cas) {
+	int lstr, lval;
 	const char *usr, *str = sdb_const_get_len (s, key, &lstr, 0);
 	char *ptr;
 
@@ -348,7 +347,7 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
 		return sdb_set (s, key, val, cas);
 	}
 	// XXX: should we cache sdb_alen value inside kv?
-	len = sdb_alen (str);
+	size_t len = sdb_alen (str);
 	lstr--;
 	if (idx < 0 || idx == len) { // append
 		return sdb_array_insert (s, key, -1, val, cas);
@@ -484,7 +483,7 @@ SDB_API int sdb_array_delete(Sdb *s, const char *key, int idx, ut32 cas) {
 		p[1] = 0;
 	}
 	sdb_set_owned (s, key, str, cas);
-	return 1;
+	return true;
 }
 
 // XXX Doesnt work if numbers are stored in different base
@@ -643,7 +642,7 @@ SDB_API char *sdb_array_pop_tail(Sdb *s, const char *key, ut32 *cas) {
 
 SDB_API void sdb_array_sort(Sdb *s, const char *key, ut32 cas) {
 	char *nstr, *str, **strs;
-	int lstr, j, i;
+	size_t lstr, j, i;
 	str = sdb_get_len (s, key, &lstr, 0);
 	if (!str) {
 		return;
@@ -690,7 +689,7 @@ SDB_API void sdb_array_sort_num(Sdb *s, const char *key, ut32 cas) {
 		return;
 	}
 
-	qsort (nums + 1, (int)*nums, sizeof (ut64), int_cmp);
+	qsort (nums + 1, (size_t)*nums, sizeof (ut64), int_cmp);
 
 	nstr = (char *)sdb_gh_malloc (*nums + 1);
 	if (!nstr) {

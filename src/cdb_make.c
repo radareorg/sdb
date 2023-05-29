@@ -122,8 +122,8 @@ int cdb_make_add(struct cdb_make *c, const char *key, ut32 keylen, const char *d
 }
 
 int cdb_make_finish(struct cdb_make *c) {
-	int i;
-	char buf[8];
+	size_t i;
+	ut8 buf[8];
 	struct cdb_hp *hp;
 	struct cdb_hplist *x, *n;
 	ut32 len, u, memsize, count, where;
@@ -144,7 +144,7 @@ int cdb_make_finish(struct cdb_make *c) {
 	}
 
 	for (x = c->head; x; x=x->next) {
-		i = x->num;
+		i = (size_t)x->num;
 		while (i--) {
 			c->split[--c->start[255 & x->hp[i].h]] = x->hp[i];
 		}
@@ -153,7 +153,7 @@ int cdb_make_finish(struct cdb_make *c) {
 	for (i = 0; i < 256; i++) {
 		count = c->count[i];
 		len = count << 1;
-		ut32_pack (c->final + 4 * i, c->pos);
+		ut32_pack ((ut8*)(c->final + 4 * i), c->pos);
 		for (u = 0; u<len; u++) {
 			c->hash[u].h = c->hash[u].p = 0;
 		}
@@ -170,7 +170,7 @@ int cdb_make_finish(struct cdb_make *c) {
 		for (u = 0; u < len; u++) {
 			ut32_pack (buf, c->hash[u].h);
 			ut32_pack (buf + 4, c->hash[u].p);
-			if (!buffer_putalign (&c->b, buf, 8)) {
+			if (!buffer_putalign (&c->b, (const char *)buf, 8)) {
 				return 0;
 			}
 			if (!incpos (c, 8)) {

@@ -62,7 +62,7 @@ SDB_API int gettimeofday(struct timeval* p, struct timezone * tz) {
 #endif
 #endif
 
-SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
+SDB_API ut32 sdb_hash_len(const ut8 *s, ut32 *len) {
 	ut32 h = CDB_HASHSTART;
 #if FORCE_COLLISION
 	h = 0;
@@ -86,11 +86,11 @@ SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 }
 
 SDB_API ut32 sdb_hash(const char *s) {
-	return sdb_hash_len (s, NULL);
+	return sdb_hash_len ((const ut8*)s, NULL);
 }
 
 SDB_API ut8 sdb_hash_byte(const char *s) {
-	const ut32 hash = sdb_hash_len (s, NULL);
+	const ut32 hash = sdb_hash_len ((const ut8*)s, NULL);
 	const ut8 *h = (const ut8*)&hash;
 	return h[0] ^ h[1] ^ h[2] ^ h[3];
 }
@@ -131,13 +131,14 @@ SDB_API char *sdb_itoa(ut64 n, int base, char *os, int oslen) {
 		return os;
 	}
 	s[imax + 1] = '\0';
+	const unsigned ubase = (unsigned)base;
 	if (base <= 10) {
-		for (; n && i > 0; n /= base) {
-			s[i--] = (n % base) + '0';
+		for (; n && i > 0; n /= ubase) {
+			s[i--] = (n % ubase) + '0';
 		}
 	} else {
-		for (; n && i > 0; n /= base) {
-			s[i--] = lookup[(n % base)];
+		for (; n && i > 0; n /= ubase) {
+			s[i--] = lookup[(n % ubase)];
 		}
 		if (i != imax) {
 			s[i--] = 'x';
@@ -224,8 +225,8 @@ SDB_API char *sdb_aslice(char *out, int from, int to) {
 
 // TODO: find better name for it
 // TODO: optimize, because this is the main bottleneck for sdb_array_set()
-SDB_API int sdb_alen(const char *str) {
-	int len = 1;
+SDB_API size_t sdb_alen(const char *str) {
+	size_t len = 1;
 	const char *n, *p = str;
 	if (!p|| !*p) {
 		return 0;
@@ -294,7 +295,7 @@ SDB_API ut64 sdb_now (void) {
 #else
 	struct timeval now;
 	if (!gettimeofday (&now, NULL)) {
-		return now.tv_sec;
+		return (ut64)now.tv_sec;
 	}
 #endif
 	return 0LL;
@@ -312,9 +313,9 @@ SDB_API ut64 sdb_unow (void) {
 #else
         struct timeval now;
         if (!gettimeofday (&now, NULL)) {
-		x = now.tv_sec;
+		x = (ut64)now.tv_sec;
 		x <<= 32;
-		x += now.tv_usec;
+		x += (ut64)now.tv_usec;
 	}
 #endif
 	return x;

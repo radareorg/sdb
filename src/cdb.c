@@ -53,7 +53,12 @@ bool cdb_init(struct cdb *c, int fd) {
 	cdb_findstart (c);
 	if (fd != -1 && !fstat (fd, &st) && st.st_size > 4 && st.st_size != (off_t)UT64_MAX) {
 #if USE_MMAN
-		char *x = (char *)mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+		if (st.st_size < 1) {
+			// invalid size
+			return false;
+		}
+		size_t st_size = (size_t)st.st_size;
+		char *x = (char *)mmap (0, st_size, PROT_READ, MAP_SHARED, fd, 0);
 		if (x == MAP_FAILED) {
 			// eprintf ("Cannot mmap %d\n", (int)st.st_size);
 			return false;
@@ -97,7 +102,11 @@ bool cdb_read(struct cdb *c, char *buf, ut32 len, ut32 pos) {
 		return false;
 	}
 	while (len > 0) {
-		int r = (int)read (c->fd, buf, len);
+		ssize_t res = read (c->fd, buf, len);
+		if (res < 1) {
+			return false;
+		}
+		ut32 r = (size_t)res;
 		if (r < 1 || (ut32)r != len) {
 			return false;
 		}
@@ -111,7 +120,7 @@ static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
 	char buf[32];
 	const size_t szb = sizeof buf;
 	while (len > 0) {
-		int n = (szb > len)? len: szb;
+		size_t n = (szb > len)? len: szb;
 		if (!cdb_read (c, buf, n, pos)) {
 			return -1;
 		}
@@ -125,6 +134,7 @@ static int match(struct cdb *c, const char *key, ut32 len, ut32 pos) {
 	return 1;
 }
 
+// returns [-1, 0, 1]
 int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 	char buf[8];
 	ut32 pos;
@@ -135,7 +145,7 @@ int cdb_findnext(struct cdb *c, ut32 u, const char *key, ut32 len) {
 	}
 	c->hslots = 0;
 	if (!c->loop) {
-		const int bufsz = ((u + 1) & 0xFF) ? sizeof (buf) : sizeof (buf) / 2;
+		const size_t bufsz = ((u + 1) & 0xFF) ? sizeof (buf) : sizeof (buf) / 2;
 		if (!cdb_read (c, buf, bufsz, (u << 2) & 1023)) {
 			return -1;
 		}

@@ -185,7 +185,7 @@ SDB_API bool sdb_json_set(Sdb *s, const char *k, const char *p, const char *v, u
 	if (*v) {
 		int is_str = isstring (v);
 		// 2 is the maximum amount of quotes that can be inserted
-		int msz = len[0] + len[1] + len[2] + strlen (v) + 2;
+		size_t msz = len[0] + len[1] + len[2] + strlen (v) + 2;
 		if (msz < 1) {
 			return false;
 		}
@@ -259,7 +259,7 @@ SDB_API bool sdb_json_set(Sdb *s, const char *k, const char *p, const char *v, u
 SDB_API const char *sdb_json_format(SdbJsonString *s, const char *fmt, ...) {
 	char *arg_s, *x, tmp[128];
 	ut64 arg_l;
-	int i, arg_i;
+	size_t i, arg_i;
 	double arg_f;
 	va_list ap;
 #define JSONSTR_ALLOCATE(y)\
@@ -293,7 +293,7 @@ SDB_API const char *sdb_json_format(SdbJsonString *s, const char *fmt, ...) {
 			switch (*fmt) {
 			case 'b':
 				JSONSTR_ALLOCATE (32);
-				arg_i = va_arg (ap, int);
+				arg_i = va_arg (ap, size_t);
 				arg_i = arg_i? 4: 5;
 				memcpy (s->buf + s->len, (arg_i == 4)? "true": "false", 5);
 				s->len += arg_i;
@@ -316,7 +316,7 @@ SDB_API const char *sdb_json_format(SdbJsonString *s, const char *fmt, ...) {
 			case 'i':
 				JSONSTR_ALLOCATE (32);
 				arg_i = va_arg (ap, int);
-				snprintf (tmp, sizeof (tmp), "%d", arg_i);
+				snprintf (tmp, sizeof (tmp), "%d", (int)arg_i);
 				memcpy (s->buf + s->len, tmp, strlen (tmp));
 				s->len += strlen (tmp);
 				break;

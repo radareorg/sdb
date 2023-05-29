@@ -71,7 +71,8 @@ static int cmp_ns(const void *a, const void *b) {
 // flush a block of text that doesn't have to be escaped
 
 static bool escape_flush(int fd, const char *p, const char *n) {
-	if (p != n && write (fd, p, n - p) != n - p) {
+	const size_t len = (size_t)(n - p);
+	if (p != n && write (fd, p, len) != (ssize_t)len) {
 		return false;
 	}
 	return true;
@@ -464,7 +465,7 @@ SDB_API bool sdb_text_check(Sdb *s, const char *file) {
 		close (fd);
 		return false;
 	}
-	int count = read (fd, buf, R_MIN (st.st_size, (off_t)sizeof (buf)));
+	ssize_t count = read (fd, buf, R_MIN ((size_t)st.st_size, (off_t)sizeof (buf)));
 	close (fd);
 	if (count < 1) {
 		return false;

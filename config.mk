@@ -42,6 +42,7 @@ endif
 CFLAGS+=-Wall
 CFLAGS+=-fPIC
 CFLAGS+=-Wsign-compare
+CFLAGS+=-Wsign-conversion
 # some old gcc doesnt support this
 # CFLAGS+=-Wmissing-field-initializers
 #CFLAGS+=-O3

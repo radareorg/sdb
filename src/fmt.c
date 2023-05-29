@@ -6,7 +6,7 @@
 // TODO: Add 'a' format for array of pointers null terminated??
 // XXX SLOW CONCAT
 #define concat(x) if (x) { \
-	int size = 2 + strlen (x? x: "")+(out? strlen (out) + 4: 0); \
+	size_t size = (size_t)(2 + strlen (x? x: "")+(out? strlen (out) + 4: 0)); \
 	if (out) { \
 		char *o = (char *)sdb_gh_realloc (out, size); \
 		if (o) { \
@@ -159,7 +159,7 @@ SDB_API ut64* sdb_fmt_array_num(const char *list) {
 	ut32 size;
 	const char *next, *ptr = list;
 	if (list && *list) {
-		ut32 len = (ut32) sdb_alen (list);
+		size_t len = sdb_alen (list);
 		size = sizeof (ut64) * (len + 1);
 		if (size < len) {
 			return NULL;

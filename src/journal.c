@@ -48,7 +48,7 @@ SDB_API bool sdb_journal_open(Sdb *s) {
 
 // TODO boolify and save changes somewhere else? or just dont count that?
 SDB_API int sdb_journal_load(Sdb *s) {
-	int rr, sz, fd, changes = 0;
+	int fd, changes = 0;
 	char *eq, *str, *cur, *ptr = NULL;
 	if (!s) {
 		return 0;
@@ -57,7 +57,7 @@ SDB_API int sdb_journal_load(Sdb *s) {
 	if (fd == -1) {
 		return 0;
 	}
-	sz = lseek (fd, 0, SEEK_END);
+	off_t sz = lseek (fd, 0, SEEK_END);
 	if (sz < 1) {
 		return 0;
 	}
@@ -66,7 +66,7 @@ SDB_API int sdb_journal_load(Sdb *s) {
 	if (!str) {
 		return 0;
 	}
-	rr = read (fd, str, sz);
+	ssize_t rr = read (fd, str, sz);
 	if (rr < 0) {
 		sdb_gh_free (str);
 		return 0;
@@ -95,11 +95,11 @@ SDB_API bool sdb_journal_log(Sdb *s, const char *key, const char *val) {
 	if (s->journal == -1) {
 		return false;
 	}
-	if (snprintf (str, sizeof (str), "%s=%s\n", key, val) < 0) {
+	if (snprintf (str, sizeof (str), "%s=%s\n", key, val) < 1) {
 		return false;
 	}
-	int len = strlen (str);
-	if (write (s->journal, str, len) != len) {
+	size_t len = strlen (str);
+	if (write (s->journal, str, len) != (ssize_t)len) {
 		return false;
 	}
 #if USE_MMAN

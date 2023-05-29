@@ -50,6 +50,7 @@ heap:
 asan:
 	$(MAKE) include/sdb/version.h
 	CC=gcc LDFLAGS="$(CFLAGS_ASAN)" CFLAGS="$(CFLAGS_ASAN)" ${MAKE} -C src all
+
 asantest:
 	export ASAN_OPTIONS=detect_leaks=0 ; \
 	CC=gcc CFLAGS="$(CFLAGS_ASAN)" ${MAKE} -C test
