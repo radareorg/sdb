@@ -11,10 +11,14 @@ typedef struct _test_struct {
 
 bool test_ht_insert_lookup(void) {
 	HtPP *ht = sdb_ht_new ();
+	sdb_ht_insert (ht, "NULL", NULL);
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
 	sdb_ht_insert (ht, "BBBB", "vBBBB");
 	sdb_ht_insert (ht, "CCCC", "vCCCC");
 
+	mu_assert_eq (sdb_ht_exists (ht, "NULL"), 1, "NULL value wrong");
+	mu_assert_eq (sdb_ht_find (ht, "NULL", NULL), NULL, "NULL value wrong");
+	mu_assert_eq (sdb_ht_find (ht, "NONE", NULL), NULL, "NULL value wrong");
 	mu_assert_streq (sdb_ht_find (ht, "BBBB", NULL), "vBBBB", "BBBB value wrong");
 	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA value wrong");
 	mu_assert_streq (sdb_ht_find (ht, "CCCC", NULL), "vCCCC", "CCCC value wrong");

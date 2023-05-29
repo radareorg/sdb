@@ -39,7 +39,7 @@ extern "C" {
 #define KEY_TYPE ut64
 #define VALUE_TYPE ut64
 #define KEY_TO_HASH(x) ((ut32)(x))
-#define HT_NULL_VALUE 0
+#define HT_NULL_VALUE UT64_MAX
 #else
 #define HtName_(name) name##PU
 #define Ht_(name) ht_pu_##name
@@ -47,7 +47,7 @@ extern "C" {
 #define KEY_TYPE void *
 #define VALUE_TYPE ut64
 #define KEY_TO_HASH(x) ((ut32)(uintptr_t)(x))
-#define HT_NULL_VALUE 0
+#define HT_NULL_VALUE UT64_MAX
 #endif
 
 #include "ls.h"

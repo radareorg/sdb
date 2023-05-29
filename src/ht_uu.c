@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2018-2022 - ret2libc, pancake */
+/* sdb - MIT - Copyright 2018-2023 - ret2libc, pancake */
 
 #include "sdb/sdb.h"
 #include "sdb/ht_uu.h"
