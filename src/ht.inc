@@ -182,7 +182,7 @@ static void check_growing(HtName_(Ht) *ht) {
 	}
 }
 
-static HT_(Kv) *reserve_kv(HtName_(Ht) *ht, const KEY_TYPE key, const int key_len, bool update) {
+static HT_(Kv) *reserve_kv(HtName_(Ht) *ht, const KEY_TYPE key, const ut32 key_len, bool update) {
 	HT_(Bucket) *bt = &ht->table[bucketfn (ht, key)];
 	HT_(Kv) *kvtmp;
 	ut32 j;
@@ -264,7 +264,7 @@ SDB_API bool Ht_(update_key)(HtName_(Ht)* ht, const KEY_TYPE old_key, const KEY_
 
 	// Remove the old_key kv, paying attention to not double free the value
 	HT_(Bucket) *bt = &ht->table[bucketfn (ht, old_key)];
-	const int old_key_len = calcsize_key (ht, old_key);
+	const ut32 old_key_len = calcsize_key (ht, old_key);
 	HT_(Kv) *kv;
 	ut32 j;
 

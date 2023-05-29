@@ -18,7 +18,7 @@ static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
 		     (j) < (bt)->count;					\
 		     (j) = (count) == (ht)->count? j + 1: j, (kv) = (count) == (ht)->count? next_kv (ht, kv): kv, (count) = (ht)->count)
 
-static inline int nextcas(SdbKv const *kv) {
+static inline ut32 nextcas(SdbKv const *kv) {
 	if (!kv->cas) {
 		return 1;
 	}
@@ -214,7 +214,7 @@ SDB_API bool sdb_free(Sdb* s) {
 	return false;
 }
 
-SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas) {
+SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, size_t *vlen, ut32 *cas) {
 	ut32 pos, len;
 	ut64 now = 0LL;
 	bool found;
@@ -286,7 +286,7 @@ SDB_API const char *sdb_const_get(Sdb* s, const char *key, ut32 *cas) {
 
 // TODO: add sdb_getf?
 
-SDB_API char *sdb_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas) {
+SDB_API char *sdb_get_len(Sdb* s, const char *key, size_t *vlen, ut32 *cas) {
 	const char *value = sdb_const_get_len (s, key, vlen, cas);
 	return value ? sdb_strdup (value) : NULL;
 }
@@ -301,11 +301,11 @@ SDB_API char *sdb_nget(Sdb* s, ut64 nkey, ut32 *cas) {
 	return sdb_get_len (s, key, NULL, cas);
 }
 
-SDB_API int sdb_unset(Sdb* s, const char *key, ut32 cas) {
+SDB_API ut32 sdb_unset(Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
-SDB_API int sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
+SDB_API ut32 sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
 	return sdb_nset (s, nkey, "", cas);
 }
 
@@ -318,7 +318,8 @@ SDB_API bool sdb_remove(Sdb *s, const char *key, ut32 cas) {
 SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	// remove 'value' from current key value.
 	// TODO: cas is ignored here
-	int vlen = 0, valen;
+	size_t vlen = 0;
+	int valen;
 	char *p, *v = sdb_get_len (s, key, &vlen, NULL);
 	int mod = 0;
 	if (!v || !key || !value) {
@@ -362,14 +363,14 @@ SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 }
 
 // set if not defined
-SDB_API int sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
+SDB_API ut32 sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
 	if (sdb_exists (s, key)) {
 		return 0;
 	}
 	return sdb_set (s, key, val, cas);
 }
 
-SDB_API int sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
+SDB_API ut32 sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_add (s, key, val, cas);
@@ -442,7 +443,7 @@ SDB_API int sdb_open(Sdb *s, const char *file) {
 			s->fd = -1;
 			return -1;
 		}
-		s->last = st.st_mtime;
+		s->last = (ut64)st.st_mtime;
 	}
 	if (s->fd != -1) {
 		cdb_init (&s->db, s->fd);
@@ -495,9 +496,9 @@ static bool match(const char *str, const char *expr) {
 	if (startsWith) {
 		return !strncmp (str, expr + 1, strlen (expr) - 1);
 	}
-	if (endsWith) {
-		int alen = strlen (str);
-		int blen = strlen (expr) - 1;
+	if (endsWith && *expr) {
+		size_t alen = strlen (str);
+		size_t blen = strlen (expr) - 1;
 		if (alen <= blen) {
 			return false;
 		}
@@ -524,11 +525,7 @@ SDB_API bool sdbkv_match(SdbKv *kv, const char *expr) {
 	return match (sdbkv_key (kv), expr);
 }
 
-SDB_API SdbKv* sdbkv_new(const char *k, const char *v) {
-	return sdbkv_new2 (k, strlen (k), v, strlen (v));
-}
-
-SDB_API SdbKv* sdbkv_new2(const char *k, int kl, const char *v, int vl) {
+SDB_API SdbKv* sdbkv_new2(const char *k, size_t kl, const char *v, size_t vl) {
 	SdbKv *kv;
 	if (v) {
 		if (vl >= SDB_VSZ) {
@@ -569,6 +566,10 @@ SDB_API SdbKv* sdbkv_new2(const char *k, int kl, const char *v, int vl) {
 	return kv;
 }
 
+SDB_API SdbKv* sdbkv_new(const char *k, const char *v) {
+	return sdbkv_new2 (k, strlen (k), v, strlen (v));
+}
+
 SDB_API void sdbkv_free(SdbKv *kv) {
 	if (kv) {
 		sdb_gh_free (sdbkv_key (kv));
@@ -578,7 +579,6 @@ SDB_API void sdbkv_free(SdbKv *kv) {
 }
 
 static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut32 cas) {
-	ut32 vlen, klen;
 	bool found;
 	if (!s || !key) {
 		return 0;
@@ -591,8 +591,8 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 		}
 	}
 	// XXX strlen computed twice.. because of check_*()
-	klen = strlen (key);
-	vlen = strlen (val);
+	ut32 klen = strlen (key);
+	ut32 vlen = strlen (val);
 	if (klen >= SDB_KSZ || vlen >= SDB_VSZ) {
 		if (owned) {
 			sdb_gh_free (val);
@@ -657,15 +657,15 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 	return 0;
 }
 
-SDB_API int sdb_set_owned(Sdb* s, const char *key, char *val, ut32 cas) {
+SDB_API ut32 sdb_set_owned(Sdb* s, const char *key, char *val, ut32 cas) {
 	return sdb_set_internal (s, key, val, true, cas);
 }
 
-SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
+SDB_API ut32 sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
 	return sdb_set_internal (s, key, (char *)val, false, cas);
 }
 
-SDB_API int sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
+SDB_API ut32 sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_set_internal (s, key, (char *)val, false, cas);
@@ -788,7 +788,7 @@ SDB_API SdbList *sdb_foreach_match(Sdb* s, const char *expr, bool single) {
 	return list;
 }
 
-static int getbytes(Sdb *s, char *b, int len) {
+static int getbytes(Sdb *s, char *b, size_t len) {
 	if (!cdb_read (&s->db, b, len, s->pos)) {
 		return -1;
 	}
@@ -925,7 +925,7 @@ SDB_API void sdb_dump_begin(Sdb* s) {
 SDB_API SdbKv *sdb_dump_next(Sdb* s) {
 	char *v = NULL;
 	char k[SDB_MAX_KEY] = {0};
-	int vl = 0;
+	ut32 vl = 0;
 	// we dont need to malloc, because all values are null terminated in memory.
 	if (!sdb_dump_dupnext (s, k, &v, &vl)) {
 		return NULL;
@@ -971,7 +971,7 @@ SDB_API bool sdb_stats(Sdb *s, ut32 *disk, ut32 *mem) {
 }
 
 // TODO: make it static? internal api?
-SDB_API bool sdb_dump_dupnext(Sdb* s, char *key, char **value, int *_vlen) {
+SDB_API bool sdb_dump_dupnext(Sdb* s, char *key, char **value, ut32 *_vlen) {
 	ut32 vlen = 0, klen = 0;
 	if (value) {
 		*value = NULL;
@@ -1135,7 +1135,7 @@ SDB_API void sdb_hook_free(Sdb *s) {
 	s->hooks = NULL;
 }
 
-SDB_API void sdb_config(Sdb *s, int options) {
+SDB_API void sdb_config(Sdb *s, ut32 options) {
 	s->options = options;
 	if (options & SDB_OPTION_SYNC) {
 		// sync on every query
@@ -1200,7 +1200,7 @@ static bool unset_cb(void *user, const char *k, const char *v) {
 	return true;
 }
 
-SDB_API int sdb_unset_like(Sdb *s, const char *k) {
+SDB_API bool sdb_unset_like(Sdb *s, const char *k) {
 	UnsetCallbackData ucd = { s, k };
 	return sdb_foreach (s, unset_cb, &ucd);
 }
@@ -1211,8 +1211,8 @@ typedef struct {
 	const char *val;
 	SdbForeachCallback cb;
 	const char **array;
-	int array_index;
-	int array_size;
+	size_t array_index;
+	size_t array_size;
 } LikeCallbackData;
 
 static bool like_cb(void *user, const char *k, const char *v) {
@@ -1240,7 +1240,7 @@ static bool like_cb(void *user, const char *k, const char *v) {
 		lcd->array[idx + 1] = v;
 		lcd->array[idx + 2] = NULL;
 		lcd->array[idx + 3] = NULL;
-		lcd->array_index = idx+2;
+		lcd->array_index = (idx + 2);
 	} else {
 		if (lcd->cb) {
 			lcd->cb (lcd->sdb, k, v);

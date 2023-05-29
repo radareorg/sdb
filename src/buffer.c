@@ -2,7 +2,7 @@
 
 #include "sdb/buffer.h"
 
-void buffer_init(buffer *s, BufferOp op, int fd, char *buf, ut32 len) {
+void buffer_init(buffer *s, BufferOp op, int fd, char *buf, size_t len) {
 	s->x = buf;
 	s->fd = fd;
 	s->op = op;
@@ -10,10 +10,9 @@ void buffer_init(buffer *s, BufferOp op, int fd, char *buf, ut32 len) {
 	s->n = len;
 }
 
-static int allwrite(BufferOp op, int fd, const char *buf, ut32 len) {
-	ut32 w;
+static int allwrite(BufferOp op, int fd, const char *buf, size_t len) {
 	while (len > 0) {
-		w = op (fd, buf, len);
+		size_t w = op (fd, buf, len);
 		if (w != len) {
 			return 0;
 		}
@@ -24,7 +23,7 @@ static int allwrite(BufferOp op, int fd, const char *buf, ut32 len) {
 }
 
 int buffer_flush(buffer *s) {
-	int p = s->p;
+	size_t p = s->p;
 	if (!p) {
 		return 1;
 	}
@@ -32,7 +31,7 @@ int buffer_flush(buffer *s) {
 	return allwrite (s->op, s->fd, s->x, p);
 }
 
-int buffer_putalign(buffer *s, const char *buf, ut32 len) {
+int buffer_putalign(buffer *s, const char *buf, size_t len) {
 	ut32 n;
 	if (!s || !s->x || !buf) {
 		return 0;
@@ -50,7 +49,7 @@ int buffer_putalign(buffer *s, const char *buf, ut32 len) {
 	return 1;
 }
 
-int buffer_putflush(buffer *s, const char *buf, ut32 len) {
+int buffer_putflush(buffer *s, const char *buf, size_t len) {
 	if (!buffer_flush (s)) {
 		return 0;
 	}

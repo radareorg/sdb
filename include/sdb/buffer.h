@@ -21,12 +21,12 @@ typedef struct buffer {
 #define BUFFER_INSIZE 8192
 #define BUFFER_OUTSIZE 8192
 
-void buffer_init(buffer *,BufferOp,int,char *,unsigned int);
+void buffer_init(buffer *,BufferOp,int,char *,size_t);
 
 int buffer_flush(buffer *);
-int buffer_put(buffer *,const char *,unsigned int);
-int buffer_putalign(buffer *,const char *,unsigned int);
-int buffer_putflush(buffer *,const char *,unsigned int);
+int buffer_put(buffer *,const char *,size_t);
+int buffer_putalign(buffer *,const char *,size_t);
+int buffer_putflush(buffer *,const char *,size_t);
 
 #define buffer_PUTC(s,c) \
   ( ((s)->n != (s)->p) \

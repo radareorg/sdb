@@ -19,7 +19,7 @@ SDB_IPI void json_path_first(Rangstr *s) {
 
 SDB_IPI int json_path_next(Rangstr *s) {
 	int stop = '.';
-	if (!s||!s->p||!s->p[s->t]) {
+	if (!s || !s->p || !s->p[s->t]) {
 		return 0;
 	}
 	if (!s->next) {
