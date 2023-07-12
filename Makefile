@@ -140,6 +140,25 @@ ifeq ($(BUILD_MEMCACHE),1)
 endif
 endif
 
+
+PGOFLAG=-fprofile-instr-generate
+# PGOFLAG=-fcs-profile-generate
+# PGOFLAG=-fprofile-generate
+# PROFDATA=/opt/homebrew/Cellar//llvm/16.0.4/bin/llvm-profdata
+PROFDATA=xcrun llvm-profdata
+pgo:
+	$(MAKE) clean
+	$(MAKE) CFLAGS="-O3 $(PGOFLAG)" LDFLAGS="$(PGOFLAG)"
+	rm -f test/test-*.prof
+	export LLVM_PROFILE_FILE="code-%p.prof" ; $(MAKE) -C test \
+		CFLAGS="-O3 $(PGOFLAG)" LDFLAGS="$(PGOFLAG)"
+	$(PROFDATA) merge -sparse -output=code.prof test/co*.prof
+	rm -f test/test-*.prof
+	$(MAKE) clean
+	$(MAKE) CFLAGS="-O3 -fprofile-use=$(shell pwd)/code.prof"
+	touch code.prof
+# xcrun llvm-cov show src/sdb -instr-profile=$(shell pwd)/code.prof
+
 deinstall uninstall:
 	rm -rf ${DESTDIR}${INCDIR}/sdb
 	rm -f ${DESTDIR}${BINDIR}/sdb
