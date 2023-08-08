@@ -36,9 +36,9 @@ extern "C" {
 #elif SDB_CHECKS_LEVEL == 1 || SDB_CHECKS_LEVEL == 2 // SDB_CHECKS_LEVEL
 
 #if SDB_CHECKS_LEVEL == 1
-#define H_LOG_(loglevel, fmt, ...)
+#define SDB_LOG_(fmt, ...)
 #else
-#define H_LOG_(loglevel, fmt, ...) eprintf (fmt, __VA_ARGS__)
+#define SDB_LOG_(fmt, ...) eprintf (fmt, __VA_ARGS__)
 #endif
 
 /**
@@ -61,7 +61,7 @@ extern "C" {
 #define sdb_return_if_fail(expr) \
 	do { \
 		if (!(expr)) { \
-			H_LOG_ ("%s: assertion '%s' failed (line %d)", SDB_FUNCTION, #expr, __LINE__); \
+			SDB_LOG_ ("%s: assertion '%s' failed (line %d)", SDB_FUNCTION, #expr, __LINE__); \
 			return; \
 		} \
 	} while (0)
@@ -69,7 +69,7 @@ extern "C" {
 #define sdb_return_val_if_fail(expr, val) \
 	do { \
 		if (!(expr)) { \
-			H_LOG_ ("%s: assertion '%s' failed (line %d)", SDB_FUNCTION, #expr, __LINE__); \
+			SDB_LOG_ ("%s: assertion '%s' failed (line %d)", SDB_FUNCTION, #expr, __LINE__); \
 			return (val); \
 		} \
 	} while (0)
