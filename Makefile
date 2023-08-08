@@ -33,7 +33,7 @@ x xxx cxx:
 	$(MAKE) CC=g++ CFLAGS="-fPIC -x c++ -Wall -fpermissive -I../include -Werror"
 
 o xo xoxo ox:
-	g++ -o sdb src/*.c  -I include/
+	g++ -o sdb $(filter-out src/ht.inc.c, src/*.c)  -I include/
 
 wasi wasm: $(WASI_SDK)
 	${MAKE} include/sdb/version.h
@@ -102,7 +102,7 @@ w32dist:
 	rm -rf sdb-${SDBVER}
 
 install-dirs:
-	$(INSTALL_DIR) ${DESTDIR}${MANDIR} ${DESTDIR}${LIBDIR}/pkgconfig ${DESTDIR}${BINDIR} 
+	$(INSTALL_DIR) ${DESTDIR}${MANDIR} ${DESTDIR}${LIBDIR}/pkgconfig ${DESTDIR}${BINDIR}
 	$(INSTALL_DIR) ${DESTDIR}${DATADIR}/vala/vapi ${DESTDIR}${INCDIR}/sdb
 
 INCFLS=sdb.h version.h cdb.h ht_uu.h ht_up.h ht_pp.h types.h heap.h
