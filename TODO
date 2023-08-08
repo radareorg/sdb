@@ -11,7 +11,7 @@ TODO
 * implement mmap for w32
 * implement sdb_ainc/sdb_adec
 * implement io filters for load/save databases (io wrap)
-* create string pool for a list of sizes 
+* create string pool for a list of sizes
 	newpool (sizeof (char), 10, 100, 1000);
 * Add api to store serialized in memory
 * Add api for raw bytes
@@ -19,7 +19,7 @@ TODO
 * Add support for socket file for memcached api
 * add api to create db without caching it before
 
-Syncronization
+Synchronization
 --------------
  - each key/value have a timestamp of creation/modification
  - sdb_diff() must check both databases and look for removed entries
