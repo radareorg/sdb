@@ -142,8 +142,7 @@
 	CWISS_GCC_ALLOW("-Wunused-function")  \
 	CWISS_GCC_ALLOW("-Wunused-parameter") \
 	CWISS_GCC_ALLOW("-Wcast-qual")        \
-	CWISS_GCC_ALLOW("-Wmissing-field-initializers") \
-	CWISS_GCC_ALLOW("-Wtypedef-redefinition")
+	CWISS_GCC_ALLOW("-Wmissing-field-initializers")
 #define CWISS_END CWISS_GCC_POP
 
 /// `CWISS_HAVE_SSE2` is nonzero if we have SSE2 support.
@@ -201,11 +200,20 @@
 /// quite believe in it.
 #if CWISS_IS_MSVC
 #define CWISS_alignas(align_) __declspec(align(align_))
-#define alignof __alignof
 
 #else
 #include <stdalign.h>
+
+#ifdef alignas
 #define CWISS_alignas(align_) alignas(align_)
+#else
+#define CWISS_alignas(align_) __attribute__((aligned(align_)))
+#endif
+
+#endif
+
+#ifndef alignof
+#define alignof __alignof
 #endif
 
 /// `CWISS_HAVE_BUILTIN` will, in Clang, detect whether a Clang language
@@ -1639,7 +1647,7 @@ typedef struct {
 ///
 /// See the header documentation for more information.
 #define CWISS_DECLARE_NODE_MAP_POLICY(kPolicy_, K_, V_, obj_copy, obj_dtor, key_hash, key_eq)                 \
-	typedef struct kPolicy_##_entry_t {                                                           \
+	typedef struct kPolicy_##_entry_t {                                           \
 		K_ k;                                                                    \
 		V_ v;                                                                    \
 	} kPolicy_##_Entry;                                                        \
@@ -2674,7 +2682,7 @@ CWISS_BEGIN_EXTERN
 /// See header documentation for examples of generated API.
 #define CWISS_DECLARE_NODE_HASHMAP(HashMap_, K_, V_, a,b,c,d)                 \
 	CWISS_DECLARE_NODE_MAP_POLICY(HashMap_##_kPolicy, K_, V_, a,b,c,d); \
-CWISS_DECLARE_HASHMAP_WITH(HashMap_, K_, V_, HashMap_##_kPolicy)
+	CWISS_DECLARE_HASHMAP_WITH(HashMap_, K_, V_, HashMap_##_kPolicy)
 
 #define CWISS_DECLARE_NODE_HASHMAP_DEFAULT(HashMap_, K_, V_)         \
 	typedef struct {                                           \

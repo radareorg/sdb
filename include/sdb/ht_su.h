@@ -17,7 +17,6 @@ extern "C" {
 typedef uint64_t ut64;
 
 typedef struct HtSU_t HtSU;
-typedef struct HtSU_entry_t HtSU_Entry;
 
 typedef bool (*HtSUForEachCallback)(void *user, const char *key, const ut64 value);
 
