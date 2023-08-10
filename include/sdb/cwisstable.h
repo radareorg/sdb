@@ -216,6 +216,12 @@
 #define alignof __alignof
 #endif
 
+#ifdef _MSC_VER
+#define SDB_MAYBE_UNUSED
+#else
+#define SDB_MAYBE_UNUSED __attribute__((unused))
+#endif
+
 /// `CWISS_HAVE_BUILTIN` will, in Clang, detect whether a Clang language
 /// extension is enabled.
 ///
@@ -2744,80 +2750,80 @@ CWISS_BEGIN_EXTERN
 static inline size_t HashSet_##_##LookupName_##_SyntheticHash(               \
 		const void* val) {                                                       \
 	return HashSet_##_##LookupName_##_hash((const Key_*)val);                  \
-}                                                                            \
-static inline bool HashSet_##_##LookupName_##_SyntheticEq(const void* a,     \
-		const void* b) {   \
-	return HashSet_##_##LookupName_##_eq((const Key_*)a,                       \
-			(const HashSet_##_Entry*)b);          \
-}                                                                            \
-static const CWISS_KeyPolicy HashSet_##_##LookupName_##_kPolicy = {          \
-	HashSet_##_##LookupName_##_SyntheticHash,                                \
-	HashSet_##_##LookupName_##_SyntheticEq,                                  \
-};                                                                           \
-\
-static inline const CWISS_KeyPolicy* HashSet_##_##LookupName_##_policy(      \
-		void) {                                                                  \
-	return &HashSet_##_##LookupName_##_kPolicy;                                \
-}                                                                            \
-\
-static inline HashSet_##_Insert HashSet_##_deferred_insert_by_##LookupName_( \
-		HashSet_* self, const Key_* key) {                                       \
-	CWISS_Insert ret = CWISS_RawTable_deferred_insert(                         \
-			HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
-			key);                                                                  \
-	return (HashSet_##_Insert){{ret.iter}, ret.inserted};                      \
-}                                                                            \
-static inline HashSet_##_CIter HashSet_##_cfind_hinted_by_##LookupName_(     \
-		const HashSet_* self, const Key_* key, size_t hash) {                    \
-	return (HashSet_##_CIter){CWISS_RawTable_find_hinted(                      \
-			HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
-			key, hash)};                                                           \
-}                                                                            \
-static inline HashSet_##_Iter HashSet_##_find_hinted_by_##LookupName_(       \
-		HashSet_* self, const Key_* key, size_t hash) {                          \
-	return (HashSet_##_Iter){CWISS_RawTable_find_hinted(                       \
-			HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
-			key, hash)};                                                           \
-}                                                                            \
-\
-static inline HashSet_##_CIter HashSet_##_cfind_by_##LookupName_(            \
-		const HashSet_* self, const Key_* key) {                                 \
-	return (HashSet_##_CIter){CWISS_RawTable_find(                             \
-			HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
-			key)};                                                                 \
-}                                                                            \
-static inline HashSet_##_Iter HashSet_##_find_by_##LookupName_(              \
-		HashSet_* self, const Key_* key) {                                       \
-	return (HashSet_##_Iter){CWISS_RawTable_find(                              \
-			HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
-			key)};                                                                 \
-}                                                                            \
-\
-static inline bool HashSet_##_contains_by_##LookupName_(                     \
-		const HashSet_* self, const Key_* key) {                                 \
-	return CWISS_RawTable_contains(HashSet_##_policy(),                        \
-			&HashSet_##_##LookupName_##_kPolicy,        \
-			&self->set_, key);                          \
-}                                                                            \
-\
-static inline bool HashSet_##_erase_by_##LookupName_(HashSet_* self,         \
-		const Key_* key) {      \
-	return CWISS_RawTable_erase(HashSet_##_policy(),                           \
-			&HashSet_##_##LookupName_##_kPolicy,           \
-			&self->set_, key);                             \
-}                                                                            \
-\
-CWISS_END                                                                    \
-/* Force a semicolon. */                                                     \
-struct HashSet_##_##LookupName_##_NeedsTrailingSemicolon_ {                  \
-	int x;                                                                     \
-}
+	}                                                                            \
+	static inline bool HashSet_##_##LookupName_##_SyntheticEq(const void* a,     \
+			const void* b) {   \
+		return HashSet_##_##LookupName_##_eq((const Key_*)a,                       \
+				(const HashSet_##_Entry*)b);          \
+	}                                                                            \
+	static const CWISS_KeyPolicy HashSet_##_##LookupName_##_kPolicy = {          \
+		HashSet_##_##LookupName_##_SyntheticHash,                                \
+		HashSet_##_##LookupName_##_SyntheticEq,                                  \
+	};                                                                           \
+	\
+	static inline const CWISS_KeyPolicy* HashSet_##_##LookupName_##_policy(      \
+			void) {                                                                  \
+		return &HashSet_##_##LookupName_##_kPolicy;                                \
+	}                                                                            \
+	\
+	static inline HashSet_##_Insert HashSet_##_deferred_insert_by_##LookupName_( \
+			HashSet_* self, const Key_* key) {                                       \
+		CWISS_Insert ret = CWISS_RawTable_deferred_insert(                         \
+				HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
+				key);                                                                  \
+		return (HashSet_##_Insert){{ret.iter}, ret.inserted};                      \
+	}                                                                            \
+	static inline HashSet_##_CIter HashSet_##_cfind_hinted_by_##LookupName_(     \
+			const HashSet_* self, const Key_* key, size_t hash) {                    \
+		return (HashSet_##_CIter){CWISS_RawTable_find_hinted(                      \
+				HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
+				key, hash)};                                                           \
+	}                                                                            \
+	static inline HashSet_##_Iter HashSet_##_find_hinted_by_##LookupName_(       \
+			HashSet_* self, const Key_* key, size_t hash) {                          \
+		return (HashSet_##_Iter){CWISS_RawTable_find_hinted(                       \
+				HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
+				key, hash)};                                                           \
+	}                                                                            \
+	\
+	static inline HashSet_##_CIter HashSet_##_cfind_by_##LookupName_(            \
+			const HashSet_* self, const Key_* key) {                                 \
+		return (HashSet_##_CIter){CWISS_RawTable_find(                             \
+				HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
+				key)};                                                                 \
+	}                                                                            \
+	static inline HashSet_##_Iter HashSet_##_find_by_##LookupName_(              \
+			HashSet_* self, const Key_* key) {                                       \
+		return (HashSet_##_Iter){CWISS_RawTable_find(                              \
+				HashSet_##_policy(), &HashSet_##_##LookupName_##_kPolicy, &self->set_, \
+				key)};                                                                 \
+	}                                                                            \
+	\
+	static inline bool HashSet_##_contains_by_##LookupName_(                     \
+			const HashSet_* self, const Key_* key) {                                 \
+		return CWISS_RawTable_contains(HashSet_##_policy(),                        \
+				&HashSet_##_##LookupName_##_kPolicy,        \
+				&self->set_, key);                          \
+	}                                                                            \
+	\
+	static inline bool HashSet_##_erase_by_##LookupName_(HashSet_* self,         \
+			const Key_* key) {      \
+		return CWISS_RawTable_erase(HashSet_##_policy(),                           \
+				&HashSet_##_##LookupName_##_kPolicy,           \
+				&self->set_, key);                             \
+	}                                                                            \
+	\
+	CWISS_END                                                                    \
+	/* Force a semicolon. */                                                     \
+	struct HashSet_##_##LookupName_##_NeedsTrailingSemicolon_ {                  \
+		int x;                                                                     \
+	}
 
 // ---- PUBLIC API ENDS HERE! ----
 
 #define CWISS_DECLARE_COMMON_(HashSet_, Type_, Key_, kPolicy_)                 \
 	CWISS_BEGIN                                                                  \
-	static inline const CWISS_Policy* HashSet_##_policy(void) {                  \
+	static inline SDB_MAYBE_UNUSED const CWISS_Policy* HashSet_##_policy(void) {                  \
 		return &kPolicy_;                                                          \
 	}                                                                            \
 	\
@@ -2825,64 +2831,64 @@ struct HashSet_##_##LookupName_##_NeedsTrailingSemicolon_ {                  \
 		CWISS_RawTable set_;                                                       \
 	} HashSet_;                                                                  \
 	\
-	static inline HashSet_ HashSet_##_new(size_t bucket_count) {                 \
+	static inline SDB_MAYBE_UNUSED HashSet_ HashSet_##_new(size_t bucket_count) {                 \
 		return (HashSet_){CWISS_RawTable_new(&kPolicy_, bucket_count)};            \
 	}                                                                            \
-	static inline HashSet_ HashSet_##_dup(const HashSet_* that) {                \
+	static inline SDB_MAYBE_UNUSED HashSet_ HashSet_##_dup(const HashSet_* that) {                \
 		return (HashSet_){CWISS_RawTable_dup(&kPolicy_, &that->set_)};             \
 	}                                                                            \
-	static inline void HashSet_##_destroy(HashSet_* self) {                      \
+	static inline SDB_MAYBE_UNUSED void HashSet_##_destroy(HashSet_* self) {                      \
 		CWISS_RawTable_destroy(&kPolicy_, &self->set_);                            \
 	}                                                                            \
 	\
 	typedef struct {                                                             \
 		CWISS_RawIter it_;                                                         \
 	} HashSet_##_Iter;                                                           \
-	static inline HashSet_##_Iter HashSet_##_iter(HashSet_* self) {              \
+	static inline SDB_MAYBE_UNUSED HashSet_##_Iter HashSet_##_iter(HashSet_* self) {              \
 		return (HashSet_##_Iter){CWISS_RawTable_iter(&kPolicy_, &self->set_)};     \
 	}                                                                            \
-	static inline Type_* HashSet_##_Iter_get(const HashSet_##_Iter* it) {        \
+	static inline SDB_MAYBE_UNUSED Type_* HashSet_##_Iter_get(const HashSet_##_Iter* it) {        \
 		return (Type_*)CWISS_RawIter_get(&kPolicy_, &it->it_);                     \
 	}                                                                            \
-	static inline Type_* HashSet_##_Iter_next(HashSet_##_Iter* it) {             \
+	static inline SDB_MAYBE_UNUSED Type_* HashSet_##_Iter_next(HashSet_##_Iter* it) {             \
 		return (Type_*)CWISS_RawIter_next(&kPolicy_, &it->it_);                    \
 	}                                                                            \
 	\
 	typedef struct {                                                             \
 		CWISS_RawIter it_;                                                         \
 	} HashSet_##_CIter;                                                          \
-	static inline HashSet_##_CIter HashSet_##_citer(const HashSet_* self) {      \
+	static inline SDB_MAYBE_UNUSED HashSet_##_CIter HashSet_##_citer(const HashSet_* self) {      \
 		return (HashSet_##_CIter){CWISS_RawTable_citer(&kPolicy_, &self->set_)};   \
 	}                                                                            \
-	static inline const Type_* HashSet_##_CIter_get(                             \
+	static inline SDB_MAYBE_UNUSED const Type_* HashSet_##_CIter_get(                             \
 			const HashSet_##_CIter* it) {                                            \
 		return (const Type_*)CWISS_RawIter_get(&kPolicy_, &it->it_);               \
 	}                                                                            \
-	static inline const Type_* HashSet_##_CIter_next(HashSet_##_CIter* it) {     \
+	static inline SDB_MAYBE_UNUSED const Type_* HashSet_##_CIter_next(HashSet_##_CIter* it) {     \
 		return (const Type_*)CWISS_RawIter_next(&kPolicy_, &it->it_);              \
 	}                                                                            \
-	static inline HashSet_##_CIter HashSet_##_Iter_const(HashSet_##_Iter it) {   \
+	static inline SDB_MAYBE_UNUSED HashSet_##_CIter HashSet_##_Iter_const(HashSet_##_Iter it) {   \
 		return (HashSet_##_CIter){it.it_};                                         \
 	}                                                                            \
 	\
-	static inline void HashSet_##_reserve(HashSet_* self, size_t n) {            \
+	static inline SDB_MAYBE_UNUSED void HashSet_##_reserve(HashSet_* self, size_t n) {            \
 		CWISS_RawTable_reserve(&kPolicy_, &self->set_, n);                         \
 	}                                                                            \
-	static inline void HashSet_##_rehash(HashSet_* self, size_t n) {             \
+	static inline SDB_MAYBE_UNUSED void HashSet_##_rehash(HashSet_* self, size_t n) {             \
 		CWISS_RawTable_rehash(&kPolicy_, &self->set_, n);                          \
 	}                                                                            \
 	\
-	static inline bool HashSet_##_empty(const HashSet_* self) {                  \
+	static inline SDB_MAYBE_UNUSED bool HashSet_##_empty(const HashSet_* self) {                  \
 		return CWISS_RawTable_empty(&kPolicy_, &self->set_);                       \
 	}                                                                            \
-	static inline size_t HashSet_##_size(const HashSet_* self) {                 \
+	static inline SDB_MAYBE_UNUSED size_t HashSet_##_size(const HashSet_* self) {                 \
 		return CWISS_RawTable_size(&kPolicy_, &self->set_);                        \
 	}                                                                            \
-	static inline size_t HashSet_##_capacity(const HashSet_* self) {             \
+	static inline SDB_MAYBE_UNUSED size_t HashSet_##_capacity(const HashSet_* self) {             \
 		return CWISS_RawTable_capacity(&kPolicy_, &self->set_);                    \
 	}                                                                            \
 	\
-	static inline void HashSet_##_clear(HashSet_* self) {                        \
+	static inline SDB_MAYBE_UNUSED void HashSet_##_clear(HashSet_* self) {                        \
 		CWISS_RawTable_clear(&kPolicy_, &self->set_);                       \
 	}                                                                            \
 	\
@@ -2890,48 +2896,48 @@ struct HashSet_##_##LookupName_##_NeedsTrailingSemicolon_ {                  \
 		HashSet_##_Iter iter;                                                      \
 		bool inserted;                                                             \
 	} HashSet_##_Insert;                                                         \
-	static inline HashSet_##_Insert HashSet_##_deferred_insert(                  \
+	static inline SDB_MAYBE_UNUSED HashSet_##_Insert HashSet_##_deferred_insert(                  \
 			HashSet_* self, const Key_* key) {                                       \
 		CWISS_Insert ret = CWISS_RawTable_deferred_insert(&kPolicy_, kPolicy_.key, \
 				&self->set_, key);       \
 		return (HashSet_##_Insert){{ret.iter}, ret.inserted};                      \
 	}                                                                            \
-	static inline HashSet_##_Insert HashSet_##_insert(HashSet_* self,            \
+	static inline SDB_MAYBE_UNUSED HashSet_##_Insert HashSet_##_insert(HashSet_* self,            \
 			const Type_* val) {        \
 		CWISS_Insert ret = CWISS_RawTable_insert(&kPolicy_, &self->set_, val);     \
 		return (HashSet_##_Insert){{ret.iter}, ret.inserted};                      \
 	}                                                                            \
 	\
-	static inline HashSet_##_CIter HashSet_##_cfind_hinted(                      \
+	static inline SDB_MAYBE_UNUSED HashSet_##_CIter HashSet_##_cfind_hinted(                      \
 			const HashSet_* self, const Key_* key, size_t hash) {                    \
 		return (HashSet_##_CIter){CWISS_RawTable_find_hinted(                      \
 				&kPolicy_, kPolicy_.key, &self->set_, key, hash)};                     \
 	}                                                                            \
-	static inline HashSet_##_Iter HashSet_##_find_hinted(                        \
+	static inline SDB_MAYBE_UNUSED HashSet_##_Iter HashSet_##_find_hinted(                        \
 			HashSet_* self, const Key_* key, size_t hash) {                          \
 		return (HashSet_##_Iter){CWISS_RawTable_find_hinted(                       \
 				&kPolicy_, kPolicy_.key, &self->set_, key, hash)};                     \
 	}                                                                            \
-	static inline HashSet_##_CIter HashSet_##_cfind(const HashSet_* self,        \
+	static inline SDB_MAYBE_UNUSED HashSet_##_CIter HashSet_##_cfind(const HashSet_* self,        \
 			const Key_* key) {           \
 		return (HashSet_##_CIter){                                                 \
 			CWISS_RawTable_find(&kPolicy_, kPolicy_.key, &self->set_, key)};       \
 	}                                                                            \
-	static inline HashSet_##_Iter HashSet_##_find(HashSet_* self,                \
+	static inline SDB_MAYBE_UNUSED HashSet_##_Iter HashSet_##_find(HashSet_* self,                \
 			const Key_* key) {             \
 		return (HashSet_##_Iter){                                                  \
 			CWISS_RawTable_find(&kPolicy_, kPolicy_.key, &self->set_, key)};       \
 	}                                                                            \
 	\
-	static inline bool HashSet_##_contains(const HashSet_* self,                 \
+	static inline bool SDB_MAYBE_UNUSED HashSet_##_contains(const HashSet_* self,                 \
 			const Key_* key) {                    \
 		return CWISS_RawTable_contains(&kPolicy_, kPolicy_.key, &self->set_, key); \
 	}                                                                            \
 	\
-	static inline void HashSet_##_erase_at(HashSet_##_Iter it) {                 \
+	static inline void SDB_MAYBE_UNUSED HashSet_##_erase_at(HashSet_##_Iter it) {                 \
 		CWISS_RawTable_erase_at(&kPolicy_, it.it_);                                \
 	}                                                                            \
-	static inline bool HashSet_##_erase(HashSet_* self, const Key_* key) {       \
+	static inline bool SDB_MAYBE_UNUSED HashSet_##_erase(HashSet_* self, const Key_* key) {       \
 		return CWISS_RawTable_erase(&kPolicy_, kPolicy_.key, &self->set_, key);    \
 	}                                                                            \
 	\
