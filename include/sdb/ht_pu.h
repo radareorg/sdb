@@ -16,7 +16,6 @@ extern "C" {
 typedef uint64_t ut64;
 
 typedef struct HtPU_t HtPU;
-typedef struct HtPU_entry_t HtPU_Entry;
 
 typedef bool (*HtPUForEachCallback)(void *user, const void *key, const ut64 value);
 

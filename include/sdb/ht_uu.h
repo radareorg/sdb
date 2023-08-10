@@ -12,8 +12,6 @@ extern "C" {
 #endif
 
 typedef struct HtUU_t HtUU;
-typedef struct HtUU_entry_t HtUU_Entry;
-
 typedef bool (*HtUUForEachCallback)(void *user, const ut64 key, const ut64 value);
 
 SDB_API HtUU* ht_uu_new0(void);
