@@ -27,6 +27,8 @@ extern "C" {
 #define SDB_MIN_KEY 1
 #define SDB_MAX_KEY 0xff
 
+#define SDB_INLINE_HASH 1
+
 // ftp://ftp.gnu.org/old-gnu/Manuals/gperf-2.7/html_node/gperf_17.es.html
 #define SDB_MAX_GPERF_KEYS 15000
 
@@ -280,9 +282,36 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas);
 SDB_API ut64 sdb_expire_get(Sdb* s, const char *key, ut32 *cas);
 SDB_API ut64 sdb_now(void);
 SDB_API ut64 sdb_unow(void);
+SDB_API ut8 sdb_hash_byte(const char *s);
+
+#if !SDB_INLINE_HASH
 SDB_API ut32 sdb_hash(const char *key);
 SDB_API ut32 sdb_hash_len(const char *key, ut32 *len);
-SDB_API ut8 sdb_hash_byte(const char *s);
+#else
+static inline ut32 sdb_hash_len(const char *s, ut32 *len) {
+	ut32 h = CDB_HASHSTART;
+	if (SDB_UNLIKELY (!s)) {
+		return h;
+	}
+	if (len) { // comptime because its inlined
+		ut32 count = 0;
+		while (*s) {
+			h = (h ^ (h << 1)) + *s++; // 2.15s
+			count++;
+		}
+		*len = count;
+	} else {
+		while (*s) {
+			h = (h ^ (h << 1)) + *s++; // 2.15s
+		}
+	}
+	return h;
+}
+
+static inline ut32 sdb_hash(const char *s) {
+	return sdb_hash_len (s, NULL);
+}
+#endif
 
 /* json api */
 SDB_API int sdb_js0n(const unsigned char *js, RangstrType len, RangstrType *out);

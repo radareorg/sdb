@@ -62,6 +62,7 @@ SDB_API int gettimeofday(struct timeval* p, struct timezone * tz) {
 #endif
 #endif
 
+#if !SDB_INLINE_HASH
 SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 	ut32 h = CDB_HASHSTART;
 #if FORCE_COLLISION
@@ -89,6 +90,7 @@ SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
 SDB_API ut32 sdb_hash(const char *s) {
 	return sdb_hash_len (s, NULL);
 }
+#endif
 
 SDB_API ut8 sdb_hash_byte(const char *s) {
 	const ut32 hash = sdb_hash_len (s, NULL);
