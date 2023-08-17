@@ -27,7 +27,7 @@ extern "C" {
 #define SDB_MIN_KEY 1
 #define SDB_MAX_KEY 0xff
 
-#define SDB_HASH_FAST 1
+#define SDB_HASH_FAST 0
 #define SDB_INLINE_HASH 1
 
 // ftp://ftp.gnu.org/old-gnu/Manuals/gperf-2.7/html_node/gperf_17.es.html
@@ -308,7 +308,7 @@ static inline ut32 sdb_hash_len(const char *s, ut32 *len) {
 		*len = count;
 	} else {
 		while (*s) {
-			h = (h ^ (h << 1)) + *s++; // 2.15s
+			SDB_HASH_ONELINER;
 		}
 	}
 	return h;
