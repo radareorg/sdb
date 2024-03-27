@@ -17,15 +17,12 @@ jobs:
           mkdir cov-analysis-linux64
           tar xzf cov-analysis-linux64.tar.gz --strip 1 -C cov-analysis-linux64
         env:
-          TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+          TOKEN: mZuD8UEtISxYrTIc5K9Xjw
 
       - name: Fixed world writable dirs
         run: |
           chmod go-w $HOME
           sudo chmod -R go-w /usr/share
-
-      - name: Configure
-        run: ./configure
 
       - name: Build with cov-build
         run: |
