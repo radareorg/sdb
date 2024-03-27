@@ -99,7 +99,7 @@ static void *remove_offset(void *ptr) {
 }
 
 static Footer *getFooter(void *header_ptr) {
-	return (void*)((ut8*)header_ptr + ((Header *)header_ptr)->size - FOOTER_SIZE);
+	return (Footer*)((ut8*)header_ptr + ((Header *)header_ptr)->size - FOOTER_SIZE);
 }
 
 static void setFree(void *ptr, int val) {
