@@ -7,11 +7,13 @@
 #include "sdb/sdb.h"
 #include "sdb/heap.h"
 // #include <sys/mman.h>
+#if 1
 #if !defined(MAP_ANONYMOUS)
 #if __MACH__
   #define MAP_ANONYMOUS 0x1000
 #else
   #define MAP_ANONYMOUS 0x20
+#endif
 #endif
 #endif
 
@@ -280,7 +282,7 @@ static void coalesce(SdbHeap *heap, void *ptr) {
 	if (current_header->has_prev && ((Footer *)((ut8*)ptr - FOOTER_SIZE))->free) {
 		int prev_size = ((Footer *)((ut8*)ptr - FOOTER_SIZE))->size;
 		Header *prev_header = (Header *)((ut8*)ptr - prev_size);
-		Footer *prev_footer = (Footer *)((Footer *)((ut8*)ptr - FOOTER_SIZE));
+		Footer *prev_footer = (Footer *)((ut8*)ptr - FOOTER_SIZE);
 
 		// Merge with previous block.
 		remove_from_free_list (heap, current_header);
