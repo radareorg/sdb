@@ -352,17 +352,6 @@ static void sdb_heap_free(SdbHeap *heap, void *ptr) {
 	}
 }
 
-#if 0
-static void copy_block(int *src, int *dst, int size) {
-	// bettter do memcpy here
-	int i;
-	// Know that it is 8-bit aligned, so can copy whole ints.
-	for (i = 0; i * sizeof(int) < size; i++) {
-		dst[i] = src[i];
-	}
-}
-#endif
-
 SDB_API void sdb_heap_init(SdbHeap *heap) {
 	heap->last_address = NULL;
 	heap->free_list_start = NULL;
@@ -421,9 +410,7 @@ SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size) {
 
 	// Not enough room to enlarge -> allocate new region.
 	void *new_ptr = sdb_heap_malloc (heap, size);
-	// Copy old data.
-	// copy_block(ptr, new_ptr, current_size);
-	memcpy (ptr, new_ptr, current_size);
+	memcpy (new_ptr, ptr, current_size);
 
 	// Free old location.
 	sdb_heap_free (heap, ptr);
