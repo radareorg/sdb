@@ -7,10 +7,12 @@
 #include "sdb/sdb.h"
 #include "sdb/heap.h"
 // #include <sys/mman.h>
-#if !defined(MAP_ANONYMOUS) && __MACH__
+#if !defined(MAP_ANONYMOUS)
+#if __MACH__
   #define MAP_ANONYMOUS 0x1000
 #else
-  #define MAP_ANONYMOUS 0
+  #define MAP_ANONYMOUS 0x20
+#endif
 #endif
 
 // generic global
