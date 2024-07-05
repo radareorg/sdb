@@ -81,7 +81,7 @@ typedef struct Footer {
 
 #define ALIGNMENT 8
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
-#define SDB_PAGE_SIZE sysconf(_SC_PAGESIZE)
+#define SDB_PAGE_SIZE 131072 // 96096*2 //sysconf(_SC_PAGESIZE)
 #define CEIL(X) ((X - (int)(X)) > 0 ? (int)(X + 1) : (int)(X))
 #define PAGES(size) (CEIL(size / (double)SDB_PAGE_SIZE))
 #define MIN_SIZE (ALIGN(sizeof(free_list) + META_SIZE))
@@ -132,7 +132,7 @@ static inline int getSize(void *ptr) {
 }
 
 static void remove_from_free_list(SdbHeap *heap, void *block) {
-	setFree(block, USED);
+	setFree (block, USED);
 
 	free_list *free_block = (free_list *)add_offset(block);
 	free_list *next = free_block->next;
@@ -233,7 +233,7 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 		// Header ptr
 		void *address = remove_offset (free_block);
 		// Mark block as used.
-		setFree(address, USED);
+		setFree (address, USED);
 		// Split the block into two, where the second is free.
 		split (heap, address, ((Header *)address)->size, required_size);
 		remove_from_free_list (heap, address);
@@ -259,7 +259,7 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 	*header_ptr = header;
 	Footer footer = {};
 	footer.free = USED;
-	*((Footer *)getFooter(new_region)) = footer;
+	*((Footer *)getFooter (new_region)) = footer;
 
 	if (new_region == heap->last_address && heap->last_address != 0) {
 		// if we got a block of memory after the last block, as we requested.
