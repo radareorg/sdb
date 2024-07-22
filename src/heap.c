@@ -6,21 +6,9 @@
 #include <stdint.h>
 #include "sdb/sdb.h"
 #include "sdb/heap.h"
-// #include <sys/mman.h>
-#if 1
-#if !defined(MAP_ANONYMOUS)
-#if __MACH__
-  #define MAP_ANONYMOUS 0x1000
-#else
-  #define MAP_ANONYMOUS 0x20
-#endif
-#endif
-#endif
 
-// generic global
-SdbGlobalHeap Gheap = {NULL, NULL};
-// local heap allocator api
 const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
+SdbGlobalHeap Gheap = {NULL, NULL};
 
 SDB_API char *sdb_strdup(const char *s) {
 	size_t sl = strlen (s) + 1;
@@ -30,6 +18,17 @@ SDB_API char *sdb_strdup(const char *s) {
 	}
 	return p;
 }
+
+#if USE_MMAN
+// #include <sys/mman.h>
+
+#if !defined(MAP_ANONYMOUS)
+#if __MACH__
+  #define MAP_ANONYMOUS 0x1000
+#else
+  #define MAP_ANONYMOUS 0x20
+#endif
+#endif
 
 #if __SDB_WINDOWS__
 #include <windows.h>
@@ -421,4 +420,5 @@ SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int size) {
 	return new_ptr;
 }
 
+#endif
 #endif
