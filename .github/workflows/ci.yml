@@ -71,6 +71,8 @@ jobs:
       run: |
         pip install meson ninja
         meson b && ninja -C b
+    - name: MegaLinter
+      uses: oxsecurity/megalinter@v8.0.0
     - name: Building Sdb
       run: export CFLAGS="-Werror -Wall" && make -j4
     - name: Install gperf
