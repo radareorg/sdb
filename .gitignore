@@ -47,7 +47,6 @@ src/libsdb.so*
 src/libsdb.dylib
 src/sdb
 src/sdb_version.h
-include/sdb/version.h
 memcache/cmds
 memcache/cmds.h
 memcache/mcsdbc

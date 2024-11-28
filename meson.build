@@ -32,15 +32,6 @@ else
   libsdb_name = 'sdb'
 endif
 
-# Create include/sdb/version.h
-conf_data = configuration_data()
-conf_data.set_quoted('SDB_VERSION', sdb_version, description : 'From config.mk')
-configure_file(
-  output : 'version.h',
-  configuration : conf_data,
-  install_dir : join_paths(get_option('includedir'), 'sdb')
-)
-
 libsdb_sources = [
   'src/array.c',
   'src/set.c',
