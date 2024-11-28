@@ -85,11 +85,18 @@ libsdb = both_libraries(libsdb_name, libsdb_sources,
 #else
 #  link_with = libsdb.get_shared_lib()
 #endif
+default_library_type = get_option('default_library')
 
-link_with = libsdb.get_shared_lib()
+if default_library_type == 'shared'
+  link_with = libsdb.get_shared_lib()
+else
+  link_with = libsdb.get_static_lib()
+endif
+
+#link_with = libsdb.get_shared_lib()
 
 sdb_dep = declare_dependency(
-  link_with: libsdb.get_static_lib(),
+  link_with: [link_with],
   include_directories: sdb_inc
 )
 
