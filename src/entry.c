@@ -4,6 +4,8 @@
 #define SDB_CUSTOM_HEAP sdb_gh_custom
 #endif
 
+static const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
+
 int main(int argc, const char **argv) {
 #if USE_SDB_HEAP
 	sdb_gh_use (&SDB_CUSTOM_HEAP);

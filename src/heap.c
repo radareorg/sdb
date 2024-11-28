@@ -7,8 +7,11 @@
 #include "sdb/sdb.h"
 #include "sdb/heap.h"
 
-const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
-SdbGlobalHeap Gheap = {NULL, NULL};
+static SdbGlobalHeap Gheap = { NULL, NULL, NULL };
+
+SDB_API SdbGlobalHeap *sdb_heap_global(void) {
+	return &Gheap;
+}
 
 SDB_API char *sdb_strdup(const char *s) {
 	size_t sl = strlen (s) + 1;
