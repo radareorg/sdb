@@ -9,7 +9,7 @@
 
 static SdbGlobalHeap Gheap = { NULL, NULL, NULL };
 
-SDB_API SdbGlobalHeap *sdb_heap_global(void) {
+SDB_API SdbGlobalHeap *sdb_gh(void) {
 	return &Gheap;
 }
 

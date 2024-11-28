@@ -1,6 +1,10 @@
 #ifndef SDB_HEAP_H
 #define SDB_HEAP_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void *(*SdbHeapRealloc)(void *data, void *ptr, size_t size);
 typedef void (*SdbHeapFini)(void *data);
 
@@ -12,10 +16,10 @@ typedef struct sdb_global_heap_t {
 	void *data;
 } SdbGlobalHeap;
 
-SDB_API SdbGlobalHeap *sdb_heap_global(void);
+SDB_API SdbGlobalHeap *sdb_gh (void);
 
 static inline void sdb_gh_use(const SdbGlobalHeap *gh) {
-	SdbGlobalHeap *gheap = sdb_heap_global ();
+	SdbGlobalHeap *gheap = sdb_gh ();
 	if (gh) {
 		memcpy (gheap, gh, sizeof (SdbGlobalHeap));
 	} else {
@@ -24,14 +28,14 @@ static inline void sdb_gh_use(const SdbGlobalHeap *gh) {
 }
 
 static inline void sdb_gh_fini(void) {
-	SdbGlobalHeap *gheap = sdb_heap_global ();
+	SdbGlobalHeap *gheap = sdb_gh ();
 	if (gheap->fini) {
 		gheap->fini (gheap->data);
 	}
 }
 
 static inline void *sdb_gh_malloc(size_t size) {
-	SdbGlobalHeap *gheap = sdb_heap_global ();
+	SdbGlobalHeap *gheap = sdb_gh ();
 	if (gheap->realloc) {
 		void *ptr = gheap->realloc (gheap->data, NULL, size);
 //		eprintf ("malloc %p\n" , ptr);
@@ -41,7 +45,7 @@ static inline void *sdb_gh_malloc(size_t size) {
 }
 
 static inline void *sdb_gh_realloc(void *ptr, size_t size) {
-	SdbGlobalHeap *gheap = sdb_heap_global ();
+	SdbGlobalHeap *gheap = sdb_gh ();
 	if (gheap->realloc) {
 		return gheap->realloc (gheap->data, ptr, size);
 	}
@@ -49,7 +53,7 @@ static inline void *sdb_gh_realloc(void *ptr, size_t size) {
 }
 
 static inline void sdb_gh_free(void *ptr) {
-	SdbGlobalHeap *gheap = sdb_heap_global ();
+	SdbGlobalHeap *gheap = sdb_gh ();
 	if (!ptr) {
 		return;
 	}
@@ -69,5 +73,9 @@ static inline void *sdb_gh_calloc(size_t count, size_t size) {
 	}
 	return res;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
