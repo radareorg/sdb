@@ -80,11 +80,13 @@ libsdb = both_libraries(libsdb_name, libsdb_sources,
   install_rpath: rpath_lib
 )
 
-if is_windows
-  link_with = libsdb.get_static_lib()
-else
-  link_with = libsdb.get_shared_lib()
-endif
+#if is_windows
+#  link_with = libsdb.get_static_lib()
+#else
+#  link_with = libsdb.get_shared_lib()
+#endif
+
+link_with = libsdb.get_shared_lib()
 
 sdb_dep = declare_dependency(
   link_with: libsdb.get_static_lib(),
