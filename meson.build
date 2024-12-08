@@ -61,6 +61,13 @@ libsdb = both_libraries(libsdb_name, libsdb_sources,
   install_rpath: rpath_lib
 )
 
+libsdb_static = static_library('libsdb_static', libsdb_sources,
+  include_directories: sdb_inc,
+  implicit_include_directories: false,
+  install: not meson.is_subproject(),
+  install_rpath: rpath_lib
+)
+
 #if is_windows
 #  link_with = libsdb.get_static_lib()
 #else
