@@ -95,6 +95,7 @@ sdb_exe = executable('sdb', join_paths('src','entry.c'),
 )
 
 include_files = [
+  'include/sdb/version.h',
   'include/sdb/buffer.h',
   'include/sdb/cdb.h',
   'include/sdb/cdb_make.h',
