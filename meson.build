@@ -102,6 +102,7 @@ include_files = [
   'include/sdb/config.h',
   'include/sdb/dict.h',
   'include/sdb/heap.h',
+  'include/sdb/rangstr.h',
   'include/sdb/ht_inc.h',
   'include/sdb/ht_pp.h',
   'include/sdb/ht_up.h',
