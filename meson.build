@@ -94,32 +94,33 @@ sdb_exe = executable('sdb', join_paths('src','entry.c'),
   implicit_include_directories: false
 )
 
+include_files = [
+  'include/sdb/buffer.h',
+  'include/sdb/cdb.h',
+  'include/sdb/cdb_make.h',
+  'include/sdb/config.h',
+  'include/sdb/dict.h',
+  'include/sdb/heap.h',
+  'include/sdb/ht_inc.h',
+  'include/sdb/ht_pp.h',
+  'include/sdb/ht_up.h',
+  'include/sdb/ht_uu.h',
+  'include/sdb/ht_pu.h',
+  'include/sdb/ht_su.h',
+  'include/sdb/ls.h',
+  'include/sdb/sdb.h',
+  'include/sdb/ht.h',
+  'include/sdb/set.h',
+  'include/sdb/types.h',
+  'include/sdb/asserts.h',
+  'include/sdb/cwisstable.h',
+  'include/sdb/gcc_stdatomic.h',
+  'include/sdb/msvc_stdatomic.h',
+]
 if meson.is_subproject()
   install_man([join_paths('src','sdb.1')])
+  install_headers(include_files, subdir: 'libr/sdb')
 else
-  include_files = [
-    'include/sdb/buffer.h',
-    'include/sdb/cdb.h',
-    'include/sdb/cdb_make.h',
-    'include/sdb/config.h',
-    'include/sdb/dict.h',
-    'include/sdb/heap.h',
-    'include/sdb/ht_inc.h',
-    'include/sdb/ht_pp.h',
-    'include/sdb/ht_up.h',
-    'include/sdb/ht_uu.h',
-    'include/sdb/ht_pu.h',
-    'include/sdb/ht_su.h',
-    'include/sdb/ls.h',
-    'include/sdb/sdb.h',
-    'include/sdb/ht.h',
-    'include/sdb/set.h',
-    'include/sdb/types.h',
-    'include/sdb/asserts.h',
-    'include/sdb/cwisstable.h',
-    'include/sdb/gcc_stdatomic.h',
-    'include/sdb/msvc_stdatomic.h',
-  ]
   install_headers(include_files, subdir: 'sdb')
 
   make_exe = find_program('make', required: false)
