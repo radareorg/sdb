@@ -73,8 +73,12 @@ static SdbListIter *_merge(SdbListIter *first, SdbListIter *second, SdbListCompa
 			result = result->n;
 		}
 	}
-	head->p = NULL;
-	next->n = NULL;
+	if (head) {
+		head->p = NULL;
+	}
+	if (next) {
+		next->n = NULL;
+	}
 	return head;
 }
 
