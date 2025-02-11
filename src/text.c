@@ -317,7 +317,7 @@ static void load_process_single_char(LoadCtx *ctx) {
 			ctx->state = STATE_PATH;
 			ctx->token_begin = ctx->pos + 1;
 			ctx->pos++;
-			c = ctx->buf[ctx->pos];
+			// c = ctx->buf[ctx->pos];
 			return;
 		}
 		ctx->state = STATE_KEY;

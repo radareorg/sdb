@@ -258,6 +258,9 @@ static char* get_cname(const char*name) {
 
 static char *escape(const char *b, int ch) {
 	char *a = (char *)sdb_gh_calloc ((1 + strlen (b)), 4);
+	if (!a) {
+		return NULL;
+	}
 	char *c = a;
 	while (*b) {
 		if (*b == ch) {

@@ -82,7 +82,7 @@ SDB_API char *sdb_querysf(Sdb *s, char *buf, size_t buflen, const char *fmt, ...
 
 typedef struct {
 	StrBuf *out;
-	int encode;
+	bool encode;
 	char *root;
 } ForeachListUser;
 
@@ -132,7 +132,7 @@ static bool foreach_list_cb(void *user, const char *k, const char *v) {
 	return true;
 }
 
-static void walk_namespace(StrBuf *sb, char *root, int left, char *p, SdbNs *ns, int encode) {
+static void walk_namespace(StrBuf *sb, char *root, int left, char *p, SdbNs *ns, bool encode) {
 	int len;
 	SdbListIter *it;
 	SdbNs *n;
@@ -152,8 +152,7 @@ static void walk_namespace(StrBuf *sb, char *root, int left, char *p, SdbNs *ns,
 			memcpy (p + 1, n->name, len + 1);
 			left -= len + 2;
 		}
-		walk_namespace (sb, root, left,
-			roote + len + 1, n, encode);
+		walk_namespace (sb, root, left, roote + len + 1, n, encode);
 	}
 }
 
@@ -161,7 +160,8 @@ SDB_API char *sdb_querys(Sdb *r, char *buf, size_t len, const char *_cmd) {
 	bool bufset = false;
 	bool is_ref = false;
 	int ok = 0;
-	int i, d, w, alength, encode = 0;
+	int i, d, w, alength;
+	bool encode = false;
 	const char *p, *q, *val = NULL;
 	char *eq, *tmp, *json, *next, *quot, *slash, *cmd = NULL;
 	char *newcmd = NULL, *original_cmd = NULL;
@@ -203,7 +203,7 @@ repeat:
 	s = r;
 	p = cmd;
 	eq = NULL;
-	encode = 0;
+	encode = false;
 	is_ref = false;
 	quot = NULL;
 	json = NULL;
@@ -222,7 +222,7 @@ repeat:
 		goto runNext;
 	} else
 	if (*p == '%') {
-		encode = 1;
+		encode = true;
 		cmd++;
 		p++;
 	}
@@ -816,7 +816,6 @@ runNext:
 			bufset = false;
 		}
 		cmd = next + 1;
-		encode = 0;
 		goto repeat;
 	}
 	if (eq) {
