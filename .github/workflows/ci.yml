@@ -16,7 +16,7 @@ jobs:
     - name: Building Sdb
       run: meson build && ninja -C build
     - name: Pub
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: build/*.exe
   build-cxx:
@@ -82,7 +82,7 @@ jobs:
     - name: Testing gperf
       run: make -C test/gperf
     - name: Pub
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: dist/debian/sdb/*.deb
   build-heap:
@@ -107,7 +107,7 @@ jobs:
     - name: Running tests
       run: make test
     - name: Pub
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: dist/macos/*.pkg
   build-cydia:
@@ -120,6 +120,6 @@ jobs:
     - name: Packaging
       run: cd sdb/dist/cydia && make && cd ../../..
     - name: Pub
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: sdb/dist/cydia/*/*.deb
