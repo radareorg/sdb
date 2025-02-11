@@ -751,7 +751,7 @@ static int sdb_system(const char *cmd) {
 #endif
 #endif
 	}
-	return sys (cmd);
+	return sys? sys (cmd): -1;
 }
 
 static int gen_gperf(MainOptions *mo, const char *file, const char *name) {
