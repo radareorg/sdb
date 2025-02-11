@@ -130,7 +130,7 @@ SDB_API bool sdb_disk_insert(Sdb* s, const char *key, const char *val) {
 
 #define IFRET(x) if (x) ret = 0
 SDB_API bool sdb_disk_finish(Sdb* s) {
-	bool reopen = false, ret = true;
+	bool ret = true;
 	IFRET (!cdb_make_finish (&s->m));
 #if USE_MMAN
 	IFRET (fsync (s->fdump));
@@ -141,7 +141,6 @@ SDB_API bool sdb_disk_finish(Sdb* s) {
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
-		reopen = true;
 	}
 #if __SDB_WINDOWS__
 	LPTSTR ndump_ = r_sys_conv_utf8_to_utf16 (s->ndump);
@@ -159,9 +158,8 @@ SDB_API bool sdb_disk_finish(Sdb* s) {
 #endif
 	sdb_gh_free (s->ndump);
 	s->ndump = NULL;
-	// reopen if was open before
-	reopen = true; // always reopen if possible
-	if (reopen) {
+	// always reopen just in case
+	{
 		int rr = sdb_open (s, s->dir);
 		if (ret && rr < 0) {
 			ret = false;
