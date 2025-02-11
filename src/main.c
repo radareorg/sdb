@@ -804,6 +804,8 @@ static int gen_gperf(MainOptions *mo, const char *file, const char *name) {
 		if (rc == 0) {
 			char *cname = get_cname (name);
 			if (!cname) {
+				sdb_gh_free (out);
+				sdb_gh_free (buf);
 				return -1;
 			}
 			snprintf (buf, buf_size, "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
