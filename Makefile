@@ -214,7 +214,7 @@ w32: include/sdb/version.h
 	${MAKE} OS=w32 WCP=${WCP} CC=${WCP}-gcc AR=${WCP}-ar RANLIB=${WCP}-ranlib sdb.exe
 
 # ios toolchain
-IOS_CC=$(shell xcrun --sdk iphoneos --find clang) -isysroot $(shell xcrun --sdk iphoneos --show-sdk-path) -arch armv7 -arch arm64
+IOS_CC=$(shell xcrun --sdk iphoneos --find clang) -isysroot $(shell xcrun --sdk iphoneos --show-sdk-path) -arch arm64
 IOS_AR=$(shell xcrun --sdk iphoneos --find ar)
 IOS_RL=$(shell xcrun --sdk iphoneos --find ranlib)
 

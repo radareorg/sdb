@@ -1,5 +1,6 @@
 include ../../config.mk
 
+CFLAGS+= -I../../include
 PKGCFG=PKG_CONFIG_PATH=../../pkgconfig pkg-config --cflags --libs
 PKGCFG+=--define-variable=libdir=../../src --define-variable=includedir=../../src
 SDB_FLAGS=$(shell ${PKGCFG} sdb)
@@ -19,7 +20,7 @@ test: test.vala
 	@echo VALAC test.vala
 	@valac -C --vapidir=. --pkg sdb --pkg posix test.vala
 	@echo CC test.c
-	@${CC} -o test test.c ${SDB_FLAGS} ${GFLAGS}
+	${CC} -o test test.c ${SDB_FLAGS} ${GFLAGS} ${CFLAGS}
 
 mctest: mctest.vala
 	@echo VALAC mctest.vala
