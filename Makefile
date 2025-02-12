@@ -7,7 +7,7 @@ HGFILES=`find sdb-${SDBVER} -type f | grep -v hg | grep -v swp`
 ASANOPTS=address undefined signed-integer-overflow
 LEAKOPTS=leak
 CFLAGS_ASAN=$(addprefix -fsanitize=,$(ASANOPTS)) $(CFLAGS)
-CFLAGS_LEAK=$(addprefix -fsanitize=,$(LEAKOPTS))
+CFLAGS_LEAK=$(addprefix -fsanitize=,$(LEAKOPTS)) -lasan
 MKDIR=mkdir
 
 all: pkgconfig include/sdb/version.h
