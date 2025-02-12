@@ -77,7 +77,6 @@ sdb.js: include/sdb/version.h
 	cd src ; emcc ${EMCCFLAGS} -I../include -o ../sdb.js ${CFILES}
 
 clean:
-	rm -f include/sdb/version.h
 	$(MAKE) -C src clean
 	$(MAKE) -C memcache clean
 	$(MAKE) -C test clean
