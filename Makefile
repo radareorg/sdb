@@ -7,7 +7,7 @@ HGFILES=`find sdb-${SDBVER} -type f | grep -v hg | grep -v swp`
 ASANOPTS=address undefined signed-integer-overflow
 LEAKOPTS=leak
 CFLAGS_ASAN=$(addprefix -fsanitize=,$(ASANOPTS)) $(CFLAGS)
-CFLAGS_LEAK=$(addprefix -fsanitize=,$(LEAKOPTS))
+CFLAGS_LEAK=$(addprefix -fsanitize=,$(LEAKOPTS)) -lasan -lubsan
 MKDIR=mkdir
 
 all: pkgconfig include/sdb/version.h
@@ -77,7 +77,6 @@ sdb.js: include/sdb/version.h
 	cd src ; emcc ${EMCCFLAGS} -I../include -o ../sdb.js ${CFILES}
 
 clean:
-	rm -f include/sdb/version.h
 	$(MAKE) -C src clean
 	$(MAKE) -C memcache clean
 	$(MAKE) -C test clean

@@ -18,6 +18,7 @@ jobs:
     - name: Pub
       uses: actions/upload-artifact@v4
       with:
+        name: sdb_windows
         path: build/*.exe
   build-cxx:
     runs-on: ubuntu-latest
@@ -84,6 +85,7 @@ jobs:
     - name: Pub
       uses: actions/upload-artifact@v4
       with:
+        name: sdb_linux
         path: dist/debian/sdb/*.deb
   build-heap:
     runs-on: ubuntu-latest
@@ -109,6 +111,7 @@ jobs:
     - name: Pub
       uses: actions/upload-artifact@v4
       with:
+        name: sdb_macos
         path: dist/macos/*.pkg
   build-cydia:
     runs-on: macos-latest
@@ -119,7 +122,8 @@ jobs:
       run: cd sdb && make ios && cd ..
     - name: Packaging
       run: cd sdb/dist/cydia && make && cd ../../..
-#    - name: Pub
-#      uses: actions/upload-artifact@v4
-#      with:
-#        path: sdb/dist/cydia/*/*.deb
+    - name: Pub
+      uses: actions/upload-artifact@v4
+      with:
+        name: sdb_cydia
+        path: sdb/dist/cydia/*/*.deb
