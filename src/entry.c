@@ -3,7 +3,9 @@
 #ifndef SDB_CUSTOM_HEAP
 extern SdbGlobalHeap sdb_gh_custom;
 #define SDB_CUSTOM_HEAP sdb_gh_custom
-#else
+#endif
+
+#if !USE_SDB_HEAP
 static const SdbGlobalHeap sdb_gh_libc = { NULL, NULL, NULL };
 #endif
 
