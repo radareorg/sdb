@@ -14,6 +14,7 @@ SDB_API SdbGlobalHeap *sdb_gh(void) {
        return &Gheap;
 }
 
+
 SDB_API char *sdb_strdup(const char *s) {
        size_t sl = strlen (s) + 1;
        char *p = (char *)sdb_gh_malloc (sl);
@@ -77,6 +78,16 @@ typedef struct sdb_heap_t {
 	free_list *free_list_start; // Head of the free list linked list
 	size_t last_mapped_size;    // Size (in pages) of the last mmap request (doubling strategy)
 } SdbHeap;
+
+SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int new_size);
+SDB_API void sdb_heap_fini(SdbHeap *heap);
+static SdbHeap sdb_gh_custom_data = { NULL, NULL, 1};
+
+const SdbGlobalHeap sdb_gh_custom = {
+	(SdbHeapRealloc)sdb_heap_realloc,
+	(SdbHeapFini)sdb_heap_fini,
+	&sdb_gh_custom_data
+};
 
 // Utility functions to get pointers to header, payload, and footer
 static inline void *add_offset(void *header_ptr) {
