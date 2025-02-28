@@ -35,7 +35,6 @@ SDB_API char *sdb_strdup(const char *s) {
 #endif
 #endif
 
-
 // Align pointers and sizes to 8 bytes (suitable for 64-bit alignment)
 #define ALIGNMENT 8
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
@@ -84,10 +83,12 @@ static inline void *add_offset(void *header_ptr) {
 	// From a Header pointer, get the address of the payload
 	return (uint8_t*)header_ptr + HEADER_SIZE;
 }
+
 static inline void *remove_offset(void *payload_ptr) {
 	// From a payload pointer, get the address of the Header
 	return (uint8_t*)payload_ptr - HEADER_SIZE;
 }
+
 static inline Footer *getFooter(void *header_ptr) {
 	Header *h = (Header*)header_ptr;
 	return (Footer*)((uint8_t*)header_ptr + h->size - FOOTER_SIZE);
@@ -102,6 +103,7 @@ static inline void setFreeFlag(void *header_ptr, bool is_free) {
 	f->free = is_free;
 	f->size = h->size;
 }
+
 static inline int getBlockSize(void *payload_ptr) {
 	// Get total block size given a pointer to the payload
 	Header *h = (Header*)remove_offset(payload_ptr);
@@ -120,6 +122,7 @@ static void remove_from_free_list(SdbHeap *heap, void *header_ptr) {
 	// Mark block as used (not free) since it's no longer in free list
 	setFreeFlag(header_ptr, false);
 }
+
 static void append_to_free_list(SdbHeap *heap, void *header_ptr) {
 	// Add this free block (by header pointer) to the free list (LIFO insertion at head)
 	Header *h = (Header*)header_ptr;
@@ -136,6 +139,7 @@ static void append_to_free_list(SdbHeap *heap, void *header_ptr) {
 	}
 	heap->free_list_start = node;
 }
+
 static free_list *find_free_block(SdbHeap *heap, int size) {
 	// First-fit search for a free block with at least 'size' bytes
 	free_list *current = heap->free_list_start;
@@ -185,12 +189,13 @@ static void split_block(SdbHeap *heap, void *header_ptr, int total_size, int all
 }
 
 // Initialize and finalize heap (for completeness)
-void sdb_heap_init(SdbHeap *heap) {
+SDB_API void sdb_heap_init(SdbHeap *heap) {
 	heap->last_address = NULL;
 	heap->free_list_start = NULL;
 	heap->last_mapped_size = 1;  // start with 1 page on first allocation
 }
-void sdb_heap_fini(SdbHeap *heap) {
+
+SDB_API void sdb_heap_fini(SdbHeap *heap) {
 	// Free all free blocks (release to OS)
 	free_list *current = heap->free_list_start;
 	while (current) {
@@ -204,7 +209,7 @@ void sdb_heap_fini(SdbHeap *heap) {
 }
 
 // Allocate memory
-void *sdb_heap_malloc(SdbHeap *heap, int size) {
+SDB_API void *sdb_heap_malloc(SdbHeap *heap, int size) {
 	if (size <= 0) {
 		return NULL;
 	}
@@ -267,7 +272,7 @@ void *sdb_heap_malloc(SdbHeap *heap, int size) {
 }
 
 // Free memory
-void sdb_heap_free(SdbHeap *heap, void *ptr) {
+SDB_API void sdb_heap_free(SdbHeap *heap, void *ptr) {
 	if (!ptr) return;
 	Header *header = (Header*)remove_offset(ptr);
 	if (header->free) {
@@ -372,7 +377,7 @@ void sdb_heap_free(SdbHeap *heap, void *ptr) {
 }
 
 // Reallocate memory (resize block)
-void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int new_size) {
+SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, int new_size) {
 	if (!ptr) {
 		// Equivalent to malloc
 		return sdb_heap_malloc(heap, new_size);
