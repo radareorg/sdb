@@ -68,11 +68,6 @@ libsdb_static = static_library('libsdb_static', libsdb_sources,
   install_rpath: rpath_lib
 )
 
-#if is_windows
-#  link_with = libsdb.get_static_lib()
-#else
-#  link_with = libsdb.get_shared_lib()
-#endif
 default_library_type = get_option('default_library')
 
 if default_library_type == 'shared'
@@ -154,7 +149,7 @@ pkgconfig_mod.generate(
   name: 'sdb',
   filebase: 'sdb',
   libraries: [libsdb.get_shared_lib()],
-  description: 'Simple DataBase',
+  description: 'StringDataBase',
   subdirs: ['sdb'],
   version: sdb_version,
   url: 'https://github.com/radareorg/sdb'
