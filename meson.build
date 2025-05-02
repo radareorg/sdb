@@ -17,6 +17,7 @@ endif
 libsdb_sources = [
   'src/array.c',
   'src/set.c',
+  'src/cgen.c',
   'src/base64.c',
   'src/cdb.c',
   'src/cdb_make.c',
