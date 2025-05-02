@@ -184,6 +184,10 @@ SDB_API int sdb_nunset(Sdb*, ut64 nkey, ut32 cas);
 SDB_API int sdb_unset_like(Sdb *s, const char *k);
 SDB_API char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb);
 
+// cgen wip
+SDB_API void sdb_cgen_header(const char *cname, bool textmode);
+SDB_API void sdb_cgen_footer(const char *name, const char *cname, bool textmode);
+
 // diffing
 typedef struct sdb_diff_t {
 	const SdbList *path;
