@@ -358,7 +358,11 @@ static int sdb_dump(MainOptions *mo) {
 	switch (mo->format) {
 	case cgen:
 	case perf:
-		sdb_cgen_header (cname, mo->textmode);
+		{
+		char *s = sdb_cgen_header (cname, mo->textmode);
+		printf ("%s\n", s);
+		free (s);
+		}
 		break;
 	case json:
 		printf ("{");
@@ -412,7 +416,11 @@ static int sdb_dump(MainOptions *mo) {
 			break;
 		case perf:
 		case cgen:
-			sdb_cgen_footer (name, cname, mo->textmode);
+			{
+				char *s = sdb_cgen_footer (name, cname, mo->textmode);
+				printf ("%s\n", s);
+				free (s);
+			}
 			break;
 		case json:
 			printf ("}\n");
