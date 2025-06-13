@@ -41,7 +41,6 @@ SDB_API char *sdb_cgen_footer(const char *name, const char *cname, bool textmode
 			"};\n"
 			// "// TODO\n"
 			"typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);", 1);
-		// strbuf_appendf (sb, 1, "// %p", cname);
 		strbuf_appendf (sb, 1, "int gperf_%s_foreach(GperfForeachCallback cb, void *user) {", cname);
 		strbuf_append (sb, "  int i = 0; while (kvs[i].name) {\n"
 			"  cb (user, kvs[i].name, kvs[i].value);\n"
