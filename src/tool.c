@@ -2,7 +2,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#if defined(_WIN32)
+#include <direct.h> /* for _getcwd, _chdir */
+#include <io.h>     /* for _unlink */
+#define getcwd _getcwd
+#define chdir _chdir
+#define unlink _unlink
+#else
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -260,19 +268,18 @@ static bool is_newer(const char *path_a, const char *path_b) {
 
 static bool dothething(const char *basedir, const char *file_txt) {
 	bool compile_gperf = COMPILE_GPERF;
-	char *file_sdb = (char*)sdb_gh_malloc(strlen(file_txt) - 3);
+	char *file_sdb = sdb_strdup (file_txt);
 	if (!file_sdb) {
 		return false;
 	}
-	strncpy(file_sdb, file_txt, strlen(file_txt) - 4);
-	file_sdb[strlen(file_txt) - 4] = '\0';
+	file_sdb [strlen (file_txt) - 4] = 0;
 	
-	char *file_c = sdb_strdup(file_sdb);
+	char *file_c = sdb_strdup (file_sdb);
 	if (!file_c) {
-		sdb_gh_free(file_sdb);
+		sdb_gh_free (file_sdb);
 		return false;
 	}
-	strcpy(file_c + strlen(file_c) - 3, "c");
+	strcpy (file_c + strlen (file_c) - 3, "c");
 	
 	char *file_gperf = sdb_strdup(file_c);
 	if (!file_gperf) {
@@ -328,8 +335,8 @@ SDB_API bool sdb_tool(const char *path) {
 		size_t file_len = strlen(file);
 
 		// Check if file ends with ".sdb.txt"
-		if (file_len > 8 && strcmp(file + file_len - 8, ".sdb.txt") == 0) {
-			success |= dothething(path, file);
+		if (file_len > 8 && strcmp (file + file_len - 8, ".sdb.txt") == 0) {
+			success |= dothething (path, file);
 		}
 	}
 
