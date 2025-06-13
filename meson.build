@@ -19,6 +19,7 @@ libsdb_sources = [
   'src/set.c',
   'src/cgen.c',
   'src/strbuf.c',
+  'src/tool.c',
   'src/base64.c',
   'src/cdb.c',
   'src/cdb_make.c',
