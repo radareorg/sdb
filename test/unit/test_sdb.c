@@ -366,7 +366,7 @@ static int tmpfile_new (const char *filename, const char *buf, size_t sz) {
 	return fd;
 }
 
-#define TEST_BUF_SZ 0x1000
+#define TEST_BUF_SZ 0x4000
 
 bool test_sdb_text_save_simple() {
 	Sdb *db = text_ref_simple_db ();
