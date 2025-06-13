@@ -417,9 +417,9 @@ static int sdb_dump(MainOptions *mo) {
 		case perf:
 		case cgen:
 			{
-				char *s = sdb_cgen_footer (name, cname, mo->textmode);
-				printf ("%s\n", s);
-				free (s);
+				char *footer = sdb_cgen_footer (name, cname, mo->textmode);
+				printf ("%s\n", footer);
+				free (footer);
 			}
 			break;
 		case json:
