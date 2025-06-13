@@ -63,7 +63,7 @@ static void terminate(int sig UNUSED) {
 		exit (1);
 	}
 	sdb_gh_fini ();
-	//sdb_free (s);
+	// sdb_free (s);
 	exit (sig < 2? sig: 0);
 }
 
@@ -876,8 +876,7 @@ SDB_API int sdb_main(int argc, const char **argv) {
 		if (mo->db0 >= argc) {
 			return showusage (1);
 		}
-		const char *path = mo->argv[mo->db0];
-		return sdb_tool (path)? 0: 1;
+		return sdb_tool (mo->argv[mo->db0])? 0: 1;
 	case cgen:
 		{
 			if (mo->db0 >= argc) {

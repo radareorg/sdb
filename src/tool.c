@@ -10,10 +10,10 @@
 #define unlink _unlink
 #else
 #include <unistd.h>
+#include <dirent.h>
 #endif
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <dirent.h>
 
 #if HAVE_GPERF
 // #define COMPILE_GPERF 1
