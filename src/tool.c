@@ -5,6 +5,7 @@
 #if defined(_WIN32)
 #include <direct.h> /* for _getcwd, _chdir */
 #include <io.h>     /* for _unlink */
+#include <windows.h>
 #define getcwd _getcwd
 #define chdir _chdir
 #define unlink _unlink
