@@ -106,6 +106,15 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	char *footer = NULL;
 	char *content = NULL;
 	StrBuf *sb = NULL;
+	// Variables declared at top to avoid jumping over initializations in C++
+	SdbList *l;
+	SdbKv *kv;
+	SdbListIter *it;
+	char *ek;
+	char *ev;
+	FILE *f;
+	size_t content_len;
+	size_t written;
 
 	// Extract name and cname from file_txt
 	char *name = get_name (file_txt);
@@ -140,16 +149,14 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 		goto fail;
 	}
 	// Iterate and collect all key-value pairs in the string buffer
-	SdbList *l = sdb_foreach_list (db, true);
-	SdbKv *kv;
-	SdbListIter *it;
+   l = sdb_foreach_list (db, true);
 	ls_foreach_cast (l, it, SdbKv*, kv) {
 		const char *k = sdbkv_key (kv);
 		const char *v = sdbkv_value (kv);
 
 		// Escape special characters
-		char *ek = escape (k, ',');
-		char *ev = escape (v, 0);
+		ek = escape (k, ',');
+		ev = escape (v, 0);
 
 		if (ek && ev) {
 			strbuf_appendf (sb, 0, "\t{\"%s\", \"%s\"},\n", ek, ev);
@@ -177,14 +184,14 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	}
 
 	// Write the complete content to file
-	FILE *f = fopen(file_gperf, "wb");
+   f = fopen(file_gperf, "wb");
 	if (!f) {
 		fprintf (stderr, "Failed to open file %s for writing\n", file_gperf);
 		sdb_gh_free (content);
 		goto fail;
 	}
-	size_t content_len = strlen(content);
-	size_t written = fwrite(content, 1, content_len, f);
+   content_len = strlen(content);
+   written = fwrite(content, 1, content_len, f);
 	fclose(f);
 	if (written != content_len) {
 		fprintf (stderr, "Failed to write to file %s\n", file_gperf);
