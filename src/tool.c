@@ -158,7 +158,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 		goto fail;
 	}
 	// Iterate and collect all key-value pairs in the string buffer
-   l = sdb_foreach_list (db, true);
+	l = sdb_foreach_list (db, true);
 	ls_foreach_cast (l, it, SdbKv*, kv) {
 		const char *k = sdbkv_key (kv);
 		const char *v = sdbkv_value (kv);
@@ -193,14 +193,14 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	}
 
 	// Write the complete content to file
-   f = fopen(file_gperf, "wb");
+	f = fopen(file_gperf, "wb");
 	if (!f) {
 		fprintf (stderr, "Failed to open file %s for writing\n", file_gperf);
 		sdb_gh_free (content);
 		goto fail;
 	}
-   content_len = strlen(content);
-   written = fwrite(content, 1, content_len, f);
+	content_len = strlen(content);
+	written = fwrite(content, 1, content_len, f);
 	fclose(f);
 	if (written != content_len) {
 		fprintf (stderr, "Failed to write to file %s\n", file_gperf);
@@ -274,14 +274,14 @@ static bool dothething(const char *basedir, const char *file_txt) {
 		return false;
 	}
 	file_sdb [strlen (file_txt) - 4] = 0;
-	
+
 	char *file_c = sdb_strdup (file_sdb);
 	if (!file_c) {
 		sdb_gh_free (file_sdb);
 		return false;
 	}
 	strcpy (file_c + strlen (file_c) - 3, "c");
-	
+
 	char *file_gperf = sdb_strdup(file_c);
 	if (!file_gperf) {
 		sdb_gh_free(file_c);
@@ -309,6 +309,42 @@ SDB_API bool sdb_tool(const char *path) {
 		return false;
 	}
 
+#if defined(_WIN32)
+	/* Windows implementation using FindFirstFile */
+	char cwd[1024];
+	if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		fprintf(stderr, "Failed to get current directory\n");
+		return false;
+	}
+	if (chdir(path) != 0) {
+		fprintf(stderr, "Cannot chdir to %s\n", path);
+		return false;
+	}
+	bool success = false;
+	WIN32_FIND_DATAA findData;
+	HANDLE hFind = FindFirstFileA("*.sdb.txt", &findData);
+	if (hFind == INVALID_HANDLE_VALUE) {
+		DWORD err = GetLastError();
+		if (err != ERROR_FILE_NOT_FOUND) {
+			fprintf(stderr, "FindFirstFile failed for %s: error %lu\n", path, err);
+			chdir(cwd);
+			return false;
+		}
+	} else {
+		do {
+			const char *file = findData.cFileName;
+			size_t len = strlen(file);
+			if (len > 8 && strcmp(file + len - 8, ".sdb.txt") == 0) {
+				success |= dothething(path, file);
+			}
+		} while (FindNextFileA(hFind, &findData));
+		FindClose(hFind);
+	}
+	if (chdir(cwd) != 0) {
+		fprintf(stderr, "Warning: Failed to return to original directory\n");
+	}
+	return success;
+#else
 	DIR *dir = opendir(path);
 	if (!dir) {
 		fprintf(stderr, "Invalid directory: %s\n", path);
@@ -348,4 +384,5 @@ SDB_API bool sdb_tool(const char *path) {
 
 	closedir(dir);
 	return success;
+#endif
 }
