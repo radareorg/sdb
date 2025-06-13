@@ -467,6 +467,9 @@ SDB_API char *sdb_fmt_tostr(void *stru, const char *fmt);
 SDB_API char** sdb_fmt_array(const char *list);
 SDB_API ut64* sdb_fmt_array_num(const char *list);
 
+// tool.c
+SDB_API bool sdb_tool(const char *path);
+
 // raw array helpers
 SDB_API char *sdb_array_compact(char *p);
 SDB_API char *sdb_aslice(char *out, int from, int to);

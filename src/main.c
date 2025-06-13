@@ -21,7 +21,8 @@ typedef enum {
 	json,
 	cgen,
 	diff,
-	perf
+	perf,
+	sdb_gen
 } MainFormat;
 
 // TODO: enums must be uppercase
@@ -495,7 +496,7 @@ static int createdb(const char *f, const char **args, int nargs) {
 }
 
 static int showusage(int o) {
-	printf ("usage: sdb [-0cCdDehjJtv|-D A B] [-|db] "
+	printf ("usage: sdb [-0cCdDehjJrtv|-D A B] [-|db] "
 		"[.file]|[-=]|==||[-+][(idx)key[:json|=value] ..]\n");
 	if (o == 2) {
 		printf ("  -0      terminate results with \\x00\n"
@@ -510,6 +511,7 @@ static int showusage(int o) {
 			"  -j      output in json\n"
 			"  -o [f]  output file name for -C -t\n"
 			"  -J      enable journaling\n"
+			"  -r      process .sdb.txt files in the given path\n"
 			"  -t      use textmode (for -C)\n"
 			"  -v      show version information\n");
 		return 0;
@@ -739,6 +741,9 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 		return base64encode ();
 	case 'd':
 		return base64decode ();
+	case 'r':
+		mo->format = sdb_gen;
+		break;
 	case 'j':
 		mo->format = json;
 		if (mo->argi >= mo->argc) {
@@ -867,6 +872,12 @@ SDB_API int sdb_main(int argc, const char **argv) {
 		return showusage (1);
 	case perf:
 		return sdb_dump (mo);
+	case sdb_gen:
+		if (mo->db0 >= argc) {
+			return showusage (1);
+		}
+		const char *path = mo->argv[mo->db0];
+		return sdb_tool (path)? 0: 1;
 	case cgen:
 		{
 			if (mo->db0 >= argc) {

@@ -26,6 +26,7 @@ setup(
 			"sdbsrc/json.c",
 			"sdbsrc/diff.c",
 			"sdbsrc/ls.c",
+			"sdbsrc/tool.c",
 			"sdbsrc/heap.c",
 			"sdbsrc/util.c",
 			"sdbsrc/array.c",
