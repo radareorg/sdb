@@ -360,7 +360,7 @@ static int sdb_dump(MainOptions *mo) {
 	case perf:
 		{
 		char *s = sdb_cgen_header (cname, mo->textmode);
-		printf ("%s\n", s);
+		printf ("%s", s);
 		free (s);
 		}
 		break;
