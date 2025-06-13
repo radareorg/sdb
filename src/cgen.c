@@ -1,90 +1,101 @@
 #include <sdb/sdb.h>
 
-SDB_API void sdb_cgen_header(const char *cname, bool textmode) {
-	if (textmode) {
-		printf ("// SDB-CGEN V" SDB_VERSION "\n");
-		printf ("// gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", cname, cname);
-		printf ("#include <ctype.h>\n");
-		printf ("#include <stdio.h>\n");
-		printf ("#include <string.h>\n");
-		printf ("\n");
-		printf ("struct kv { const char *name; const char *value; };\n");
-		printf ("static const struct kv kvs[] = {\n");
-	} else {
-		printf ("%%{\n");
-		printf ("// gperf -aclEDCIG --null-strings -H sdb_hash_c_%s -N sdb_get_c_%s -t %s.gperf > %s.c\n", cname, cname, cname, cname);
-		printf ("// gcc -DMAIN=1 %s.c ; ./a.out > %s.h\n", cname, cname);
-		printf ("#include <stdio.h>\n");
-		printf ("#include <string.h>\n");
-		printf ("#include <ctype.h>\n");
-		printf ("%%}\n");
-		printf ("\n");
-		printf ("struct kv { const char *name; const char *value; };\n");
-		printf ("%%%%\n");
+SDB_API char *sdb_cgen_header(const char *cname, bool textmode) {
+	StrBuf *sb = strbuf_new ();
+	if (!sb) {
+		return NULL;
 	}
+	if (textmode) {
+		strbuf_append (sb, "// SDB-CGEN V" SDB_VERSION "\n"
+			"#include <ctype.h>\n"
+			"#include <stdio.h>\n"
+			"#include <string.h>\n"
+			"\n"
+			"struct kv { const char *name; const char *value; };\n"
+			"static const struct kv kvs[] = {", 1);
+		strbuf_appendf (sb, 1, "// gcc -DMAIN=1 %s.c ; ./a.out > %s.h", cname, cname);
+	} else {
+		strbuf_append (sb, "%{\n"
+			"#include <stdio.h>\n"
+			"#include <string.h>\n"
+			"#include <ctype.h>\n"
+			"%}\n"
+			"\n"
+			"struct kv { const char *name; const char *value; };\n"
+			"%%", 1);
+		strbuf_appendf (sb, 1, "// gperf -aclEDCIG --null-strings -H sdb_hash_c_%s -N sdb_get_c_%s -t %s.gperf > %s.c", 
+				cname, cname, cname, cname);
+		strbuf_appendf (sb, 1, "// gcc -DMAIN=1 %s.c ; ./a.out > %s.h", cname, cname);
+	}
+	return strbuf_drain (sb);
 }
 
 // TODO rename gperf with cgen
-SDB_API void sdb_cgen_footer(const char *name, const char *cname, bool textmode) {
+SDB_API char *sdb_cgen_footer(const char *name, const char *cname, bool textmode) {
+	StrBuf *sb = strbuf_new ();
+	if (!sb) {
+		return NULL;
+	}
 	if (textmode) {
-		printf ("  {NULL, NULL}\n");
-		printf ("};\n");
-		printf ("// %p\n", cname);
-		printf ("// TODO\n");
-		printf ("typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);\n");
-		printf ("int gperf_%s_foreach(GperfForeachCallback cb, void *user) {\n", cname);
-		printf ("  int i = 0; while (kvs[i].name) {\n");
-		printf ("  cb (user, kvs[i].name, kvs[i].value);\n");
-		printf ("  i++;}\n");
-		printf ("  return 0;\n");
-		printf ("}\n");
-		printf ("const char *gperf_%s_get(const char *s) {\n", cname);
-		printf ("  int i = 0; while (kvs[i].name) {\n");
-		printf ("  if (!strcmp (s, kvs[i].name)) return kvs[i].value;\n");
-		printf ("  i++;}\n");
-		printf ("  return NULL;\n");
-		printf ("}\n");
-		printf ("#define sdb_hash_c_%s(x,y) gperf_%s_hash(x)\n", cname, cname);
-		printf ("const unsigned int gperf_%s_hash(const char *s) {\n", cname);
-		printf ("  int sum = strlen (s);\n");
-		printf ("  while (*s) { sum += *s; s++; }\n");
-		printf ("  return sum;\n");
-		printf ("}\n");
-		printf (
+		strbuf_append (sb, "  {NULL, NULL}\n"
+			"};\n"
+			// "// TODO\n"
+			"typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);", 1);
+		strbuf_appendf (sb, 1, "int gperf_%s_foreach(GperfForeachCallback cb, void *user) {", cname);
+		strbuf_append (sb, "  int i = 0; while (kvs[i].name) {\n"
+			"  cb (user, kvs[i].name, kvs[i].value);\n"
+			"  i++;}\n"
+			"  return 0;\n"
+			"}", 1);
+		strbuf_appendf (sb, 1, "const char *gperf_%s_get(const char *s) {", cname);
+		strbuf_append (sb, "  int i = 0; while (kvs[i].name) {\n"
+			"  if (!strcmp (s, kvs[i].name)) return kvs[i].value;\n"
+			"  i++;}\n"
+			"  return NULL;\n"
+			"}", 1);
+		strbuf_appendf (sb, 1, "#define sdb_hash_c_%s(x,y) gperf_%s_hash(x)", cname, cname);
+		strbuf_appendf (sb, 1, "const unsigned int gperf_%s_hash(const char *s) {", cname);
+		strbuf_append (sb, "  int sum = strlen (s);\n"
+			"  while (*s) { sum += *s; s++; }\n"
+			"  return sum;\n"
+			"}", 1);
+		
+		strbuf_appendf (sb, 1,
 			"struct {const char *name;void *get;void *hash;void *foreach;} gperf_%s = {\n"
 			"  .name = \"%s\",\n"
 			"  .get = &gperf_%s_get,\n"
 			"  .hash = &gperf_%s_hash,\n"
 			"  .foreach = &gperf_%s_foreach\n"
-			"};\n", cname, name, cname, cname, cname);
-		printf (
+			"};\n"
 			"\n"
 			"#if MAIN\n"
 			"int main () {\n"
 			"	const char *s = ((char*(*)(char*))gperf_%s.get)(\"foo\");\n"
 			"	printf (\"%%s\\n\", s);\n"
 			"}\n"
-			"#endif\n", cname);
-		return;
+			"#endif", cname, name, cname, cname, cname, cname);
+		
+		return strbuf_drain (sb);
 	}
-	printf ("%%%%\n");
-	printf ("// SDB-CGEN V" SDB_VERSION "\n");
-	printf ("// %p\n", cname);
-	printf ("typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);\n");
-	printf ("int gperf_%s_foreach(GperfForeachCallback cb, void *user) {\n", cname);
-	printf ("\tint i;for (i=0;i<TOTAL_KEYWORDS;i++) {\n");
-	printf ("\tconst struct kv *w = &wordlist[i];\n");
-	printf ("\tif (!cb (user, w->name, w->value)) return 0;\n");
-	printf ("}\n");
-	printf ("return 1;}\n");
-	printf ("const char* gperf_%s_get(const char *s) {\n", cname);
-	printf ("\tconst struct kv *o = sdb_get_c_%s (s, strlen(s));\n", cname);
-	printf ("\treturn o? o->value: NULL;\n");
-	printf ("}\n");
-	printf ("const unsigned int gperf_%s_hash(const char *s) {\n", cname);
-	printf ("\treturn sdb_hash_c_%s(s, strlen (s));\n", cname);
-	printf ("}\n");
-	printf (
+	strbuf_append (sb, "%%\n"
+		"// SDB-CGEN V" SDB_VERSION "\n"
+		"typedef int (*GperfForeachCallback)(void *user, const char *k, const char *v);", 1);
+	// strbuf_appendf (sb, 1, "// %p", cname);
+	strbuf_appendf (sb, 1, "int gperf_%s_foreach(GperfForeachCallback cb, void *user) {", cname);
+	strbuf_append (sb, "\tint i;for (i=0;i<TOTAL_KEYWORDS;i++) {\n"
+		"\tconst struct kv *w = &wordlist[i];\n"
+		"\tif (!cb (user, w->name, w->value)) return 0;\n"
+		"}\n"
+		"return 1;}", 1);
+	strbuf_appendf (sb, 1, "const char* gperf_%s_get(const char *s) {", cname);
+	strbuf_appendf (sb, 1, "\tconst struct kv *o = sdb_get_c_%s (s, strlen(s));", cname);
+	strbuf_append (sb, "\treturn o? o->value: NULL;\n"
+		"}", 1);
+	strbuf_appendf (sb, 1, "const unsigned int gperf_%s_hash(const char *s) {", cname);
+	strbuf_appendf (sb, 1, "\treturn sdb_hash_c_%s(s, strlen (s));", cname);
+	strbuf_append (sb, "}", 1);
+	
+	strbuf_appendf (sb, 1, 
 		"struct {const char*name;void*get;void*hash;void *foreach;} gperf_%s = {\n"
 		"\t.name = \"%s\",\n"
 		"\t.get = &gperf_%s_get,\n"
@@ -116,16 +127,14 @@ SDB_API void sdb_cgen_footer(const char *name, const char *cname, bool textmode)
 		"					line, sdb_hash_c_%s (line, comma - line));\n"
 		"			}\n"
 		"		}\n"
-		"		if (*line == '%%' && line[1] == '%%')\n"
-		"			mode++;\n"
+		"		if (*line == '%%' && line[1] == '%%') { mode++; }\n"
 		"	}\n"
 		"	printf (\"#endif\\n\");\n"
 		"}\n"
-		"#endif\n",
-		cname, cname, cname, cname, cname,
-		name, name,
-		cname, cname, cname, cname
-	);
-	printf ("\n");
+		"#endif",
+		cname, name, cname, cname, cname, name, name, cname, cname, cname, cname);
+		
+	strbuf_append (sb, "", 1);
+	return strbuf_drain (sb);
 }
 

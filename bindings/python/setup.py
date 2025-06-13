@@ -31,6 +31,8 @@ setup(
 			"sdbsrc/array.c",
 			"sdbsrc/cdb.c",
 			"sdbsrc/journal.c",
+			"sdbsrc/cgen.c",
+			"sdbsrc/strbuf.c",
 			"sdbsrc/ht_uu.c",
 			"sdbsrc/set.c",
 			"sdbsrc/sdb.c",

@@ -184,9 +184,22 @@ SDB_API int sdb_nunset(Sdb*, ut64 nkey, ut32 cas);
 SDB_API int sdb_unset_like(Sdb *s, const char *k);
 SDB_API char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb);
 
+// StrBuf API
+typedef struct {
+	char *buf;
+	int len;
+	int size;
+} StrBuf;
+
+SDB_API StrBuf* strbuf_new(void);
+SDB_API StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl);
+SDB_API StrBuf* strbuf_appendf(StrBuf *sb, const int nl, const char *fmt, ...) SDB_PRINTF_CHECK(3, 4);
+SDB_API char* strbuf_drain(StrBuf *sb);
+SDB_API StrBuf* strbuf_free(StrBuf *sb);
+
 // cgen wip
-SDB_API void sdb_cgen_header(const char *cname, bool textmode);
-SDB_API void sdb_cgen_footer(const char *name, const char *cname, bool textmode);
+SDB_API char *sdb_cgen_header(const char *cname, bool textmode);
+SDB_API char *sdb_cgen_footer(const char *name, const char *cname, bool textmode);
 
 // diffing
 typedef struct sdb_diff_t {
