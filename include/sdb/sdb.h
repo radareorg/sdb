@@ -468,7 +468,7 @@ SDB_API char** sdb_fmt_array(const char *list);
 SDB_API ut64* sdb_fmt_array_num(const char *list);
 
 // tool.c
-SDB_API bool sdb_tool(const char *path);
+SDB_API bool sdb_tool(const char *path, bool mirror_mode);
 
 // raw array helpers
 SDB_API char *sdb_array_compact(char *p);

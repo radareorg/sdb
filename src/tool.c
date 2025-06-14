@@ -109,7 +109,7 @@ static char *escape(const char *b, int ch) {
 	return a;
 }
 
-static bool dothec(const char *file_txt, const char *file_gperf, const char *file_c, bool compile_gperf) {
+static bool dothec(const char *file_txt, const char *file_gperf, const char *file_c, bool compile_gperf, bool mirror_mode) {
 	Sdb *db = NULL;
 	char *header = NULL;
 	char *footer = NULL;
@@ -164,11 +164,22 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 		const char *v = sdbkv_value (kv);
 
 		// Escape special characters
-		ek = escape (k, ',');
+		ek = escape (k, 0); // ',');
 		ev = escape (v, 0);
 
 		if (ek && ev) {
 			strbuf_appendf (sb, 0, "\t{\"%s\", \"%s\"},\n", ek, ev);
+			if (mirror_mode) {
+				char *comma = strchr (ev, ',');
+				if (comma) {
+					*comma++ = '.';
+					comma = strchr (ev, ',');
+					if (comma) {
+						*comma++ = 0;
+					}
+				}
+				strbuf_appendf (sb, 0, "\t{\"%s\", \"%s\"},\n", ev, ek);
+			}
 			sdb_gh_free (ek);
 			sdb_gh_free (ev);
 		}
@@ -238,11 +249,12 @@ fail:
 	return false;
 }
 
-static bool dothesdb(const char *file_txt, const char *file_sdb) {
+static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode) {
 	Sdb *db = sdb_new (NULL, file_sdb, 0);
 	if (sdb_text_load (db, file_txt)) {
 		fprintf (stderr, "maked %s\n", file_sdb);
 		sdb_sync (db);
+		// TODO: mirror_mode not implemented here
 		sdb_free (db);
 		return true;
 	}
@@ -267,7 +279,7 @@ static bool is_newer(const char *path_a, const char *path_b) {
 	return sta.st_mtime > stb.st_mtime;
 }
 
-static bool dothething(const char *basedir, const char *file_txt) {
+static bool dothething(const char *basedir, const char *file_txt, bool mirror_mode) {
 	bool compile_gperf = COMPILE_GPERF;
 	char *file_sdb = sdb_strdup (file_txt);
 	if (!file_sdb) {
@@ -292,18 +304,19 @@ static bool dothething(const char *basedir, const char *file_txt) {
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
 		fprintf (stdout, "newer %s\n", file_c);
-		dothec(file_txt, file_gperf, file_c, compile_gperf);
+		dothec(file_txt, file_gperf, file_c, compile_gperf, mirror_mode);
 	}
 	if (!file_exists(file_sdb) || is_newer(file_txt, file_sdb)) {
 		fprintf (stdout, "newer %s\n", file_sdb);
-		dothesdb(file_txt, file_sdb);
+		dothesdb(file_txt, file_sdb, mirror_mode);
 	}
 	sdb_gh_free(file_c);
 	sdb_gh_free(file_gperf);
 	sdb_gh_free(file_sdb);
 	return true;
 }
-SDB_API bool sdb_tool(const char *path) {
+
+SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	if (!path) {
 		fprintf(stderr, "Usage: sdb -r [path]\n");
 		return false;
@@ -312,7 +325,7 @@ SDB_API bool sdb_tool(const char *path) {
 #if defined(_WIN32)
 	/* Windows implementation using FindFirstFile */
 	char cwd[1024];
-	if (getcwd(cwd, sizeof(cwd)) == NULL) {
+	if (getcwd (cwd, sizeof (cwd)) == NULL) {
 		fprintf(stderr, "Failed to get current directory\n");
 		return false;
 	}
@@ -335,7 +348,8 @@ SDB_API bool sdb_tool(const char *path) {
 			const char *file = findData.cFileName;
 			size_t len = strlen(file);
 			if (len > 8 && strcmp(file + len - 8, ".sdb.txt") == 0) {
-				success |= dothething(path, file);
+				// If in mirror mode, process the file contents with the mirror transformation
+				success |= dothething(path, file, mirror_mode);
 			}
 		} while (FindNextFileA(hFind, &findData));
 		FindClose(hFind);
@@ -367,13 +381,14 @@ SDB_API bool sdb_tool(const char *path) {
 
 	struct dirent *entry;
 	bool success = false;
+	
 	while ((entry = readdir(dir)) != NULL) {
 		const char *file = entry->d_name;
 		size_t file_len = strlen(file);
 
 		// Check if file ends with ".sdb.txt"
 		if (file_len > 8 && strcmp (file + file_len - 8, ".sdb.txt") == 0) {
-			success |= dothething (path, file);
+			success |= dothething (path, file, mirror_mode);
 		}
 	}
 

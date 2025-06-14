@@ -1,6 +1,4 @@
-/* sdb - MIT - Copyright 2011-2025 - pancake */
-
-#include <signal.h>
+# include <signal.h>
 #include <fcntl.h>
 #ifndef HAVE_SYSTEM
 #define HAVE_SYSTEM 1
@@ -162,7 +160,7 @@ static char *slurp(FILE *f, size_t *sz) {
 					if (!*next) {
 						next = NULL;
 					} else {
-						//	continue;
+					//	continue;
 					}
 				} else {
 					next = NULL;
@@ -726,6 +724,7 @@ static const char *main_argparse_getarg(MainOptions *mo) {
 
 static bool main_argparse_flag(MainOptions *mo, char flag) {
 	mo->argi++;
+	eprintf ("FLAG %c\n", flag);
 	switch (flag) {
 	case '0':
 		mo->format = zero;
@@ -742,6 +741,9 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 	case 'd':
 		return base64decode ();
 	case 'r':
+		if (mo->format == sdb_gen) {
+			mo->options |= (1 << 16); // Use a bit in options as a flag to track if -r was seen
+		}
 		mo->format = sdb_gen;
 		break;
 	case 'j':
@@ -876,7 +878,13 @@ SDB_API int sdb_main(int argc, const char **argv) {
 		if (mo->db0 >= argc) {
 			return showusage (1);
 		}
-		return sdb_tool (mo->argv[mo->db0])? 0: 1;
+		// Check for multiple -r flags to enable mirror mode
+		bool mirror_mode = mo->options & (1<<16);
+		eprintf ("MIRROR MODE %d\n", mirror_mode);
+		if (mirror_mode) {
+			fprintf(stderr, "Mirror mode enabled (-rr): keys and values will be mirrored\n");
+		}
+		return sdb_tool (mo->argv[mo->db0], mirror_mode)? 0: 1;
 	case cgen:
 		{
 			if (mo->db0 >= argc) {
