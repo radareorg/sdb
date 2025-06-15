@@ -223,17 +223,22 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	fprintf (stdout, "Generated GPERF file: %s\n", file_gperf);
 	if (compile_gperf) {
 		char cmd[1024];
-		snprintf(cmd, sizeof(cmd), "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
+		snprintf (cmd, sizeof (cmd), "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
 				" -N sdb_get_c_%s -t %s > %s", cname, cname, file_gperf, file_c);
 		fprintf (stdout, "Generating C file from gperf: %s\n", file_c);
 		fprintf (stderr, "system: %s\n", cmd);
-		int rc = system(cmd);
+#if HAVE_SYSTEM
+		int rc = system (cmd);
 		if (rc == 0) {
 			fprintf (stdout, "Done\n");
 			unlink (file_gperf);
 		} else {
 			fprintf (stderr, "Cannot generate C file: %s\n", file_c);
 		}
+#else
+		fprintf (stderr, "This build doesnt support running system commands.\n");
+		fprintf (stderr, "%s\n", cmd);
+#endif
 	}
 	sdb_free (db);
 	sdb_gh_free (name);
