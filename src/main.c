@@ -724,7 +724,6 @@ static const char *main_argparse_getarg(MainOptions *mo) {
 
 static bool main_argparse_flag(MainOptions *mo, char flag) {
 	mo->argi++;
-	eprintf ("FLAG %c\n", flag);
 	switch (flag) {
 	case '0':
 		mo->format = zero;
