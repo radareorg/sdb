@@ -178,7 +178,9 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 						*comma++ = 0;
 					}
 				}
-				strbuf_appendf (sb, 0, "\t{\"%s\", \"%s\"},\n", ev, ek);
+				if (strcmp (ek, "_")) {
+					strbuf_appendf (sb, 0, "\t{\"%s\", \"%s\"},\n", ev, ek);
+				}
 			}
 			sdb_gh_free (ek);
 			sdb_gh_free (ev);
