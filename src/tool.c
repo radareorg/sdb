@@ -256,12 +256,42 @@ fail:
 	return false;
 }
 
+static void mirror_sdb(Sdb *db) {
+	SdbList *l = sdb_foreach_list (db, true);
+	SdbListIter *it;
+	SdbKv *kv;
+	ls_foreach_cast (l, it, SdbKv*, kv) {
+		const char *k = sdbkv_key (kv);
+		const char *v = sdbkv_value (kv);
+
+		// Escape special characters
+		char *ek = escape (k, 0); // ',');
+		char *ev = escape (v, 0);
+
+		if (ek && ev) {
+			char *comma = strchr (ev, ',');
+			if (comma) {
+				*comma++ = '.';
+				comma = strchr (ev, ',');
+				if (comma) {
+					*comma++ = 0;
+				}
+			}
+			if (strcmp (ek, "_")) {
+				sdb_set (db, ev, ek, 0);
+			}
+		}
+		sdb_gh_free (ek);
+		sdb_gh_free (ev);
+	}
+}
+
 static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode) {
 	Sdb *db = sdb_new (NULL, file_sdb, 0);
 	if (sdb_text_load (db, file_txt)) {
 		fprintf (stderr, "maked %s\n", file_sdb);
+		mirror_sdb (db);
 		sdb_sync (db);
-		// TODO: mirror_mode not implemented here
 		sdb_free (db);
 		return true;
 	}
