@@ -874,16 +874,15 @@ SDB_API int sdb_main(int argc, const char **argv) {
 	case perf:
 		return sdb_dump (mo);
 	case sdb_gen:
-		if (mo->db0 >= argc) {
-			return showusage (1);
+		{
+			if (mo->db0 >= argc) {
+				return showusage (1);
+			}
+			// Enable mirror mode if -r is used more than once
+			const bool mirror_mode = mo->options & (1<<16);
+			return sdb_tool (mo->argv[mo->db0], mirror_mode)? 0: 1;
 		}
-		// Check for multiple -r flags to enable mirror mode
-		bool mirror_mode = mo->options & (1<<16);
-		eprintf ("MIRROR MODE %d\n", mirror_mode);
-		if (mirror_mode) {
-			fprintf(stderr, "Mirror mode enabled (-rr): keys and values will be mirrored\n");
-		}
-		return sdb_tool (mo->argv[mo->db0], mirror_mode)? 0: 1;
+		break;
 	case cgen:
 		{
 			if (mo->db0 >= argc) {
@@ -899,6 +898,8 @@ SDB_API int sdb_main(int argc, const char **argv) {
 			sdb_gh_free (name);
 			return rc;
 		}
+		break;
+	case text:
 	default:
 		break;
 	}

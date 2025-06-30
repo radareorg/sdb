@@ -230,7 +230,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	}
 	sdb_gh_free (content);
 
-	fprintf (stdout, "Generated GPERF file: %s\n", file_gperf);
+	fprintf (stdout, "SDBTOOL gperf=%s\n", file_gperf);
 	if (compile_gperf) {
 		char cmd[1024];
 		snprintf (cmd, sizeof (cmd), "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
@@ -399,11 +399,11 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
 		fprintf (stdout, "newer %s\n", file_c);
-		dothec(file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
+		dothec (file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
 	}
 	if (!file_exists(file_sdb) || is_newer(file_txt, file_sdb)) {
 		fprintf (stdout, "newer %s\n", file_sdb);
-		dothesdb(file_txt, file_sdb, mirror_mode, output_dir);
+		dothesdb (file_txt, file_sdb, mirror_mode, output_dir);
 	}
 	sdb_gh_free(file_c);
 	sdb_gh_free(file_gperf);
@@ -418,6 +418,7 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	}
 	// Check for output directory environment variable
 	const char *output_dir = getenv("SDB_OUTPUT_DIR");
+	fprintf (stderr, "SDBTOOL (mirror=%d) from=%s to=%s\n", mirror_mode, path, output_dir? output_dir: path);
 
 #if defined(_WIN32)
 	/* Windows implementation using FindFirstFile */
@@ -478,9 +479,11 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 
 	struct dirent *entry;
 	bool success = false;
+	bool nothing = true;
 	while ((entry = readdir (dir)) != NULL) {
 		const char *file = entry->d_name;
 		size_t file_len = strlen (file);
+		nothing = false;
 
 		// Check if file ends with ".sdb.txt"
 		if (file_len > 8 && strcmp (file + file_len - 8, ".sdb.txt") == 0) {
@@ -494,6 +497,6 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	}
 
 	closedir (dir);
-	return success;
+	return success || nothing;
 #endif
 }
