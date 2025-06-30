@@ -419,6 +419,8 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	// Check for output directory environment variable
 	const char *output_dir = getenv("SDB_OUTPUT_DIR");
 	fprintf (stderr, "SDBTOOL (mirror=%d) from=%s to=%s\n", mirror_mode, path, output_dir? output_dir: path);
+	bool success = false;
+	bool nothing = true;
 
 #if defined(_WIN32)
 	/* Windows implementation using FindFirstFile */
@@ -431,7 +433,6 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 		fprintf(stderr, "Cannot chdir to %s\n", path);
 		return false;
 	}
-	bool success = false;
 	WIN32_FIND_DATAA findData;
 	HANDLE hFind = FindFirstFileA ("*.sdb.txt", &findData);
 	if (hFind == INVALID_HANDLE_VALUE) {
@@ -449,13 +450,13 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 				// If in mirror mode, process the file contents with the mirror transformation
 				success |= dothething(path, file, mirror_mode, output_dir);
 			}
+			nothing = false;
 		} while (FindNextFileA (hFind, &findData));
 		FindClose (hFind);
 	}
 	if (chdir (cwd) != 0) {
 		fprintf(stderr, "Warning: Failed to return to original directory\n");
 	}
-	return success;
 #else
 	DIR *dir = opendir (path);
 	if (!dir) {
@@ -478,8 +479,6 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	}
 
 	struct dirent *entry;
-	bool success = false;
-	bool nothing = true;
 	while ((entry = readdir (dir)) != NULL) {
 		const char *file = entry->d_name;
 		size_t file_len = strlen (file);
@@ -497,6 +496,10 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	}
 
 	closedir (dir);
-	return success || nothing;
 #endif
+	const bool res = success || nothing;
+	if (!res) {
+		fprintf (stderr, "error: sdbtool failed\n");
+	}
+	return res;
 }
