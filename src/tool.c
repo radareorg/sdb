@@ -482,7 +482,7 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 
 		// Check if file ends with ".sdb.txt"
 		if (file_len > 8 && strcmp (file + file_len - 8, ".sdb.txt") == 0) {
-			success |= dothething (path, file, mirror_mode);
+			success |= dothething (path, file, mirror_mode, output_dir);
 		}
 	}
 
