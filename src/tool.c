@@ -109,7 +109,15 @@ static char *escape(const char *b, int ch) {
 	return a;
 }
 
-static bool dothec(const char *file_txt, const char *file_gperf, const char *file_c, bool compile_gperf, bool mirror_mode) {
+static bool dothec(const char *file_txt, const char *file_gperf, const char *file_c, bool compile_gperf, bool mirror_mode, const char *output_dir) {
+	// Create output directory if it doesn't exist
+	if (output_dir) {
+		#if defined(_WIN32)
+		_mkdir(output_dir);
+		#else
+		mkdir(output_dir, 0755);
+		#endif
+	}
 	Sdb *db = NULL;
 	char *header = NULL;
 	char *footer = NULL;
@@ -286,7 +294,15 @@ static void mirror_sdb(Sdb *db) {
 	}
 }
 
-static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode) {
+static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode, const char *output_dir) {
+	// Create output directory if it doesn't exist
+	if (output_dir) {
+		#if defined(_WIN32)
+		_mkdir(output_dir);
+		#else
+		mkdir(output_dir, 0755);
+		#endif
+	}
 	Sdb *db = sdb_new (NULL, file_sdb, 0);
 	if (sdb_text_load (db, file_txt)) {
 		fprintf (stderr, "maked %s\n", file_sdb);
@@ -318,20 +334,50 @@ static bool is_newer(const char *path_a, const char *path_b) {
 	return sta.st_mtime > stb.st_mtime;
 }
 
-static bool dothething(const char *basedir, const char *file_txt, bool mirror_mode) {
+static bool dothething(const char *basedir, const char *file_txt, bool mirror_mode, const char *output_dir) {
 	bool compile_gperf = COMPILE_GPERF;
 	char *file_sdb = sdb_strdup (file_txt);
 	if (!file_sdb) {
 		return false;
 	}
 	file_sdb [strlen (file_txt) - 4] = 0;
-
-	char *file_c = sdb_strdup (file_sdb);
-	if (!file_c) {
-		sdb_gh_free (file_sdb);
-		return false;
+	// If output directory is specified, prepend it to output filenames
+	char *out_file_sdb = NULL;
+	if (output_dir) {
+		size_t len = strlen(output_dir) + strlen(file_sdb) + 2; // +2 for '/' and null terminator
+		out_file_sdb = (char *)sdb_gh_malloc(len);
+		if (out_file_sdb) {
+			snprintf(out_file_sdb, len, "%s/%s", output_dir, file_sdb);
+			// Use the path with output directory for output files
+			sdb_gh_free(file_sdb);
+			file_sdb = out_file_sdb;
+		}
 	}
-	strcpy (file_c + strlen (file_c) - 3, "c");
+
+	char *file_c = NULL;
+	if (output_dir) {
+		// Extract the base filename without path for C file name
+		const char *base_name = file_sdb;
+		const char *slash = strrchr(file_sdb, '/');
+		if (slash) {
+			base_name = slash + 1;
+		}
+		size_t len = strlen(output_dir) + strlen(base_name) + 2;
+		file_c = (char *)sdb_gh_malloc(len);
+		if (!file_c) {
+			sdb_gh_free(file_sdb);
+			return false;
+		}
+		snprintf(file_c, len, "%s/%s", output_dir, base_name);
+		strcpy (file_c + strlen (file_c) - 3, "c");
+	} else {
+		file_c = sdb_strdup (file_sdb);
+		if (!file_c) {
+			sdb_gh_free (file_sdb);
+			return false;
+		}
+		strcpy (file_c + strlen (file_c) - 3, "c");
+	}
 
 	char *file_gperf = sdb_strdup(file_c);
 	if (!file_gperf) {
@@ -339,15 +385,23 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 		sdb_gh_free(file_sdb);
 		return false;
 	}
+	// Add .gperf extension
+	size_t gperf_len = strlen(file_gperf) + 7; // + .gperf + null terminator
+	char *gperf_with_ext = (char *)sdb_gh_malloc(gperf_len);
+	if (gperf_with_ext) {
+		snprintf(gperf_with_ext, gperf_len, "%s.gperf", file_gperf);
+		sdb_gh_free(file_gperf);
+		file_gperf = gperf_with_ext;
+	}
 
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
 		fprintf (stdout, "newer %s\n", file_c);
-		dothec(file_txt, file_gperf, file_c, compile_gperf, mirror_mode);
+		dothec(file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
 	}
 	if (!file_exists(file_sdb) || is_newer(file_txt, file_sdb)) {
 		fprintf (stdout, "newer %s\n", file_sdb);
-		dothesdb(file_txt, file_sdb, mirror_mode);
+		dothesdb(file_txt, file_sdb, mirror_mode, output_dir);
 	}
 	sdb_gh_free(file_c);
 	sdb_gh_free(file_gperf);
@@ -360,6 +414,8 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 		fprintf(stderr, "Usage: sdb -r [path]\n");
 		return false;
 	}
+	// Check for output directory environment variable
+	const char *output_dir = getenv("SDB_OUTPUT_DIR");
 
 #if defined(_WIN32)
 	/* Windows implementation using FindFirstFile */
@@ -374,56 +430,55 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	}
 	bool success = false;
 	WIN32_FIND_DATAA findData;
-	HANDLE hFind = FindFirstFileA("*.sdb.txt", &findData);
+	HANDLE hFind = FindFirstFileA ("*.sdb.txt", &findData);
 	if (hFind == INVALID_HANDLE_VALUE) {
-		DWORD err = GetLastError();
+		DWORD err = GetLastError ();
 		if (err != ERROR_FILE_NOT_FOUND) {
-			fprintf(stderr, "FindFirstFile failed for %s: error %lu\n", path, err);
-			chdir(cwd);
+			fprintf (stderr, "FindFirstFile failed for %s: error %lu\n", path, err);
+			chdir (cwd);
 			return false;
 		}
 	} else {
 		do {
 			const char *file = findData.cFileName;
-			size_t len = strlen(file);
-			if (len > 8 && strcmp(file + len - 8, ".sdb.txt") == 0) {
+			size_t len = strlen (file);
+			if (len > 8 && strcmp (file + len - 8, ".sdb.txt") == 0) {
 				// If in mirror mode, process the file contents with the mirror transformation
-				success |= dothething(path, file, mirror_mode);
+				success |= dothething(path, file, mirror_mode, output_dir);
 			}
-		} while (FindNextFileA(hFind, &findData));
-		FindClose(hFind);
+		} while (FindNextFileA (hFind, &findData));
+		FindClose (hFind);
 	}
-	if (chdir(cwd) != 0) {
+	if (chdir (cwd) != 0) {
 		fprintf(stderr, "Warning: Failed to return to original directory\n");
 	}
 	return success;
 #else
-	DIR *dir = opendir(path);
+	DIR *dir = opendir (path);
 	if (!dir) {
-		fprintf(stderr, "Invalid directory: %s\n", path);
+		fprintf (stderr, "Invalid directory: %s\n", path);
 		return false;
 	}
 
 	// Change to the specified directory
 	char cwd[1024];
-	if (getcwd(cwd, sizeof(cwd)) == NULL) {
-		fprintf(stderr, "Failed to get current directory\n");
-		closedir(dir);
+	if (getcwd (cwd, sizeof (cwd)) == NULL) {
+		fprintf (stderr, "Failed to get current directory\n");
+		closedir (dir);
 		return false;
 	}
 
-	if (chdir(path) != 0) {
-		fprintf(stderr, "Cannot chdir to %s\n", path);
-		closedir(dir);
+	if (chdir (path) != 0) {
+		fprintf (stderr, "Cannot chdir to %s\n", path);
+		closedir (dir);
 		return false;
 	}
 
 	struct dirent *entry;
 	bool success = false;
-	
-	while ((entry = readdir(dir)) != NULL) {
+	while ((entry = readdir (dir)) != NULL) {
 		const char *file = entry->d_name;
-		size_t file_len = strlen(file);
+		size_t file_len = strlen (file);
 
 		// Check if file ends with ".sdb.txt"
 		if (file_len > 8 && strcmp (file + file_len - 8, ".sdb.txt") == 0) {
@@ -432,11 +487,11 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	}
 
 	// Return to original directory
-	if (chdir(cwd) != 0) {
+	if (chdir (cwd) != 0) {
 		fprintf(stderr, "Warning: Failed to return to original directory\n");
 	}
 
-	closedir(dir);
+	closedir (dir);
 	return success;
 #endif
 }
