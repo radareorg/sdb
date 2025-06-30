@@ -290,7 +290,9 @@ static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mod
 	Sdb *db = sdb_new (NULL, file_sdb, 0);
 	if (sdb_text_load (db, file_txt)) {
 		fprintf (stderr, "maked %s\n", file_sdb);
-		mirror_sdb (db);
+		if (mirror_mode) {
+			mirror_sdb (db);
+		}
 		sdb_sync (db);
 		sdb_free (db);
 		return true;
