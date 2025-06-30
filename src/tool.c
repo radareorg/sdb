@@ -385,6 +385,7 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 		sdb_gh_free(file_sdb);
 		return false;
 	}
+#if 0
 	// Add .gperf extension
 	size_t gperf_len = strlen(file_gperf) + 7; // + .gperf + null terminator
 	char *gperf_with_ext = (char *)sdb_gh_malloc(gperf_len);
@@ -393,6 +394,7 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 		sdb_gh_free(file_gperf);
 		file_gperf = gperf_with_ext;
 	}
+#endif
 
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
