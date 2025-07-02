@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #if defined(_WIN32)
 #include <direct.h> /* for _getcwd, _chdir */
 #include <io.h>     /* for _unlink */
@@ -113,9 +114,15 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	// Create output directory if it doesn't exist
 	if (output_dir) {
 		#if defined(_WIN32)
-		_mkdir(output_dir);
+		if (_mkdir(output_dir) != 0 && errno != EEXIST) {
+			// Ignore if directory already exists
+			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+		}
 		#else
-		mkdir(output_dir, 0755);
+		if (mkdir(output_dir, 0755) != 0 && errno != EEXIST) {
+			// Ignore if directory already exists
+			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+		}
 		#endif
 	}
 	Sdb *db = NULL;
@@ -298,9 +305,15 @@ static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mod
 	// Create output directory if it doesn't exist
 	if (output_dir) {
 		#if defined(_WIN32)
-		_mkdir(output_dir);
+		if (_mkdir(output_dir) != 0 && errno != EEXIST) {
+			// Ignore if directory already exists
+			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+		}
 		#else
-		mkdir(output_dir, 0755);
+		if (mkdir(output_dir, 0755) != 0 && errno != EEXIST) {
+			// Ignore if directory already exists
+			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
+		}
 		#endif
 	}
 	Sdb *db = sdb_new (NULL, file_sdb, 0);
