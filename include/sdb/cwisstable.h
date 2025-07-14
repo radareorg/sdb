@@ -69,7 +69,7 @@
 /// `extern "C"` support via `CWISS_END_EXTERN` and `CWISS_END_EXTERN`,
 /// which open and close an `extern "C"` block in C++ mode.
 #ifdef __cplusplus
-#include <atomic>
+// #include <atomic>
 
 #define CWISS_BEGIN_EXTERN extern "C" {
 #define CWISS_END_EXTERN }
@@ -138,7 +138,7 @@
 /// worse than it would a relaxed atomic. It doesn't matter for our use of
 /// atomics.
 #ifdef __cplusplus
-#include <atomic>
+// #include <atomic>
 #define CWISS_ATOMIC_T(Type_) volatile std::atomic<Type_>
 #define CWISS_ATOMIC_INC(val_) (val_).fetch_add(1, std::memory_order_relaxed)
 #elif CWISS_IS_MSVC || CWISS_IS_MACPPC
