@@ -1,19 +1,16 @@
-#include "sdb/sdb.h"
-#include "sdb/heap.h"
 // Simple heap allocator replacing libc malloc/free via sdb global heap interface
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include <errno.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <errno.h>
-#include "sdb/sdb.h"
 #include "sdb/sdb.h"
 #include "sdb/heap.h"
 
+#if USE_SDB_HEAP
 // sbrk is not available on modern darwins
 #define CUSTOM_SBRK 1
 
@@ -76,7 +73,6 @@ static size_t align8(size_t sz) {
 	return (sz + 7) & ~(size_t)7;
 }
 
-// Realloc-based interface: ptr=NULL => malloc, size=0 => free
 static void *heap2_realloc(void *data, void *ptr, size_t size) {
 	(void)data;
 	// Allocation request
@@ -164,11 +160,16 @@ static const SdbGlobalHeap heap2_global = {
 	heap2_fini,
 	NULL
 };
+#else
+static SdbGlobalHeap Gheap = { NULL, NULL, NULL };
+#endif
 
-// Return pointer to global heap
 SDB_API SdbGlobalHeap *sdb_gh(void) {
-	// point to our custom global heap
+#if USE_SDB_HEAP
 	return (SdbGlobalHeap *)&heap2_global;
+#else
+	return &Gheap;
+#endif
 }
 
 // String duplicate using heap allocator
