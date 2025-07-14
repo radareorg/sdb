@@ -43,6 +43,6 @@ add10k:
 
 clean:
 	rm -f f dumptwice.db
-	rm -f a test.db db a.gz a.out $(BINS)
+	rm -f a test.db a.gz a.out $(BINS)
 
 .PHONY: ${SCRIPTS} ${BINS} b

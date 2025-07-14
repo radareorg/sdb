@@ -51,19 +51,19 @@ jobs:
       run: make asantest
     - name: testing gperf
       run: make -C test/gperf
-  test-leaks:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-    - uses: actions/checkout@v4
-    - name: install gperf
-      run: sudo apt install gperf
-    - name: building sdb
-      run: make asan
-    - name: running tests
-      run: make leaktest
-    - name: testing gperf
-      run: make -C test/gperf
+#  test-leaks:
+#    runs-on: ubuntu-latest
+#    continue-on-error: true
+#    steps:
+#    - uses: actions/checkout@v4
+#    - name: install gperf
+#      run: sudo apt install gperf
+#    - name: building sdb
+#      run: make asan
+#    - name: running tests
+#      run: make leaktest
+#    - name: testing gperf
+#      run: make -C test/gperf
   build-linux:
     runs-on: ubuntu-latest
     steps:

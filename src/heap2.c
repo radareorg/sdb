@@ -11,6 +11,7 @@
 #include "sdb/heap.h"
 
 #if USE_SDB_HEAP
+#warning USE_SDB_HEAP
 // sbrk is not available on modern darwins
 #define CUSTOM_SBRK 1
 
@@ -159,6 +160,14 @@ static const SdbGlobalHeap heap2_global = {
 	heap2_realloc,
 	heap2_fini,
 	NULL
+};
+
+// static SdbHeap sdb_gh_custom_data = { NULL, NULL, 1};
+
+const SdbGlobalHeap sdb_gh_custom = {
+	(SdbHeapRealloc)heap2_realloc,
+	(SdbHeapFini)heap2_fini,
+	NULL // &sdb_gh_custom_data
 };
 #else
 static SdbGlobalHeap Gheap = { NULL, NULL, NULL };
