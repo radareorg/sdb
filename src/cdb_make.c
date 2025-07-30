@@ -133,11 +133,14 @@ int cdb_make_finish(struct cdb_make *c) {
 	if (memsize > (UT32_MAX / sizeof (struct cdb_hp))) {
 		return 0;
 	}
+	// Allocate memory with proper alignment
 	c->split = (struct cdb_hp *) cdb_alloc (memsize * sizeof (struct cdb_hp));
 	if (!c->split) {
 		return 0;
 	}
-	c->hash = c->split + c->numentries;
+	// Ensure the pointer arithmetic is done with proper type safety
+	// by first casting to char* for byte-wise arithmetic, then back to struct cdb_hp*
+	c->hash = (struct cdb_hp*)((char*)c->split + (c->numentries * sizeof (struct cdb_hp)));
 
 	for (u = i = 0; i<256; i++) {
 		u += c->count[i]; /* bounded by numentries, so no overflow */
