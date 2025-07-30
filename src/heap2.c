@@ -5,11 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include "sdb/sdb.h"
 #include "sdb/heap.h"
 
+#if USE_MMAN
+#include <sys/mman.h>
+#endif
 #if USE_SDB_HEAP
 #warning USE_SDB_HEAP
 // sbrk is not available on modern darwins
