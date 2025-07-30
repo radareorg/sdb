@@ -68,12 +68,25 @@ SDB_API int sdb_journal_load(Sdb *s) {
 	if (!str) {
 		return 0;
 	}
-	rr = read (fd, str, sz);
-	if (rr < 0) {
+	// Read content in a safe way
+	ssize_t bytes_read = 0;
+	ssize_t total_read = 0;
+	// Read in chunks to avoid potential issues
+	while (total_read < sz) {
+		bytes_read = read (fd, str + total_read, sz - total_read);
+		if (bytes_read <= 0) {
+			// Error or end of file
+			break;
+		}
+		total_read += bytes_read;
+	}
+	// Check if we got all the expected data
+	if (total_read != sz) {
 		sdb_gh_free (str);
 		return 0;
 	}
-	str[sz] = 0;
+	// Ensure null termination
+	str[total_read] = 0;
 	for (cur = str; ; ) {
 		ptr = strchr (cur, '\n');
 		if (!ptr) {
