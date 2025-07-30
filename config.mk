@@ -1,4 +1,4 @@
-SDBVER=2.1.0
+SDBVER=2.2.0
 
 PREFIX?=/usr
 BINDIR=${PREFIX}/bin
