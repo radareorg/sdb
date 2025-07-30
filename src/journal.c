@@ -48,7 +48,7 @@ SDB_API bool sdb_journal_open(Sdb *s) {
 
 // TODO boolify and save changes somewhere else? or just dont count that?
 SDB_API int sdb_journal_load(Sdb *s) {
-	int rr, sz, fd, changes = 0;
+	int sz, fd, changes = 0;
 	char *eq, *str, *cur, *ptr = NULL;
 	if (!s) {
 		return 0;

@@ -1,4 +1,4 @@
-/* Public domain - author D. J. Bernstein, modified by pancake - 2014-2016 */
+/* Public domain - author D. J. Bernstein, modified by pancake - 2014-2025 */
 
 #include <sys/stat.h>
 #include "sdb/cdb.h"
@@ -53,7 +53,7 @@ bool cdb_init(struct cdb *c, int fd) {
 	cdb_findstart (c);
 	if (fd != -1 && !fstat (fd, &st) && st.st_size > 4 && st.st_size != (off_t)UT64_MAX) {
 #if USE_MMAN
-		char *x = (char *)mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+		char *x = (char *)mmap (0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 		if (x == MAP_FAILED) {
 			// eprintf ("Cannot mmap %d\n", (int)st.st_size);
 			return false;
