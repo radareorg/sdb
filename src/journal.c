@@ -69,8 +69,8 @@ SDB_API int sdb_journal_load(Sdb *s) {
 		return 0;
 	}
 	// Read content in a safe way
-	ssize_t bytes_read = 0;
-	ssize_t total_read = 0;
+	int bytes_read = 0;
+	int total_read = 0;
 	// Read in chunks to avoid potential issues
 	while (total_read < sz) {
 		bytes_read = read (fd, str + total_read, sz - total_read);
