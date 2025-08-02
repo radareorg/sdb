@@ -39,7 +39,10 @@ void cdb_findstart(struct cdb *c) {
 	c->loop = 0;
 #if !USE_MMAN
 	if (c->fd != -1) {
-		lseek (c->fd, 0, SEEK_SET);
+		if (lseek (c->fd, 0, SEEK_SET) == -1) {
+			close (c->fd);
+			c->fd = -1;
+		}
 	}
 #endif
 }
@@ -51,7 +54,7 @@ bool cdb_init(struct cdb *c, int fd) {
 	}
 	c->fd = fd;
 	cdb_findstart (c);
-	if (fd != -1 && !fstat (fd, &st) && st.st_size > 4 && st.st_size != (off_t)UT64_MAX) {
+	if (c->fd != -1 && !fstat (fd, &st) && st.st_size > 4 && st.st_size != (off_t)UT64_MAX) {
 #if USE_MMAN
 		char *x = (char *)mmap (0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 		if (x == MAP_FAILED) {
