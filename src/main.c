@@ -14,13 +14,13 @@
 
 // TODO: enums must be uppercase
 typedef enum {
-	text,
-	zero,
-	json,
-	cgen,
-	diff,
-	perf,
-	sdb_gen
+	TEXT,
+	ZERO,
+	JSON,
+	CGEN,
+	DIFF,
+	PERF,
+	SDB_GEN
 } MainFormat;
 
 // TODO: enums must be uppercase
@@ -304,7 +304,7 @@ static char *escape(const char *b, int ch) {
 
 static void sdb_dump_cb(MainOptions *mo, const char *k, const char *v, const char *comma) {
 	switch (mo->format) {
-	case json:
+	case JSON:
 		if (!strcmp (v, "true") || !strcmp (v, "false")) {
 			printf ("%s\"%s\":%s", comma, k, v);
 		} else if (sdb_isnum (v)) {
@@ -315,8 +315,8 @@ static void sdb_dump_cb(MainOptions *mo, const char *k, const char *v, const cha
 			printf ("%s\"%s\":\"%s\"", comma, k, v);
 		}
 		break;
-	case perf:
-	case cgen:
+	case PERF:
+	case CGEN:
 		{
 			char *a = escape (k, ',');
 			char *b = escape (v, 0);
@@ -329,7 +329,7 @@ static void sdb_dump_cb(MainOptions *mo, const char *k, const char *v, const cha
 			sdb_gh_free (b);
 		}
 		break;
-	case zero:
+	case ZERO:
 		printf ("%s=%s", k, v);
 		break;
 	default:
@@ -355,15 +355,15 @@ static int sdb_dump(MainOptions *mo) {
 	sdb_config (db, options);
 	sdb_dump_begin (db);
 	switch (mo->format) {
-	case cgen:
-	case perf:
+	case CGEN:
+	case PERF:
 		{
 		char *s = sdb_cgen_header (cname, mo->textmode);
 		printf ("%s", s);
 		free (s);
 		}
 		break;
-	case json:
+	case JSON:
 		printf ("{");
 		break;
 	default:
@@ -373,7 +373,7 @@ static int sdb_dump(MainOptions *mo) {
 	int ret = 0;
 	if (db->fd == -1) {
 		SdbList *l = sdb_foreach_list (db, true);
-		if (!mo->textmode && mo->format == cgen && ls_length (l) > SDB_MAX_GPERF_KEYS) {
+		if (!mo->textmode && mo->format == CGEN && ls_length (l) > SDB_MAX_GPERF_KEYS) {
 			ls_free (l);
 			eprintf ("Error: gperf doesn't work with datasets with more than 15.000 keys.\n");
 			ret = -1;
@@ -401,7 +401,7 @@ static int sdb_dump(MainOptions *mo) {
 			sdb_dump_cb (mo, k, v, comma);
 			comma = ",";
 			sdb_gh_free (v);
-			if (!mo->textmode && mo->format == cgen && count++ > SDB_MAX_GPERF_KEYS) {
+			if (!mo->textmode && mo->format == CGEN && count++ > SDB_MAX_GPERF_KEYS) {
 				eprintf ("Error: gperf doesn't work with datasets with more than 15.000 keys.\n");
 				ret = -1;
 			}
@@ -409,19 +409,19 @@ static int sdb_dump(MainOptions *mo) {
 	}
 	if (ret == 0) {
 		switch (mo->format) {
-		case zero:
+		case ZERO:
 			fflush (stdout);
 			ret = write_null ();
 			break;
-		case perf:
-		case cgen:
+		case PERF:
+		case CGEN:
 			{
 				char *footer = sdb_cgen_footer (name, cname, mo->textmode);
 				printf ("%s\n", footer);
 				free (footer);
 			}
 			break;
-		case json:
+		case JSON:
 			printf ("}\n");
 			break;
 		default:
@@ -726,7 +726,7 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 	mo->argi++;
 	switch (flag) {
 	case '0':
-		mo->format = zero;
+		mo->format = ZERO;
 		break;
 	case 'h':
 		return showusage (2);
@@ -740,13 +740,13 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 	case 'd':
 		return base64decode ();
 	case 'r':
-		if (mo->format == sdb_gen) {
+		if (mo->format == SDB_GEN) {
 			mo->options |= (1 << 16); // Use a bit in options as a flag to track if -r was seen
 		}
-		mo->format = sdb_gen;
+		mo->format = SDB_GEN;
 		break;
 	case 'j':
-		mo->format = json;
+		mo->format = JSON;
 		if (mo->argi >= mo->argc) {
 			return jsonIndent ();
 		}
@@ -773,13 +773,13 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 		if (mo->argi + 1 >=  mo->argc) {
 			return showusage (0);
 		}
-		mo->format = diff;
+		mo->format = DIFF;
 		break;
 	case 'G':
-		mo->format = perf;
+		mo->format = PERF;
 		break;
 	case 'C':
-		mo->format = cgen;
+		mo->format = CGEN;
 		break;
 	case 't':
 		mo->textmode = true;
@@ -866,14 +866,14 @@ SDB_API int sdb_main(int argc, const char **argv) {
 	// -C print C/H files
 	// -t text
 	switch (mo->format) {
-	case diff:
+	case DIFF:
 		if (mo->db && mo->db2) {
 			return dbdiff (mo->db, mo->db2)? 0: 1;
 		}
 		return showusage (1);
-	case perf:
+	case PERF:
 		return sdb_dump (mo);
-	case sdb_gen:
+	case SDB_GEN:
 		{
 			if (mo->db0 >= argc) {
 				return showusage (1);
@@ -883,7 +883,7 @@ SDB_API int sdb_main(int argc, const char **argv) {
 			return sdb_tool (mo->argv[mo->db0], mirror_mode)? 0: 1;
 		}
 		break;
-	case cgen:
+	case CGEN:
 		{
 			if (mo->db0 >= argc) {
 				return showusage (1);
@@ -899,7 +899,7 @@ SDB_API int sdb_main(int argc, const char **argv) {
 			return rc;
 		}
 		break;
-	case text:
+	case TEXT:
 	default:
 		break;
 	}
