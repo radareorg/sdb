@@ -1,4 +1,4 @@
-/* radare2 - BSD 3 Clause License - crowell, pancake, ret2libc 2016-2022 */
+/* radare2 - BSD 3 Clause License - crowell, pancake, ret2libc 2016-2025 */
 
 #define LOAD_FACTOR 1
 #define S_ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
@@ -127,13 +127,15 @@ SDB_API HtName_(Ht) *Ht_(new_opt)(HT_(Options) *opt) {
 SDB_API void Ht_(free)(HtName_(Ht)* ht) {
 	if (SDB_LIKELY (ht)) {
 		ut32 i, htsize = ht->size;
+		HT_(KvFreeFunc) freefn = ht->opt.freefn;
+		HT_(Bucket) *table = ht->table;
 		for (i = 0; i < htsize; i++) {
-			HT_(Bucket) *bt = &ht->table[i];
+			HT_(Bucket) *bt = &table[i];
 			HT_(Kv) *kv;
 			ut32 j;
-			if (ht->opt.freefn) {
+			if (freefn) {
 				BUCKET_FOREACH (ht, bt, j, kv) {
-					ht->opt.freefn (kv);
+					freefn (kv);
 				}
 			}
 			sdb_gh_free (bt->arr);
@@ -145,21 +147,21 @@ SDB_API void Ht_(free)(HtName_(Ht)* ht) {
 
 // Increases the size of the hashtable by 2.
 static void internal_ht_grow(HtName_(Ht)* ht) {
-	HtName_(Ht)* ht2;
 	HtName_(Ht) swap;
 	ut32 idx = next_idx (ht->prime_idx);
 	ut32 sz = compute_size (idx, ht->size * 2);
 	ut32 i;
 
-	ht2 = internal_ht_new (sz, idx, &ht->opt);
+	HtName_(Ht)* ht2 = internal_ht_new (sz, idx, &ht->opt);
 	if (!ht2) {
 		// we can't grow the ht anymore. Never mind, we'll be slower,
 		// but everything can continue to work
 		return;
 	}
 
+	HT_(Bucket) *table = ht->table;
 	for (i = 0; i < ht->size; i++) {
-		HT_(Bucket) *bt = &ht->table[i];
+		HT_(Bucket) *bt = &table[i];
 		HT_(Kv) *kv;
 		ut32 j;
 
@@ -200,11 +202,10 @@ static HT_(Kv) *reserve_kv(HtName_(Ht) *ht, const KEY_TYPE key, const int key_le
 	if (bt->count + 1 >= bt->size) {
 		bt->size = (bt->count + 5) * 2;
 		HT_(Kv) *newkvarr = (HT_(Kv)*)sdb_gh_realloc (bt->arr, (bt->size) * ht->opt.elem_size);
-		if (SDB_LIKELY (newkvarr)) {
-			bt->arr = newkvarr;
-		} else {
+		if (!SDB_UNLIKELY (newkvarr)) {
 			return NULL;
 		}
+		bt->arr = newkvarr;
 	}
 	bt->count++;
 	ht->count++;
@@ -268,9 +269,11 @@ SDB_API bool Ht_(update_key)(HtName_(Ht)* ht, const KEY_TYPE old_key, const KEY_
 	HT_(Kv) *kv;
 	ut32 j;
 
+	const bool dupvalue = ht->opt.dupvalue;
+	const size_t elem_size = ht->opt.elem_size;
 	BUCKET_FOREACH (ht, bt, j, kv) {
 		if (is_kv_equal (ht, old_key, old_key_len, kv)) {
-			if (!ht->opt.dupvalue) {
+			if (!dupvalue) {
 				// do not free the value part if dupvalue is not
 				// set, because the old value has been
 				// associated with the new key and it should not
@@ -279,15 +282,13 @@ SDB_API bool Ht_(update_key)(HtName_(Ht)* ht, const KEY_TYPE old_key, const KEY_
 				kv->value_len = 0;
 			}
 			freefn (ht, kv);
-
 			void *src = next_kv (ht, kv);
-			memmove (kv, src, (bt->count - j - 1) * ht->opt.elem_size);
+			memmove (kv, src, (bt->count - j - 1) * elem_size);
 			bt->count--;
 			ht->count--;
 			return true;
 		}
 	}
-
 	return false;
 }
 

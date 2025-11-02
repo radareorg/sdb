@@ -1,4 +1,4 @@
-/* sdb - MIT - Copyright 2011-2022 - pancake */
+/* sdb - MIT - Copyright 2011-2025 - pancake */
 
 #include "sdb/ht.h"
 
