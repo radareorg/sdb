@@ -6,7 +6,7 @@
 #include "sdb/sdb.h"
 
 static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
-	return (SdbKv *)((char *)kv + ht->opt.elem_size);
+	return (SdbKv *)((uintptr_t)kv + ht->opt.elem_size);
 }
 
 #define BUCKET_FOREACH(ht, bt, j, kv)					\

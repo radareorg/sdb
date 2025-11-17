@@ -137,7 +137,9 @@ static char *slurp(FILE *f, size_t *sz) {
 			rr = fread (buf + len, 1, blocksize, f);
 		}
 		if (rr < 1) { // EOF
-			buf[len] = 0;
+			if (len <= bufsize) {
+				buf[len] = 0;
+			}
 			next = NULL;
 			break;
 		}
@@ -186,7 +188,9 @@ static char *slurp(FILE *f, size_t *sz) {
 		sdb_gh_free (buf);
 		return buf = NULL;
 	}
-	buf[len] = 0;
+	if (len <= bufsize) {
+		buf[len] = 0;
+	}
 	return buf;
 }
 

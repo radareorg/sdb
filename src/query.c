@@ -394,6 +394,7 @@ next_quote:
 			}
 		} else {
 			int base = sdb_num_base (sdb_const_get (s, cmd+1, 0));
+			d = 1;
 			if (json) {
 				base = 10; // NOTE: json is base10 only
 				*json = 0;
