@@ -148,7 +148,9 @@ SDB_API char *sdb_querys(Sdb *r, char *buf, size_t len, const char *_cmd) {
 	}
 	// if cmd is null, we take buf as cmd
 	next = NULL;
-repeat:
+	repeat:
+	/* reset per-segment encoding */
+	encode = false;
 	/* skip spaces */
 	while (*cmd && (*cmd == ' ' || *cmd == '\t')) {
 		cmd++;
