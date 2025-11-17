@@ -148,12 +148,61 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 	// XXX: lstr is wrongly computed in sdb_const_get_with an off-by-one
 	// we can optimize this by caching value len in memory . add
 	// sdb_const_get_size()
-	lstr = strlen (str); 
+	lstr = strlen (str);
+
+	// XXX: lstr is wrongly computed in sdb_const_get_with an off-by-one
+	// we can optimize this by caching value len in memory . add
+	// sdb_const_get_size()
+	lstr = strlen (str);
 
 	// When removing strlen this conversion should be checked
 	size_t lstr_tmp = lstr;
 	if (SZT_ADD_OVFCHK (lval, lstr_tmp) || SZT_ADD_OVFCHK (lval + lstr_tmp, 2)) {
 		return false;
+	}
+	x = (char *)sdb_gh_malloc (lval + lstr_tmp + 2);
+	if (!x) {
+		return false;
+	}
+
+	if (idx == -1) {
+		memcpy (x, str, lstr);
+		x[lstr] = SDB_RS;
+		memcpy (x + lstr + 1, val, lval + 1);
+	} else if (!idx) {
+		memcpy (x, val, lval);
+		x[lval] = SDB_RS;
+		memcpy (x + val + 1, str, lstr + 1);
+	} else {
+		char *nstr = (char *)sdb_gh_malloc (lstr + 1);
+		if (!nstr) {
+			sdb_gh_free (x);
+			return false;
+		}
+		memcpy (nstr, str, lstr + 1);
+		ptr = (char *)Aindexof (nstr, idx);
+		if (ptr) {
+			int lptr = (nstr + lstr + 1) - ptr;
+			char *p_1 = ptr > nstr? ptr - 1: ptr;
+			*p_1 = 0;
+			lnstr = ptr - nstr - 1;
+			if (lnstr < 0) {
+				lnstr = 0;
+			}
+			memcpy (x, nstr, lnstr);
+			x[lnstr] = SDB_RS;
+			memcpy (x + lnstr + 1, val, lval);
+			x[lnstr + lval + 1] = SDB_RS;
+			// TODO: this strlen hurts performance
+			memcpy (x + lval + 2 + lnstr, ptr, lptr); //strlen (ptr)+1);
+			sdb_gh_free (nstr);
+		} else {
+			// this is not efficient
+			sdb_gh_free (nstr);
+			sdb_gh_free (x);
+			// fallback for empty buckets
+			return sdb_array_set (s, key, idx, val, cas);
+		}
 	}
 	x = (char *)sdb_gh_malloc (lval + lstr_tmp + 2);
 	if (!x) {
@@ -181,6 +230,9 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 			char *p_1 = ptr > nstr? ptr - 1: ptr;
 			*p_1 = 0;
 			lnstr = ptr - nstr - 1;
+			if (lnstr < 0) {
+				lnstr = 0;
+			}
 			memcpy (x, nstr, lnstr);
 			x[lnstr] = SDB_RS;
 			memcpy (x + lnstr + 1, val, lval);
@@ -246,7 +298,7 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 	if (i > 1) {
 		qsort (vals, i, sizeof (ut64*), cstring_cmp);
 	}
-	nstr_p = nstr = (char *)sdb_gh_malloc (lstr + lval + 3);
+	nstr_p = nstr = (char *)sdb_gh_malloc (lstr + lval + 10);
 	if (!nstr) {
 		return 1;
 	}
