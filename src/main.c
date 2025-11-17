@@ -76,7 +76,7 @@ static int write_null(void) {
 
 static char *slurp(FILE *f, size_t *sz) {
 	int blocksize = BS;
-	static int bufsize = BS;
+	static size_t bufsize = BS;
 	static char *next = NULL;
 	static size_t nextlen = 0;
 	size_t len, rr, rr2;
