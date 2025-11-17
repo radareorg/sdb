@@ -156,7 +156,7 @@ repeat:
 	s = r;
 	p = cmd;
 	eq = NULL;
-	encode = false;
+
 	is_ref = false;
 	quot = NULL;
 	json = NULL;
@@ -213,7 +213,7 @@ repeat:
 next_quote:
 		quot = (char *)strchr (quot, '"');
 		if (quot) {
-			if (*(quot - 1) == '\\') {
+			if (quot > val && *(quot - 1) == '\\') {
 				memmove (quot - 1, quot, strlen (quot) + 1);
 				goto next_quote;
 			}

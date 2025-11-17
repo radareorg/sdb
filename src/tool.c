@@ -162,6 +162,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	// Add header to the buffer
 	strbuf_append (sb, header, 0);
 	sdb_gh_free (header);
+	header = NULL;
 	// Read key-value pairs from the SDB file
 	db = sdb_new (NULL, NULL, 0);
 	if (!db) {
@@ -225,6 +226,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	if (!f) {
 		fprintf (stderr, "Failed to open file %s for writing\n", file_gperf);
 		sdb_gh_free (content);
+		content = NULL;
 		goto fail;
 	}
 	content_len = strlen(content);
@@ -233,9 +235,11 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	if (written != content_len) {
 		fprintf (stderr, "Failed to write to file %s\n", file_gperf);
 		sdb_gh_free (content);
+		content = NULL;
 		goto fail;
 	}
 	sdb_gh_free (content);
+	content = NULL;
 
 	fprintf (stdout, "SDBTOOL gperf=%s\n", file_gperf);
 	if (compile_gperf) {

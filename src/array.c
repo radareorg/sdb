@@ -276,7 +276,11 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 		nstr_p += str_e - str_lp;
 		*(nstr_p) = '\0';
 	} else {
-		*(--nstr_p) = '\0';
+		if (nstr_p > nstr) {
+			*(--nstr_p) = '\0';
+		} else {
+			*nstr_p = '\0';
+		}
 	}
 	sdb_set_owned (s, key, nstr, cas);
 	sdb_gh_free (vals);

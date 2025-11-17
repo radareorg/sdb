@@ -105,7 +105,7 @@ static char *slurp(FILE *f, size_t *sz) {
 		}
 
 		size_t buf_len = strlen (buf);
-		if (buf_len > 0) {
+		if (buf_len > 0 && buf[buf_len - 1] == '\n') {
 			buf[buf_len - 1] = '\0';
 		}
 
