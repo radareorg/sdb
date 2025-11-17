@@ -8,7 +8,7 @@
 #define ALIGNMENT sizeof (void*)
 #define USE_GHA 1
 
-static char *cdb_alloc(ut32 n) {
+static void *cdb_alloc(ut32 n) {
 #if USE_GHA
 	return (char *)sdb_gh_malloc (n);
 #else
@@ -64,7 +64,7 @@ int cdb_make_addend(struct cdb_make *c, ut32 keylen, ut32 datalen, ut32 h) {
 	ut32 u;
 	struct cdb_hplist *head = c->head;
 	if (!head || (head->num >= CDB_HPLIST)) {
-		head = (struct cdb_hplist*)cdb_alloc (sizeof (struct cdb_hplist));
+		head = cdb_alloc (sizeof (struct cdb_hplist));
 		if (!head) {
 			return 0;
 		}
@@ -134,13 +134,13 @@ int cdb_make_finish(struct cdb_make *c) {
 		return 0;
 	}
 	// Allocate memory with proper alignment
-	c->split = (struct cdb_hp *) cdb_alloc (memsize * sizeof (struct cdb_hp));
+	c->split = cdb_alloc (memsize * sizeof (struct cdb_hp));
 	if (!c->split) {
 		return 0;
 	}
 	// Ensure the pointer arithmetic is done with proper type safety
 	// by first casting to char* for byte-wise arithmetic, then back to struct cdb_hp*
-	c->hash = (struct cdb_hp*)((char*)c->split + (c->numentries * sizeof (struct cdb_hp)));
+	c->hash = c->split + c->numentries;
 
 	for (u = i = 0; i<256; i++) {
 		u += c->count[i]; /* bounded by numentries, so no overflow */
