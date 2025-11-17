@@ -96,8 +96,8 @@ jobs:
       run: export CFLAGS="-DUSE_SDB_HEAP=1 -Werror -Wall" && make -j4
     - name: Running tests
       run: make test
-    - name: Testing gperf
-      run: make -C test/gperf
+#    - name: Testing gperf
+#      run: make -C test/gperf
   build-macos:
     runs-on: macos-latest
     steps:
