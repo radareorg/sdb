@@ -151,7 +151,7 @@ void sprint_mem(char *out, const char *buf, size_t len) {
 		char _meqstr[2048]; \
 		const char *act__ = (actual); \
 		const char *exp__ = (expected); \
-		snprintf(_meqstr, sizeof(_meqstr), "%s: expected %s, got %s.", (message), (exp__), (act__)); \\\n
+		snprintf(_meqstr, sizeof(_meqstr), "%s: expected %s, got %s.", (message), (exp__), (act__)); \
 		mu_assert(_meqstr, strcmp((exp__), (act__)) == 0); \
 } while(0)
 
