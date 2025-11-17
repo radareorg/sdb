@@ -64,7 +64,7 @@ int cdb_make_addend(struct cdb_make *c, ut32 keylen, ut32 datalen, ut32 h) {
 	ut32 u;
 	struct cdb_hplist *head = c->head;
 	if (!head || (head->num >= CDB_HPLIST)) {
-		head = cdb_alloc (sizeof (struct cdb_hplist));
+		head = (struct cdb_hplist *) cdb_alloc (sizeof (struct cdb_hplist));
 		if (!head) {
 			return 0;
 		}
@@ -134,7 +134,7 @@ int cdb_make_finish(struct cdb_make *c) {
 		return 0;
 	}
 	// Allocate memory with proper alignment
-	c->split = cdb_alloc (memsize * sizeof (struct cdb_hp));
+	c->split = (struct cdb_hp *) cdb_alloc (memsize * sizeof (struct cdb_hp));
 	if (!c->split) {
 		return 0;
 	}
