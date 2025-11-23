@@ -157,3 +157,73 @@ jobs:
       shell: msys2 {0}
       run: meson compile -C build
 
+  check_release:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    outputs:
+      is_release: ${{ steps.release.outputs.is }}
+      tag_name: ${{ steps.release.outputs.tag }}
+    needs:
+      - build-windows
+      - build-cxx
+      - build-python
+      - test-asan
+      - build-linux
+      - build-heap
+      - build-macos
+      - build-cydia
+      - msys2-w64-meson
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Download all git history and tags
+      - name: Check if is a release
+        run: |
+          TAG="`git describe --exact-match --tags ${{ github.sha }} || true`"
+          if [ -n "$TAG" ]; then
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "is=yes" >> $GITHUB_OUTPUT
+          else
+            echo "is=no" >> $GITHUB_OUTPUT
+          fi
+        id: release
+
+  release:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.check_release.outputs.is_release == 'yes' }}
+    needs:
+      - check_release
+    runs-on: ubuntu-24.04
+    env:
+      ASSET_FILES: |
+        dist/artifacts/sdb_windows/*.exe
+        dist/artifacts/sdb_linux/*.deb
+        dist/artifacts/sdb_macos/*.pkg
+        dist/artifacts/sdb_cydia/*.deb
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Download all git history and tags
+      - name: Extract sdb version
+        shell: bash
+        run: echo "branch=`grep SDB_VERSION include/sdb/version.h | cut -d '"' -f 2`" >> $GITHUB_OUTPUT
+        id: version
+      - name: Download artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: dist/artifacts
+      - name: Create GitHub release
+        id: create_release
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
+        with:
+          name: ${{ steps.version.outputs.branch }}
+          tag_name: ${{ needs.check_release.outputs.tag_name }}
+          body_path: ./RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          files: |
+            ${{ env.ASSET_FILES }}
+            checksums.txt
+
