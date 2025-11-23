@@ -51,7 +51,11 @@ extern "C" {
 #undef DIRSEP
 #define DIRSEP '\\'
 #undef lseek
+#ifdef __MSYS__
+#define lseek _lseeki64
+#else
 #define lseek _lseek
+#endif
 #include <windows.h>
 #include <io.h>
 #if __MINGW32__
