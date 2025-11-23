@@ -50,14 +50,14 @@ extern "C" {
 #define __SDB_WINDOWS__ 1
 #undef DIRSEP
 #define DIRSEP '\\'
+#include <windows.h>
+#include <io.h>
 #undef lseek
 #if defined(__MSYS__) || (defined(_FILE_OFFSET_BITS) && _FILE_OFFSET_BITS == 64)
 #define lseek _lseeki64
 #else
 #define lseek _lseek
 #endif
-#include <windows.h>
-#include <io.h>
 #if __MINGW32__
 #define ULLFMT PRIx64
 #else
