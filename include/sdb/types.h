@@ -51,7 +51,7 @@ extern "C" {
 #undef DIRSEP
 #define DIRSEP '\\'
 #undef lseek
-#ifdef __MSYS__
+#if defined(__MSYS__) || (defined(_FILE_OFFSET_BITS) && _FILE_OFFSET_BITS == 64)
 #define lseek _lseeki64
 #else
 #define lseek _lseek
