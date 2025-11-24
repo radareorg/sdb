@@ -10,7 +10,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Windows Dependencies
       run: pip install meson ninja
     - name: Building Sdb
@@ -23,7 +23,7 @@ jobs:
   build-cxx:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Building Sdb
       run: make xxx
     - name: Testing gperf
@@ -31,7 +31,7 @@ jobs:
   build-python:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Building Sdb
       run: export CFLAGS=-O0 ; make
     - name: Building python bindings
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: install gperf
       run: sudo apt install gperf
     - name: building sdb
@@ -55,7 +55,7 @@ jobs:
 #    runs-on: ubuntu-latest
 #    continue-on-error: true
 #    steps:
-#    - uses: actions/checkout@v5
+#    - uses: actions/checkout@v6
 #    - name: install gperf
 #      run: sudo apt install gperf
 #    - name: building sdb
@@ -67,7 +67,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Meson Sdb
       run: |
         pip install meson ninja
@@ -91,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Building Sdb
       run: export CFLAGS="-DUSE_SDB_HEAP=1 -Werror -Wall" && make -j4
     - name: Running tests
@@ -101,7 +101,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Building Sdb
       run: make -j4 && cd ..
     - name: Packaging
@@ -134,7 +134,7 @@ jobs:
         sys: [MINGW64, UCRT64]
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Download all git history and tags
       - name: Check if is a release
@@ -202,7 +202,7 @@ jobs:
         dist/artifacts/sdb_cydia/*.deb
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Download all git history and tags
       - name: Extract sdb version
