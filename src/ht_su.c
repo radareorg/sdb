@@ -71,11 +71,8 @@ SDB_API bool ht_su_insert(HtSU *hm, const char *key, ut64 value) {
 
 	HtSU__Entry entry = { .key = key_copy, .val = value };
 	HtSU__Insert result = HtSU__insert (&hm->inner, &entry);
-	if (!result.inserted) {
-		sdb_gh_free (key_copy);
-		return false;
-	}
-	return true;
+	sdb_gh_free (key_copy);
+	return result.inserted;
 }
 
 SDB_API bool ht_su_update(HtSU *hm, const char *key, ut64 value) {
