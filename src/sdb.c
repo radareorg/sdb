@@ -614,6 +614,9 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 			}
 			if (vlen == sdbkv_value_len (kv) && !strcmp (sdbkv_value (kv), val)) {
 				sdb_hook_call (s, key, val);
+				if (owned) {
+					sdb_gh_free (val);
+				}
 				return kv->cas;
 			}
 			kv->cas = cas = nextcas (kv);
