@@ -76,15 +76,17 @@ SDB_API StrBuf* strbuf_appendf(StrBuf *sb, const int nl, const char *fmt, ...) {
 }
 
 SDB_API char* strbuf_drain(StrBuf *sb) {
-	if (!sb || !sb->buf) {
+	if (!sb) {
 		return NULL;
 	}
-	
+	if (!sb->buf) {
+		sdb_gh_free (sb);
+		return NULL;
+	}
 	char *buf = sb->buf;
 	sb->buf = NULL;
 	sb->len = 0;
 	sb->size = 0;
-	
 	sdb_gh_free (sb);
 	return buf;
 }
