@@ -778,8 +778,7 @@ fail:
 		sdb_gh_free (buf);
 	}
 	if (out) {
-		res = out->buf;
-		sdb_gh_free (out);
+		res = strbuf_drain (out);
 	} else {
 		sdb_gh_free (res);
 		res = NULL;
