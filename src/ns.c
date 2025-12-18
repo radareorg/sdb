@@ -59,6 +59,8 @@ static void ns_free(Sdb *s, SdbList *list) {
 			sdb_free (ns->sdb);
 			s->ns->free = NULL;
 			ls_delete (s->ns, it); // free (it)
+			free (ns->name);
+			ns->name = NULL;
 		}
 		free (ns);
 		it = &next;
