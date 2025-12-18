@@ -49,14 +49,20 @@ static void ns_free(Sdb *s, SdbList *list) {
 			if (ns->sdb) {
 				ls_append (list, ns->sdb);
 				ns_free (ns->sdb, list);
-				sdb_free (ns->sdb);
+				// force free even if refs > 1, the namespace owns this sdb
+				while (!sdb_free (ns->sdb)) {
+					// keep trying until freed
+				}
 				ns->sdb = NULL;
 			}
 			free (ns->name);
 			ns->name = NULL;
 		}
 		if (!deleted) {
-			sdb_free (ns->sdb);
+			while (ns->sdb && !sdb_free (ns->sdb)) {
+				// keep trying until freed
+			}
+			ns->sdb = NULL;
 			s->ns->free = NULL;
 			ls_delete (s->ns, it); // free (it)
 			free (ns->name);
