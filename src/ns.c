@@ -90,6 +90,21 @@ SDB_API void sdb_ns_free(Sdb *s) {
 	s->ns = NULL;
 }
 
+// clear namespace references without freeing child sdbs (they are owned elsewhere)
+SDB_API void sdb_ns_reset(Sdb *s) {
+	SdbListIter *it;
+	SdbNs *ns;
+	if (!s || !s->ns) {
+		return;
+	}
+	ls_foreach_cast (s->ns, it, SdbNs*, ns) {
+		free (ns->name);
+		free (ns);
+	}
+	ls_free (s->ns);
+	s->ns = NULL;
+}
+
 static SdbNs *sdb_ns_new (Sdb *s, const char *name, ut32 hash) {
 	char dir[SDB_MAX_PATH];
 	SdbNs *ns;

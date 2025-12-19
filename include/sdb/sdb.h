@@ -368,6 +368,7 @@ SDB_API Sdb* sdb_ns(Sdb *s, const char *name, int create);
 SDB_API Sdb *sdb_ns_path(Sdb *s, const char *path, int create);
 SDB_API void sdb_ns_init(Sdb* s);
 SDB_API void sdb_ns_free(Sdb* s);
+SDB_API void sdb_ns_reset(Sdb* s);
 SDB_API void sdb_ns_lock(Sdb *s, int lock, int depth);
 SDB_API void sdb_ns_sync(Sdb* s);
 SDB_API int sdb_ns_set(Sdb *s, const char *name, Sdb *r);
