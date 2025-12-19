@@ -47,24 +47,33 @@ static void ns_free(Sdb *s, SdbList *list) {
 			deleted = 1;
 			ls_append (list, ns);
 			if (ns->sdb) {
-				ls_append (list, ns->sdb);
-				ns_free (ns->sdb, list);
-				// force refs to 1 so sdb_free will actually free it
-				if (ns->sdb->refs > 1) {
-					ns->sdb->refs = 1;
-				}
-				sdb_free (ns->sdb);
+				Sdb *child = ns->sdb;
 				ns->sdb = NULL;
+				if (!in_list (list, child)) {
+					ls_append (list, child);
+					ns_free (child, list);
+					// force refs to 1 so sdb_free will actually free it
+					if (child->refs > 1) {
+						child->refs = 1;
+					}
+					sdb_free (child);
+				}
 			}
 			free (ns->name);
 			ns->name = NULL;
 		}
 		if (!deleted) {
-			if (ns->sdb && ns->sdb->refs > 1) {
-				ns->sdb->refs = 1;
-			}
-			sdb_free (ns->sdb);
+			Sdb *child = ns->sdb;
 			ns->sdb = NULL;
+			if (child) {
+				if (!in_list (list, child)) {
+					ls_append (list, child);
+					if (child->refs > 1) {
+						child->refs = 1;
+					}
+					sdb_free (child);
+				}
+			}
 			s->ns->free = NULL;
 			ls_delete (s->ns, it); // free (it)
 			free (ns->name);
