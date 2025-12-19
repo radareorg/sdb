@@ -99,7 +99,7 @@ SDB_API void sdb_ns_free(Sdb *s) {
 	s->ns = NULL;
 }
 
-// clear namespace references without freeing child sdbs (they are owned elsewhere)
+// clear namespace references, freeing child sdbs whose refs drop to zero
 SDB_API void sdb_ns_reset(Sdb *s) {
 	SdbListIter *it;
 	SdbNs *ns;
@@ -107,6 +107,17 @@ SDB_API void sdb_ns_reset(Sdb *s) {
 		return;
 	}
 	ls_foreach_cast (s->ns, it, SdbNs*, ns) {
+		if (ns->sdb) {
+			if (ns->sdb->refs > 1) {
+				ns->sdb->refs--;
+			} else if (ns->sdb->refs == 1) {
+				// This SDB is only owned by this namespace, so we need to free it.
+				// First recursively reset its namespaces to avoid freeing externally owned SDbs.
+				sdb_ns_reset (ns->sdb);
+				// Now safe to free since namespaces are already cleared (ns is NULL)
+				sdb_free (ns->sdb);
+			}
+		}
 		free (ns->name);
 		free (ns);
 	}
