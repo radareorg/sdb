@@ -309,11 +309,6 @@ SDB_API int sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
 	return sdb_nset (s, nkey, "", cas);
 }
 
-/* remove from memory */
-SDB_API bool sdb_remove(Sdb *s, const char *key, ut32 cas) {
-	return sdb_ht_delete (s->ht, key);
-}
-
 // alias for '-key=str'.. '+key=str' concats
 SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	// remove 'value' from current key value.
@@ -904,7 +899,7 @@ SDB_API bool sdb_sync(Sdb* s) {
 				const char *kvv = sdbkv_value (kv);
 				if (kvv && *kvv && !kv->expire) {
 					if (sdb_disk_insert (s, sdbkv_key (kv), sdbkv_value (kv))) {
-						sdb_remove (s, sdbkv_key (kv), 0);
+						return sdb_ht_delete (s->ht, sdbkv_key (kv));
 					}
 				}
 			}
