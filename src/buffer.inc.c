@@ -3,6 +3,9 @@
 #include "sdb/buffer.h"
 
 void buffer_initialize(buffer *s, BufferOp op, int fd, char *buf, ut32 len) {
+	if (!s || !buf || len == 0) {
+		return;
+	}
 	s->x = buf;
 	s->fd = fd;
 	s->op = op;
@@ -37,7 +40,10 @@ int buffer_putalign(buffer *s, const char *buf, ut32 len) {
 	if (!s || !s->x || !buf) {
 		return 0;
 	}
-	while (len > (n = s->n - s->p)) {
+	while (len > 0 && (n = s->n - s->p) < len) {
+		if (s->p > s->n) {
+			return 0; /* invalid buffer state */
+		}
 		memcpy (s->x + s->p, buf, n);
 		s->p += n; buf += n; len -= n;
 		if (!buffer_flush (s)) {
@@ -45,8 +51,10 @@ int buffer_putalign(buffer *s, const char *buf, ut32 len) {
 		}
 	}
 	/* now len <= s->n - s->p */
-	memcpy (s->x + s->p, buf, len);
-	s->p += len;
+	if (len > 0) {
+		memcpy (s->x + s->p, buf, len);
+		s->p += len;
+	}
 	return 1;
 }
 

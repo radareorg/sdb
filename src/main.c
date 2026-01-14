@@ -245,9 +245,13 @@ static char* get_cname(const char*name) {
 		}
 		l--;
 	}
-	char *n = sdb_strdup (name);
+	size_t name_len = strlen(name);
+	char *n = (char *)sdb_gh_malloc (name_len + 1);
+	if (!n) {
+		return NULL;
+	}
 	char *v, *d = n;
-	for (v = (char*)n; *v; v++) {
+	for (v = (char*)name; *v; v++) {
 		if (*v == '/' || *v == '-') {
 			*d++ = '_';
 			continue;
@@ -257,7 +261,7 @@ static char* get_cname(const char*name) {
 		}
 		*d++ = *v;
 	}
-	*d++ = 0;
+	*d = 0;
 	return n;
 }
 
@@ -662,6 +666,11 @@ static int gen_gperf(MainOptions *mo, const char *file, const char *name) {
 	int wd = open (out, O_RDWR, 0644);
 	if (wd == -1) {
 		wd = open (out, O_RDWR | O_CREAT, 0644);
+		if (wd == -1) {
+			sdb_gh_free (out);
+			sdb_gh_free (buf);
+			return -1;
+		}
 	} else {
 		if (ftruncate (wd, 0) == -1) {
 			sdb_gh_free (out);
@@ -682,6 +691,7 @@ static int gen_gperf(MainOptions *mo, const char *file, const char *name) {
 		fflush (stdout);
 		close (wd);
 		dup2 (999, 1);
+		close (999);
 #endif
 	} else {
 		eprintf ("Cannot create .%s\n", out);

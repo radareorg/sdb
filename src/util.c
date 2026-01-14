@@ -127,10 +127,12 @@ SDB_API char *sdb_itoa(ut64 n, int base, char *os, int oslen) {
 		if (!os) {
 			return sdb_strdup ("0");
 		}
-		if (sl > 1) {
+		if (sl >= 2) {
 			memcpy (os, "0", 2);
-		} else {
+		} else if (sl == 1) {
 			*os = 0;
+		} else {
+			return NULL;
 		}
 		return os;
 	}
@@ -179,17 +181,24 @@ SDB_API ut64 sdb_atoi(const char *s) {
 // NOTE: Reuses memory. probably not bindings friendly..
 SDB_API char *sdb_array_compact(char *p) {
 	char *e;
+	char *start = p;
+	int changed;
 	// remove empty elements
-	while (*p) {
-		if (!strncmp (p, ",,", 2)) {
-			p++;
-			for (e = p + 1; *e == ','; e++) {};
-			memmove (p, e, strlen (e) + 1);
-		} else {
-			p++;
+	do {
+		changed = 0;
+		while (*p) {
+			if (!strncmp (p, ",,", 2)) {
+				p++;
+				for (e = p + 1; *e == ','; e++) {};
+				memmove (p, e, strlen (e) + 1);
+				changed = 1;
+			} else {
+				p++;
+			}
 		}
-	}
-	return p;
+		p = start;
+	} while (changed && *p);
+	return start;
 }
 
 // NOTE: Reuses memory. probably not bindings friendly..
