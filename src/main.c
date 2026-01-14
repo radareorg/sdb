@@ -1,3 +1,5 @@
+/* sdb - MIT - Copyright 2011-2026 - pancake */
+
 # include <signal.h>
 #include <fcntl.h>
 #ifndef HAVE_SYSTEM

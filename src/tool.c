@@ -1,3 +1,5 @@
+/* sdb - MIT - Copyright 2011-2026 - pancake */
+
 #include <sdb/sdb.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,6 +18,8 @@
 #endif
 #include <fcntl.h>
 #include <sys/stat.h>
+
+#define D if (0)
 
 #if HAVE_GPERF
 // #define COMPILE_GPERF 1
@@ -241,7 +245,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 	sdb_gh_free (content);
 	content = NULL;
 
-	fprintf (stdout, "SDBTOOL gperf=%s\n", file_gperf);
+	D fprintf (stdout, "SDBTOOL gperf=%s\n", file_gperf);
 	if (compile_gperf) {
 		char cmd[1024];
 		snprintf (cmd, sizeof (cmd), "gperf -aclEDCIG --null-strings -H sdb_hash_c_%s"
@@ -322,7 +326,7 @@ static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mod
 	}
 	Sdb *db = sdb_new (NULL, file_sdb, 0);
 	if (sdb_text_load (db, file_txt)) {
-		fprintf (stderr, "maked %s\n", file_sdb);
+		D fprintf (stderr, "maked %s\n", file_sdb);
 		if (mirror_mode) {
 			mirror_sdb (db);
 		}
@@ -402,24 +406,13 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 		sdb_gh_free(file_sdb);
 		return false;
 	}
-#if 0
-	// Add .gperf extension
-	size_t gperf_len = strlen(file_gperf) + 7; // + .gperf + null terminator
-	char *gperf_with_ext = (char *)sdb_gh_malloc(gperf_len);
-	if (gperf_with_ext) {
-		snprintf(gperf_with_ext, gperf_len, "%s.gperf", file_gperf);
-		sdb_gh_free(file_gperf);
-		file_gperf = gperf_with_ext;
-	}
-#endif
-
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
-		fprintf (stdout, "newer %s\n", file_c);
+		D fprintf (stdout, "newer %s\n", file_c);
 		dothec (file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
 	}
 	if (!file_exists(file_sdb) || is_newer(file_txt, file_sdb)) {
-		fprintf (stdout, "newer %s\n", file_sdb);
+		D fprintf (stdout, "newer %s\n", file_sdb);
 		dothesdb (file_txt, file_sdb, mirror_mode, output_dir);
 	}
 	sdb_gh_free(file_c);
