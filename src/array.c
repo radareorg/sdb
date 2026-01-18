@@ -359,7 +359,6 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
 	}
 	// XXX: should we cache sdb_alen value inside kv?
 	len = sdb_alen (str);
-	lstr--;
 	if (idx < 0 || idx == len) { // append
 		return sdb_array_insert (s, key, -1, val, cas);
 	}
@@ -394,6 +393,8 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
 			size_t usr_len = (str + lstr + 1) - usr;
 			ptr[lval] = SDB_RS;
 			memcpy (ptr + lval + 1, usr, usr_len);
+		} else {
+			nstr[diff + lval] = '\0';
 		}
 		int ret = sdb_set (s, key, nstr, cas);
 		sdb_gh_free (nstr);
