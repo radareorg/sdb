@@ -213,7 +213,7 @@ SDB_API char *sdb_querys(Sdb *r, char *buf, size_t len, const char *_cmd) {
 next_quote:
 		quot = (char *)strchr (quot, '"');
 		if (quot) {
-			if (quot > val && *(quot - 1) == '\\') {
+			if (quot != val && *(quot - 1) == '\\') {
 				memmove (quot - 1, quot, strlen (quot) + 1);
 				goto next_quote;
 			}

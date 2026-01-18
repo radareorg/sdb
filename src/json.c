@@ -150,15 +150,14 @@ SDB_API bool sdb_json_set(Sdb *s, const char *k, const char *p, const char *v, u
 		size_t buf_len = jslen + strlen (p) + strlen (v) + 7;
 		char *buf = (char *)sdb_gh_malloc (buf_len);
 		if (buf) {
-			int curlen, is_str = isstring (v);
+			int is_str = isstring (v);
 			const char *quote = is_str ? "\"" : "";
 			const char *comma = ""; // XX: or comma
 			if (js[0] && js[1] != '}') {
 				comma = ",";
 			}
-			curlen = snprintf (buf, buf_len, "{\"%s\":%s%s%s%s",
-				p, quote, v, quote, comma);
-			strcpy (buf + curlen, js + 1);
+			snprintf (buf, buf_len, "{\"%s\":%s%s%s%s%s",
+				p, quote, v, quote, comma, js + 1);
 			// transfer ownership
 			sdb_set_owned (s, k, buf, cas);
 			return true;
