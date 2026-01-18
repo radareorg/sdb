@@ -2,62 +2,59 @@
 
 #include "sdb/sdb.h"
 
-// TODO: convert into a function
-// TODO: Add 'a' format for array of pointers null terminated??
-// XXX SLOW CONCAT
-#define concat(x) if (x) { \
-	int size = 2 + strlen (x? x: "")+(out? strlen (out) + 4: 0); \
-	if (out) { \
-		char *o = (char *)sdb_gh_realloc (out, size); \
-		if (o) { \
-			strcat (o, ","); \
-			strcat (o, x); \
-			out = o; \
-		} \
-	} else { \
-		out = sdb_strdup (x); \
-	} \
-}
-
 SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
-	char buf[SDB_NUM_BUFSZ], *e_str, *out = NULL;
+	char buf[SDB_NUM_BUFSZ], *e_str;
 	int n, len = 0;
 	if (!p || !fmt) {
+		return NULL;
+	}
+	StrBuf *sb = strbuf_new ();
+	if (!sb) {
 		return NULL;
 	}
 	for (; *fmt; fmt++) {
 		n = 4;
 		const ut8 *nbuf = ((ut8*)p) + len;
+		const char *val = NULL;
 		switch (*fmt) {
 		case 'b':
-			concat (sdb_itoa ((ut64)*(nbuf), 10, buf, sizeof (buf)));
+			val = sdb_itoa ((ut64)*(nbuf), 10, buf, sizeof (buf));
 			break;
 		case 'h':
-			concat (sdb_itoa ((ut64)*((short*)nbuf), 10, buf, sizeof (buf)));
+			val = sdb_itoa ((ut64)*((short*)nbuf), 10, buf, sizeof (buf));
 			break;
 		case 'd':
-			concat (sdb_itoa ((ut64)*((int*)nbuf), 10, buf, sizeof (buf)));
+			val = sdb_itoa ((ut64)*((int*)nbuf), 10, buf, sizeof (buf));
 			break;
 		case 'q':
-			concat (sdb_itoa (*((ut64*)nbuf), 10, buf, sizeof (buf)));
+			val = sdb_itoa (*((ut64*)nbuf), 10, buf, sizeof (buf));
 			n = 8;
 			break;
 		case 'z':
-			concat ((char*)p + len);
+			val = (char*)p + len;
 			break;
 		case 's':
 			e_str = sdb_encode ((const ut8*)*((char**)nbuf), -1);
-			concat (e_str);
-			sdb_gh_free (e_str);
+			val = e_str;
 			break;
 		case 'p':
-			concat (sdb_itoa ((ut64)*((size_t*)(nbuf)), 16, buf, sizeof (buf)));
+			val = sdb_itoa ((ut64)*((size_t*)(nbuf)), 16, buf, sizeof (buf));
 			n = sizeof (size_t);
 			break;
 		}
+		if (val && *val) {
+			if (sb->len > 0) {
+				strbuf_append (sb, ",", 0);
+			}
+			strbuf_append (sb, val, 0);
+		}
+		if (*fmt == 's' && e_str) {
+			sdb_gh_free (e_str);
+			e_str = NULL;
+		}
 		len += R_MAX ((long)sizeof (void*), n); // align
 	}
-	return out;
+	return strbuf_drain (sb);
 }
 
 // TODO: return false if array length != fmt length
