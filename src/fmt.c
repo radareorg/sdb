@@ -3,7 +3,7 @@
 #include "sdb/sdb.h"
 
 SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
-	char buf[SDB_NUM_BUFSZ], *e_str;
+	char buf[SDB_NUM_BUFSZ], *e_str = NULL;
 	int n, len = 0;
 	if (!p || !fmt) {
 		return NULL;
