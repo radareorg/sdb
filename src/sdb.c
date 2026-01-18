@@ -481,27 +481,28 @@ SDB_API void sdb_reset(Sdb* s) {
 }
 
 static char lastChar(const char *str) {
-	int len = strlen (str);
+	size_t len = strlen (str);
 	return str[(len > 0)? len - 1: 0];
 }
 
 static bool match(const char *str, const char *expr) {
-	bool startsWith = *expr == '^';
-	bool endsWith = lastChar (expr) == '$';
+	const bool startsWith = *expr == '^';
+	const bool endsWith = lastChar (expr) == '$';
+	size_t str_len = strlen (str);
+	size_t expr_len = strlen (expr);
 	if (startsWith && endsWith) {
-		return strlen (str) == strlen (expr) - 2 && \
-			!strncmp (str, expr + 1, strlen (expr) - 2);
+		return str_len == expr_len - 2 && \
+			!strncmp (str, expr + 1, expr_len - 2);
 	}
 	if (startsWith) {
-		return !strncmp (str, expr + 1, strlen (expr) - 1);
+		return !strncmp (str, expr + 1, expr_len - 1);
 	}
 	if (endsWith) {
-		int alen = strlen (str);
-		int blen = strlen (expr) - 1;
-		if (alen <= blen) {
+		size_t blen = expr_len - 1;
+		if (str_len <= blen) {
 			return false;
 		}
-		const char *a = str + strlen (str) - blen;
+		const char *a = str + str_len - blen;
 		return (!strncmp (a, expr, blen));
 	}
 	return strstr (str, expr);
