@@ -4,16 +4,10 @@
 #include "sdb/sdb.h"
 
 SDB_API bool sdb_lock_file(const char *f, char *buf, size_t buf_size) {
-	size_t len;
 	if (!f || !*f || !buf || !buf_size) {
 		return false;
 	}
-	len = strlen (f);
-	if (len + 10 > buf_size) {
-		return false;
-	}
-	memcpy (buf, f, len);
-	strcpy (buf + len, ".lock");
+	snprintf (buf, buf_size, "%s.lock", f);
 	return true;
 }
 

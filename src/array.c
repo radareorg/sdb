@@ -183,10 +183,10 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 		ptr = (char *)Aindexof (nstr, idx);
 		if (ptr) {
 			int lptr = (nstr + lstr + 1) - ptr;
-			char *p_1 = ptr > nstr? ptr - 1: ptr;
-			*p_1 = 0;
-			lnstr = ptr - nstr - 1;
-			if (lnstr < 0) {
+			if (ptr > nstr) {
+				ptr[-1] = 0;
+				lnstr = ptr - nstr - 1;
+			} else {
 				lnstr = 0;
 			}
 			memcpy (x, nstr, lnstr);
@@ -282,13 +282,11 @@ SDB_API int sdb_array_add_sorted(Sdb *s, const char *key, const char *val, ut32 
 	if (str_lp < str_e) {
 		memcpy (nstr_p, str_lp, str_e - str_lp);
 		nstr_p += str_e - str_lp;
-		*(nstr_p) = '\0';
+		*nstr_p = '\0';
+	} else if (nstr_p != nstr) {
+		*--nstr_p = '\0';
 	} else {
-		if (nstr_p > nstr) {
-			*(--nstr_p) = '\0';
-		} else {
-			*nstr_p = '\0';
-		}
+		*nstr_p = '\0';
 	}
 	sdb_set_owned (s, key, nstr, cas);
 	sdb_gh_free (vals);
@@ -361,7 +359,6 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
 	}
 	// XXX: should we cache sdb_alen value inside kv?
 	len = sdb_alen (str);
-	lstr--;
 	if (idx < 0 || idx == len) { // append
 		return sdb_array_insert (s, key, -1, val, cas);
 	}
@@ -389,13 +386,15 @@ SDB_API int sdb_array_set(Sdb *s, const char *key, int idx, const char *val,
 			return false;
 		}
 		ptr = nstr + diff;
-		//memcpy (nstr, str, lstr+1);
 		memcpy (nstr, str, diff);
 		memcpy (ptr, val, lval + 1);
 		usr = Aindexof (str, idx + 1);
 		if (usr) {
+			size_t usr_len = (str + lstr + 1) - usr;
 			ptr[lval] = SDB_RS;
-			strcpy (ptr + lval + 1, usr);
+			memcpy (ptr + lval + 1, usr, usr_len);
+		} else {
+			nstr[diff + lval] = '\0';
 		}
 		int ret = sdb_set (s, key, nstr, cas);
 		sdb_gh_free (nstr);
