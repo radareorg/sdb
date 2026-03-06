@@ -15,6 +15,7 @@ static void doIndent(int idt, char **o, const char *tab) {
 SDB_API char *sdb_json_indent(const char *s, const char *tab) {
 	int idx, indent = 0;
 	int instr = 0;
+	int sz_instr = 0;
 	size_t o_size = 0;
 	char *o, *O;
 	if (!s) {
@@ -23,6 +24,24 @@ SDB_API char *sdb_json_indent(const char *s, const char *tab) {
 
 	size_t tab_len = strlen (tab);
 	for (idx = 0; s[idx]; idx++) {
+		if (sz_instr) {
+			if (s[idx] == '"') {
+				sz_instr = 0;
+			} else if (s[idx] == '\\' && s[idx + 1] == '"') {
+				if (o_size == SIZE_MAX) {
+					return NULL;
+				}
+				o_size++;
+			}
+			if (o_size == SIZE_MAX) {
+				return NULL;
+			}
+			o_size++;
+			continue;
+		} else if (s[idx] == '"') {
+			sz_instr = 1;
+		}
+
 		if (o_size > INT_MAX - (indent * tab_len + 2)) {
 			return NULL;
 		}
