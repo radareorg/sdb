@@ -123,8 +123,9 @@ SDB_API bool ht_su_update_key(HtSU *hm, const char *old_key, const char *new_key
 		return false;
 	}
 
-	// Then remove entry for the old key
-	HtSU__erase_at (iter);
+	// Then remove entry for the old key. Use key-based erase because insertion
+	// above may trigger a rehash and invalidate previously acquired iterators.
+	HtSU__erase (&hm->inner, (const HtSU__Key*) &old_key);
 	return true;
 }
 
