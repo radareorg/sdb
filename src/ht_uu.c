@@ -59,17 +59,18 @@ SDB_API bool ht_uu_update_key(HtUU *hm, const ut64 old_key, const ut64 new_key) 
 	if (!entry) {
 		return false;
 	}
+	const ut64 old_value = entry->val;
 
 	// First try inserting the new key
-	HtUU__Entry new_entry = { .key = new_key, .val = entry->val };
+	HtUU__Entry new_entry = { .key = new_key, .val = old_value };
 	HtUU__Insert result = HtUU__insert (&hm->inner, &new_entry);
 	if (!result.inserted) {
 		return false;
 	}
 
-	// Then remove entry for the old key
-	HtUU__erase_at (iter);
-	return true;
+	// Then remove entry for the old key. Re-find by key to avoid using
+	// iterators that may have been invalidated by insertion rehash.
+	return HtUU__erase (&hm->inner, &old_key);
 }
 
 SDB_API bool ht_uu_delete(HtUU *hm, const ut64 key) {
