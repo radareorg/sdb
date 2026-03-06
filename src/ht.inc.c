@@ -42,7 +42,20 @@ static inline ut32 calcsize_val(HtName_(Ht) *ht, const VALUE_TYPE v) {
 
 static inline void freefn(HtName_(Ht) *ht, HT_(Kv) *kv) {
 	if (ht->opt.freefn) {
-		ht->opt.freefn (kv);
+		/*
+		 * Buckets store kv entries inline in bt->arr. Legacy free callbacks
+		 * may also free(kv), which was safe when kv objects were individually
+		 * allocated. To avoid corrupting bucket storage, run user callbacks on
+		 * a heap copy of the entry instead of on the embedded memory.
+		 */
+		HT_(Kv) *tmp = (HT_(Kv) *)sdb_gh_malloc (ht->opt.elem_size);
+		if (!tmp) {
+			/* Best effort fallback: preserve previous behavior on OOM. */
+			ht->opt.freefn (kv);
+			return;
+		}
+		memcpy (tmp, kv, ht->opt.elem_size);
+		ht->opt.freefn (tmp);
 	}
 }
 
@@ -127,16 +140,13 @@ SDB_API HtName_(Ht) *Ht_(new_opt)(HT_(Options) *opt) {
 SDB_API void Ht_(free)(HtName_(Ht)* ht) {
 	if (SDB_LIKELY (ht)) {
 		ut32 i, htsize = ht->size;
-		HT_(KvFreeFunc) freefn = ht->opt.freefn;
 		HT_(Bucket) *table = ht->table;
 		for (i = 0; i < htsize; i++) {
 			HT_(Bucket) *bt = &table[i];
 			HT_(Kv) *kv;
 			ut32 j;
-			if (freefn) {
-				BUCKET_FOREACH (ht, bt, j, kv) {
-					freefn (kv);
-				}
+			BUCKET_FOREACH (ht, bt, j, kv) {
+				freefn (ht, kv);
 			}
 			sdb_gh_free (bt->arr);
 		}

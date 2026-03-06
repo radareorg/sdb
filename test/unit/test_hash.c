@@ -227,6 +227,23 @@ static void free_key_value(HtPPKv *kv) {
 	free (kv->value);
 }
 
+static void legacy_free_key_value_and_kv(HtPPKv *kv) {
+	free (kv->key);
+	free (kv->value);
+	free (kv);
+}
+
+bool test_legacy_freefn_compat(void) {
+	HtPP *ht = ht_pp_new ((HtPPDupValue)strdup, legacy_free_key_value_and_kv, NULL);
+	mu_assert_notnull (ht, "ht alloc failed");
+	mu_assert ("insert key1", ht_pp_insert (ht, "key1", "value1"));
+	mu_assert ("insert key2", ht_pp_insert (ht, "key2", "value2"));
+	mu_assert ("delete key1", ht_pp_delete (ht, "key1"));
+	ht_pp_update (ht, "key2", "value3");
+	ht_pp_free (ht);
+	mu_end;
+}
+
 bool should_not_be_caled(void *user, const char *k, void *v) {
 	mu_fail ("this function should not be called");
 	return false;
@@ -510,6 +527,7 @@ int all_tests() {
 	mu_run_test (test_ht_grow);
 	mu_run_test (test_ht_kvp);
 	mu_run_test (test_ht_general);
+	mu_run_test (test_legacy_freefn_compat);
 	mu_run_test (test_empty_ht);
 	mu_run_test (test_insert);
 	mu_run_test (test_update);
