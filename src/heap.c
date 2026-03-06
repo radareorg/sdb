@@ -272,8 +272,7 @@ static void *sdb_heap_malloc(SdbHeap *heap, int size) {
 	// No free block was found. Allocate size requested + header (in full pages).
 	// Each next allocation will be doubled in size from the previous one
 	// (to decrease the number of mmap sys calls we make).
-	// int bytes = MAX (PAGES (required_size), heap->last_mapped_size) * SDB_PAGE_SIZE;
-	size_t bytes = PAGES (MAX (PAGES (required_size), heap->last_mapped_size)) * SDB_PAGE_SIZE;
+	size_t bytes = (size_t)MAX (PAGES (required_size), heap->last_mapped_size) * SDB_PAGE_SIZE;
 	heap->last_mapped_size *= 2;
 
 	// last_address my not be returned by mmap, but makes it more efficient if it happens.
