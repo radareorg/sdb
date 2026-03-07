@@ -207,6 +207,10 @@ int protocol_handle(McSdb *ms, McSdbClient *c, char *buf) {
 			net_printf (fd, "ERROR\r\n");
 			return 0;
 		}
+		if (bytes > (MCSDB_MAX_BUFFER - 2)) {
+			net_printf (fd, "CLIENT_ERROR data too big\r\n");
+			return 0;
+		}
 		c->mode = 1; // read N bytes
 		//c->next = 0;
 		c->idx = c->next;
