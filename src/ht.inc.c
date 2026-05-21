@@ -198,7 +198,7 @@ static HT_(Kv) *reserve_kv(HtName_(Ht) *ht, const KEY_TYPE key, const int key_le
 	}
 
 	if (bt->count + 1 >= bt->size) {
-		bt->size = (bt->count + 5) * 2;
+		bt->size = (bt->count + 1) * 2;
 		HT_(Kv) *newkvarr = (HT_(Kv)*)sdb_gh_realloc (bt->arr, (bt->size) * ht->opt.elem_size);
 		if (!SDB_UNLIKELY (newkvarr)) {
 			return NULL;
