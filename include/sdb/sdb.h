@@ -178,7 +178,6 @@ SDB_API char *sdb_querys(Sdb* s, char *buf, size_t len, const char *cmd);
 SDB_API char *sdb_querysf(Sdb* s, char *buf, size_t buflen, const char *fmt, ...);
 SDB_API int sdb_query_file(Sdb *s, const char* file);
 SDB_API bool sdb_exists(Sdb*, const char *key);
-SDB_API bool sdb_remove(Sdb*, const char *key, ut32 cas);
 SDB_API int sdb_unset(Sdb*, const char *key, ut32 cas);
 SDB_API int sdb_nunset(Sdb*, ut64 nkey, ut32 cas);
 SDB_API int sdb_unset_like(Sdb *s, const char *k);
