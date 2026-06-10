@@ -114,6 +114,12 @@ static int mcsdb_client_state(McSdbClient *c) {
 			c->idx = 0;
 		r = 0;
 		rlen = c->len-c->idx;
+		if (rlen > MCSDB_MAX_BUFFER - 1 - c->idx) {
+			*c->buf = 0;
+			c->idx = 0;
+			c->len = 0;
+			return 0;
+		}
 		if (rlen>0 && c->len>0) {
 			r = read (c->fd, c->buf+c->idx, rlen);
 			if (r==-1) {
@@ -133,7 +139,7 @@ static int mcsdb_client_state(McSdbClient *c) {
 			}// else eprintf ("Invalid %d read wtf\n", r);
 		} 
 		c->idx += r;
-		c->buf[c->idx+1] = 0;
+		c->buf[c->idx] = 0;
 		if (c->idx == c->len) {
 		//	printf ("END OF MODE 1 ***/*/*///*/* ((%s))\n", c->buf);
 			return 1;
