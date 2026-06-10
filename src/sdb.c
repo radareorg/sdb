@@ -309,6 +309,91 @@ SDB_API int sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
 	return sdb_nset (s, nkey, "", cas);
 }
 
+SDB_API bool sdb_rename(Sdb *s, const char *oldkey, const char *newkey, ut32 cas) {
+	if (!s || !oldkey || !newkey) {
+		return false;
+	}
+	char *value = sdb_get (s, oldkey, NULL);
+	if (!value) {
+		return false;
+	}
+	if (!sdb_unset (s, oldkey, cas)) {
+		sdb_gh_free (value);
+		return false;
+	}
+	return sdb_set_owned (s, newkey, value, 0) != 0;
+}
+
+typedef struct {
+	const char *prefix;
+	size_t len;
+	SdbList *keys;
+} RenamePrefixData;
+
+static bool rename_prefix_cb(void *user, const char *k, const char *v) {
+	RenamePrefixData *rpd = (RenamePrefixData *)user;
+	(void)v;
+	if (strncmp (k, rpd->prefix, rpd->len)) {
+		return true;
+	}
+	char *key = sdb_strdup (k);
+	if (!key) {
+		return false;
+	}
+	if (!ls_append (rpd->keys, key)) {
+		sdb_gh_free (key);
+		return false;
+	}
+	return true;
+}
+
+static char *rename_prefix_key(const char *newprefix, const char *suffix) {
+	size_t plen = strlen (newprefix);
+	size_t slen = strlen (suffix);
+	if (SZT_ADD_OVFCHK (plen, slen) || SZT_ADD_OVFCHK (plen + slen, 1)) {
+		return NULL;
+	}
+	char *key = (char *)sdb_gh_malloc (plen + slen + 1);
+	if (key) {
+		memcpy (key, newprefix, plen);
+		memcpy (key + plen, suffix, slen + 1);
+	}
+	return key;
+}
+
+SDB_API int sdb_rename_prefix(Sdb *s, const char *oldprefix, const char *newprefix) {
+	if (!s || !oldprefix || !newprefix) {
+		return 0;
+	}
+	SdbList *keys = ls_newf ((SdbListFree)sdb_gh_free);
+	if (!keys) {
+		return 0;
+	}
+	RenamePrefixData rpd = {
+		.prefix = oldprefix,
+		.len = strlen (oldprefix),
+		.keys = keys
+	};
+	if (!sdb_foreach (s, rename_prefix_cb, &rpd)) {
+		ls_free (keys);
+		return 0;
+	}
+	int count = 0;
+	SdbListIter *iter;
+	char *key;
+	ls_foreach (keys, iter, key) {
+		char *newkey = rename_prefix_key (newprefix, key + rpd.len);
+		if (newkey) {
+			if (sdb_rename (s, key, newkey, 0)) {
+				count++;
+			}
+			sdb_gh_free (newkey);
+		}
+	}
+	ls_free (keys);
+	return count;
+}
+
 // alias for '-key=str'.. '+key=str' concats
 SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	// remove 'value' from current key value.
@@ -601,6 +686,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 	cdb_findstart (&s->db);
 	SdbKv *kv = sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && sdbkv_value (kv)) {
+		bool free_val = owned;
 		if (cdb_findnext (&s->db, sdb_hash (key), key, klen)) {
 			if (cas && kv->cas != cas) {
 				if (owned) {
@@ -620,6 +706,7 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 				kv->base.value_len = vlen;
 				sdb_gh_free (kv->base.value);
 				kv->base.value = val; // owned
+				free_val = false;
 			} else {
 				if ((ut32)vlen > kv->base.value_len) {
 					sdb_gh_free (kv->base.value);
@@ -629,9 +716,13 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 				kv->base.value_len = vlen;
 			}
 		} else {
+			cas = nextcas (kv);
 			sdb_ht_delete (s->ht, key);
 		}
 		sdb_hook_call (s, key, val);
+		if (free_val) {
+			sdb_gh_free (val);
+		}
 		return cas;
 	}
 	// empty values are also stored

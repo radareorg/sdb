@@ -180,6 +180,8 @@ SDB_API int sdb_query_file(Sdb *s, const char* file);
 SDB_API bool sdb_exists(Sdb*, const char *key);
 SDB_API int sdb_unset(Sdb*, const char *key, ut32 cas);
 SDB_API int sdb_nunset(Sdb*, ut64 nkey, ut32 cas);
+SDB_API bool sdb_rename(Sdb*, const char *oldkey, const char *newkey, ut32 cas);
+SDB_API int sdb_rename_prefix(Sdb*, const char *oldprefix, const char *newprefix);
 SDB_API int sdb_unset_like(Sdb *s, const char *k);
 SDB_API char** sdb_like(Sdb *s, const char *k, const char *v, SdbForeachCallback cb);
 

@@ -105,6 +105,34 @@ bool test_sdb_delete_alot(void) {
 	mu_end;
 }
 
+bool test_sdb_unset_return(void) {
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, "foo", "bar", 0);
+	int ret = sdb_unset (db, "foo", 0);
+	mu_assert ("Unset failed", ret != 0);
+	mu_assert ("Item not deleted", !sdb_exists (db, "foo"));
+	sdb_free (db);
+	mu_end;
+}
+
+bool test_sdb_rename_prefix(void) {
+	Sdb *db = sdb_new0 ();
+	sdb_set (db, "zign|old|foo", "aaa", 0);
+	sdb_set (db, "zign|old|bar", "bbb", 0);
+	sdb_set (db, "zign|keep|foo", "ccc", 0);
+
+	int ret = sdb_rename_prefix (db, "zign|old|", "zign|new|");
+	mu_assert_eq (ret, 2, "Renamed keys");
+	mu_assert ("Old foo still exists", !sdb_exists (db, "zign|old|foo"));
+	mu_assert ("Old bar still exists", !sdb_exists (db, "zign|old|bar"));
+	mu_assert ("New foo missing", !strcmp (sdb_const_get (db, "zign|new|foo", NULL), "aaa"));
+	mu_assert ("New bar missing", !strcmp (sdb_const_get (db, "zign|new|bar", NULL), "bbb"));
+	mu_assert ("Unmatched key changed", !strcmp (sdb_const_get (db, "zign|keep|foo", NULL), "ccc"));
+
+	sdb_free (db);
+	mu_end;
+}
+
 bool test_sdb_milset(void) {
 	int i = 0;
 	const int MAX = 19999999;
@@ -530,6 +558,8 @@ int all_tests() {
 	mu_run_test (test_sdb_list_delete);
 	mu_run_test (test_sdb_delete_none);
 	mu_run_test (test_sdb_delete_alot);
+	mu_run_test (test_sdb_unset_return);
+	mu_run_test (test_sdb_rename_prefix);
 	mu_run_test (test_sdb_milset);
 	mu_run_test (test_sdb_milset_random);
 	mu_run_test (test_sdb_list_big);
