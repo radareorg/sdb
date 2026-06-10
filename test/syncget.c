@@ -14,10 +14,31 @@ int main() {
 	v = sdb_const_get (s, "foo", NULL);
 	if (v && !strcmp ("bar",  v)) {
 		eprintf ("OK syncget\n");
+	} else {
+		eprintf ("ERROR syncget: Keys not accessible after sync\n");
 		sdb_free (s);
-		return 0;
+		unlink (DBFILE);
+		return 1;
 	}
-	eprintf ("ERROR syncget: Keys not accessible after sync\n");
+	sdb_unset (s, "foo", 0);
+	v = sdb_const_get (s, "foo", NULL);
+	if (v) {
+		eprintf ("ERROR syncget: Unset key still accessible before sync\n");
+		sdb_free (s);
+		unlink (DBFILE);
+		return 1;
+	}
+	sdb_sync (s);
 	sdb_free (s);
-	return 1;
+	s = sdb_new (".", DBFILE, 0);
+	v = sdb_const_get (s, "foo", NULL);
+	if (v) {
+		eprintf ("ERROR syncget: Unset key still accessible after reopen\n");
+		sdb_free (s);
+		unlink (DBFILE);
+		return 1;
+	}
+	sdb_free (s);
+	unlink (DBFILE);
+	return 0;
 }
