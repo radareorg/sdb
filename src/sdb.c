@@ -381,7 +381,7 @@ SDB_API int sdb_rename_prefix(Sdb *s, const char *oldprefix, const char *newpref
 	int count = 0;
 	SdbListIter *iter;
 	char *key;
-	ls_foreach (keys, iter, key) {
+	ls_foreach_cast (keys, iter, char *, key) {
 		char *newkey = rename_prefix_key (newprefix, key + rpd.len);
 		if (newkey) {
 			if (sdb_rename (s, key, newkey, 0)) {
