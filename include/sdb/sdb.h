@@ -229,6 +229,7 @@ SDB_API char *sdb_get_len(Sdb*, const char *key, int *vlen, ut32 *cas);
 
 // Gets a const pointer to the value associated with `key`
 SDB_API const char *sdb_const_get(Sdb*, const char *key, ut32 *cas);
+SDB_API const char *sdb_const_getf(Sdb*, ut32 *cas, const char *fmt, ...) SDB_PRINTF_CHECK(3, 4);
 
 // Gets a const pointer to the value associated with `key` and returns in
 // `vlen` the length of the value string.

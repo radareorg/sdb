@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <sys/stat.h>
 #include "sdb/sdb.h"
 
@@ -284,7 +285,27 @@ SDB_API const char *sdb_const_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_const_get_len (s, key, NULL, cas);
 }
 
-// TODO: add sdb_getf?
+static const char *sdb_const_vgetf(Sdb *s, ut32 *cas, const char *fmt, va_list ap) {
+	if (fmt) {
+		char key[SDB_MAX_KEY];
+		int len = vsnprintf (key, SDB_MAX_KEY, fmt, ap);
+		if (len >= 0 && len < SDB_MAX_KEY) {
+			return sdb_const_get (s, key, cas);
+		}
+	}
+	if (cas) {
+		*cas = 0;
+	}
+	return NULL;
+}
+
+SDB_API const char *sdb_const_getf(Sdb *s, ut32 *cas, const char *fmt, ...) {
+	va_list ap;
+	va_start (ap, fmt);
+	const char *value = sdb_const_vgetf (s, cas, fmt, ap);
+	va_end (ap);
+	return value;
+}
 
 SDB_API char *sdb_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas) {
 	const char *value = sdb_const_get_len (s, key, vlen, cas);
