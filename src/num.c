@@ -1,6 +1,6 @@
 /* sdb - MIT - Copyright 2011-2022 - pancake */
 
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 // check if key exists and if it's a number.. rename?
 SDB_API bool sdb_num_exists (Sdb *s, const char *key) {
@@ -8,9 +8,20 @@ SDB_API bool sdb_num_exists (Sdb *s, const char *key) {
 	return o ? (*o >= '0' && *o <= '9'): false;
 }
 
-SDB_API ut64 sdb_num_get(Sdb *s, const char *key, ut32 *cas) {
-	const char *v = sdb_const_get (s, key, cas);
+static ut64 sdb_num_parse(const char *v) {
 	return (!v || *v == '-') ? 0LL : sdb_atoi (v);
+}
+
+SDB_API ut64 sdb_num_get(Sdb *s, const char *key, ut32 *cas) {
+	return sdb_num_parse (sdb_const_get (s, key, cas));
+}
+
+SDB_API ut64 sdb_num_getf(Sdb *s, ut32 *cas, const char *fmt, ...) {
+	va_list ap;
+	va_start (ap, fmt);
+	ut64 value = sdb_num_parse (sdb_const_vgetf (s, cas, fmt, ap));
+	va_end (ap);
+	return value;
 }
 
 SDB_API int sdb_num_add(Sdb *s, const char *key, ut64 v, ut32 cas) {

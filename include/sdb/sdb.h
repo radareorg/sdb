@@ -250,6 +250,7 @@ SDB_API void sdbkv_free(SdbKv *kv);
 SDB_API bool sdb_num_exists(Sdb*, const char *key);
 SDB_API int  sdb_num_base(const char *s);
 SDB_API ut64 sdb_num_get(Sdb* s, const char *key, ut32 *cas);
+SDB_API ut64 sdb_num_getf(Sdb* s, ut32 *cas, const char *fmt, ...) SDB_PRINTF_CHECK(3, 4);
 SDB_API int  sdb_num_set(Sdb* s, const char *key, ut64 v, ut32 cas);
 SDB_API int  sdb_num_add(Sdb *s, const char *key, ut64 v, ut32 cas);
 SDB_API ut64 sdb_num_inc(Sdb* s, const char *key, ut64 n, ut32 cas);

@@ -2,9 +2,8 @@
 
 #include <fcntl.h>
 #include <errno.h>
-#include <stdarg.h>
 #include <sys/stat.h>
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 static inline SdbKv *next_kv(HtPP *ht, SdbKv *kv) {
 	return (SdbKv *)((uintptr_t)kv + ht->opt.elem_size);
@@ -285,7 +284,7 @@ SDB_API const char *sdb_const_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_const_get_len (s, key, NULL, cas);
 }
 
-static const char *sdb_const_vgetf(Sdb *s, ut32 *cas, const char *fmt, va_list ap) {
+SDB_IPI const char *sdb_const_vgetf(Sdb *s, ut32 *cas, const char *fmt, va_list ap) {
 	if (fmt) {
 		char key[SDB_MAX_KEY];
 		int len = vsnprintf (key, SDB_MAX_KEY, fmt, ap);
