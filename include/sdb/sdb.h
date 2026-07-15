@@ -235,6 +235,7 @@ SDB_API const char *sdb_const_getf(Sdb*, ut32 *cas, const char *fmt, ...) SDB_PR
 // `vlen` the length of the value string.
 SDB_API const char *sdb_const_get_len(Sdb* s, const char *key, int *vlen, ut32 *cas);
 SDB_API int sdb_set(Sdb*, const char *key, const char *data, ut32 cas);
+SDB_API int sdb_setf(Sdb*, const char *data, ut32 cas, const char *fmt, ...) SDB_PRINTF_CHECK(4, 5);
 SDB_API int sdb_nset(Sdb*, ut64 nkey, const char *data, ut32 cas);
 SDB_API ut64 sdb_num_nget(Sdb *s, ut64 nkey, ut32 *cas);
 SDB_API int sdb_num_nset(Sdb* s, ut64 nkey, ut64 nval, ut32 cas);
@@ -252,6 +253,7 @@ SDB_API int  sdb_num_base(const char *s);
 SDB_API ut64 sdb_num_get(Sdb* s, const char *key, ut32 *cas);
 SDB_API ut64 sdb_num_getf(Sdb* s, ut32 *cas, const char *fmt, ...) SDB_PRINTF_CHECK(3, 4);
 SDB_API int  sdb_num_set(Sdb* s, const char *key, ut64 v, ut32 cas);
+SDB_API int  sdb_num_setf(Sdb* s, ut64 v, ut32 cas, const char *fmt, ...) SDB_PRINTF_CHECK(4, 5);
 SDB_API int  sdb_num_add(Sdb *s, const char *key, ut64 v, ut32 cas);
 SDB_API ut64 sdb_num_inc(Sdb* s, const char *key, ut64 n, ut32 cas);
 SDB_API ut64 sdb_num_dec(Sdb* s, const char *key, ut64 n, ut32 cas);

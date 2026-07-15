@@ -38,6 +38,22 @@ SDB_API int sdb_num_set(Sdb *s, const char *key, ut64 v, ut32 cas) {
 	return sdb_set (s, key, val, cas);
 }
 
+SDB_API int sdb_num_setf(Sdb *s, ut64 v, ut32 cas, const char *fmt, ...) {
+	va_list ap;
+	char key[SDB_MAX_KEY];
+	char val[SDB_NUM_BUFSZ];
+	int len, numbase;
+
+	va_start (ap, fmt);
+	len = vsnprintf (key, sizeof (key), fmt, ap);
+	va_end (ap);
+	if (len < 0 || len >= (int)sizeof (key)) {
+		return 0;
+	}
+	numbase = sdb_num_base (sdb_const_get (s, key, NULL));
+	return sdb_set (s, key, sdb_itoa (v, numbase, val, sizeof (val)), cas);
+}
+
 SDB_API ut64 sdb_num_inc(Sdb *s, const char *key, ut64 n2, ut32 cas) {
 	ut32 c;
 	ut64 n = sdb_num_get (s, key, &c);

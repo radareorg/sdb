@@ -775,6 +775,16 @@ SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
 	return sdb_set_internal (s, key, (char *)val, false, cas);
 }
 
+SDB_API int sdb_setf(Sdb *s, const char *val, ut32 cas, const char *fmt, ...) {
+	va_list ap;
+	char key[SDB_MAX_KEY];
+	int len;
+	va_start (ap, fmt);
+	len = vsnprintf (key, sizeof (key), fmt, ap);
+	va_end (ap);
+	return len >= 0 && len < (int)sizeof (key)? sdb_set (s, key, val, cas): 0;
+}
+
 SDB_API int sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));

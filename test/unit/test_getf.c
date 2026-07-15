@@ -5,6 +5,10 @@ static bool test_getf(void) {
 	Sdb *db = sdb_new0 ();
 	mu_assert_notnull (db, "database");
 	mu_assert ("set", sdb_set (db, "user.alice.42", "admin", 0));
+	mu_assert ("formatted set", sdb_setf (db, "staff", 0, "group.%s.%d", "alice", 42));
+	mu_assert_streq (sdb_const_get (db, "group.alice.42", NULL), "staff", "formatted set value");
+	mu_assert ("formatted number set", sdb_num_setf (db, 42, 0, "number.%s", "answer"));
+	mu_assert_eq (sdb_num_get (db, "number.answer", NULL), 42, "formatted number set value");
 
 	ut32 const_cas = 0;
 	const char *const_value = sdb_const_getf (db, &const_cas,
