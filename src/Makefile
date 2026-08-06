@@ -71,7 +71,7 @@ bin $(BIN): bin_deps
 ifneq ($(SILENT),)
 	@echo BIN ${BIN}
 endif
-	$(CC) ${LDFLAGS} -o ${BIN} entry.o ${OBJ}
+	$(CC) ${CFLAGS} ${LDFLAGS} -o ${BIN} entry.o ${OBJ}
 
 mrproper clean:
 	rm -rf ${OBJ} ${SOBJ} entry.o libsdb.a a.out ${BIN} sdb.dSYM
