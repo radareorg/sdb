@@ -2,6 +2,7 @@ include ../config.mk
 
 BIN=mcsdbd
 CBIN=mcsdbc
+NETTEST=test_net
 OBJS=main.o memcache.o net.o protocol.o client.o
 COBJS=client.o net.o memcache.o
 LIBS=../src/libsdb.a
@@ -30,7 +31,7 @@ ifneq ($(SILENT),)
 endif
 	${CC} mainclient.o ${COBJS} ${LDFLAGS} -o ${CBIN} ${LIBS}
 
-${OBJS} mainclient.o: cmds.h
+${OBJS} mainclient.o test_net.o: cmds.h
 
 ${BIN}: ${OBJS}
 ifneq ($(SILENT),)
@@ -38,18 +39,24 @@ ifneq ($(SILENT),)
 endif
 	${CC} -o ${BIN} $(CFLAGS) ${OBJS} ${LDFLAGS} ${LIBS}
 
-cmds.h: cmds.o
-	${HOST_CC} -o cmds ../src/util.c cmds.c ${CPPFLAGS} $(CFLAGS) ${HOST_CFLAGS} ${LDFLAGS}
+cmds.h: cmds.c
+	${HOST_CC} -o cmds cmds.c ${CPPFLAGS} $(CFLAGS) ${HOST_CFLAGS} ${LDFLAGS}
 	./cmds > cmds.h
+
+${NETTEST}: test_net.o net.o
+	${CC} test_net.o net.o ${LDFLAGS} -o ${NETTEST}
+
+check: ${NETTEST}
+	./${NETTEST}
 
 clean:
 	rm -rf *.dSYM
-	rm -f *.sdb ${LIBA} ${COBJS} ${CBIN} mainclient.o
-	rm -f ${OBJS} ${BIN}cmds.h cmds cmds.o
+	rm -f *.sdb ${LIBA} ${COBJS} ${CBIN} mainclient.o ${NETTEST} test_net.o
+	rm -f ${OBJS} ${BIN} cmds.h cmds cmds.o
 
 test:
 	./mcsdbd &
 	./mcsdbc < test
 	killall mcsdbd
 
-.PHONY: clean test all loc
+.PHONY: clean test check all loc

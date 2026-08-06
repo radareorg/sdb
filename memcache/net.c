@@ -2,17 +2,42 @@
 
 #include "mcsdb.h"
 #include <sdb/types.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <netdb.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 static char netbuf[MCSDB_MAX_BUFFER];
 static size_t netbuflen = 0;
+
+static int net_write_all(int fd, const char *buf, size_t len) {
+	size_t written = 0;
+	if (fd == -1) {
+		fd = STDOUT_FILENO;
+	}
+	while (written < len) {
+		ssize_t n = write (fd, buf + written, len - written);
+		if (n < 0) {
+			if (errno == EINTR) {
+				continue;
+			}
+			return -1;
+		}
+		if (!n) {
+			return -1;
+		}
+		written += n;
+	}
+	return 0;
+}
 
 char *net_readnl(int fd) {
 	int i = -1;
@@ -33,33 +58,69 @@ char *net_readnl(int fd) {
 //NetSocket *net_accept(NetSocket *s) { }
 
 int net_flush(int fd) {
-	int n;
+	size_t len;
 	if (netbuflen < 1) {
 		return 0;
 	}
-	if (fd == -1) {
-		fd = 1; //stdout
+	len = netbuflen;
+	if (net_write_all (fd, netbuf, len) < 0) {
+		netbuflen = 0;
+		return -1;
 	}
-	n = write (fd, netbuf, netbuflen);
 	netbuflen = 0;
-	return n;
+	return (int)len;
 }
 
 int net_printf (int fd, const char *fmt, ...) {
-	int n;
+	char *out;
+	int n, formatted;
+	size_t len;
 	char buf[MCSDB_MAX_BUFFER];
 	va_list ap;
+	if (!fmt) {
+		return -1;
+	}
 	va_start (ap, fmt);
-	n = vsnprintf (buf, sizeof (buf)-1, fmt, ap);
+	n = vsnprintf (buf, sizeof (buf), fmt, ap);
 	va_end (ap);
 	if (n < 0) {
-		return 0;
+		return -1;
 	}
-	if (netbuflen+n > sizeof (netbuf)) {
-		net_flush (fd);
+	len = n;
+	out = buf;
+	if (len >= sizeof (buf)) {
+		out = malloc (len + 1);
+		if (!out) {
+			return -1;
+		}
+		va_start (ap, fmt);
+		formatted = vsnprintf (out, len + 1, fmt, ap);
+		va_end (ap);
+		if (formatted != n) {
+			free (out);
+			return -1;
+		}
 	}
-	strcpy (netbuf + netbuflen, buf);
-	netbuflen += n;
+	if (len > sizeof (netbuf)) {
+		if (net_flush (fd) < 0 || net_write_all (fd, out, len) < 0) {
+			if (out != buf) {
+				free (out);
+			}
+			return -1;
+		}
+	} else {
+		if (len > sizeof (netbuf) - netbuflen && net_flush (fd) < 0) {
+			if (out != buf) {
+				free (out);
+			}
+			return -1;
+		}
+		memcpy (netbuf + netbuflen, out, len);
+		netbuflen += len;
+	}
+	if (out != buf) {
+		free (out);
+	}
 	return n;
 }
 
