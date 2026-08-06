@@ -71,7 +71,8 @@ bin $(BIN): bin_deps
 ifneq ($(SILENT),)
 	@echo BIN ${BIN}
 endif
-	$(CC) ${LDFLAGS} -o ${BIN} entry.o ${OBJ}
+# CFLAGS may force a source language; reset it before passing object files.
+	$(CC) ${CFLAGS} -x none ${LDFLAGS} -o ${BIN} entry.o ${OBJ}
 
 mrproper clean:
 	rm -rf ${OBJ} ${SOBJ} entry.o libsdb.a a.out ${BIN} sdb.dSYM
