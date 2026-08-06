@@ -122,21 +122,36 @@ int cdb_make_add(struct cdb_make *c, const char *key, ut32 keylen, const char *d
 	return cdb_make_addend (c, keylen, datalen, sdb_hash (key));
 }
 
+void cdb_make_cancel(struct cdb_make *c) {
+	struct cdb_hplist *x, *n;
+	if (!c) {
+		return;
+	}
+	for (x = c->head; x; x = n) {
+		n = x->next;
+		cdb_alloc_free (x);
+	}
+	cdb_alloc_free (c->split);
+	c->head = NULL;
+	c->split = NULL;
+	c->hash = NULL;
+}
+
 int cdb_make_finish(struct cdb_make *c) {
-	int i;
+	int i, result;
 	char buf[8];
 	struct cdb_hp *hp;
-	struct cdb_hplist *x, *n;
+	struct cdb_hplist *x;
 	ut32 len, u, memsize, count, where;
 
 	memsize = c->memsize + c->numentries;
 	if (memsize > (UT32_MAX / sizeof (struct cdb_hp))) {
-		return 0;
+		goto fail;
 	}
 	// Allocate memory with proper alignment
 	c->split = (struct cdb_hp *) cdb_alloc (memsize * sizeof (struct cdb_hp));
 	if (!c->split) {
-		return 0;
+		goto fail;
 	}
 	// Ensure the pointer arithmetic is done with proper type safety
 	// by first casting to char* for byte-wise arithmetic, then back to struct cdb_hp*
@@ -175,26 +190,25 @@ int cdb_make_finish(struct cdb_make *c) {
 			ut32_pack (buf, c->hash[u].h);
 			ut32_pack (buf + 4, c->hash[u].p);
 			if (!buffer_putalign (&c->b, buf, 8)) {
-				return 0;
+				goto fail;
 			}
 			if (!incpos (c, 8)) {
-				return 0;
+				goto fail;
 			}
 		}
 	}
 
 	if (!buffer_flush (&c->b)) {
-		return 0;
+		goto fail;
 	}
 	if (!seek_set (c->fd, 0)) {
-		return 0;
+		goto fail;
 	}
-	// free childs
-	for (x = c->head; x;) {
-		n = x->next;
-		cdb_alloc_free (x);
-		x = n;
-	}
-	cdb_alloc_free (c->split);
-	return buffer_putflush (&c->b, c->final, sizeof c->final);
+	result = buffer_putflush (&c->b, c->final, sizeof c->final);
+	cdb_make_cancel (c);
+	return result;
+
+fail:
+	cdb_make_cancel (c);
+	return 0;
 }

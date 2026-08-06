@@ -5,5 +5,6 @@
 #include "sdb/sdb.h"
 
 SDB_IPI const char *sdb_const_vgetf(Sdb *s, ut32 *cas, const char *fmt, va_list ap);
+SDB_IPI void sdb_disk_abort(Sdb *s);
 
 #endif

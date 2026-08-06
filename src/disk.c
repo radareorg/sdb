@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 #if __SDB_WINDOWS__
 
@@ -48,6 +48,20 @@ static bool r_sys_mkdir(const char *path) {
 #define r_sys_mkdir(x) (mkdir (x,0755)!=-1)
 #define r_sys_mkdir_failed() (errno != EEXIST)
 #endif
+
+static bool unlink_path(const char *path) {
+	if (!path) {
+		return false;
+	}
+#if __SDB_WINDOWS__ && UNICODE
+	wchar_t *wpath = r_sys_conv_utf8_to_utf16 (path);
+	bool ret = wpath && _wunlink (wpath) != -1;
+	sdb_gh_free (wpath);
+	return ret;
+#else
+	return unlink (path) != -1;
+#endif
+}
 
 static inline bool mkdirp(char *dir) {
 	const char slash = DIRSEP;
@@ -95,9 +109,6 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 	memcpy (str, dir, nlen + 1);
 	mkdirp (str);
 	memcpy (str + nlen, ".tmp", 5);
-	if (s->fdump != -1) {
-		close (s->fdump);
-	}
 #if __SDB_WINDOWS__ && UNICODE
 	wchar_t *wstr = r_sys_conv_utf8_to_utf16 (str);
 	if (wstr) {
@@ -114,61 +125,99 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 		sdb_gh_free (str);
 		return false;
 	}
-	cdb_make_start (&s->m, s->fdump);
 	s->ndump = str;
+	if (!cdb_make_start (&s->m, s->fdump)) {
+		sdb_disk_abort (s);
+		return false;
+	}
 	return true;
 }
 
 SDB_API bool sdb_disk_insert(Sdb* s, const char *key, const char *val) {
-	struct cdb_make *c = &s->m;
-	if (!key || !val) {
+	if (!s || !key || !val) {
 		return false;
 	}
 	//if (!*val) return 0; //undefine variable if no value
-	return cdb_make_add (c, key, strlen (key), val, strlen (val));
+	return cdb_make_add (&s->m, key, strlen (key), val, strlen (val));
 }
 
-#define IFRET(x) if (x) ret = 0
-SDB_API bool sdb_disk_finish(Sdb* s) {
-	bool ret = true;
-	IFRET (!cdb_make_finish (&s->m));
-#if USE_MMAN
-	IFRET (fsync (s->fdump));
-#endif
-	IFRET (close (s->fdump));
-	s->fdump = -1;
-	// close current fd to avoid sharing violations
+static void close_current_database(Sdb *s) {
+	cdb_free (&s->db);
+	s->db.fd = -1;
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
 	}
+}
+
+SDB_IPI void sdb_disk_abort(Sdb *s) {
+	if (!s) {
+		return;
+	}
+	cdb_make_cancel (&s->m);
+	if (s->fdump >= 0) {
+		close (s->fdump);
+	}
+	s->fdump = -1;
+	if (s->ndump) {
+		unlink_path (s->ndump);
+		R_FREE (s->ndump);
+	}
+}
+
+SDB_API bool sdb_disk_finish(Sdb* s) {
+	if (!s) {
+		return false;
+	}
+	if (s->fdump < 0 || !s->ndump || !s->dir) {
+		sdb_disk_abort (s);
+		return false;
+	}
+	bool ret = cdb_make_finish (&s->m);
+#if USE_MMAN
+	if (ret && fsync (s->fdump) == -1) {
+		ret = false;
+	}
+#endif
+	if (close (s->fdump) == -1) {
+		ret = false;
+	}
+	s->fdump = -1;
+	if (!ret) {
+		sdb_disk_abort (s);
+		return false;
+	}
 #if __SDB_WINDOWS__
 	LPTSTR ndump_ = r_sys_conv_utf8_to_utf16 (s->ndump);
 	LPTSTR dir_ = r_sys_conv_utf8_to_utf16 (s->dir);
-
-	if (MoveFileEx (ndump_, dir_, MOVEFILE_REPLACE_EXISTING)) {
-		//eprintf ("Error 0x%02x\n", GetLastError ());
+	if (!ndump_ || !dir_) {
+		sdb_gh_free (ndump_);
+		sdb_gh_free (dir_);
+		sdb_disk_abort (s);
+		return false;
 	}
+	// Windows cannot replace a file while the existing database is open.
+	close_current_database (s);
+	ret = MoveFileEx (ndump_, dir_, MOVEFILE_REPLACE_EXISTING) != 0;
 	sdb_gh_free (ndump_);
 	sdb_gh_free (dir_);
-#else
-	if (s->ndump && s->dir) {
-		IFRET (rename (s->ndump, s->dir));
+	if (!ret) {
+		sdb_disk_abort (s);
+		(void)sdb_open (s, s->dir);
+		return false;
 	}
+#else
+	if (rename (s->ndump, s->dir) == -1) {
+		sdb_disk_abort (s);
+		return false;
+	}
+	close_current_database (s);
 #endif
 	sdb_gh_free (s->ndump);
 	s->ndump = NULL;
-	// always reopen just in case
-	{
-		int rr = sdb_open (s, s->dir);
-		if (ret && rr < 0) {
-			ret = false;
-		}
-		cdb_init (&s->db, s->fd);
-	}
-	return ret;
+	return sdb_open (s, s->dir) >= 0;
 }
 
 SDB_API bool sdb_disk_unlink(Sdb *s) {
-	return (s->dir && *(s->dir) && unlink (s->dir) != -1);
+	return s->dir && *s->dir && unlink_path (s->dir);
 }

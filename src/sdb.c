@@ -182,11 +182,11 @@ static void sdb_fini(Sdb* s, bool donull) {
 	}
 	sdb_ns_free (s);
 	s->refs = 0;
+	sdb_journal_close (s);
 	sdb_gh_free (s->name);
 	sdb_gh_free (s->path);
 	ls_free (s->ns);
 	sdb_ht_free (s->ht);
-	sdb_journal_close (s);
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
@@ -980,34 +980,56 @@ SDB_API bool sdb_foreach(Sdb* s, SdbForeachCallback cb, void *user) {
 	return sdb_foreach_end (s, true);
 }
 
-static bool _insert_into_disk(void *user, const char *key, const char *value) {
-	Sdb *s = (Sdb *)user;
-	if (s) {
-		sdb_disk_insert (s, key, value);
-		return true;
-	}
-	return false;
+typedef struct {
+	Sdb *s;
+	HtPP *persisted;
+} SdbSync;
+
+static bool _sync_has_persisted(SdbSync *sync, const char *key) {
+	return ht_pp_find (sync->persisted, key, NULL) != NULL;
 }
 
-static bool _remove_afer_insert(void *user, const char *k, const char *v) {
-	Sdb *s = (Sdb *)user;
-	if (s) {
-		sdb_ht_delete (s->ht, k);
-		return true;
+static bool _insert_into_disk(void *user, const char *key, const char *value) {
+	SdbSync *sync = (SdbSync *)user;
+	if (!sync || !sync->s) {
+		return false;
 	}
-	return false;
+	// An updated key may occur more than once in an existing CDB.
+	return _sync_has_persisted (sync, key)
+		|| sdb_disk_insert (sync->s, key, value);
+}
+
+static bool _mark_persisted(void *user, const char *key, const char *value) {
+	SdbSync *sync = (SdbSync *)user;
+	(void)value;
+	return sync && (_sync_has_persisted (sync, key)
+		|| ht_pp_insert (sync->persisted, key, (void *)1));
+}
+
+static bool _remove_persisted(void *user, const void *key, const void *value) {
+	Sdb *s = (Sdb *)user;
+	(void)value;
+	(void)sdb_ht_delete (s->ht, (const char *)key);
+	return true;
 }
 
 SDB_API bool sdb_sync(Sdb* s) {
-	bool result;
 	ut32 i;
 
-	if (!s || !sdb_disk_create (s)) {
+	if (!s) {
 		return false;
 	}
-	result = sdb_foreach_cdb (s, _insert_into_disk, _remove_afer_insert, s);
-	if (!result) {
+	HtPP *persisted = ht_pp_new0 ();
+	if (!persisted) {
 		return false;
+	}
+	SdbSync sync = { s, persisted };
+	if (!sdb_disk_create (s)) {
+		ht_pp_free (persisted);
+		return false;
+	}
+	if (!sdb_foreach_cdb (s, _insert_into_disk, _mark_persisted, &sync)) {
+		goto fail;
 	}
 
 	/* append new keyvalues */
@@ -1019,18 +1041,29 @@ SDB_API bool sdb_sync(Sdb* s) {
 		BUCKET_FOREACH_SAFE (s->ht, bt, j, count, kv) {
 			if (sdbkv_key (kv)) {
 				const char *kvv = sdbkv_value (kv);
-				if (kvv && *kvv && !kv->expire) {
-					if (sdb_disk_insert (s, sdbkv_key (kv), sdbkv_value (kv))) {
-						sdb_ht_delete (s->ht, sdbkv_key (kv));
+				if (kvv && *kvv && !kv->expire
+					&& !_sync_has_persisted (&sync, sdbkv_key (kv))) {
+					if (!sdb_disk_insert (s, sdbkv_key (kv), kvv)
+						|| !_mark_persisted (&sync, sdbkv_key (kv), kvv)) {
+						goto fail;
 					}
 				}
 			}
 		}
 	}
-	sdb_disk_finish (s);
-	sdb_journal_clear (s);
-	// TODO: sdb_reset memory state?
+	if (!sdb_disk_finish (s)) {
+		goto fail;
+	}
+	// Dirty entries remain available for retry until the replacement succeeds.
+	ht_pp_foreach (persisted, _remove_persisted, s);
+	ht_pp_free (persisted);
+	(void)sdb_journal_clear (s);
 	return true;
+
+fail:
+	sdb_disk_abort (s);
+	ht_pp_free (persisted);
+	return false;
 }
 
 SDB_API void sdb_dump_begin(Sdb* s) {

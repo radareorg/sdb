@@ -35,6 +35,7 @@ int cdb_make_start(struct cdb_make *, int);
 int cdb_make_addbegin(struct cdb_make *, unsigned int, unsigned int);
 int cdb_make_addend(struct cdb_make *, unsigned int, unsigned int,ut32);
 int cdb_make_add(struct cdb_make *, const char *, unsigned int, const char *, unsigned int);
+void cdb_make_cancel(struct cdb_make *);
 int cdb_make_finish(struct cdb_make *);
 
 #endif

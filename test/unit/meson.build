@@ -5,7 +5,8 @@ if get_option('enable_tests')
     'diff',
     'hash',
     'ls',
-    'sdb'
+    'sdb',
+    'sync'
   ]
 
   foreach test : tests
