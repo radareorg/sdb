@@ -202,9 +202,9 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 					strbuf_appendf (sb, 0, "\t{\"%s\", \"%s\"},\n", ev, ek);
 				}
 			}
-			sdb_gh_free (ek);
-			sdb_gh_free (ev);
 		}
+		sdb_gh_free (ek);
+		sdb_gh_free (ev);
 	}
 	ls_free (l);
 
