@@ -59,7 +59,7 @@ static void ns_free(Sdb *s, SdbList *list) {
 					sdb_free (child);
 				}
 			}
-			free (ns->name);
+			sdb_gh_free (ns->name);
 			ns->name = NULL;
 		}
 		if (!deleted) {
@@ -76,10 +76,10 @@ static void ns_free(Sdb *s, SdbList *list) {
 			}
 			s->ns->free = NULL;
 			ls_delete (s->ns, it); // free (it)
-			free (ns->name);
+			sdb_gh_free (ns->name);
 			ns->name = NULL;
 		}
-		free (ns);
+		sdb_gh_free (ns);
 		it = &next;
 	}
 	ls_free (s->ns);
@@ -118,8 +118,8 @@ SDB_API void sdb_ns_reset(Sdb *s) {
 				sdb_free (ns->sdb);
 			}
 		}
-		free (ns->name);
-		free (ns);
+		sdb_gh_free (ns->name);
+		sdb_gh_free (ns);
 	}
 	ls_free (s->ns);
 	s->ns = NULL;
