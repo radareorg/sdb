@@ -9,6 +9,8 @@ static bool test_getf(void) {
 	mu_assert_streq (sdb_const_get (db, "group.alice.42", NULL), "staff", "formatted set value");
 	mu_assert ("formatted number set", sdb_num_setf (db, 42, 0, "number.%s", "answer"));
 	mu_assert_eq (sdb_num_get (db, "number.answer", NULL), 42, "formatted number set value");
+	mu_assert ("formatted unset", sdb_unsetf (db, 0, "group.%s.%d", "alice", 42));
+	mu_assert_null (sdb_const_get (db, "group.alice.42", NULL), "formatted unset value");
 
 	ut32 const_cas = 0;
 	const char *const_value = sdb_const_getf (db, &const_cas,
@@ -29,6 +31,7 @@ static bool test_getf(void) {
 	ut32 cas = 123;
 	mu_assert_null (sdb_const_getf (db, &cas, "%s", oversized),
 		"oversized formatted key");
+	mu_assert_eq (sdb_unsetf (db, 0, "%s", oversized), 0, "oversized formatted unset");
 	mu_assert_eq (cas, 0, "oversized key CAS");
 	mu_assert_null (sdb_const_getf (db, NULL, "missing.%d", 7),
 		"missing formatted key");
