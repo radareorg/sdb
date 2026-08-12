@@ -284,13 +284,19 @@ SDB_API const char *sdb_const_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_const_get_len (s, key, NULL, cas);
 }
 
+// Format a key into a SDB_MAX_KEY-sized buffer; fails on truncation or error
+SDB_IPI bool sdb_vfmtkey(char key[SDB_MAX_KEY], const char *fmt, va_list ap) {
+	if (!fmt) {
+		return false;
+	}
+	int len = vsnprintf (key, SDB_MAX_KEY, fmt, ap);
+	return len >= 0 && len < SDB_MAX_KEY;
+}
+
 SDB_IPI const char *sdb_const_vgetf(Sdb *s, ut32 *cas, const char *fmt, va_list ap) {
-	if (fmt) {
-		char key[SDB_MAX_KEY];
-		int len = vsnprintf (key, SDB_MAX_KEY, fmt, ap);
-		if (len >= 0 && len < SDB_MAX_KEY) {
-			return sdb_const_get (s, key, cas);
-		}
+	char key[SDB_MAX_KEY];
+	if (sdb_vfmtkey (key, fmt, ap)) {
+		return sdb_const_get (s, key, cas);
 	}
 	if (cas) {
 		*cas = 0;
@@ -325,10 +331,9 @@ SDB_API int sdb_unset(Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
-static int sdb_vsetf(Sdb *s, const char *val, ut32 cas, const char *fmt, va_list ap) {
+SDB_IPI int sdb_vsetf(Sdb *s, const char *val, ut32 cas, const char *fmt, va_list ap) {
 	char key[SDB_MAX_KEY];
-	int len = vsnprintf (key, sizeof (key), fmt, ap);
-	return len >= 0 && len < (int)sizeof (key)? sdb_set (s, key, val, cas): 0;
+	return sdb_vfmtkey (key, fmt, ap)? sdb_set (s, key, val, cas): 0;
 }
 
 SDB_API int sdb_unsetf(Sdb *s, ut32 cas, const char *fmt, ...) {

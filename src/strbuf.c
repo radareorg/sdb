@@ -1,10 +1,9 @@
 /* sdb - MIT - Copyright 2024 - pancake */
 
-#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 SDB_API StrBuf* strbuf_new(void) {
 	return (StrBuf*) sdb_gh_calloc (sizeof (StrBuf), 1);
@@ -49,29 +48,13 @@ SDB_API StrBuf* strbuf_appendf(StrBuf *sb, const int nl, const char *fmt, ...) {
 	
 	va_list ap;
 	va_start (ap, fmt);
-	
-	// First try with a reasonably sized buffer
-	char buf[1024];
-	int len = vsnprintf (buf, sizeof (buf), fmt, ap);
+	char *str = sdb_vstrdupf (fmt, ap);
 	va_end (ap);
-	
-	// If that was enough, just append the string
-	if (len >= 0 && len < (int)sizeof(buf)) {
-		return strbuf_append (sb, buf, nl);
-	}
-	
-	// If not, allocate a bigger buffer and try again
-	va_start (ap, fmt);
-	char *newbuf = (char *)sdb_gh_malloc (len + 1);
-	if (!newbuf) {
-		va_end (ap);
+	if (!str) {
 		return NULL;
 	}
-	vsnprintf (newbuf, len + 1, fmt, ap);
-	va_end (ap);
-	
-	StrBuf *ret = strbuf_append (sb, newbuf, nl);
-	sdb_gh_free (newbuf);
+	StrBuf *ret = strbuf_append (sb, str, nl);
+	sdb_gh_free (str);
 	return ret;
 }
 

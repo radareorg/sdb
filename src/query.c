@@ -1,31 +1,29 @@
-/* sdb - MIT - Copyright 2011-2022 - pancake */
+/* sdb - MIT - Copyright 2011-2026 - pancake */
 
 #include <fcntl.h>
-#include <stdarg.h>
 #include <ctype.h>
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 #define NEWLINE_AFTER_QUERY 1
 
 SDB_API int sdb_queryf(Sdb *s, const char *fmt, ...) {
-        char string[4096];
-        int ret;
-        va_list ap;
-        va_start (ap, fmt);
-        vsnprintf (string, sizeof (string), fmt, ap);
-        ret = sdb_query (s, string);
-        va_end (ap);
-        return ret;
+	va_list ap;
+	va_start (ap, fmt);
+	char *cmd = sdb_vstrdupf (fmt, ap);
+	va_end (ap);
+	int ret = cmd? sdb_query (s, cmd): 0;
+	sdb_gh_free (cmd);
+	return ret;
 }
 
 SDB_API char *sdb_querysf(Sdb *s, char *buf, size_t buflen, const char *fmt, ...) {
-        char string[4096];
-        va_list ap;
-        va_start (ap, fmt);
-        vsnprintf (string, sizeof (string), fmt, ap);
-        char *ret = sdb_querys (s, buf, buflen, string);
-        va_end (ap);
-        return ret;
+	va_list ap;
+	va_start (ap, fmt);
+	char *cmd = sdb_vstrdupf (fmt, ap);
+	va_end (ap);
+	char *ret = cmd? sdb_querys (s, buf, buflen, cmd): NULL;
+	sdb_gh_free (cmd);
+	return ret;
 }
 
 // TODO: Reimplement as a function with optimized concat

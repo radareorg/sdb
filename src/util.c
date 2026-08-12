@@ -1,6 +1,6 @@
 /* sdb - MIT - Copyright 2011-2022 - pancake */
 
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 #define FORCE_COLLISION 0
 
@@ -400,4 +400,17 @@ SDB_API bool sdb_isjson (const char *k) {
 		}
 	}
 	return (!quotes && !level);
+}
+
+// printf into a heap string allocated with the sdb global heap
+SDB_IPI char *sdb_vstrdupf(const char *fmt, va_list ap) {
+	va_list ap2;
+	va_copy (ap2, ap);
+	int len = vsnprintf (NULL, 0, fmt, ap);
+	char *s = (len < 0)? NULL: (char *)sdb_gh_malloc (len + 1);
+	if (s) {
+		vsnprintf (s, len + 1, fmt, ap2);
+	}
+	va_end (ap2);
+	return s;
 }
