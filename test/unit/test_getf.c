@@ -18,6 +18,13 @@ static bool test_getf(void) {
 	mu_assert_streq (const_value, "admin", "formatted const get");
 	mu_assert ("const get CAS", const_cas != 0);
 
+	char *heap_value = sdb_getf (db, NULL, "user.%s.%d", "alice", 42);
+	mu_assert_streq (heap_value, "admin", "formatted heap get");
+	sdb_gh_free (heap_value);
+	mu_assert_null (sdb_getf (db, NULL, "missing.%d", 7), "missing formatted heap get");
+	mu_assert ("formatted exists", sdb_existsf (db, "user.%s.%d", "alice", 42));
+	mu_assert ("formatted not exists", !sdb_existsf (db, "missing.%d", 7));
+
 	char maxkey[SDB_MAX_KEY];
 	memset (maxkey, 'x', sizeof (maxkey) - 1);
 	maxkey[sizeof (maxkey) - 1] = 0;

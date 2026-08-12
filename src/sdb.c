@@ -321,6 +321,14 @@ SDB_API char *sdb_get(Sdb* s, const char *key, ut32 *cas) {
 	return sdb_get_len (s, key, NULL, cas);
 }
 
+SDB_API char *sdb_getf(Sdb *s, ut32 *cas, const char *fmt, ...) {
+	va_list ap;
+	va_start (ap, fmt);
+	const char *value = sdb_const_vgetf (s, cas, fmt, ap);
+	va_end (ap);
+	return value? sdb_strdup (value): NULL;
+}
+
 SDB_API char *sdb_nget(Sdb* s, ut64 nkey, ut32 *cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
@@ -492,6 +500,15 @@ SDB_API int sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_add (s, key, val, cas);
+}
+
+SDB_API bool sdb_existsf(Sdb *s, const char *fmt, ...) {
+	char key[SDB_MAX_KEY];
+	va_list ap;
+	va_start (ap, fmt);
+	bool ok = sdb_vfmtkey (key, fmt, ap);
+	va_end (ap);
+	return ok? sdb_exists (s, key): false;
 }
 
 SDB_API bool sdb_exists(Sdb* s, const char *key) {
