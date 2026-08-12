@@ -325,6 +325,20 @@ SDB_API int sdb_unset(Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
+static int sdb_vsetf(Sdb *s, const char *val, ut32 cas, const char *fmt, va_list ap) {
+	char key[SDB_MAX_KEY];
+	int len = vsnprintf (key, sizeof (key), fmt, ap);
+	return len >= 0 && len < (int)sizeof (key)? sdb_set (s, key, val, cas): 0;
+}
+
+SDB_API int sdb_unsetf(Sdb *s, ut32 cas, const char *fmt, ...) {
+	va_list ap;
+	va_start (ap, fmt);
+	int res = sdb_vsetf (s, "", cas, fmt, ap);
+	va_end (ap);
+	return res;
+}
+
 SDB_API int sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
 	return sdb_nset (s, nkey, "", cas);
 }
@@ -777,12 +791,10 @@ SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
 
 SDB_API int sdb_setf(Sdb *s, const char *val, ut32 cas, const char *fmt, ...) {
 	va_list ap;
-	char key[SDB_MAX_KEY];
-	int len;
 	va_start (ap, fmt);
-	len = vsnprintf (key, sizeof (key), fmt, ap);
+	int res = sdb_vsetf (s, val, cas, fmt, ap);
 	va_end (ap);
-	return len >= 0 && len < (int)sizeof (key)? sdb_set (s, key, val, cas): 0;
+	return res;
 }
 
 SDB_API int sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {

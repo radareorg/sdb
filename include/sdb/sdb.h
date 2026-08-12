@@ -179,6 +179,7 @@ SDB_API char *sdb_querysf(Sdb* s, char *buf, size_t buflen, const char *fmt, ...
 SDB_API int sdb_query_file(Sdb *s, const char* file);
 SDB_API bool sdb_exists(Sdb*, const char *key);
 SDB_API int sdb_unset(Sdb*, const char *key, ut32 cas);
+SDB_API int sdb_unsetf(Sdb* s, ut32 cas, const char *fmt, ...) SDB_PRINTF_CHECK(3, 4);
 SDB_API int sdb_nunset(Sdb*, ut64 nkey, ut32 cas);
 SDB_API bool sdb_rename(Sdb*, const char *oldkey, const char *newkey, ut32 cas);
 SDB_API int sdb_rename_prefix(Sdb*, const char *oldprefix, const char *newprefix);
