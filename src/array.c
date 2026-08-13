@@ -144,15 +144,8 @@ SDB_API int sdb_array_insert(Sdb *s, const char *key, int idx, const char *val, 
 		return sdb_set (s, key, val, cas);
 	}
 	lval = strlen (val);
-	lstr--;
-	// XXX: lstr is wrongly computed in sdb_const_get_with an off-by-one
-	// we can optimize this by caching value len in memory . add
-	// sdb_const_get_size()
-	lstr = strlen (str);
-
-	// XXX: lstr is wrongly computed in sdb_const_get_with an off-by-one
-	// we can optimize this by caching value len in memory . add
-	// sdb_const_get_size()
+	// XXX: lstr is wrongly computed in sdb_const_get_len with an off-by-one,
+	// so recompute it here until value lengths are cached in memory
 	lstr = strlen (str);
 
 	// When removing strlen this conversion should be checked
