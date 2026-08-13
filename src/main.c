@@ -370,7 +370,7 @@ static int sdb_dump(MainOptions *mo) {
 		{
 		char *s = sdb_cgen_header (cname, mo->textmode);
 		printf ("%s", s);
-		free (s);
+		sdb_gh_free (s);
 		}
 		break;
 	case JSON:
@@ -428,7 +428,7 @@ static int sdb_dump(MainOptions *mo) {
 			{
 				char *footer = sdb_cgen_footer (name, cname, mo->textmode);
 				printf ("%s\n", footer);
-				free (footer);
+				sdb_gh_free (footer);
 			}
 			break;
 		case JSON:

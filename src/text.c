@@ -370,7 +370,7 @@ static bool load_process_final_line(LoadCtx *ctx) {
 	}
 	ctx->line_begin = 0;
 	load_process_line (ctx);
-	free (linebuf);
+	sdb_gh_free (linebuf);
 	ctx->buf = NULL;
 	return true;
 }

@@ -95,7 +95,7 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 		}
 		ptr = next;
 	}
-	free (str);
+	sdb_gh_free (str);
 	return items;
 }
 
