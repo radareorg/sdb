@@ -5,6 +5,9 @@
 SDB_API void sdb_ns_lock(Sdb *s, int lock, int depth) {
 	SdbListIter *it;
 	SdbNs *ns;
+	if (!s) {
+		return;
+	}
 	s->ns_lock = lock;
 	if (depth) { // handles -1 as infinite
 		ls_foreach_cast (s->ns, it, SdbNs*, ns) {
@@ -288,6 +291,9 @@ static void ns_sync(Sdb *s, SdbList *list) {
 }
 
 SDB_API void sdb_ns_sync(Sdb *s) {
+	if (!s) {
+		return;
+	}
 	SdbList *list = ls_new ();
 	if (list) {
 		ns_sync (s, list);

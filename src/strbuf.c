@@ -17,9 +17,9 @@ SDB_API StrBuf* strbuf_append(StrBuf *sb, const char *str, const int nl) {
 	if ((sb->len + len + 2) >= sb->size) {
 		size_t newsize = sb->size + len + 256;
 		char *b = (char *)sdb_gh_realloc (sb->buf, newsize);
-		/// TODO perform free and force all callers to update the ref?
 		if (!b) {
-			return NULL;
+			// keep the buffer owned and intact, dropping the append
+			return sb;
 		}
 		sb->buf = b;
 		sb->size = newsize;
@@ -51,7 +51,7 @@ SDB_API StrBuf* strbuf_appendf(StrBuf *sb, const int nl, const char *fmt, ...) {
 	char *str = sdb_vstrdupf (fmt, ap);
 	va_end (ap);
 	if (!str) {
-		return NULL;
+		return sb;
 	}
 	StrBuf *ret = strbuf_append (sb, str, nl);
 	sdb_gh_free (str);

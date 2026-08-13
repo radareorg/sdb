@@ -515,10 +515,10 @@ SDB_API bool sdb_exists(Sdb* s, const char *key) {
 	ut32 pos;
 	char ch;
 	bool found;
-	size_t klen = strlen (key) + 1;
-	if (!s) {
+	if (!s || !key) {
 		return false;
 	}
+	size_t klen = strlen (key) + 1;
 	SdbKv *kv = (SdbKv*)sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && kv) {
 		char *v = sdbkv_value (kv);
@@ -1219,6 +1219,9 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 	ut32 pos, len;
 	SdbKv *kv;
 	bool found;
+	if (!s) {
+		return false;
+	}
 	s->timestamped = true;
 	if (!key) {
 		s->expire = parse_expire (expire);
@@ -1271,6 +1274,9 @@ SDB_API bool sdb_hook(Sdb* s, SdbHook cb, void* user) {
 	int i = 0;
 	SdbHook hook;
 	SdbListIter *iter;
+	if (!s || !cb) {
+		return false;
+	}
 	if (s->hooks) {
 		ls_foreach_cast (s->hooks, iter, SdbHook, hook) {
 			if (!(i % 2) && (hook == cb)) {
@@ -1329,6 +1335,9 @@ SDB_API void sdb_hook_free(Sdb *s) {
 }
 
 SDB_API void sdb_config(Sdb *s, int options) {
+	if (!s) {
+		return;
+	}
 	s->options = options;
 	if (options & SDB_OPTION_SYNC) {
 		// sync on every query
@@ -1372,6 +1381,9 @@ static bool copy_foreach_cb(void *user, const char *k, const char *v) {
 }
 
 SDB_API void sdb_copy(Sdb *src, Sdb *dst) {
+	if (!src || !dst) {
+		return;
+	}
 	sdb_foreach (src, copy_foreach_cb, dst);
 	SdbListIter *it;
 	SdbNs *ns;
