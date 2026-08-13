@@ -159,10 +159,11 @@ SDB_API void *dict_getu(dict *m, dicti k) {
 	return kv ? kv->u : NULL;
 }
 
+// set the value only if the key does not exist yet, like sdb_add
 SDB_API bool dict_add(dict *m, dicti k, dicti v, void *u) {
 	return dict_getr (m, k)
-		? dict_set (m, k, v, u)
-		: false;
+		? false
+		: dict_set (m, k, v, u);
 }
 
 SDB_API bool dict_del(dict *m, dicti k) {

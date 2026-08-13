@@ -21,6 +21,15 @@ int main() {
 	if ((int)dict_get (&m, 0x400) != 4) {
 		return 1;
 	}
+	if (!dict_add (&m, 0x500, 5, NULL)) {
+		return 1;
+	}
+	if (dict_add (&m, 0x500, 6, NULL)) {
+		return 1;
+	}
+	if ((int)dict_get (&m, 0x500) != 5) {
+		return 1;
+	}
 
 	int buckets = dict_stats (&m, -1);
 	int i;
