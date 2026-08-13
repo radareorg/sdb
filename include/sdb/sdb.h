@@ -460,6 +460,16 @@ SDB_API bool sdb_isnum(const char *s);
 SDB_API bool sdb_isempty(Sdb *s);
 
 SDB_API const char *sdb_type(const char *k);
+
+// Returns true if `str` matches the `glob` pattern. Without any '*' the
+// pattern is a substring match, honoring the optional '^' (match start)
+// and '$' (match end) anchors, the '?i' suffix (case-insensitive) and
+// the '%' prefix (base64-decode `str` before comparing). If the pattern
+// contains one or more '*' wildcards, each matching any run of characters
+// (including none), the whole string must match instead: "fcnlink.*" is
+// a prefix match, "*.arg.*" a contains match and "*" matches everything.
+// Globs are anchored on both ends, so '^' and '$' become redundant no-ops
+// there; '?i' and '%' apply to globs as well.
 SDB_API bool sdb_match(const char *str, const char *glob);
 SDB_API bool sdb_bool_set(Sdb *db, const char *str, bool v, ut32 cas);
 SDB_API bool sdb_bool_get(Sdb *db, const char *str, ut32 *cas);

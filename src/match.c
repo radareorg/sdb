@@ -18,8 +18,45 @@ enum MatchFlag {
 	SDB_LIKE_ICASE = 1, // ?i
 	SDB_LIKE_START = 2, // ^
 	SDB_LIKE_END = 4,   // $
-	SDB_LIKE_BASE64 = 8 // %
+	SDB_LIKE_BASE64 = 8, // %
+	SDB_LIKE_GLOB = 16  // *
 };
+
+static inline int chareq(char a, char b, int icase) {
+	if (icase) {
+		return tolower ((const ut8)a) == tolower ((const ut8)b);
+	}
+	return a == b;
+}
+
+// iterative two-pointer glob match with backtracking, where '*' matches
+// any run of characters and the whole string must match the pattern;
+// both are bounded by their lengths instead of nul-terminated (the flag
+// suffixes may follow blen and base64-decoded data may embed nuls)
+static bool globmatch(const char *a, int alen, const char *b, int blen, int icase) {
+	const char *ae = a + alen;
+	const char *be = b + blen;
+	const char *star = NULL;
+	const char *sa = NULL;
+	while (a < ae) {
+		if (b < be && *b == '*') {
+			star = b++;
+			sa = a;
+		} else if (b < be && chareq (*b, *a, icase)) {
+			b++;
+			a++;
+		} else if (star) {
+			b = star + 1;
+			a = ++sa;
+		} else {
+			return false;
+		}
+	}
+	while (b < be && *b == '*') {
+		b++;
+	}
+	return b == be;
+}
 
 static inline int mycmp(const char *a, const char *b, int n, int any) {
 	int i, j;
@@ -66,7 +103,10 @@ static inline bool compareString(const char *a, const char *b, int blen, int fla
 	} else {
 		alen = strlen (a);
 	}
-	if (blen <= alen) {
+	if (flags & SDB_LIKE_GLOB) {
+		// globs are anchored on both ends, so ^ and $ are redundant no-ops
+		ret = globmatch (a, alen, b, blen, flags & SDB_LIKE_ICASE);
+	} else if (blen <= alen) {
 		if (flags & SDB_LIKE_ICASE) {
 			if (start && end) ret = (alen==blen && !mycmp (a, b, blen, 0));
 			else if (start) ret = !mycmp (a, b, blen, 0);
@@ -106,6 +146,14 @@ SDB_API bool sdb_match (const char *str, const char *glob) {
 	if (haveSuffix (glob, glob_len, "$")) {
 		glob_len--;
 		flags |= SDB_LIKE_END;
+	}
+	if (memchr (glob, '*', glob_len)) {
+		flags |= SDB_LIKE_GLOB;
+		// a '$' anchor hidden by the stripped '?i' suffix is not seen by
+		// haveSuffix, drop it here so it stays a no-op in glob patterns
+		if (!(flags & SDB_LIKE_END) && glob_len > 0 && glob[glob_len - 1] == '$') {
+			glob_len--;
+		}
 	}
 	return compareString (str, glob, glob_len, flags);
 }

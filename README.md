@@ -93,6 +93,15 @@ $ sdb - user='{"id":123}' user:id=99 user:id
 99
 ```
 
+Delete all the keys matching a glob expression (`*` matches any run of
+characters; a pattern without any `*` is a substring match instead):
+
+```
+$ sdb d fcnlink.0x100=a fcnlink.0x200=b other=c '~fcnlink.*'
+$ sdb d
+other=c
+```
+
 Using the command-line without any disk database:
 
 ```

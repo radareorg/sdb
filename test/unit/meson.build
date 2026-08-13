@@ -5,6 +5,7 @@ if get_option('enable_tests')
     'diff',
     'hash',
     'ls',
+    'match',
     'sdb',
     'sync'
   ]

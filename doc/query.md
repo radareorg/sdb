@@ -58,6 +58,22 @@ Those lines will show '1,,3,4'. What happened here is that positive array indexe
 
 The output is: '1,3,4'
 
+Matching
+--------
+
+Queries starting with '~' delete the keys matching the given pattern, and '~~' greps the matching key=value pairs instead of deleting them:
+
+    ~foo         ; delete the keys containing the 'foo' substring
+    ~~foo        ; show the key=value pairs matching 'foo'
+
+The '~' deletion patterns are handled by `sdb_match()`: without any '*' the pattern is a substring match, honoring the optional '^' (match start) and '$' (match end) anchors, the '?i' suffix (case-insensitive) and the '%' prefix (base64-decode the key before comparing). If the pattern contains one or more '*' wildcards, each matching any run of characters, the whole key must match instead:
+
+    ~fcnlink.*   ; delete the keys starting with 'fcnlink.'
+    ~*.arg.*     ; delete the keys containing '.arg.'
+    ~*sfx        ; delete the keys ending in 'sfx'
+
+Globs are anchored on both ends, so '^' and '$' are redundant no-ops in them, while '?i' and '%' apply to globs too. Note that in substring (star-free) patterns the '$' anchor is not recognized when followed by '?i', and that the '~~' grep patterns support only the substring and '^'/'$' syntax.
+
 Encoded strings
 ---------------
 
