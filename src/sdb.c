@@ -39,6 +39,10 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	s->journal = -1;
 	s->refs = 1;
 	s->ht = sdb_ht_new ();
+	if (!s->ht) {
+		sdb_gh_free (s);
+		return NULL;
+	}
 	if (path && !*path) {
 		path = NULL;
 	}
@@ -96,9 +100,6 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 		goto fail;
 	}
 	s->ns->free = NULL;
-	if (!s->ns) {
-		goto fail;
-	}
 	s->lock = lock;
 	cdb_init (&s->db, s->fd);
 	return s;
@@ -610,9 +611,12 @@ SDB_API void sdb_reset(Sdb* s) {
 	/* ignore disk cache, file is not removed, but we will ignore
 	 * its values when syncing again */
 	sdb_close (s);
-	/* empty memory hashtable */
-	sdb_ht_free (s->ht);
-	s->ht = sdb_ht_new ();
+	/* empty memory hashtable, keeping the old one if the alloc fails */
+	HtPP *ht = sdb_ht_new ();
+	if (ht) {
+		sdb_ht_free (s->ht);
+		s->ht = ht;
+	}
 }
 
 static char lastChar(const char *str) {
@@ -1276,6 +1280,9 @@ SDB_API bool sdb_hook(Sdb* s, SdbHook cb, void* user) {
 		}
 	} else {
 		s->hooks = ls_new ();
+		if (!s->hooks) {
+			return false;
+		}
 		s->hooks->free = NULL;
 	}
 	ls_append (s->hooks, (void*)cb);

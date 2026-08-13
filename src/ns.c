@@ -92,9 +92,11 @@ SDB_API void sdb_ns_free(Sdb *s) {
 		return;
 	}
 	list = ls_new ();
-	list->free = NULL;
-	ns_free (s, list);
-	ls_free (list);
+	if (list) {
+		list->free = NULL;
+		ns_free (s, list);
+		ls_free (list);
+	}
 	ls_free (s->ns);
 	s->ns = NULL;
 }
@@ -287,7 +289,9 @@ static void ns_sync(Sdb *s, SdbList *list) {
 
 SDB_API void sdb_ns_sync(Sdb *s) {
 	SdbList *list = ls_new ();
-	ns_sync (s, list);
-	list->free = NULL;
-	ls_free (list);
+	if (list) {
+		ns_sync (s, list);
+		list->free = NULL;
+		ls_free (list);
+	}
 }
