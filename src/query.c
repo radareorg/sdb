@@ -6,7 +6,7 @@
 
 #define NEWLINE_AFTER_QUERY 1
 
-SDB_API int sdb_queryf(Sdb *s, const char *fmt, ...) {
+SDB_API bool sdb_queryf(Sdb *s, const char *fmt, ...) {
 	va_list ap;
 	va_start (ap, fmt);
 	char *cmd = sdb_vstrdupf (fmt, ap);
@@ -535,7 +535,7 @@ static QStatus q_segment(Query *q, char *cmd, char **pnext, char **pnewcmd) {
 		}
 	}
 	if (!is_ref) {
-		next = strchr (val? val: cmd, ';');
+		next = (char *)strchr (val? val: cmd, ';');
 		if (val && *val == '"') { // key="quoted value"
 			char *quot = (char *)++val;
 			for (;;) { // find the closing quote, dropping \" escapes
@@ -672,7 +672,7 @@ SDB_API bool sdb_query(Sdb *s, const char *cmd) {
 	return must_save;
 }
 
-SDB_API int sdb_query_lines(Sdb *s, const char *cmd) {
+SDB_API bool sdb_query_lines(Sdb *s, const char *cmd) {
 	char *o, *p, *op;
 	if (!s || !cmd) {
 		return 0;
@@ -729,7 +729,7 @@ static char *slurp(const char *file) {
 	return text;
 }
 
-SDB_API int sdb_query_file(Sdb *s, const char* file) {
+SDB_API bool sdb_query_file(Sdb *s, const char* file) {
 	int ret = 0;
 	char *txt = slurp (file);
 	if (txt) {

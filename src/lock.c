@@ -36,7 +36,7 @@ SDB_API bool sdb_lock(const char *s) {
 	return true;
 }
 
-SDB_API int sdb_lock_wait(const char *s) {
+SDB_API bool sdb_lock_wait(const char *s) {
 	// TODO use flock() here
 	// wait forever here?
  	while (!sdb_lock (s)) {
@@ -48,7 +48,7 @@ SDB_API int sdb_lock_wait(const char *s) {
 	 	sleep (1); // hack
 #endif
  	}
-	return 1;
+	return true;
 }
 
 SDB_API void sdb_unlock(const char *s) {

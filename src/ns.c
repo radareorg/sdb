@@ -188,41 +188,41 @@ SDB_API bool sdb_ns_unset(Sdb *s, const char *name, Sdb *r) {
 	return false;
 }
 
-SDB_API int sdb_ns_set(Sdb *s, const char *name, Sdb *r) {
+SDB_API bool sdb_ns_set(Sdb *s, const char *name, Sdb *r) {
 	SdbNs *ns;
 	SdbListIter *it;
 	ut32 hash = sdb_hash (name);
 	if (!s || !r || !name) {
-		return 0;
+		return false;
 	}
 	ls_foreach_cast (s->ns, it, SdbNs*, ns) {
 		if (ns->hash == hash) {
 			if (ns->sdb == r) {
-				return 0;
+				return false;
 			}
 			sdb_free (ns->sdb);
 			r->refs++; // sdb_ref / sdb_unref //
 			ns->sdb = r;
-			return 1;
+			return true;
 		}
 	}
 	if (s->ns_lock) {
-		return 0;
+		return false;
 	}
 	ns = R_NEW (SdbNs);
 	if (!ns) {
-		return 0;
+		return false;
 	}
 	ns->name = sdb_strdup (name);
 	if (!ns->name) {
 		sdb_gh_free (ns);
-		return 0;
+		return false;
 	}
 	ns->hash = hash;
 	ns->sdb = r;
 	r->refs++;
 	ls_append (s->ns, ns);
-	return 1;
+	return true;
 }
 
 SDB_API Sdb *sdb_ns(Sdb *s, const char *name, int create) {

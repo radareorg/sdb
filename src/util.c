@@ -333,7 +333,7 @@ SDB_API ut64 sdb_unow (void) {
 	return x;
 }
 
-SDB_API int sdb_isnum(const char *s) {
+SDB_API bool sdb_isnum(const char *s) {
 	const char vs = *s;
 	return ((vs == '-' || vs == '+') || (vs >= '0' && vs <= '9'));
 }

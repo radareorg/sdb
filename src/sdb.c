@@ -336,16 +336,16 @@ SDB_API char *sdb_nget(Sdb* s, ut64 nkey, ut32 *cas) {
 	return sdb_get_len (s, key, NULL, cas);
 }
 
-SDB_API int sdb_unset(Sdb* s, const char *key, ut32 cas) {
+SDB_API bool sdb_unset(Sdb* s, const char *key, ut32 cas) {
 	return key? sdb_set (s, key, "", cas): 0;
 }
 
-SDB_IPI int sdb_vsetf(Sdb *s, const char *val, ut32 cas, const char *fmt, va_list ap) {
+SDB_IPI bool sdb_vsetf(Sdb *s, const char *val, ut32 cas, const char *fmt, va_list ap) {
 	char key[SDB_MAX_KEY];
 	return sdb_vfmtkey (key, fmt, ap)? sdb_set (s, key, val, cas): 0;
 }
 
-SDB_API int sdb_unsetf(Sdb *s, ut32 cas, const char *fmt, ...) {
+SDB_API bool sdb_unsetf(Sdb *s, ut32 cas, const char *fmt, ...) {
 	va_list ap;
 	va_start (ap, fmt);
 	int res = sdb_vsetf (s, "", cas, fmt, ap);
@@ -353,7 +353,7 @@ SDB_API int sdb_unsetf(Sdb *s, ut32 cas, const char *fmt, ...) {
 	return res;
 }
 
-SDB_API int sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
+SDB_API bool sdb_nunset(Sdb* s, ut64 nkey, ut32 cas) {
 	return sdb_nset (s, nkey, "", cas);
 }
 
@@ -443,7 +443,7 @@ SDB_API int sdb_rename_prefix(Sdb *s, const char *oldprefix, const char *newpref
 }
 
 // alias for '-key=str'.. '+key=str' concats
-SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
+SDB_API bool sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	// remove 'value' from current key value.
 	ut32 kas = 0;
 	int vlen = 0, valen;
@@ -467,7 +467,7 @@ SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	return 0;
 }
 
-SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
+SDB_API bool sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	int kl, vl;
 	const char *p;
 	char *o;
@@ -489,14 +489,14 @@ SDB_API int sdb_concat(Sdb *s, const char *key, const char *value, ut32 cas) {
 }
 
 // set if not defined
-SDB_API int sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
+SDB_API bool sdb_add(Sdb* s, const char *key, const char *val, ut32 cas) {
 	if (sdb_exists (s, key)) {
 		return 0;
 	}
 	return sdb_set (s, key, val, cas);
 }
 
-SDB_API int sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
+SDB_API bool sdb_nadd(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_add (s, key, val, cas);
@@ -806,15 +806,15 @@ static ut32 sdb_set_internal(Sdb* s, const char *key, char *val, bool owned, ut3
 	return 0;
 }
 
-SDB_API int sdb_set_owned(Sdb* s, const char *key, char *val, ut32 cas) {
+SDB_API bool sdb_set_owned(Sdb* s, const char *key, char *val, ut32 cas) {
 	return sdb_set_internal (s, key, val, true, cas);
 }
 
-SDB_API int sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
+SDB_API bool sdb_set(Sdb* s, const char *key, const char *val, ut32 cas) {
 	return sdb_set_internal (s, key, (char *)val, false, cas);
 }
 
-SDB_API int sdb_setf(Sdb *s, const char *val, ut32 cas, const char *fmt, ...) {
+SDB_API bool sdb_setf(Sdb *s, const char *val, ut32 cas, const char *fmt, ...) {
 	va_list ap;
 	va_start (ap, fmt);
 	int res = sdb_vsetf (s, val, cas, fmt, ap);
@@ -822,13 +822,13 @@ SDB_API int sdb_setf(Sdb *s, const char *val, ut32 cas, const char *fmt, ...) {
 	return res;
 }
 
-SDB_API int sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
+SDB_API bool sdb_nset(Sdb* s, ut64 nkey, const char *val, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_set_internal (s, key, (char *)val, false, cas);
 }
 
-SDB_API int sdb_num_nset(Sdb* s, ut64 nkey, ut64 nval, ut32 cas) {
+SDB_API bool sdb_num_nset(Sdb* s, ut64 nkey, ut64 nval, ut32 cas) {
 	char buf[SDB_NUM_BUFSZ];
 	const char *key = sdb_itoa (nkey, 16, buf, sizeof (buf));
 	return sdb_num_set (s, key, nval, cas);
@@ -1383,19 +1383,23 @@ SDB_API void sdb_copy(Sdb *src, Sdb *dst) {
 typedef struct {
 	Sdb *sdb;
 	const char *key;
+	int count;
 } UnsetCallbackData;
 
 static bool unset_cb(void *user, const char *k, const char *v) {
 	UnsetCallbackData *ucd = (UnsetCallbackData *)user;
 	if (sdb_match (k, ucd->key)) {
 		sdb_unset (ucd->sdb, k, 0);
+		ucd->count++;
 	}
 	return true;
 }
 
+// returns the number of unset keys
 SDB_API int sdb_unset_like(Sdb *s, const char *k) {
-	UnsetCallbackData ucd = { s, k };
-	return sdb_foreach (s, unset_cb, &ucd);
+	UnsetCallbackData ucd = { s, k, 0 };
+	sdb_foreach (s, unset_cb, &ucd);
+	return ucd.count;
 }
 
 typedef struct {

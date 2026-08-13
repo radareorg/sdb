@@ -2,35 +2,32 @@
 
 int main(int argc, char **argv) {
 	int rc = 0;
-	ut32 cas;
+	ut32 cas = 0, cas2 = 0;
 
 	Sdb *s = sdb_new (NULL, NULL, 0);
-	ut32 r = sdb_set (s, "hello", "world", 1);
+	if (!sdb_set (s, "hello", "world", 0)) {
+		printf ("error: initial set failed\n");
+		rc = 1;
+	}
 	sdb_const_get (s, "hello", &cas);
-	printf ("[test] r%d = c%u\n", r, cas);
-	if (r != cas) {
-		printf ("error\n");
+	if (!cas) {
+		printf ("error: no cas after set\n");
 		rc = 1;
-	} else {
-		printf ("  ok\n");
 	}
-
-	r = sdb_set (s, "hello", "world", r);
-	sdb_const_get (s, "hello", &cas);
-	printf ("[test] r%d = c%u\n", r, cas);
-	if (r != cas) {
-		printf ("error\n");
+	if (!sdb_set (s, "hello", "mundo", cas)) {
+		printf ("error: set with matching cas failed\n");
 		rc = 1;
-	} else {
-		printf ("  ok\n");
 	}
-	printf ("[test] r%d = c%u\n", r, cas);
-	if (r == 0) {
-		printf ("error\n");
+	sdb_const_get (s, "hello", &cas2);
+	if (cas2 == cas) {
+		printf ("error: cas did not change after write\n");
 		rc = 1;
-	} else {
-		printf ("  ok\n");
 	}
+	if (sdb_set (s, "hello", "monde", cas)) {
+		printf ("error: set with stale cas succeeded\n");
+		rc = 1;
+	}
+	printf (rc? "error\n": "  ok\n");
 	sdb_free (s);
 	return rc;
 }

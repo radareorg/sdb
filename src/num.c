@@ -24,21 +24,21 @@ SDB_API ut64 sdb_num_getf(Sdb *s, ut32 *cas, const char *fmt, ...) {
 	return value;
 }
 
-SDB_API int sdb_num_add(Sdb *s, const char *key, ut64 v, ut32 cas) {
+SDB_API bool sdb_num_add(Sdb *s, const char *key, ut64 v, ut32 cas) {
 	char *val, b[SDB_NUM_BUFSZ];
 	int numbase = sdb_num_base (sdb_const_get (s, key, NULL));
 	val = sdb_itoa (v, numbase, b, sizeof (b));
 	return sdb_add (s, key, val, cas);
 }
 
-SDB_API int sdb_num_set(Sdb *s, const char *key, ut64 v, ut32 cas) {
+SDB_API bool sdb_num_set(Sdb *s, const char *key, ut64 v, ut32 cas) {
 	char *val, b[SDB_NUM_BUFSZ];
 	int numbase = sdb_num_base (sdb_const_get (s, key, NULL));
 	val = sdb_itoa (v, numbase, b, sizeof (b));
 	return sdb_set (s, key, val, cas);
 }
 
-SDB_API int sdb_num_setf(Sdb *s, ut64 v, ut32 cas, const char *fmt, ...) {
+SDB_API bool sdb_num_setf(Sdb *s, ut64 v, ut32 cas, const char *fmt, ...) {
 	va_list ap;
 	char key[SDB_MAX_KEY];
 	va_start (ap, fmt);
@@ -73,7 +73,7 @@ SDB_API ut64 sdb_num_dec(Sdb *s, const char *key, ut64 n2, ut32 cas) {
 	return n;
 }
 
-SDB_API int sdb_num_min(Sdb *db, const char*k, ut64 n, ut32 cas) {
+SDB_API bool sdb_num_min(Sdb *db, const char*k, ut64 n, ut32 cas) {
 	ut32 c;
 	const char* a = sdb_const_get (db, k, &c);
 	if (cas && c != cas) {
@@ -83,7 +83,7 @@ SDB_API int sdb_num_min(Sdb *db, const char*k, ut64 n, ut32 cas) {
 		? sdb_num_set (db, k, n, cas): 0;
 }
 
-SDB_API int sdb_num_max(Sdb *db, const char*k, ut64 n, ut32 cas) {
+SDB_API bool sdb_num_max(Sdb *db, const char*k, ut64 n, ut32 cas) {
 	ut32 c;
 	const char* a = sdb_const_get (db, k, &c);
 	if (cas && c != cas) {
@@ -93,7 +93,7 @@ SDB_API int sdb_num_max(Sdb *db, const char*k, ut64 n, ut32 cas) {
 		? sdb_num_set (db, k, n, cas): 0;
 }
 
-SDB_API int sdb_bool_set(Sdb *db, const char *str, bool v, ut32 cas) {
+SDB_API bool sdb_bool_set(Sdb *db, const char *str, bool v, ut32 cas) {
 	return sdb_set (db, str, v? "true": "false", cas);
 }
 
@@ -104,7 +104,7 @@ SDB_API bool sdb_bool_get(Sdb *db, const char *str, ut32 *cas) {
 
 /* pointers */
 
-SDB_API int sdb_ptr_set(Sdb *db, const char *key, void *p, ut32 cas) {
+SDB_API bool sdb_ptr_set(Sdb *db, const char *key, void *p, ut32 cas) {
 	return sdb_num_set (db, key, (ut64)(size_t)p, cas);
 }
 
