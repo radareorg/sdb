@@ -444,11 +444,11 @@ SDB_API int sdb_rename_prefix(Sdb *s, const char *oldprefix, const char *newpref
 // alias for '-key=str'.. '+key=str' concats
 SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 	// remove 'value' from current key value.
-	// TODO: cas is ignored here
+	ut32 kas = 0;
 	int vlen = 0, valen;
-	char *p, *v = sdb_get_len (s, key, &vlen, NULL);
+	char *p, *v = sdb_get_len (s, key, &vlen, &kas);
 	int mod = 0;
-	if (!v || !key || !value) {
+	if (!v || !key || !value || (cas && kas != cas)) {
 		sdb_gh_free (v);
 		return 0;
 	}
@@ -460,10 +460,9 @@ SDB_API int sdb_uncat(Sdb *s, const char *key, const char *value, ut32 cas) {
 		}
 	}
 	if (mod) {
-		sdb_set_owned (s, key, v, 0);
-	} else {
-		sdb_gh_free (v);
+		return sdb_set_owned (s, key, v, cas);
 	}
+	sdb_gh_free (v);
 	return 0;
 }
 

@@ -74,13 +74,21 @@ SDB_API ut64 sdb_num_dec(Sdb *s, const char *key, ut64 n2, ut32 cas) {
 }
 
 SDB_API int sdb_num_min(Sdb *db, const char*k, ut64 n, ut32 cas) {
-	const char* a = sdb_const_get (db, k, NULL);
+	ut32 c;
+	const char* a = sdb_const_get (db, k, &c);
+	if (cas && c != cas) {
+		return 0;
+	}
 	return (!a || n < sdb_atoi (a))
 		? sdb_num_set (db, k, n, cas): 0;
 }
 
 SDB_API int sdb_num_max(Sdb *db, const char*k, ut64 n, ut32 cas) {
-	const char* a = sdb_const_get (db, k, NULL);
+	ut32 c;
+	const char* a = sdb_const_get (db, k, &c);
+	if (cas && c != cas) {
+		return 0;
+	}
 	return (!a || n > sdb_atoi (a))
 		? sdb_num_set (db, k, n, cas): 0;
 }

@@ -618,7 +618,7 @@ SDB_API char *sdb_array_pop_head(Sdb *s, const char *key, ut32 *cas) {
 		sdb_gh_free (str);
 		return NULL;
 	}
-	if (cas && *cas != kas) {
+	if (cas) {
 		*cas = kas;
 	}
 	end = strchr (str, SDB_RS);
@@ -638,7 +638,7 @@ SDB_API char *sdb_array_pop_tail(Sdb *s, const char *key, ut32 *cas) {
 		sdb_gh_free (str);
 		return NULL;
 	}
-	if (cas && *cas != kas) {
+	if (cas) {
 		*cas = kas;
 	}
 	for (end = str + strlen (str) - 1; end > str && *end != SDB_RS; end--) {
