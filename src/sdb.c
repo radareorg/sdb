@@ -518,7 +518,7 @@ SDB_API bool sdb_exists(Sdb* s, const char *key) {
 	if (!s || !key) {
 		return false;
 	}
-	size_t klen = strlen (key) + 1;
+	size_t klen = strlen (key);
 	SdbKv *kv = (SdbKv*)sdb_ht_find_kvp (s->ht, key, &found);
 	if (found && kv) {
 		char *v = sdbkv_value (kv);
@@ -1241,7 +1241,7 @@ SDB_API bool sdb_expire_set(Sdb* s, const char *key, ut64 expire, ut32 cas) {
 		return false;
 	}
 	(void) cdb_findstart (&s->db);
-	if (!cdb_findnext (&s->db, sdb_hash (key), key, strlen (key) + 1)) {
+	if (!cdb_findnext (&s->db, sdb_hash (key), key, strlen (key))) {
 		return false;
 	}
 	pos = cdb_datapos (&s->db);
