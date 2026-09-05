@@ -23,7 +23,7 @@ bool cdb_getkvlen(struct cdb *c, ut32 *klen, ut32 *vlen, ut32 pos) {
 	return true;
 }
 
-void cdb_free(struct cdb *c) {
+void cdb_fini(struct cdb *c) {
 	if (!c->map) {
 		return;
 	}

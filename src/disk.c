@@ -142,7 +142,7 @@ SDB_API bool sdb_disk_insert(Sdb* s, const char *key, const char *val) {
 }
 
 static void close_current_database(Sdb *s) {
-	cdb_free (&s->db);
+	cdb_fini (&s->db);
 	s->db.fd = -1;
 	if (s->fd != -1) {
 		close (s->fd);

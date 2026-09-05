@@ -176,7 +176,7 @@ static void sdb_fini(Sdb* s, bool donull) {
 		return;
 	}
 	sdb_hook_free (s);
-	cdb_free (&s->db);
+	cdb_fini (&s->db);
 	if (s->lock) {
 		sdb_lock_file (s->dir, buf, sizeof (buf));
 		sdb_unlock (buf);
