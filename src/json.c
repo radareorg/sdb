@@ -264,7 +264,7 @@ SDB_API const char *sdb_json_format(SdbJsonString *s, const char *fmt, ...) {
 	va_list ap;
 #define JSONSTR_ALLOCATE(y)\
 	if (s->len + y > s->blen) {\
-		s->blen *= 2;\
+		s->blen = (s->len + y > s->blen * 2) ? (s->len + y) : (s->blen * 2);\
 		x = (char *)sdb_gh_realloc (s->buf, s->blen);\
 		if (!x) {\
 			va_end (ap);\
