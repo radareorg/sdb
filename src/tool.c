@@ -390,14 +390,20 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 			return false;
 		}
 		snprintf(file_c, len, "%s/%s", output_dir, base_name);
-		strcpy (file_c + strlen (file_c) - 3, "c");
+		size_t len_c = strlen(file_c);
+		if (len_c >= 3) {
+			file_c[len_c - 1] = 'c';
+		}
 	} else {
 		file_c = sdb_strdup (file_sdb);
 		if (!file_c) {
 			sdb_gh_free (file_sdb);
 			return false;
 		}
-		strcpy (file_c + strlen (file_c) - 3, "c");
+		size_t len_c = strlen(file_c);
+		if (len_c >= 3) {
+			file_c[len_c - 1] = 'c';
+		}
 	}
 
 	char *file_gperf = sdb_strdup(file_c);
