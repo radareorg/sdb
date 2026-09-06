@@ -564,6 +564,7 @@ SDB_API int sdb_open(Sdb *s, const char *file) {
 			close (s->fd);
 			s->fd = -1;
 		}
+		s->db.fd = -1; // aliases s->fd, cdb_init must not close it again
 		s->fd = open (file, O_RDONLY | O_BINARY);
 		if (file != s->dir) {
 			sdb_gh_free (s->dir);
@@ -1361,8 +1362,10 @@ SDB_API void sdb_config(Sdb *s, int options) {
 }
 
 SDB_API bool sdb_unlink(Sdb* s) {
+	// unlink first, sdb_fini frees s->dir
+	bool ret = sdb_disk_unlink (s);
 	sdb_fini (s, true);
-	return sdb_disk_unlink (s);
+	return ret;
 }
 
 SDB_API void sdb_drain(Sdb *s, Sdb *f) {

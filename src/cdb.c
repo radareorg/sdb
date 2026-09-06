@@ -37,14 +37,6 @@ void cdb_fini(struct cdb *c) {
 
 void cdb_findstart(struct cdb *c) {
 	c->loop = 0;
-#if !USE_MMAN
-	if (c->fd != -1) {
-		if (lseek (c->fd, 0, SEEK_SET) == -1) {
-			close (c->fd);
-			c->fd = -1;
-		}
-	}
-#endif
 }
 
 bool cdb_init(struct cdb *c, int fd) {

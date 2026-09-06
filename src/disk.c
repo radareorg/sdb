@@ -219,5 +219,10 @@ SDB_API bool sdb_disk_finish(Sdb* s) {
 }
 
 SDB_API bool sdb_disk_unlink(Sdb *s) {
+	if (!s) {
+		return false;
+	}
+	// the file must be closed and unmapped or the unlink fails on windows
+	close_current_database (s);
 	return s->dir && *s->dir && unlink_path (s->dir);
 }

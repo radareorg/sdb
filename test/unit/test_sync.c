@@ -6,6 +6,7 @@
 #if !__SDB_WINDOWS__
 #include <signal.h>
 #include <sys/resource.h>
+#include <unistd.h>
 
 static void cleanup_sync_files(const char *path) {
 	char file[SDB_MAX_PATH];
@@ -110,8 +111,38 @@ static bool test_sync_failure_preserves_database(void) {
 #endif
 }
 
+static bool test_unlink_removes_database(void) {
+#if __SDB_WINDOWS__
+	mu_ignore;
+#else
+	const char *path = ".test-unlink.sdb";
+	cleanup_sync_files (path);
+	Sdb *db = sdb_new (NULL, path, 0);
+	bool created = db && sdb_set (db, "key", "value", 0) && sdb_sync (db);
+	sdb_free (db);
+	if (!created) {
+		cleanup_sync_files (path);
+		mu_fail ("initial database setup failed");
+	}
+	// reopen so the reader fd and the mapping are live when unlinking
+	db = sdb_new (NULL, path, 0);
+	bool loaded = db && sdb_const_get (db, "key", NULL) != NULL;
+	bool unlinked = loaded && sdb_unlink (db);
+	sdb_gh_free (db); // sdb_unlink finalizes the struct but does not free it
+	bool removed = access (path, F_OK) == -1;
+	bool stdin_alive = fcntl (0, F_GETFD) != -1;
+	cleanup_sync_files (path);
+	mu_assert_true (loaded, "database reopened from disk");
+	mu_assert_true (unlinked, "sdb_unlink result");
+	mu_assert_true (removed, "database file removed");
+	mu_assert_true (stdin_alive, "stdin untouched by unlink");
+	mu_end;
+#endif
+}
+
 static int all_tests(void) {
 	mu_run_test (test_sync_failure_preserves_database);
+	mu_run_test (test_unlink_removes_database);
 	return tests_passed != tests_run;
 }
 

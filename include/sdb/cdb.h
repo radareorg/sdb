@@ -31,7 +31,7 @@ struct cdb {
 
 /* TODO THIS MUST GTFO! */
 bool cdb_getkvlen(struct cdb *db, ut32 *klen, ut32 *vlen, ut32 pos);
-void cdb_free(struct cdb *);
+void cdb_fini(struct cdb *);
 bool cdb_init(struct cdb *, int fd);
 void cdb_findstart(struct cdb *);
 bool cdb_read(struct cdb *, char *, unsigned int, ut32);
