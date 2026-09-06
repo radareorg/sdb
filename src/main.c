@@ -533,7 +533,7 @@ static int showversion(void) {
 	return 0;
 }
 
-static int jsonIndent(void) {
+static int json_indent(void) {
 	size_t len;
 	char *out;
 	char *in = slurp (stdin, &len);
@@ -551,7 +551,7 @@ static int jsonIndent(void) {
 	return 0;
 }
 
-static int base64encode(void) {
+static int base64_encode(void) {
 	char *out;
 	size_t len = 0;
 	ut8 *in = (ut8 *) slurp (stdin, &len);
@@ -569,7 +569,7 @@ static int base64encode(void) {
 	return 0;
 }
 
-static int base64decode(void) {
+static int base64_decode(void) {
 	ut8 *out;
 	size_t len, ret = 1;
 	char *in = slurp (stdin, &len);
@@ -752,9 +752,9 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 	case 'v':
 		return showversion ();
 	case 'e':
-		return base64encode ();
+		return base64_encode ();
 	case 'd':
-		return base64decode ();
+		return base64_decode ();
 	case 'r':
 		if (mo->format == SDB_GEN) {
 			mo->options |= (1 << 16); // Use a bit in options as a flag to track if -r was seen
@@ -764,7 +764,7 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 	case 'j':
 		mo->format = JSON;
 		if (mo->argi >= mo->argc) {
-			return jsonIndent ();
+			return json_indent ();
 		}
 		break;
 	case 'c':

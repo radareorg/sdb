@@ -6,7 +6,7 @@
 ; (print json)
 ; (print (sdb:jsonIndent json) "\n")
 
-(setq db (sdb:new "test.sdb" 0))
+(setq db (sdb:new 0 "test.sdb" 0))
 
 (sdb:set db "g" json) ; "{\"hello\":\"world\"}")
 ; (sdb:set db "g" "{\"hello\":\"world\"}")

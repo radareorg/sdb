@@ -1,7 +1,7 @@
 #!/usr/bin/newlisp
 
 (load "sdb.lsp")
-(setq db (sdb:new "test.sdb" 0))
+(setq db (sdb:new 0 "test.sdb" 0))
 
 (sdb:query db "()list=1,2,3,4,5")
 (setq str (sdb:querys db "list"))
