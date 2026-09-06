@@ -355,37 +355,41 @@ static void *sdb_heap_malloc(SdbHeap *heap, size_t size) {
 	return add_offset (header_ptr);
 }
 
+static bool can_merge(Header *h1, Header *h2) {
+	return (size_t)h1->size + (size_t)h2->size <= (size_t)INT_MAX;
+}
+
 static Header *coalesce(SdbHeap *heap, Header *current_header) {
 	Header *merged_header = current_header;
-	Footer *merged_footer = get_footer (merged_header);
 
 	if (merged_header->has_prev) {
 		Footer *prev_footer = get_prev_footer (merged_header);
 		Header *prev_header = get_prev_header (merged_header);
 		if (prev_footer && prev_footer->free && prev_header) {
-			// Merge with previous block.
-			remove_from_free_list (heap, merged_header);
-			prev_header->size += merged_header->size;
-			prev_header->has_next = merged_header->has_next;
-			merged_header = prev_header;
-			merged_footer = get_footer (merged_header);
-			merged_footer->size = merged_header->size;
-			merged_footer->free = FREE;
+			if (!can_merge (prev_header, merged_header)) {
+				fprintf(stderr, "sdb_heap: critical overflow during prev merge\n");
+			} else {
+				remove_from_free_list (heap, merged_header);
+				prev_header->size += merged_header->size;
+				prev_header->has_next = merged_header->has_next;
+				merged_header = prev_header;
+			}
 		}
 	}
 
 	if (merged_header->has_next) {
 		Header *next_header = get_next_header (merged_header);
 		if (next_header && next_header->free) {
-			remove_from_free_list (heap, next_header);
-			merged_header->size += next_header->size;
-			merged_header->has_next = next_header->has_next;
-			merged_footer = get_footer (merged_header);
-			merged_footer->size = merged_header->size;
-			merged_footer->free = FREE;
-			Header *after_next = get_next_header (merged_header);
-			if (after_next) {
-				after_next->has_prev = true;
+			if (!can_merge (merged_header, next_header)) {
+				fprintf(stderr, "sdb_heap: critical overflow during next merge\n");
+			} else {
+				remove_from_free_list (heap, next_header);
+				merged_header->size += next_header->size;
+				merged_header->has_next = next_header->has_next;
+				Header *after_next = get_next_header (merged_header);
+				if (after_next) {
+					after_next->has_prev = true;
+				}
 			}
 		}
 	}
@@ -489,7 +493,7 @@ SDB_API void *sdb_heap_realloc(SdbHeap *heap, void *ptr, size_t size) {
 	Footer *current_footer = get_footer (current_header);
 	// Next block exists and is free.
 	Header *next_header = get_next_header (current_header);
-	if (next_header && next_header->free) {
+	if (next_header && next_header->free && can_merge (current_header, next_header)) {
 		int available_size = current_header->size + next_header->size;
 		// Size is enough.
 		if (available_size >= required_size) {
