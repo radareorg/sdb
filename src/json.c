@@ -322,7 +322,7 @@ SDB_API const char *sdb_json_format(SdbJsonString *s, const char *fmt, ...) {
 				break;
 			case 's':
 				arg_s = va_arg (ap, char *);
-				JSONSTR_ALLOCATE (strlen (arg_s) + 3);
+				JSONSTR_ALLOCATE (strlen (arg_s) * 2 + 3);
 				s->buf[s->len++] = '"';
 				for (i = 0; arg_s[i]; i++) {
 					if (arg_s[i] == '"') {
