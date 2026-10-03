@@ -56,13 +56,29 @@ if get_option('local') and get_option('default_library') == 'shared'
   rpath_exe = '$ORIGIN/../' + get_option('libdir')
 endif
 
-libsdb = both_libraries(libsdb_name, libsdb_sources,
-  include_directories: sdb_inc,
-  implicit_include_directories: false,
-  soversion: sdb_libversion,
-  install: not meson.is_subproject(),
-  install_rpath: rpath_lib
-)
+default_library_type = get_option('default_library')
+if default_library_type == 'static'
+  libsdb = static_library(libsdb_name, libsdb_sources,
+    include_directories: sdb_inc,
+    implicit_include_directories: false,
+    install: not meson.is_subproject(),
+    install_rpath: rpath_lib
+  )
+else
+  libsdb = both_libraries(libsdb_name, libsdb_sources,
+    include_directories: sdb_inc,
+    implicit_include_directories: false,
+    soversion: sdb_libversion,
+    install: not meson.is_subproject(),
+    install_rpath: rpath_lib
+  )
+endif
+
+if default_library_type == 'static'
+  libsdb_static_link = libsdb
+else
+  libsdb_static_link = libsdb.get_static_lib()
+endif
 
 libsdb_static = static_library('libsdb_static', libsdb_sources,
   include_directories: sdb_inc,
@@ -76,12 +92,10 @@ libsdb_static = static_library('libsdb_static', libsdb_sources,
 #else
 #  link_with = libsdb.get_shared_lib()
 #endif
-default_library_type = get_option('default_library')
-
 if default_library_type == 'shared'
   link_with = libsdb.get_shared_lib()
 else
-  link_with = libsdb.get_static_lib()
+  link_with = libsdb_static_link
 endif
 
 sdb_dep = declare_dependency(
@@ -153,10 +167,16 @@ else
   sdb_native_exe = sdb_exe
 endif
 
+if default_library_type == 'static'
+  pkgconfig_library = libsdb
+else
+  pkgconfig_library = libsdb.get_shared_lib()
+endif
+
 pkgconfig_mod.generate(
   name: 'sdb',
   filebase: 'sdb',
-  libraries: [libsdb.get_shared_lib()],
+  libraries: [pkgconfig_library],
   description: 'Simple DataBase',
   subdirs: ['sdb'],
   version: sdb_version,
