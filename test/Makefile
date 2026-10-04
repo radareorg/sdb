@@ -6,7 +6,7 @@ BINS+=chkkey
 
 include sdb-test.mk
 
-SCRIPTS=createfail.sh testgrep.sh delkey.sh cli.sh
+SCRIPTS=createfail.sh testgrep.sh delkey.sh cli.sh recursive.sh
 ALL=all
 
 all: $(BINS) $(SCRIPTS) reset
