@@ -38,7 +38,6 @@ typedef struct {
 	const char **argv;
 	int argi;
 	int db0;
-	bool failed;
 	const char *db;
 	const char *outfile;
 	const char *db2;
@@ -738,7 +737,8 @@ static const char *main_argparse_getarg(MainOptions *mo) {
 	return mo->argv[cur];
 }
 
-static bool main_argparse_flag(MainOptions *mo, char flag) {
+// Return -1 to continue parsing, or the exit status of a terminal option.
+static int main_argparse_flag(MainOptions *mo, char flag) {
 	mo->argi++;
 	switch (flag) {
 	case '0':
@@ -782,12 +782,12 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 		mo->grep = main_argparse_getarg (mo);
 		if (!mo->grep) {
 			eprintf ("Missing argument for -g\n");
-			return false;
+			return 1;
 		}
 		break;
 	case 'D':
 		if (mo->argi + 1 >=  mo->argc) {
-			return showusage (0);
+			return showusage (1);
 		}
 		mo->format = DIFF;
 		break;
@@ -805,19 +805,15 @@ static bool main_argparse_flag(MainOptions *mo, char flag) {
 		// expect argument
 		break;
 	default:
-		return false;
+		return showusage (1);
 	}
-	return true;
+	return -1;
 }
 
-static MainOptions *main_argparse(MainOptions *mo, int argc, const char **argv) {
-	if (!mo) {
-		return NULL;
-	}
+static int main_argparse(MainOptions *mo, int argc, const char **argv) {
 	mo->argc = argc;
 	mo->argv = argv;
 	mo->options = SDB_OPTION_FS | SDB_OPTION_NOSTAMP;
-	mo->failed = true;
 	int i;
 	mo->argi = 1;
 	for (i = 1; i < argc; i++) {
@@ -826,11 +822,9 @@ static MainOptions *main_argparse(MainOptions *mo, int argc, const char **argv) 
 		if (argv[i][0] == '-' && argv[i][1]) {
 			int j = 1;
 			while (argv[i][j]) {
-				if (!main_argparse_flag (mo, argv[i][j])) {
-					mo->db = argv[mo->argi];
-					mo->db0 = i + 1;
-					// invalid flag
-					break; // return NULL;
+				int ret = main_argparse_flag (mo, argv[i][j]);
+				if (ret >= 0) {
+					return ret;
 				}
 				if (i != mo->argi) {
 					break;
@@ -863,7 +857,7 @@ static MainOptions *main_argparse(MainOptions *mo, int argc, const char **argv) 
 	}
 	// mo->db = mo->argv[mo->db0 + 1];
 	mo->db = argv[mo->db0];
-	return mo;
+	return -1;
 }
 
 SDB_API int sdb_main(int argc, const char **argv) {
@@ -876,7 +870,10 @@ SDB_API int sdb_main(int argc, const char **argv) {
 	}
 	MainOptions _mo = {0};
 	MainOptions *mo = &_mo;
-	main_argparse (mo, argc, argv);
+	int ret = main_argparse (mo, argc, argv);
+	if (ret >= 0) {
+		return ret;
+	}
 	// -j json return sdb_dump (argv[db0 + 1], MODE_JSON);
 	// -G sdb_dump (argv[db0 + 1], MODE_CGEN); // gperf
 	// -C print C/H files
@@ -935,7 +932,7 @@ SDB_API int sdb_main(int argc, const char **argv) {
 	signal (SIGINT, terminate);
 	signal (SIGHUP, synchronize);
 #endif
-	int ret = 0;
+	ret = 0;
 	switch (mo->create) {
 	case dash: // "-"
 		if ((s = sdb_new (NULL, mo->db, 0))) {
