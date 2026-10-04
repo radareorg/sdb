@@ -302,11 +302,10 @@ static char *escape(const char *b, int ch) {
 			break;
 #endif
 		default:
-			*c = *b;
+			*c++ = *b;
 			break;
 		}
 		b++;
-		c++;
 	}
 	return a;
 }
