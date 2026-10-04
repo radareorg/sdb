@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#endif
 
 static void cleanup_sync_files(const char *path) {
 	char file[SDB_MAX_PATH];
@@ -27,7 +28,77 @@ static bool database_value_is(const char *path, const char *key, const char *exp
 	sdb_free (db);
 	return result;
 }
-#endif
+
+static bool test_sync_reopen(void) {
+	const char *path = ".test-sync-reopen.sdb";
+	cleanup_sync_files (path);
+	Sdb *db = sdb_new (NULL, path, 0);
+	bool created = db && sdb_set (db, "key", "value", 0)
+		&& sdb_set (db, "decimal", "0", 0)
+		&& sdb_num_set (db, "decimal", UT64_MAX, 0)
+		&& sdb_set (db, "hex", "0x0", 0)
+		&& sdb_num_set (db, "hex", 0x100000001ULL, 0)
+		&& sdb_sync (db);
+	sdb_free (db);
+	db = sdb_new (NULL, path, 0);
+	bool numbers = db && sdb_num_get (db, "decimal", NULL) == UT64_MAX
+		&& sdb_num_get (db, "hex", NULL) == 0x100000001ULL;
+	sdb_free (db);
+	bool text = database_value_is (path, "key", "value")
+		&& database_value_is (path, "decimal", "18446744073709551615")
+		&& database_value_is (path, "hex", "0x100000001");
+	cleanup_sync_files (path);
+	mu_assert_true (created, "database synchronized");
+	mu_assert_true (numbers, "numeric values survive reopening");
+	mu_assert_true (text, "text and numeric encodings survive reopening");
+	mu_end;
+}
+
+static bool test_cdb_init_rewind(void) {
+	const char *path = ".test-cdb-rewind.sdb";
+	const char data[] = "database contents";
+	char buf[sizeof (data)] = { 0 };
+	struct cdb db = { 0 };
+	db.fd = -1;
+	int fd = open (path, O_CREAT | O_TRUNC | O_RDWR | O_BINARY, 0600);
+	if (fd == -1) {
+		mu_fail ("open database file");
+	}
+	bool written = write (fd, data, sizeof (data)) == sizeof (data);
+	bool first = seek_set (fd, 5) && cdb_init (&db, fd)
+		&& cdb_read (&db, buf, sizeof (buf), 0) && !memcmp (buf, data, sizeof (data));
+	memset (buf, 0, sizeof (buf));
+	bool second = lseek (fd, 0, SEEK_END) != -1 && cdb_init (&db, fd)
+		&& cdb_read (&db, buf, sizeof (buf), 0) && !memcmp (buf, data, sizeof (data));
+	cdb_fini (&db);
+	close (fd);
+	unlink (path);
+	mu_assert_true (written, "database contents written");
+	mu_assert_true (first, "initialization rewinds the descriptor");
+	mu_assert_true (second, "reinitialization rewinds the descriptor");
+	mu_end;
+}
+
+static bool test_cdb_init_read_failure(void) {
+	const char *path = ".test-cdb-read-failure.sdb";
+	const char data[] = "database contents";
+	struct cdb db = { 0 };
+	db.fd = -1;
+	int fd = open (path, O_CREAT | O_TRUNC | O_WRONLY | O_BINARY, 0600);
+	if (fd == -1) {
+		mu_fail ("open database file");
+	}
+	bool written = write (fd, data, sizeof (data)) == sizeof (data);
+	bool initialized = cdb_init (&db, fd);
+	bool empty = !db.map && !db.size;
+	cdb_fini (&db);
+	close (fd);
+	unlink (path);
+	mu_assert_true (written, "database contents written");
+	mu_assert_false (initialized, "unreadable descriptor rejected");
+	mu_assert_true (empty, "failed read leaves no partial cache");
+	mu_end;
+}
 
 static bool test_sync_failure_preserves_database(void) {
 #if __SDB_WINDOWS__
@@ -141,6 +212,9 @@ static bool test_unlink_removes_database(void) {
 }
 
 static int all_tests(void) {
+	mu_run_test (test_sync_reopen);
+	mu_run_test (test_cdb_init_rewind);
+	mu_run_test (test_cdb_init_read_failure);
 	mu_run_test (test_sync_failure_preserves_database);
 	mu_run_test (test_unlink_removes_database);
 	return tests_passed != tests_run;
