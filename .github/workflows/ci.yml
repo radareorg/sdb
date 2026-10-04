@@ -87,6 +87,14 @@ jobs:
       with:
         name: sdb_linux
         path: dist/debian/sdb/*.deb
+  test-no-mmap:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: Building Sdb without mmap
+      run: make -j2 CFLAGS=-DUSE_MMAN=0 WITHPIC=0
+    - name: Running tests without mmap
+      run: make test CFLAGS=-DUSE_MMAN=0
   build-heap:
     runs-on: ubuntu-latest
     steps:
@@ -167,6 +175,7 @@ jobs:
       - build-python
       - test-asan
       - build-linux
+      - test-no-mmap
       - build-heap
       - build-macos
       - build-cydia

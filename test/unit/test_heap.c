@@ -3,6 +3,7 @@
 #include <sdb/sdb.h>
 #include <sdb/heap.h>
 
+#if USE_MMAN
 extern const SdbGlobalHeap sdb_gh_custom;
 
 static void use_custom_heap(void) {
@@ -80,11 +81,15 @@ static bool test_heap_page_free_smoke(void) {
 	mu_end;
 }
 
+#endif
+
 static int all_tests(void) {
+#if USE_MMAN
 	mu_run_test (test_heap_realloc_zero_returns_null);
 	mu_run_test (test_heap_coalesces_middle_blocks);
 	mu_run_test (test_heap_realloc_grows_in_place);
 	mu_run_test (test_heap_page_free_smoke);
+#endif
 	return tests_passed != tests_run;
 }
 

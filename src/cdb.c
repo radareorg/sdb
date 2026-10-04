@@ -57,6 +57,9 @@ bool cdb_init(struct cdb *c, int fd) {
 			munmap (c->map, c->size);
 		}
 #else
+		if (!seek_set (fd, 0)) {
+			return false;
+		}
 		char *x = sdb_gh_calloc (1, st.st_size);
 		if (!x) {
 			// eprintf ("Cannot malloc %d\n", (int)st.st_size);
@@ -64,7 +67,8 @@ bool cdb_init(struct cdb *c, int fd) {
 		}
 		/* TODO: read by chunks instead of a big huge syscall */
 		if (read (fd, x, st.st_size) != st.st_size) {
-			/* handle read error */
+			sdb_gh_free (x);
+			return false;
 		}
 		sdb_gh_free (c->map);
 #endif
