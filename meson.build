@@ -1,4 +1,4 @@
-project('sdb', 'c', meson_version : '>=0.60.0', version : '2.5.6')
+project('sdb', 'c', meson_version : '>=0.60.0', version : '2.5.8')
 
 pkgconfig_mod = import('pkgconfig')
 
