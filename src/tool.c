@@ -375,35 +375,14 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 		}
 	}
 
-	char *file_c = NULL;
-	if (output_dir) {
-		// Extract the base filename without path for C file name
-		const char *base_name = file_sdb;
-		const char *slash = strrchr(file_sdb, '/');
-		if (slash) {
-			base_name = slash + 1;
-		}
-		size_t len = strlen(output_dir) + strlen(base_name) + 2;
-		file_c = (char *)sdb_gh_malloc(len);
-		if (!file_c) {
-			sdb_gh_free(file_sdb);
-			return false;
-		}
-		snprintf(file_c, len, "%s/%s", output_dir, base_name);
-		size_t len_c = strlen(file_c);
-		if (len_c >= 3) {
-			file_c[len_c - 1] = 'c';
-		}
-	} else {
-		file_c = sdb_strdup (file_sdb);
-		if (!file_c) {
-			sdb_gh_free (file_sdb);
-			return false;
-		}
-		size_t len_c = strlen(file_c);
-		if (len_c >= 3) {
-			file_c[len_c - 1] = 'c';
-		}
+	char *file_c = sdb_strdup (file_sdb);
+	if (!file_c) {
+		sdb_gh_free (file_sdb);
+		return false;
+	}
+	size_t len_c = strlen (file_c);
+	if (len_c >= 3) {
+		strcpy (file_c + len_c - 3, "c");
 	}
 
 	char *file_gperf = sdb_strdup(file_c);
