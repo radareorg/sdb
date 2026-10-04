@@ -15,6 +15,8 @@ jobs:
       run: pip install meson ninja
     - name: Building Sdb
       run: meson build && ninja -C build
+    - name: Testing database synchronization
+      run: meson test -C build sync --print-errorlogs
     - name: Pub
       uses: actions/upload-artifact@v7
       with:
@@ -163,6 +165,9 @@ jobs:
     - name: Compile Project
       shell: msys2 {0}
       run: meson compile -C build
+    - name: Testing database synchronization
+      shell: msys2 {0}
+      run: meson test -C build sync --print-errorlogs
 
   check_release:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
