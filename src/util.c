@@ -18,6 +18,10 @@ struct timezone {
 	int tz_dsttime;     /* type of dst correction */
 };
 
+/* FILETIME counts 100-ns intervals since 1601-01-01 (UTC); this is the
+ * offset to the UNIX epoch (1970-01-01) expressed in microseconds. */
+#define FILETIME_1970_US    11644473600000000ULL   /* 1601 -> 1970, microseconds  */
+
 SDB_API int gettimeofday(struct timeval* p, struct timezone * tz) {
 	//ULARGE_INTEGER ul; // As specified on MSDN.
 	ut64 ul = 0;
@@ -33,17 +37,9 @@ SDB_API int gettimeofday(struct timeval* p, struct timezone * tz) {
 		ul |= ft.dwHighDateTime;
 		ul <<= 32;
 		ul |= ft.dwLowDateTime;
-		// Convert to microseconds.
-		//ul.QuadPart /= 10ULL;
-		ul /= 10;
-		// Remove Windows to UNIX Epoch delta.
-		//ul.QuadPart -= 11644473600000000ULL;
-		ul -= 11644473600000000ULL;
-		// Modulo to retrieve the microseconds.
-		//p->tv_usec = (long)(ul.QuadPart % 1000000LL);
-		// Divide to retrieve the seconds.
-		//p->tv_sec = (long)(ul.QuadPart / 1000000LL);
-		p->tv_sec = (long)(ul / 1000000LL);
+		ul /= 10;                        /* 100-ns intervals -> microseconds  */
+		ul -= FILETIME_1970_US;          /* 1601 epoch -> UNIX 1970 epoch (µs)  */
+		p->tv_sec  = (long)(ul / 1000000LL);
 		p->tv_usec = (long)(ul % 1000000LL);
 	}
 	if (tz) {
