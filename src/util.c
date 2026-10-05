@@ -174,6 +174,88 @@ SDB_API ut64 sdb_atoi(const char *s) {
 	return p ? ret: 0LL;
 }
 
+SDB_API st64 sdb_atois (const char *s) {
+	char *p;
+	st64 ret;
+	if (!s) {
+		return 0LL;
+	}
+	ret = strtoll (s, &p, 0);
+	return p ? ret: 0LL;
+}
+
+SDB_API char *sdb_itos (st64 n, int base, char *os, int oslen) {
+	if (base == 0) {
+		base = SDB_NUM_BASE;
+	}
+	static const char *const lookup = "0123456789abcdef";
+	char tmpbuf[64], *s = NULL;
+	int sl, copy_string = 1;
+	uint64_t un;
+	int neg = 0;
+	if (os) {
+		*os = 0;
+		s = os;
+		sl = oslen;
+	} else {
+		s = tmpbuf;
+		sl = sizeof (tmpbuf);
+	}
+	const int imax = sl - 2;
+	int i = imax;
+	if (base < 0) {
+		copy_string = 0;
+		base = -base;
+	}
+	if (base > 16) {
+		return NULL;
+	}
+	un = (n < 0) ? -(uint64_t) n : (uint64_t) n;
+	if (n < 0) {
+		neg = 1;
+	}
+	if (!un) {
+		if (!os) {
+			return sdb_strdup ("0");
+		}
+		if (sl >= 2) {
+			memcpy (os, "0", 2);
+		} else if (sl == 1) {
+			*os = 0;
+		} else {
+			return NULL;
+		}
+		return os;
+	}
+	s[imax + 1] = '\0';
+	if (base <= 10) {
+		for (; un && i > 0; un /= base) {
+			s[i--] = (un % base) + '0';
+		}
+	} else {
+		for (; un && i > 0; un /= base) {
+			s[i--] = lookup[un % base];
+		}
+		if (i != imax) {
+			s[i--] = 'x';
+		}
+		s[i--] = '0';
+	}
+	if (neg && i > 0) {
+		s[i--] = '-';
+	}
+	if (!os) {
+		return sdb_strdup (s + i + 1);
+	}
+	if (copy_string) {
+		int a = strlen (s + i + 1) + 1;
+		int len = R_MIN (a, sl);
+		memmove (os, s + i + 1, len);
+		return os;
+	}
+	return os + i + 1;
+}
+
 // NOTE: Reuses memory. probably not bindings friendly..
 SDB_API char *sdb_array_compact(char *p) {
 	char *e;

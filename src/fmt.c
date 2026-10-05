@@ -27,7 +27,7 @@ SDB_API char *sdb_fmt_tostr(void *p, const char *fmt) {
 			val = sdb_itoa ((ut64)*((int*)nbuf), 10, buf, sizeof (buf));
 			break;
 		case 'q':
-			val = sdb_itoa (*((ut64*)nbuf), 10, buf, sizeof (buf));
+			val = sdb_itos (*((st64*)nbuf), 10, buf, sizeof (buf));
 			n = 8;
 			break;
 		case 'z':
@@ -76,7 +76,7 @@ SDB_API int sdb_fmt_tobin(const char *_str, const char *fmt, void *stru) {
 		switch (*fmt) {
 		case 'b': *((ut8*)(stru8 + idx)) = (ut8)sdb_atoi (word); break;
 		case 'd': *((int*)(stru8 + idx)) = (int)sdb_atoi (word); break;
-		case 'q': *((ut64*)(stru8 + idx)) = sdb_atoi (word); n = 8; break;
+		case 'q': *((ut64*)(stru8 + idx)) = (ut64) sdb_atois (word); n = 8; break;
 		case 'h': *((short*)(stru8 + idx)) = (short)sdb_atoi (word); break;
 		case 's':
 			e_str = (char*)sdb_decode (word, 0);
@@ -168,7 +168,7 @@ SDB_API ut64* sdb_fmt_array_num(const char *list) {
 		*retp++ = len;
 		do {
 			const char *str = sdb_anext2 (ptr, &next);
-			ut64 n = sdb_atoi (str);
+			st64 n = sdb_atois (str);
 			*retp++ = n;
 			ptr = next;
 		} while (next);
