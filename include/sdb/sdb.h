@@ -299,6 +299,8 @@ SDB_API bool sdb_journal_unlink(Sdb *s);
 SDB_API char *sdb_itoa(ut64 n, int base, char *s, int slen);
 SDB_API char *sdb_itoas(ut64 n, int base);
 SDB_API ut64  sdb_atoi(const char *s);
+SDB_API st64  sdb_atois(const char *s);
+SDB_API char *sdb_itos (st64 n, int base, char *s, int slen);
 
 /* locking */
 SDB_API bool sdb_lock(const char *s);

@@ -50,9 +50,9 @@ static inline int cstring_cmp(const void *a, const void *b) {
 	return astrcmp (*va, *vb);
 }
 
-static inline int int_cmp(const void *a, const void *b) { 
-	const ut64 va = *(const ut64 *)a;
-	const ut64 vb = *(const ut64 *)b;
+static inline int int_cmp(const void *a, const void *b) {
+	const st64 va = *(const st64 *)a;
+	const st64 vb = *(const st64 *)b;
 	if (va > vb) {
 		return 1;
 	}
