@@ -1,7 +1,8 @@
-/* sdb - MIT - Copyright 2012-2022 - pancake */
+/* sdb - MIT - Copyright 2012-2026 - pancake */
 
 #include <stdarg.h>
 #include "sdb/sdb.h"
+#include "json_utils.h"
 
 #include "json/rangstr.c"
 #include "json/js0n.c"
@@ -119,8 +120,8 @@ SDB_API bool sdb_json_set(Sdb *s, const char *k, const char *p, const char *v, u
 	}
 	js = sdb_const_get_len (s, k, &jslen, &c);
 	if (!js) {
-		const int v_len = strlen (v);
-		const int p_len = strlen (p);
+		const size_t v_len = strlen (v);
+		const size_t p_len = strlen (p);
 		const size_t blen = p_len + v_len + 8;
 		b = (char *)sdb_gh_malloc (blen);
 		if (b) {
@@ -147,7 +148,7 @@ SDB_API bool sdb_json_set(Sdb *s, const char *k, const char *p, const char *v, u
 		// jslen already comprehends the NULL-terminator and is
 		// ensured to be positive by sdb_const_get_len
 		// 7 corresponds to the length of '{"":"",'
-		size_t buf_len = jslen + strlen (p) + strlen (v) + 7;
+		size_t buf_len = (size_t)jslen + strlen (p) + strlen (v) + 7;
 		char *buf = (char *)sdb_gh_malloc (buf_len);
 		if (buf) {
 			int is_str = isstring (v);
@@ -184,46 +185,53 @@ SDB_API bool sdb_json_set(Sdb *s, const char *k, const char *p, const char *v, u
 	// TODO: accelerate with small buffer in stack for small jsons
 	if (*v) {
 		int is_str = isstring (v);
-		// 2 is the maximum amount of quotes that can be inserted
-		int msz = len[0] + len[1] + len[2] + strlen (v) + 2;
-		if (msz < 1) {
-			return false;
-		}
-		str = (char *)sdb_gh_malloc (msz);
-		if (!str) {
-			return false;
-		}
-		idx = len[0];
-		memcpy (str, beg[0], idx);
 		if (is_str) {
-			if (beg[2][0] != '"') {
-				str[idx] = '"';
-				idx++;
+			char *escaped_v = json_escape(v);
+			if (!escaped_v) return false;
+			size_t v_len = strlen(escaped_v);
+			size_t msz = (size_t)len[0] + v_len + (size_t)len[2] + 2;
+			if (msz < 1) return false;
+			str = (char *)sdb_gh_malloc (msz + 1);
+			if (!str) {
+				sdb_gh_free(escaped_v);
+				return false;
 			}
+			idx = len[0];
+			memcpy (str, beg[0], idx);
+			if (beg[2][0] != '"') {
+				str[idx++] = '"';
+			}
+			memcpy (str + idx, escaped_v, v_len);
+			idx += v_len;
+			if (beg[2][0] != '"') {
+				str[idx++] = '"';
+			}
+			l = len[2];
+			memcpy (str + idx, beg[2], l);
+			str[idx + l] = 0;
+			sdb_gh_free(escaped_v);
 		} else {
+			size_t msz = (size_t)len[0] + (size_t)len[1] + (size_t)len[2] + 2;
+			if (msz < 1) return false;
+			str = (char *)sdb_gh_malloc (msz + 1);
+			if (!str) return false;
+			idx = len[0];
+			memcpy (str, beg[0], idx);
 			if (beg[2][0] == '"') {
 				beg[2]++;
 				len[2]--;
 			}
-		}
-		l = len[1];
-		memcpy (str + idx, beg[1], l);
-		idx += len[1];
-		if (is_str) {
-			// TODO: add quotes
-			if (beg[2][0] != '"') {
-				str[idx] = '"';
-				idx++;
-			}
-		} else {
+			l = len[1];
+			memcpy (str + idx, beg[1], l);
+			idx += len[1];
 			if (beg[2][0] == '"') {
 				beg[2]++;
 				len[2]--;
 			}
+			l = len[2];
+			memcpy (str + idx, beg[2], l);
+			str[idx + l] = 0;
 		}
-		l = len[2];
-		memcpy (str + idx, beg[2], l);
-		str[idx + l] = 0;
 	} else {
 		int kidx;
 		// DELETE KEY
@@ -262,15 +270,15 @@ SDB_API const char *sdb_json_format(SdbJsonString *s, const char *fmt, ...) {
 	int i, arg_i;
 	double arg_f;
 	va_list ap;
-#define JSONSTR_ALLOCATE(y)\
-	if (s->len + y > s->blen) {\
-		s->blen = (s->len + y > s->blen * 2) ? (s->len + y) : (s->blen * 2);\
-		x = (char *)sdb_gh_realloc (s->buf, s->blen);\
-		if (!x) {\
-			va_end (ap);\
-			return NULL;\
-		}\
-		s->buf = x;\
+#define JSONSTR_ALLOCATE(y) \
+	if (s->len + y > s->blen) { \
+		s->blen = (s->len + y > s->blen * 2) ? (s->len + y) : (s->blen * 2); \
+		x = (char *)sdb_gh_realloc (s->buf, s->blen); \
+		if (!x) { \
+			va_end (ap); \
+			return NULL; \
+		} \
+		s->buf = x; \
 	}
 	if (!s) {
 		return NULL;
