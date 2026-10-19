@@ -1,5 +1,6 @@
 tests = [
   'array',
+  'hash',
   'new',
   'reset',
   'set',

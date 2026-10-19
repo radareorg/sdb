@@ -1,6 +1,6 @@
 include ../sdb-test.mk
 
-TESTS=array new sync set reset stack
+TESTS=array new sync set reset stack hash
 CFLAGS+=-I../../include
 LDFLAGS+=../../src/libsdb.a
 BINS=$(addprefix bench-,${TESTS})

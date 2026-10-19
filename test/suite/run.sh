@@ -157,11 +157,11 @@ radare2=cool
 EOF
 	$SDB .a == .a.sdb.txt .b.sdb.txt
 	rm -f .a.sdb.txt .b.sdb.txt
-	A="`$SDB .a`"
+	A="`$SDB .a | LC_ALL=C sort`"
 	EXPECT=$(cat <<EOF
 a=c
-radare2=cool
 b=d
+radare2=cool
 ulu=mulu
 EOF
 )
@@ -285,10 +285,10 @@ run "K=2;-K=-1;K" 3
 run "-0=-0;0" 0
 
 title "Hash"
-run "#a" "0x0002b5c4"
-run "#a;#b" "0x0002b5c4
+run "#a" "0x33a2e1eb"
+run "#a;#b" "0x33a2e1eb
 
-0x0002b5c7
+0xaab6a224
 
 "
 title "Arrays"
@@ -441,7 +441,7 @@ run "a/a=3;a/*" "a=3"
 run "a/a=3;a/a" "3"
 run "a/b/c=3;a/c/b=4;a/**" "b\nc"
 run "a/b/c=3;a/c/b=4;***" "a/b/c=3\na/c/b=4"
-run "foo/bar/cow=3;foo/plop=2;foo/ra/re=4;foo/bar/meuh=1;***" "foo/plop=2\nfoo/bar/cow=3\nfoo/bar/meuh=1\nfoo/ra/re=4"
+run "foo/bar/cow=3;foo/plop=2;foo/ra/re=4;foo/bar/meuh=1;***" "foo/plop=2\nfoo/bar/meuh=1\nfoo/bar/cow=3\nfoo/ra/re=4"
 # TODO: How to delete a namespace? do we want to permit this?
 
 title "Shell"

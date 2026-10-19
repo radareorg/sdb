@@ -60,28 +60,11 @@ SDB_API int gettimeofday(struct timeval* p, struct timezone * tz) {
 
 #if !SDB_INLINE_HASH
 SDB_API ut32 sdb_hash_len(const char *s, ut32 *len) {
-	ut32 h = CDB_HASHSTART;
-#if FORCE_COLLISION
-	h = 0;
-	while (*s) {
-		h += *s;
-		s++;
-	}
-#else
-	ut32 count = 0;
-	if (s) {
-		while (*s) {
-			SDB_HASH_ONELINER;
-			// h = (h + (h << 5)) ^ *s++; // 2.22s
-			// h = (h ^ (h << 1)) + *s++; // 2.15s
-			count++;
-		}
-	}
+	const size_t l = s? strlen (s): 0;
 	if (len) {
-		*len = count;
+		*len = (ut32)l;
 	}
-#endif
-	return h;
+	return s? (ut32)sdb_hash64_seed (s, l, 0): 0;
 }
 
 SDB_API ut32 sdb_hash(const char *s) {

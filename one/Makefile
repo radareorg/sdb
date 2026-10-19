@@ -16,6 +16,7 @@ INCFILES+=cdb.h
 INCFILES+=cdb_make.h
 INCFILES+=json/json.h
 INCFILES+=version.h
+INCFILES+=hash.h
 INCFILES+=sdb.h
 IFILES=$(addprefix ../include/sdb/,$(INCFILES))
 

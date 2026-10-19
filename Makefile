@@ -115,7 +115,7 @@ install-dirs:
 	$(INSTALL_DIR) ${DESTDIR}${MANDIR} ${DESTDIR}${LIBDIR}/pkgconfig ${DESTDIR}${BINDIR}
 	$(INSTALL_DIR) ${DESTDIR}${DATADIR}/vala/vapi ${DESTDIR}${INCDIR}/sdb
 
-INCFLS=sdb.h version.h cdb.h ht_uu.h ht_up.h ht_pp.h types.h heap.h
+INCFLS=sdb.h version.h cdb.h ht_uu.h ht_up.h ht_pp.h types.h heap.h hash.h
 INCFLS+=ls.h cdb_make.h buffer.h config.h ht.h dict.h set.h ht_inc.h
 INCFLS+=rangstr.h asserts.h cwisstable.h gcc_stdatomic.h msvc_stdatomic.h
 INCFILES=$(addprefix include/sdb/,$(INCFLS))
@@ -191,6 +191,7 @@ symstall: install-dirs
 	ln -fs ${PWD}/src/sdb ${DESTDIR}${BINDIR}
 	mkdir -p ${DESTDIR}${INCDIR}/sdb
 	ln -fs ${PWD}/include/sdb/sdb.h ${DESTDIR}${INCDIR}/sdb
+	ln -fs ${PWD}/include/sdb/hash.h ${DESTDIR}${INCDIR}/sdb
 	ln -fs ${PWD}/include/sdb/version.h ${DESTDIR}${INCDIR}/sdb
 	ln -fs ${PWD}/include/sdb/cdb.h ${DESTDIR}${INCDIR}/sdb
 	ln -fs ${PWD}/include/sdb/ht_uu.h ${DESTDIR}${INCDIR}/sdb

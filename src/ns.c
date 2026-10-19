@@ -199,7 +199,7 @@ SDB_API bool sdb_ns_set(Sdb *s, const char *name, Sdb *r) {
 		return false;
 	}
 	ls_foreach_cast (s->ns, it, SdbNs*, ns) {
-		if (ns->hash == hash) {
+		if (ns->hash == hash && !strcmp (ns->name, name)) {
 			if (ns->sdb == r) {
 				return false;
 			}
@@ -237,7 +237,7 @@ SDB_API Sdb *sdb_ns(Sdb *s, const char *name, int create) {
 	}
 	hash = sdb_hash (name);
 	ls_foreach_cast (s->ns, it, SdbNs*, ns) {
-		if (ns->hash == hash) {
+		if (ns->hash == hash && !strcmp (ns->name, name)) {
 			return ns->sdb;
 		}
 	}

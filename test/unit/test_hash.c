@@ -4,6 +4,94 @@
 #include <sdb/ht_up.h>
 #include <sdb/ht_pp.h>
 
+static bool test_hash64_vectors(void) {
+	// Generated with upstream rapidhashMicro V3, independently of this port.
+	static const struct {
+		size_t len;
+		ut64 hash[2];
+	} vectors[] = {
+		{ 0, { 0x0338dc4be2cecdaeULL, 0x565ef32cd8efb3ddULL } },
+		{ 1, { 0xc1efc21089b01264ULL, 0xf067a466be7b848aULL } },
+		{ 2, { 0x9fbbe7bc8f19c3b9ULL, 0x3b06d39d1fe719daULL } },
+		{ 3, { 0xb6f7e44c9fadfc9aULL, 0xdf6efeb9fdbe15c6ULL } },
+		{ 4, { 0x0d1baf46a62cf90eULL, 0xfb51257d2af9e430ULL } },
+		{ 5, { 0x90231a1034acd884ULL, 0xeeff467d3c4f776dULL } },
+		{ 6, { 0x9a2ebe83b7705be2ULL, 0x2c7642f4f9d1a688ULL } },
+		{ 7, { 0xe7e47b5c33e809c5ULL, 0xbf24b2879efaf832ULL } },
+		{ 8, { 0x2764b1897f0a2bbfULL, 0x4600d87336ea7096ULL } },
+		{ 9, { 0x9997f8bc07ba84bcULL, 0x368c77eba2bc02acULL } },
+		{ 10, { 0xe25849204219a22dULL, 0x1fb5d3bc5625ab5aULL } },
+		{ 11, { 0xb1b449a092040d50ULL, 0xf2518b8d6988457eULL } },
+		{ 12, { 0x5a68b62992dd53fcULL, 0x49c97e574a9bde43ULL } },
+		{ 13, { 0x538d9c3fbc60fc9fULL, 0x5f17152fd16445abULL } },
+		{ 14, { 0xf4d32a6ffa4e70aaULL, 0x350632959104df9bULL } },
+		{ 15, { 0x058515efa8cd9ec1ULL, 0x6cf5911b77496fa9ULL } },
+		{ 16, { 0x5ad285bf7f0f7905ULL, 0x9dbf010d4acdd91aULL } },
+		{ 17, { 0xaa31e2c991f6f4f1ULL, 0xd4c00015bb1f84f5ULL } },
+		{ 31, { 0x83ae4336d933bf5fULL, 0x85d94fe0b7d9f151ULL } },
+		{ 32, { 0x9774b9294c5502a5ULL, 0xd52853796a85d697ULL } },
+		{ 33, { 0x3973ba1f89b4033eULL, 0x62914f47458ac041ULL } },
+		{ 47, { 0x45977a6b74720f65ULL, 0xf2b1f7ecd639ba39ULL } },
+		{ 48, { 0x515d285ee1237d2fULL, 0xcee75151039dfcebULL } },
+		{ 49, { 0xa243884ecedbee1eULL, 0xb358c9d8d93c7a40ULL } },
+		{ 63, { 0x71cfe2c805711ff6ULL, 0x2e08b1869dbe6d71ULL } },
+		{ 64, { 0xe8139e9946962d36ULL, 0x25e00a183f6afc8dULL } },
+		{ 65, { 0x158f1304b70ed6d0ULL, 0xbe728d20558dd217ULL } },
+		{ 79, { 0x2b5745c59a8d7646ULL, 0xf53091decadb6639ULL } },
+		{ 80, { 0xa8e6ddc9379b380fULL, 0x97275c4201b79fa4ULL } },
+		{ 81, { 0x7c8833bad51f1231ULL, 0x003972f2b86b8955ULL } },
+		{ 159, { 0x3385182f5c2544edULL, 0x925d1b955fd3e6d4ULL } },
+		{ 160, { 0x72bcc8cc28eccae7ULL, 0xf1d4ba1d905d0733ULL } },
+		{ 161, { 0x8253ba8f406d560cULL, 0x76351cffe8b9903eULL } },
+		{ 254, { 0x46ecc891a2aa8ed9ULL, 0x4669ce164e3d12d6ULL } },
+		{ 255, { 0xa158da35bcafea40ULL, 0x598f5aedef0ad30dULL } },
+		{ 256, { 0x6cb9afd470e82629ULL, 0x32a09be5eb274a45ULL } },
+		{ 1024, { 0x0dd699e47478cfa6ULL, 0x52d421433ec278c6ULL } },
+	};
+	char buffer[1024 + 7];
+	for (size_t offset = 0; offset < 8; offset++) {
+		for (size_t i = 0; i < 1024; i++) {
+			buffer[offset + i] = (char)(ut8)(i * 37 + 128);
+		}
+		for (size_t i = 0; i < sizeof (vectors) / sizeof (*vectors); i++) {
+			mu_assert_eq (sdb_hash64_seed (buffer + offset, vectors[i].len, 0),
+				vectors[i].hash[0], "default hash must match upstream on every host");
+			mu_assert_eq (sdb_hash64_seed (buffer + offset, vectors[i].len, 0x0123456789abcdefULL),
+				vectors[i].hash[1], "seeded hash must match upstream on every host");
+		}
+	}
+	mu_assert_eq (sdb_hash64_seed (NULL, 0, 0), vectors[0].hash[0], "empty buffer hash");
+	mu_end;
+}
+
+static bool test_hash_strings(void) {
+	static const struct {
+		const char *key;
+		ut32 hash;
+	} vectors[] = {
+		{ "", 0xe2cecdae },
+		{ "a", 0x33a2e1eb },
+		{ "sdb", 0xa395943d },
+		{ "abcdefgh", 0x2a29f41f },
+		{ "abcdefghi", 0xca96c1c6 },
+		{ "\x80\xff", 0xa7548475 }
+	};
+	for (size_t i = 0; i < sizeof (vectors) / sizeof (*vectors); i++) {
+		ut32 len = UT32_MAX;
+		mu_assert_eq (sdb_hash (vectors[i].key), vectors[i].hash, "string hash");
+		mu_assert_eq (sdb_hash_len (vectors[i].key, &len), vectors[i].hash, "hash with length");
+		mu_assert_eq (len, strlen (vectors[i].key), "string length");
+		ut32 h = vectors[i].hash;
+		mu_assert_eq (sdb_hash_byte (vectors[i].key),
+			(h ^ (h >> 8) ^ (h >> 16) ^ (h >> 24)) & 0xff, "folded hash byte");
+	}
+	ut32 len = UT32_MAX;
+	mu_assert_eq (sdb_hash (NULL), 0, "null hash");
+	mu_assert_eq (sdb_hash_len (NULL, &len), 0, "null hash with length");
+	mu_assert_eq (len, 0, "null length");
+	mu_end;
+}
+
 typedef struct _test_struct {
 	char *name;
 	int age;
@@ -532,6 +620,8 @@ bool test_update_key(void) {
 }
 
 int all_tests() {
+	mu_run_test (test_hash64_vectors);
+	mu_run_test (test_hash_strings);
 	mu_run_test (test_ht_insert_lookup);
 	mu_run_test (test_ht_update_lookup);
 	mu_run_test (test_ht_delete);

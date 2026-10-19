@@ -49,6 +49,26 @@ static inline int fakerand() {
 	return i++;
 }
 
+static bool test_sdb_namespace_collision(void) {
+	Sdb *db = sdb_new0 ();
+	Sdb *first = sdb_ns (db, "first", true);
+	mu_assert_notnull (first, "create first namespace");
+	SdbNs *ns = (SdbNs *)db->ns->head->data;
+	// Force a collision without tying the test to a particular hash algorithm.
+	ns->hash = sdb_hash ("second");
+	mu_assert_null (sdb_ns (db, "second", false), "hash alone must not identify a namespace");
+	Sdb *second = sdb_ns (db, "second", true);
+	mu_assert_notnull (second, "create colliding namespace");
+	mu_assert_ptrneq (first, second, "colliding namespaces must remain distinct");
+	Sdb *replacement = sdb_new0 ();
+	mu_assert_true (sdb_ns_set (db, "second", replacement), "replace colliding namespace");
+	mu_assert_ptreq (ns->sdb, first, "replacement must preserve the other namespace");
+	mu_assert_ptreq (sdb_ns (db, "second", false), replacement, "find replacement");
+	sdb_free (replacement);
+	sdb_free (db);
+	mu_end;
+}
+
 static bool test_sdb_list_big(void) {
 	char buffer[256];
 	Sdb *db = sdb_new0 ();
@@ -268,8 +288,8 @@ static const char *text_ref_simple =
 static const char *text_ref_simple_unsorted =
 	"/\n"
 	"aaa=stuff\n"
-	"somekey=somevalue\n"
 	"bbb=other stuff\n"
+	"somekey=somevalue\n"
 	"\n"
 	"/subnamespace\n"
 	"key in sub=value in sub\n"
@@ -554,6 +574,7 @@ bool test_sdb_text_load_file() {
 int all_tests() {
 	// XXX two bugs found with crash
 	mu_run_test (test_sdb_namespace);
+	mu_run_test (test_sdb_namespace_collision);
 	mu_run_test (test_sdb_foreach_delete);
 	mu_run_test (test_sdb_list_delete);
 	mu_run_test (test_sdb_delete_none);

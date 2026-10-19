@@ -20,6 +20,7 @@ extern "C" {
 #include "version.h"
 #include "rangstr.h"
 #include "heap.h"
+#include "hash.h"
 
 /* Key value sizes */
 #define SDB_MIN_VALUE 1
@@ -27,8 +28,9 @@ extern "C" {
 #define SDB_MIN_KEY 1
 #define SDB_MAX_KEY 0xff
 
-#define SDB_HASH_FAST 0
+#ifndef SDB_INLINE_HASH
 #define SDB_INLINE_HASH 1
+#endif
 
 // ftp://ftp.gnu.org/old-gnu/Manuals/gperf-2.7/html_node/gperf_17.es.html
 #define SDB_MAX_GPERF_KEYS 15000
@@ -318,29 +320,12 @@ SDB_API ut8 sdb_hash_byte(const char *s);
 SDB_API ut32 sdb_hash(const char *key);
 SDB_API ut32 sdb_hash_len(const char *key, ut32 *len);
 #else
-#if SDB_HASH_FAST
-#define SDB_HASH_ONELINER h = (h ^ (h << 1)) + *s++ // 2.14s
-#else
-#define SDB_HASH_ONELINER h = (h + (h << 5)) ^ *s++ // 2.25
-#endif
 SDB_INLINE static inline ut32 sdb_hash_len(const char *s, ut32 *len) {
-	ut32 h = CDB_HASHSTART;
-	if (SDB_UNLIKELY (!s)) {
-		return h;
+	const size_t l = s? strlen (s): 0;
+	if (len) {
+		*len = (ut32)l;
 	}
-	if (len) { // comptime because its inlined
-		ut32 count = 0;
-		while (*s) {
-			SDB_HASH_ONELINER;
-			count++;
-		}
-		*len = count;
-	} else {
-		while (*s) {
-			SDB_HASH_ONELINER;
-		}
-	}
-	return h;
+	return s? (ut32)sdb_hash64_seed (s, l, 0): 0;
 }
 
 SDB_INLINE static inline ut32 sdb_hash(const char *s) {
