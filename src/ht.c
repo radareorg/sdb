@@ -31,7 +31,9 @@ static bool sdb_ht_internal_insert(HtPP* ht, const char* key, const char* value,
 	kvp.base.key_len = strlen ((const char *)kvp.base.key);
 	kvp.base.value_len = strlen ((const char *)kvp.base.value);
 	kvp.expire = 0;
-	return ht_pp_insert_kv (ht, (HtPPKv*)&kvp, update);
+	if (ht_pp_insert_kv (ht, (HtPPKv*)&kvp, update)) {
+		return true;
+	}
 
  err:
 	sdb_gh_free (kvp.base.key);
