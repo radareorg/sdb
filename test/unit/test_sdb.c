@@ -200,6 +200,24 @@ static bool foreach_filter_cb(void *user, const char *key, const char *val) {
 	return key[0] == 'b';
 }
 
+bool test_sdb_ns_unset(void) {
+	Sdb *s = sdb_new0 ();
+	mu_assert_notnull (sdb_ns (s, "created", 1), "namespace not created");
+	mu_assert_true (sdb_ns_unset (s, "created", NULL), "unset by name failed");
+	mu_assert_null (sdb_ns (s, "created", 0), "namespace still present");
+
+	// the caller keeps its own reference to an sdb added with sdb_ns_set
+	Sdb *owned = sdb_new0 ();
+	mu_assert_true (sdb_ns_set (s, "owned", owned), "namespace not set");
+	mu_assert_true (sdb_ns_unset (s, NULL, owned), "unset by sdb failed");
+	sdb_set (owned, "key", "value", 0);
+	mu_assert_streq (sdb_const_get (owned, "key", NULL), "value", "owned sdb not usable after unset");
+	sdb_free (owned);
+
+	sdb_free (s);
+	mu_end;
+}
+
 bool test_sdb_foreach_filter(void) {
 	Sdb *db = sdb_new (NULL, NULL, false);
 	sdb_set (db, "foo", "bar", 0);
@@ -554,6 +572,7 @@ bool test_sdb_text_load_file() {
 int all_tests() {
 	// XXX two bugs found with crash
 	mu_run_test (test_sdb_namespace);
+	mu_run_test (test_sdb_ns_unset);
 	mu_run_test (test_sdb_foreach_delete);
 	mu_run_test (test_sdb_list_delete);
 	mu_run_test (test_sdb_delete_none);
