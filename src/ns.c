@@ -178,12 +178,12 @@ SDB_API bool sdb_ns_unset(Sdb *s, const char *name, Sdb *r) {
 	SdbListIter *it;
 	if (s && (name || r)) {
 		ls_foreach_cast (s->ns, it, SdbNs*, ns) {
-			if (name && (!strcmp (name, ns->name))) {
+			if ((name && !strcmp (name, ns->name)) || (r && ns->sdb == r)) {
 				ls_delete (s->ns, it);
-				return true;
-			}
-			if (r && ns->sdb == r) {
-				ls_delete (s->ns, it);
+				// drop the reference taken by sdb_ns or sdb_ns_set
+				sdb_free (ns->sdb);
+				sdb_gh_free (ns->name);
+				sdb_gh_free (ns);
 				return true;
 			}
 		}
