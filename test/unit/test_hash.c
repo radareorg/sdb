@@ -23,6 +23,16 @@ bool test_ht_insert_lookup(void) {
 	mu_end;
 }
 
+bool test_ht_insert_existing_key(void) {
+	HtPP *ht = sdb_ht_new ();
+	mu_assert_true (sdb_ht_insert (ht, "AAAA", "vAAAA"), "first insert failed");
+	mu_assert_false (sdb_ht_insert (ht, "AAAA", "vBBBB"), "insert of an existing key succeeded");
+	mu_assert_streq (sdb_ht_find (ht, "AAAA", NULL), "vAAAA", "AAAA value changed");
+
+	sdb_ht_free (ht);
+	mu_end;
+}
+
 bool test_ht_update_lookup(void) {
 	HtPP *ht = sdb_ht_new ();
 	sdb_ht_insert (ht, "AAAA", "vAAAA");
@@ -533,6 +543,7 @@ bool test_update_key(void) {
 
 int all_tests() {
 	mu_run_test (test_ht_insert_lookup);
+	mu_run_test (test_ht_insert_existing_key);
 	mu_run_test (test_ht_update_lookup);
 	mu_run_test (test_ht_delete);
 	mu_run_test (test_ht_insert_kvp);
