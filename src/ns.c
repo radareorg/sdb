@@ -181,6 +181,9 @@ SDB_API bool sdb_ns_unset(Sdb *s, const char *name, Sdb *r) {
 			if ((name && !strcmp (name, ns->name)) || (r && ns->sdb == r)) {
 				ls_delete (s->ns, it);
 				// drop the reference taken by sdb_ns or sdb_ns_set
+				if (ns->sdb && ns->sdb->refs == 1) {
+					sdb_ns_reset (ns->sdb);
+				}
 				sdb_free (ns->sdb);
 				sdb_gh_free (ns->name);
 				sdb_gh_free (ns);

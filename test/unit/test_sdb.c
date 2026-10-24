@@ -214,6 +214,27 @@ bool test_sdb_ns_unset(void) {
 	mu_assert_streq (sdb_const_get (owned, "key", NULL), "value", "owned sdb not usable after unset");
 	sdb_free (owned);
 
+	// Removing a branch must preserve its externally owned/shared descendants.
+	Sdb *branch = sdb_ns (s, "branch", 1);
+	mu_assert_notnull (branch, "branch not created");
+	Sdb *shared = sdb_new0 ();
+	mu_assert_true (sdb_ns_set (branch, "shared", shared), "nested namespace not set");
+	mu_assert_true (sdb_ns_set (s, "keep", shared), "shared namespace not set");
+	sdb_set (shared, "key", "value", 0);
+	mu_assert_true (sdb_ns_unset (s, "branch", NULL), "branch unset failed");
+	mu_assert_eq (shared->refs, 2, "remaining references lost");
+	mu_assert_streq (sdb_const_get (sdb_ns (s, "keep", 0), "key", NULL), "value", "shared descendant freed");
+	mu_assert_true (sdb_ns_unset (s, "keep", NULL), "shared namespace unset failed");
+	mu_assert_eq (shared->refs, 1, "caller reference lost");
+	sdb_free (shared);
+
+	// A backreference must not let the removed branch destroy its parent.
+	branch = sdb_ns (s, "branch", 1);
+	mu_assert_notnull (branch, "branch not recreated");
+	mu_assert_true (sdb_ns_set (branch, "parent", s), "parent reference not set");
+	mu_assert_true (sdb_ns_unset (s, "branch", NULL), "branch with backreference unset failed");
+	mu_assert_eq (s->refs, 1, "parent reference lost");
+
 	sdb_free (s);
 	mu_end;
 }
