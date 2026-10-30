@@ -206,7 +206,11 @@ static char *slurp(FILE *f, size_t *sz) {
 #if USE_MMAN
 static void synchronize(int sig UNUSED) {
 	// TODO: must be in sdb_sync() or wat?
-	sdb_sync (s);
+	if (!sdb_sync (s)) {
+		// keep the unsaved changes in memory instead of reopening
+		eprintf ("Cannot synchronize database\n");
+		return;
+	}
 	// release our lock before reopening or sdb_new waits on itself
 	unlock_db (s);
 	Sdb *n = sdb_new (s->path, s->name, s->lock);
@@ -508,7 +512,10 @@ static int createdb(const char *f, const char **args, int nargs) {
 		}
 		sdb_gh_free (in);
 	}
-	sdb_sync (s);
+	if (!sdb_sync (s)) {
+		eprintf ("Cannot write database %s\n", f);
+		ret = 1;
+	}
 	return ret;
 }
 

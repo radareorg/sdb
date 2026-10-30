@@ -279,28 +279,32 @@ SDB_API Sdb *sdb_ns_path(Sdb *s, const char *path, int create) {
 	return s;
 }
 
-static void ns_sync(Sdb *s, SdbList *list) {
+static bool ns_sync(Sdb *s, SdbList *list) {
 	SdbNs *ns;
 	SdbListIter *it;
+	bool ret = true;
 	ls_foreach_cast (s->ns, it, SdbNs*, ns) {
 		if (in_list (list, ns)) {
 			continue;
 		}
 		ls_append (list, ns);
-		ns_sync (ns->sdb, list);
-		sdb_sync (ns->sdb);
+		ret &= ns_sync (ns->sdb, list);
+		ret &= sdb_sync (ns->sdb);
 	}
-	sdb_sync (s);
+	ret &= sdb_sync (s);
+	return ret;
 }
 
-SDB_API void sdb_ns_sync(Sdb *s) {
+SDB_API bool sdb_ns_sync(Sdb *s) {
 	if (!s) {
-		return;
+		return false;
 	}
 	SdbList *list = ls_new ();
-	if (list) {
-		ns_sync (s, list);
-		list->free = NULL;
-		ls_free (list);
+	if (!list) {
+		return false;
 	}
+	bool ret = ns_sync (s, list);
+	list->free = NULL;
+	ls_free (list);
+	return ret;
 }

@@ -380,7 +380,7 @@ SDB_API void sdb_ns_init(Sdb* s);
 SDB_API void sdb_ns_free(Sdb* s);
 SDB_API void sdb_ns_reset(Sdb* s);
 SDB_API void sdb_ns_lock(Sdb *s, int lock, int depth);
-SDB_API void sdb_ns_sync(Sdb* s);
+SDB_API bool sdb_ns_sync(Sdb* s);
 SDB_API bool sdb_ns_set(Sdb *s, const char *name, Sdb *r);
 SDB_API bool sdb_ns_unset(Sdb *s, const char *name, Sdb *r);
 
