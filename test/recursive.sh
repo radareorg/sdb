@@ -60,3 +60,9 @@ for mode in local output; do
 	${CC:-cc} "$tmp/cli.c" "$tmp/check.c" -o "$tmp/check"
 	"$tmp/check" comma_key
 done
+
+mkdir -p "$tmp/failin" "$tmp/failout/failure.c"
+touch -t 200001010000 "$tmp/failout/failure.c"
+printf 'key=value\n' > "$tmp/failin/failure.sdb.txt"
+SDB_OUTPUT_DIR="$tmp/failout" "$SDB" -r "$tmp/failin" 2> "$tmp/failure.log"
+grep -q 'Failed to open file' "$tmp/failure.log"
