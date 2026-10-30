@@ -89,6 +89,63 @@ static inline bool mkdirp(char *dir) {
 	return true;
 }
 
+#if __SDB_WINDOWS__
+// FILE_RENAME_INFO with the Flags member missing from older headers
+typedef struct {
+	DWORD Flags;
+	HANDLE RootDirectory;
+	DWORD FileNameLength;
+	WCHAR FileName[1];
+} SdbRenameInfo;
+
+#define SDB_FILE_RENAME_INFO_EX 22 // FileRenameInfoEx
+#define SDB_RENAME_REPLACE_IF_EXISTS 1
+#define SDB_RENAME_POSIX_SEMANTICS 2
+
+static wchar_t *to_wide(const char *s) {
+#if UNICODE
+	const UINT cp = CP_UTF8;
+#else
+	const UINT cp = CP_ACP;
+#endif
+	int n = MultiByteToWideChar (cp, 0, s, -1, NULL, 0);
+	wchar_t *w = (n > 0)? (wchar_t *)sdb_gh_calloc (n, sizeof (wchar_t)): NULL;
+	if (w && !MultiByteToWideChar (cp, 0, s, -1, w, n)) {
+		R_FREE (w);
+	}
+	return w;
+}
+
+// Replace dst even while other processes have it open with FILE_SHARE_DELETE,
+// their handles keep reading the old file (Windows 10 1809+ on NTFS)
+static bool posix_rename(const char *src, const char *dst) {
+	bool ret = false;
+	wchar_t *wsrc = to_wide (src);
+	wchar_t *wdst = to_wide (dst);
+	DWORD len = wdst? GetFullPathNameW (wdst, 0, NULL, NULL): 0;
+	SdbRenameInfo *ri = NULL;
+	size_t size = sizeof (SdbRenameInfo) + len * sizeof (WCHAR);
+	if (wsrc && len && (ri = (SdbRenameInfo *)sdb_gh_calloc (1, size))) {
+		ri->Flags = SDB_RENAME_REPLACE_IF_EXISTS | SDB_RENAME_POSIX_SEMANTICS;
+		ri->FileNameLength = GetFullPathNameW (wdst, len, ri->FileName, NULL) * sizeof (WCHAR);
+		HANDLE h = CreateFileW (wsrc, DELETE | SYNCHRONIZE,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (ri->FileNameLength && h != INVALID_HANDLE_VALUE) {
+			ret = SetFileInformationByHandle (h,
+				(FILE_INFO_BY_HANDLE_CLASS)SDB_FILE_RENAME_INFO_EX, ri, (DWORD)size) != 0;
+		}
+		if (h != INVALID_HANDLE_VALUE) {
+			CloseHandle (h);
+		}
+	}
+	sdb_gh_free (ri);
+	sdb_gh_free (wsrc);
+	sdb_gh_free (wdst);
+	return ret;
+}
+#endif
+
 SDB_API bool sdb_disk_create(Sdb* s) {
 	int nlen;
 	char *str;
@@ -196,9 +253,10 @@ SDB_API bool sdb_disk_finish(Sdb* s) {
 		sdb_disk_abort (s);
 		return false;
 	}
-	// Windows cannot replace a file while the existing database is open.
+	// MoveFileEx cannot replace a file while the existing database is open.
 	close_current_database (s);
-	ret = MoveFileEx (ndump_, dir_, MOVEFILE_REPLACE_EXISTING) != 0;
+	ret = posix_rename (s->ndump, s->dir)
+		|| MoveFileEx (ndump_, dir_, MOVEFILE_REPLACE_EXISTING) != 0;
 	sdb_gh_free (ndump_);
 	sdb_gh_free (dir_);
 	if (!ret) {

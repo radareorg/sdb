@@ -546,6 +546,25 @@ static int sdb_open_text(Sdb *s, const char *file) {
 	return s->fd;
 }
 
+#if __SDB_WINDOWS__
+// share delete access so other processes can replace the database while it is open
+static int open_rdonly(const char *file) {
+	HANDLE h = CreateFileA (file, GENERIC_READ,
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (h == INVALID_HANDLE_VALUE) {
+		return -1;
+	}
+	int fd = _open_osfhandle ((intptr_t)h, O_RDONLY | O_BINARY);
+	if (fd == -1) {
+		CloseHandle (h);
+	}
+	return fd;
+}
+#else
+#define open_rdonly(file) open (file, O_RDONLY | O_BINARY)
+#endif
+
 SDB_API int sdb_open(Sdb *s, const char *file) {
         struct stat st;
 	if (!s) {
@@ -560,7 +579,7 @@ SDB_API int sdb_open(Sdb *s, const char *file) {
 			s->fd = -1;
 		}
 		s->db.fd = -1; // aliases s->fd, cdb_init must not close it again
-		s->fd = open (file, O_RDONLY | O_BINARY);
+		s->fd = open_rdonly (file);
 		if (file != s->dir) {
 			sdb_gh_free (s->dir);
 			s->dir = sdb_strdup (file);
