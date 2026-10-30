@@ -29,6 +29,23 @@ SDB_API Sdb* sdb_new0(void) {
 	return sdb_new (NULL, NULL, 0);
 }
 
+// lock mode 1 fails if the lock is taken, 2 waits for it
+static bool lock_dir(const char *dir, int lock) {
+	char buf[SDB_MAX_PATH];
+	if (!lock || !sdb_lock_file (dir, buf, sizeof (buf))) {
+		return false;
+	}
+	return (lock == 2)? sdb_lock_wait (buf): sdb_lock (buf);
+}
+
+static void unlock_dir(Sdb *s) {
+	char buf[SDB_MAX_PATH];
+	if (s->lock && sdb_lock_file (s->dir, buf, sizeof (buf))) {
+		sdb_unlock (buf);
+	}
+	s->lock = 0;
+}
+
 SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	Sdb* s = (Sdb*)sdb_gh_calloc (1, sizeof (Sdb));
 	if (!s) {
@@ -47,8 +64,6 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 		path = NULL;
 	}
 	if (name && *name && strcmp (name, "-")) {
-		char buf[SDB_MAX_PATH];
-
 		if (path && *path) {
 			size_t plen = strlen (path);
 			size_t nlen = strlen (name);
@@ -64,23 +79,11 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 		} else {
 			s->dir = sdb_strdup (name);
 		}
-		switch (lock) {
-		case 1:
-			if (!sdb_lock_file (s->dir, buf, sizeof (buf))) {
+		if (lock) {
+			if (!lock_dir (s->dir, lock)) {
 				goto fail;
 			}
-			if (!sdb_lock (buf)) {
-				goto fail;
-			}
-			break;
-		case 2:
-			if (!sdb_lock_file (s->dir, buf, sizeof (buf))) {
-				goto fail;
-			}
-			if (!sdb_lock_wait (buf)) {
-				goto fail;
-			}
-			break;
+			s->lock = lock;
 		}
 		if (sdb_open (s, s->dir) == -1) {
 			s->last = s->timestamped? sdb_now (): 0LL;
@@ -100,10 +103,10 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 		goto fail;
 	}
 	s->ns->free = NULL;
-	s->lock = lock;
 	cdb_init (&s->db, s->fd);
 	return s;
 fail:
+	unlock_dir (s);
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
@@ -117,16 +120,12 @@ fail:
 
 // XXX: this is wrong. stuff not stored in memory is lost
 SDB_API void sdb_file(Sdb* s, const char *dir) {
-	char buf[SDB_MAX_PATH];
-	if (s->lock) {
-		sdb_lock_file (s->dir, buf, sizeof (buf));
-		sdb_unlock (buf);
-	}
+	const int lock = s->lock;
+	unlock_dir (s);
 	sdb_gh_free (s->dir);
 	s->dir = (dir && *dir)? sdb_strdup (dir): NULL;
-	if (s->lock) {
-		sdb_lock_file (s->dir, buf, sizeof (buf));
-		sdb_lock (buf);
+	if (lock_dir (s->dir, lock)) {
+		s->lock = lock;
 	}
 }
 
@@ -171,16 +170,12 @@ SDB_API int sdb_count(Sdb *s) {
 }
 
 static void sdb_fini(Sdb* s, bool donull) {
-	char buf[SDB_MAX_PATH];
 	if (!s) {
 		return;
 	}
 	sdb_hook_free (s);
 	cdb_fini (&s->db);
-	if (s->lock) {
-		sdb_lock_file (s->dir, buf, sizeof (buf));
-		sdb_unlock (buf);
-	}
+	unlock_dir (s);
 	sdb_ns_free (s);
 	s->refs = 0;
 	sdb_journal_close (s);
