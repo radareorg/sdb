@@ -1,6 +1,7 @@
 /* sdb - MIT - Copyright 2012-2022 - pancake */
 
 #include <fcntl.h>
+#include <errno.h>
 #include "sdb/sdb.h"
 
 SDB_API bool sdb_lock_file(const char *f, char *buf, size_t buf_size) {
@@ -89,10 +90,29 @@ SDB_API void sdb_unlock(const char *s) {
 }
 #endif
 
+// only retry when another process holds the lock, not on other errors
+static bool lock_busy(const char *s) {
+#if __SDB_WINDOWS__
+	const DWORD err = GetLastError ();
+	if (err == ERROR_SHARING_VIOLATION) {
+		return true;
+	}
+	// the lock file is still being deleted by its previous owner
+	return err == ERROR_ACCESS_DENIED
+		&& GetFileAttributesA (s) == INVALID_FILE_ATTRIBUTES
+		&& GetLastError () == ERROR_ACCESS_DENIED;
+#else
+	return errno == EEXIST;
+#endif
+}
+
 SDB_API bool sdb_lock_wait(const char *s) {
 	// TODO use flock() here
 	// wait forever here?
  	while (!sdb_lock (s)) {
+		if (!lock_busy (s)) {
+			return false;
+		}
 		// TODO: if waiting too much return 0
 #if __SDB_WINDOWS__
 	 	Sleep (500); // hack
