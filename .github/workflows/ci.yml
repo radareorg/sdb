@@ -22,6 +22,25 @@ jobs:
       with:
         name: sdb_windows
         path: build/*.exe
+  build-mingw:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [i686-w64-mingw32, x86_64-w64-mingw32]
+    env:
+      # Pre-Vista headers hide SetFileInformationByHandle and its enum.
+      CFLAGS: -O2 -Werror=implicit-function-declaration -D_WIN32_WINNT=0x0501 -DWINVER=0x0501
+    steps:
+    - uses: actions/checkout@v7
+    - name: Install MinGW
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y gcc-mingw-w64
+    - name: Cross-compile Sdb with older Windows API declarations
+      run: |
+        make -j2 OS=w32 WCP=${{ matrix.target }} \
+          AR=${{ matrix.target }}-ar RANLIB=${{ matrix.target }}-ranlib
   build-cxx:
     runs-on: ubuntu-latest
     steps:
@@ -176,6 +195,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag }}
     needs:
       - build-windows
+      - build-mingw
       - build-cxx
       - build-python
       - test-asan
