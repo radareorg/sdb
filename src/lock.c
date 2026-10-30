@@ -75,6 +75,7 @@ SDB_API bool sdb_lock(const char *s) {
 		if ((write (fd, pid, strlen (pid)) < 0)
 			|| (write (fd, "\n", 1) < 0)) {
 			close (fd);
+			unlink (s);
 			return false;
 		}
 	}
