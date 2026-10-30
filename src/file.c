@@ -18,6 +18,9 @@ typedef struct {
 #define SDB_RENAME_REPLACE_IF_EXISTS 1
 #define SDB_RENAME_POSIX_SEMANTICS 2
 
+// resolved at runtime, older headers (_WIN32_WINNT < 0x0600) lack the declarations
+typedef BOOL (WINAPI *SdbSetFileInfo)(HANDLE, int, LPVOID, DWORD);
+
 // paths are UTF-8 in UNICODE builds and in the ANSI codepage otherwise
 SDB_IPI wchar_t *sdb_file_wide(const char *path) {
 #if UNICODE
@@ -37,6 +40,11 @@ SDB_IPI wchar_t *sdb_file_wide(const char *path) {
 // their handles keep reading the old file (Windows 10 1809+ on NTFS)
 static bool posix_rename(const wchar_t *src, const wchar_t *dst) {
 	bool ret = false;
+	HMODULE k32 = GetModuleHandleW (L"kernel32.dll");
+	SdbSetFileInfo set_info = k32? (SdbSetFileInfo)(void *)GetProcAddress (k32, "SetFileInformationByHandle"): NULL;
+	if (!set_info) {
+		return false;
+	}
 	DWORD len = GetFullPathNameW (dst, 0, NULL, NULL);
 	size_t size = sizeof (SdbRenameInfo) + len * sizeof (WCHAR);
 	SdbRenameInfo *ri = len? (SdbRenameInfo *)sdb_gh_calloc (1, size): NULL;
@@ -49,8 +57,7 @@ static bool posix_rename(const wchar_t *src, const wchar_t *dst) {
 		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 		NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (h != INVALID_HANDLE_VALUE) {
-		ret = ri->FileNameLength && SetFileInformationByHandle (h,
-			(FILE_INFO_BY_HANDLE_CLASS)SDB_FILE_RENAME_INFO_EX, ri, (DWORD)size);
+		ret = ri->FileNameLength && set_info (h, SDB_FILE_RENAME_INFO_EX, ri, (DWORD)size);
 		CloseHandle (h);
 	}
 	sdb_gh_free (ri);
