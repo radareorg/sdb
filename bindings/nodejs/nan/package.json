@@ -62,6 +62,7 @@
     "lib/sdb/src/json/test.c",
     "lib/sdb/src/json/test.json",
     "lib/sdb/src/lock.c",
+    "lib/sdb/src/file.c",
     "lib/sdb/src/ls.c",
     "lib/sdb/src/ls.h",
     "lib/sdb/src/main.c",

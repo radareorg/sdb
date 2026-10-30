@@ -2,7 +2,7 @@
 
 #include <fcntl.h>
 #include <errno.h>
-#include "sdb/sdb.h"
+#include "sdb_private.h"
 
 SDB_API bool sdb_lock_file(const char *f, char *buf, size_t buf_size) {
 	if (!f || !*f || !buf || !buf_size) {
@@ -27,9 +27,13 @@ SDB_API bool sdb_lock(const char *s) {
 	if (!s) {
 		return false;
 	}
-	HANDLE h = CreateFileA (s, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS,
-		FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
+	wchar_t *ws = sdb_file_wide (s);
+	HANDLE h = ws? CreateFileW (ws, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS,
+		FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL): INVALID_HANDLE_VALUE;
+	const DWORD err = GetLastError ();
+	sdb_gh_free (ws);
 	if (h == INVALID_HANDLE_VALUE) {
+		SetLastError (err); // for lock_busy
 		return false;
 	}
 	SdbLock *l = (SdbLock *)sdb_gh_calloc (1, sizeof (SdbLock));
@@ -76,7 +80,7 @@ SDB_API bool sdb_lock(const char *s) {
 		if ((write (fd, pid, strlen (pid)) < 0)
 			|| (write (fd, "\n", 1) < 0)) {
 			close (fd);
-			unlink (s);
+			sdb_file_unlink (s);
 			return false;
 		}
 	}
@@ -85,8 +89,7 @@ SDB_API bool sdb_lock(const char *s) {
 }
 
 SDB_API void sdb_unlock(const char *s) {
-	//flock (fd, LOCK_UN);
-	unlink (s);
+	sdb_file_unlink (s);
 }
 #endif
 
@@ -94,13 +97,15 @@ SDB_API void sdb_unlock(const char *s) {
 static bool lock_busy(const char *s) {
 #if __SDB_WINDOWS__
 	const DWORD err = GetLastError ();
-	if (err == ERROR_SHARING_VIOLATION) {
-		return true;
+	if (err != ERROR_ACCESS_DENIED) {
+		return err == ERROR_SHARING_VIOLATION;
 	}
 	// the lock file is still being deleted by its previous owner
-	return err == ERROR_ACCESS_DENIED
-		&& GetFileAttributesA (s) == INVALID_FILE_ATTRIBUTES
+	wchar_t *ws = sdb_file_wide (s);
+	bool pending = ws && GetFileAttributesW (ws) == INVALID_FILE_ATTRIBUTES
 		&& GetLastError () == ERROR_ACCESS_DENIED;
+	sdb_gh_free (ws);
+	return pending;
 #else
 	return errno == EEXIST;
 #endif
@@ -122,6 +127,26 @@ SDB_API bool sdb_lock_wait(const char *s) {
 #endif
  	}
 	return true;
+}
+
+SDB_IPI bool sdb_lock_db(Sdb *s, int mode) {
+	char buf[SDB_MAX_PATH];
+	if (!mode || !sdb_lock_file (s->dir, buf, sizeof (buf))) {
+		return false;
+	}
+	if (!((mode == 2)? sdb_lock_wait (buf): sdb_lock (buf))) {
+		return false;
+	}
+	s->lock = mode;
+	return true;
+}
+
+SDB_IPI void sdb_unlock_db(Sdb *s) {
+	char buf[SDB_MAX_PATH];
+	if (s->lock && sdb_lock_file (s->dir, buf, sizeof (buf))) {
+		sdb_unlock (buf);
+	}
+	s->lock = 0;
 }
 
 #if TEST

@@ -1,150 +1,7 @@
 /* sdb - MIT - Copyright 2013-2024 - pancake */
 
 #include <fcntl.h>
-#include <errno.h>
-#include <sys/stat.h>
 #include "sdb_private.h"
-
-#if __SDB_WINDOWS__
-
-#if UNICODE
-
-static wchar_t *r_utf8_to_utf16_l(const char *cstring, int len) {
-	if (!cstring || !len || len < -1) {
-		return NULL;
-	}
-	wchar_t *rutf16 = NULL;
-	int wcsize;
-
-	if ((wcsize = MultiByteToWideChar (CP_UTF8, 0, cstring, len, NULL, 0))) {
-		wcsize += 1;
-		if ((rutf16 = (wchar_t *) sdb_gh_calloc (wcsize, sizeof (wchar_t)))) {
-			MultiByteToWideChar (CP_UTF8, 0, cstring, len, rutf16, wcsize);
-			if (len != -1) {
-				rutf16[wcsize - 1] = L'\0';
-			}
-		}
-	}
-	return rutf16;
-}
-
-#define r_sys_conv_utf8_to_utf16(buf) r_utf8_to_utf16_l ((buf), -1)
-
-static bool r_sys_mkdir(const char *path) {
-	LPTSTR path_ = r_sys_conv_utf8_to_utf16 (path);
-	bool ret = CreateDirectory (path_, NULL);
-	sdb_gh_free (path_);
-	return ret;
-}
-#else
-#define r_sys_conv_utf8_to_utf16(buf) sdb_strdup (buf)
-#define r_sys_mkdir(x) CreateDirectory (x, NULL)
-#endif
-#ifndef ERROR_ALREADY_EXISTS
-#define ERROR_ALREADY_EXISTS 183
-#endif
-#define r_sys_mkdir_failed() (GetLastError () != 183)
-#else
-#define r_sys_mkdir(x) (mkdir (x,0755)!=-1)
-#define r_sys_mkdir_failed() (errno != EEXIST)
-#endif
-
-static bool unlink_path(const char *path) {
-	if (!path) {
-		return false;
-	}
-#if __SDB_WINDOWS__ && UNICODE
-	wchar_t *wpath = r_sys_conv_utf8_to_utf16 (path);
-	bool ret = wpath && _wunlink (wpath) != -1;
-	sdb_gh_free (wpath);
-	return ret;
-#else
-	return unlink (path) != -1;
-#endif
-}
-
-static inline bool mkdirp(char *dir) {
-	const char slash = DIRSEP;
-	char *path = dir;
-	char *ptr = path;
-	if (*ptr == slash) {
-		ptr++;
-	}
-#if __SDB_WINDOWS__
-	char *p = strstr (ptr, ":\\");
-	if (p) {
-		ptr = p + 2;
-	}
-#endif
-	while ((ptr = strchr (ptr, slash))) {
-		*ptr = 0;
-		if (!r_sys_mkdir (path) && r_sys_mkdir_failed ()) {
-			// eprintf ("cannot make directory r_sys_mkdirp: fail '%s' of '%s'\n", path, dir);
-			*ptr = slash;
-			return false;
-		}
-		*ptr = slash;
-		ptr++;
-	}
-	return true;
-}
-
-#if __SDB_WINDOWS__
-// FILE_RENAME_INFO with the Flags member missing from older headers
-typedef struct {
-	DWORD Flags;
-	HANDLE RootDirectory;
-	DWORD FileNameLength;
-	WCHAR FileName[1];
-} SdbRenameInfo;
-
-#define SDB_FILE_RENAME_INFO_EX 22 // FileRenameInfoEx
-#define SDB_RENAME_REPLACE_IF_EXISTS 1
-#define SDB_RENAME_POSIX_SEMANTICS 2
-
-static wchar_t *to_wide(const char *s) {
-#if UNICODE
-	const UINT cp = CP_UTF8;
-#else
-	const UINT cp = CP_ACP;
-#endif
-	int n = MultiByteToWideChar (cp, 0, s, -1, NULL, 0);
-	wchar_t *w = (n > 0)? (wchar_t *)sdb_gh_calloc (n, sizeof (wchar_t)): NULL;
-	if (w && !MultiByteToWideChar (cp, 0, s, -1, w, n)) {
-		R_FREE (w);
-	}
-	return w;
-}
-
-// Replace dst even while other processes have it open with FILE_SHARE_DELETE,
-// their handles keep reading the old file (Windows 10 1809+ on NTFS)
-static bool posix_rename(const char *src, const char *dst) {
-	bool ret = false;
-	wchar_t *wsrc = to_wide (src);
-	wchar_t *wdst = to_wide (dst);
-	DWORD len = wdst? GetFullPathNameW (wdst, 0, NULL, NULL): 0;
-	SdbRenameInfo *ri = NULL;
-	size_t size = sizeof (SdbRenameInfo) + len * sizeof (WCHAR);
-	if (wsrc && len && (ri = (SdbRenameInfo *)sdb_gh_calloc (1, size))) {
-		ri->Flags = SDB_RENAME_REPLACE_IF_EXISTS | SDB_RENAME_POSIX_SEMANTICS;
-		ri->FileNameLength = GetFullPathNameW (wdst, len, ri->FileName, NULL) * sizeof (WCHAR);
-		HANDLE h = CreateFileW (wsrc, DELETE | SYNCHRONIZE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-			NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (ri->FileNameLength && h != INVALID_HANDLE_VALUE) {
-			ret = SetFileInformationByHandle (h,
-				(FILE_INFO_BY_HANDLE_CLASS)SDB_FILE_RENAME_INFO_EX, ri, (DWORD)size) != 0;
-		}
-		if (h != INVALID_HANDLE_VALUE) {
-			CloseHandle (h);
-		}
-	}
-	sdb_gh_free (ri);
-	sdb_gh_free (wsrc);
-	sdb_gh_free (wdst);
-	return ret;
-}
-#endif
 
 SDB_API bool sdb_disk_create(Sdb* s) {
 	int nlen;
@@ -164,19 +21,9 @@ SDB_API bool sdb_disk_create(Sdb* s) {
 		return false;
 	}
 	memcpy (str, dir, nlen + 1);
-	mkdirp (str);
+	sdb_file_mkdirp (str);
 	memcpy (str + nlen, ".tmp", 5);
-#if __SDB_WINDOWS__ && UNICODE
-	wchar_t *wstr = r_sys_conv_utf8_to_utf16 (str);
-	if (wstr) {
-		s->fdump = _wopen (wstr, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
-		sdb_gh_free (wstr);
-	} else {
-		s->fdump = -1;
-	}
-#else
-	s->fdump = open (str, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
-#endif
+	s->fdump = sdb_file_open (str, O_RDWR | O_CREAT | O_TRUNC, SDB_MODE);
 	if (s->fdump == -1) {
 		// eprintf ("sdb: Cannot open '%s' for writing.\n", str);
 		sdb_gh_free (str);
@@ -217,7 +64,7 @@ SDB_IPI void sdb_disk_abort(Sdb *s) {
 	}
 	s->fdump = -1;
 	if (s->ndump) {
-		unlink_path (s->ndump);
+		sdb_file_unlink (s->ndump);
 		R_FREE (s->ndump);
 	}
 }
@@ -244,33 +91,13 @@ SDB_API bool sdb_disk_finish(Sdb* s) {
 		sdb_disk_abort (s);
 		return false;
 	}
-#if __SDB_WINDOWS__
-	LPTSTR ndump_ = r_sys_conv_utf8_to_utf16 (s->ndump);
-	LPTSTR dir_ = r_sys_conv_utf8_to_utf16 (s->dir);
-	if (!ndump_ || !dir_) {
-		sdb_gh_free (ndump_);
-		sdb_gh_free (dir_);
-		sdb_disk_abort (s);
-		return false;
-	}
-	// MoveFileEx cannot replace a file while the existing database is open.
+	// Windows cannot replace a file this process still has open
 	close_current_database (s);
-	ret = posix_rename (s->ndump, s->dir)
-		|| MoveFileEx (ndump_, dir_, MOVEFILE_REPLACE_EXISTING) != 0;
-	sdb_gh_free (ndump_);
-	sdb_gh_free (dir_);
-	if (!ret) {
+	if (!sdb_file_replace (s->ndump, s->dir)) {
 		sdb_disk_abort (s);
 		(void)sdb_open (s, s->dir);
 		return false;
 	}
-#else
-	if (rename (s->ndump, s->dir) == -1) {
-		sdb_disk_abort (s);
-		return false;
-	}
-	close_current_database (s);
-#endif
 	sdb_gh_free (s->ndump);
 	s->ndump = NULL;
 	return sdb_open (s, s->dir) >= 0;
@@ -282,5 +109,5 @@ SDB_API bool sdb_disk_unlink(Sdb *s) {
 	}
 	// the file must be closed and unmapped or the unlink fails on windows
 	close_current_database (s);
-	return s->dir && *s->dir && unlink_path (s->dir);
+	return s->dir && *s->dir && sdb_file_unlink (s->dir);
 }

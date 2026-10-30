@@ -54,6 +54,7 @@ setup(
 			"sdbsrc/ht_pp.c",
 			"sdbsrc/num.c",
 			"sdbsrc/lock.c",
+			"sdbsrc/file.c",
 			"sdbsrc/disk.c",
 			"sdbsrc/fmt.c",
 			"sdbsrc/ns.c",

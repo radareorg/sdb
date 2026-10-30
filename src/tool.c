@@ -1,17 +1,14 @@
 /* sdb - MIT - Copyright 2011-2026 - pancake */
 
-#include <sdb/sdb.h>
+#include "sdb_private.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
 #if defined(_WIN32)
 #include <direct.h> /* for _getcwd, _chdir */
-#include <io.h>     /* for _unlink */
 #include <windows.h>
 #define getcwd _getcwd
 #define chdir _chdir
-#define unlink _unlink
 #else
 #include <unistd.h>
 #include <dirent.h>
@@ -113,21 +110,7 @@ static char *escape(const char *b, int ch) {
 	return a;
 }
 
-static bool dothec(const char *file_txt, const char *file_gperf, const char *file_c, bool compile_gperf, bool mirror_mode, const char *output_dir) {
-	// Create output directory if it doesn't exist
-	if (output_dir) {
-		#if defined(_WIN32)
-		if (_mkdir(output_dir) != 0 && errno != EEXIST) {
-			// Ignore if directory already exists
-			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
-		}
-		#else
-		if (mkdir(output_dir, 0755) != 0 && errno != EEXIST) {
-			// Ignore if directory already exists
-			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
-		}
-		#endif
-	}
+static bool dothec(const char *file_txt, const char *file_gperf, const char *file_c, bool compile_gperf, bool mirror_mode) {
 	Sdb *db = NULL;
 	char *header = NULL;
 	char *footer = NULL;
@@ -256,7 +239,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 		int rc = system (cmd);
 		if (rc == 0) {
 			fprintf (stdout, "Done\n");
-			unlink (file_gperf);
+			sdb_file_unlink (file_gperf);
 		} else {
 			fprintf (stderr, "Cannot generate C file: %s\n", file_c);
 		}
@@ -309,35 +292,19 @@ static void mirror_sdb(Sdb *db) {
 	}
 }
 
-static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode, const char *output_dir) {
-	// Create output directory if it doesn't exist
-	if (output_dir) {
-		#if defined(_WIN32)
-		if (_mkdir(output_dir) != 0 && errno != EEXIST) {
-			// Ignore if directory already exists
-			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
-		}
-		#else
-		if (mkdir(output_dir, 0755) != 0 && errno != EEXIST) {
-			// Ignore if directory already exists
-			fprintf(stderr, "Failed to create output directory: %s\n", output_dir);
-		}
-		#endif
-	}
-	// wait for other sdb-tool instances generating the same file
-	char lockfile[SDB_MAX_PATH];
-	if (!sdb_lock_file (file_sdb, lockfile, sizeof (lockfile)) || !sdb_lock_wait (lockfile)) {
-		fprintf (stderr, "Cannot lock %s\n", file_sdb);
-		return false;
-	}
+static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode) {
 	// start from an empty database, keys removed from the txt must go away
 	Sdb *db = sdb_new0 ();
 	if (!db) {
-		sdb_unlock (lockfile);
 		return false;
 	}
 	sdb_file (db, file_sdb);
-	db->lock = 2; // sdb_free releases the lock
+	// wait for other sdb-tool instances generating the same file
+	if (!sdb_lock_db (db, 2)) {
+		fprintf (stderr, "Cannot lock %s\n", file_sdb);
+		sdb_free (db);
+		return false;
+	}
 	if (!sdb_text_load (db, file_txt)) {
 		fprintf (stderr, "Failed to parse %s\n", file_txt);
 		sdb_free (db);
@@ -381,6 +348,9 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 	// If output directory is specified, prepend it to output filenames
 	char *out_file_sdb = NULL;
 	if (output_dir) {
+		if (!sdb_file_mkdir (output_dir)) {
+			fprintf (stderr, "Failed to create output directory: %s\n", output_dir);
+		}
 		size_t len = strlen(output_dir) + strlen(file_sdb) + 2; // +2 for '/' and null terminator
 		out_file_sdb = (char *)sdb_gh_malloc(len);
 		if (out_file_sdb) {
@@ -411,11 +381,11 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
 		D fprintf (stdout, "newer %s\n", file_c);
-		ret &= dothec (file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
+		ret &= dothec (file_txt, file_gperf, file_c, compile_gperf, mirror_mode);
 	}
 	if (!file_exists(file_sdb) || is_newer(file_txt, file_sdb)) {
 		D fprintf (stdout, "newer %s\n", file_sdb);
-		ret &= dothesdb (file_txt, file_sdb, mirror_mode, output_dir);
+		ret &= dothesdb (file_txt, file_sdb, mirror_mode);
 	}
 	sdb_gh_free(file_c);
 	sdb_gh_free(file_gperf);

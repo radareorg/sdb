@@ -19,6 +19,7 @@
 	"sdb/src/journal.c",
 	"sdb/src/json.c",
 	"sdb/src/lock.c",
+	"sdb/src/file.c",
 	"sdb/src/ls.c",
 	"sdb/src/match.c",
 	"sdb/src/ns.c",

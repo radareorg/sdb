@@ -38,6 +38,7 @@ SRCFILES+=fmt.c
 SRCFILES+=json.c
 SRCFILES+=util.c
 SRCFILES+=lock.c
+SRCFILES+=file.c
 SRCFILES+=ls.c
 SRCFILES+=ns.c
 SRCFILES+=num.c

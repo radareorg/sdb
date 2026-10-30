@@ -29,23 +29,6 @@ SDB_API Sdb* sdb_new0(void) {
 	return sdb_new (NULL, NULL, 0);
 }
 
-// lock mode 1 fails if the lock is taken, 2 waits for it
-static bool lock_dir(const char *dir, int lock) {
-	char buf[SDB_MAX_PATH];
-	if (!lock || !sdb_lock_file (dir, buf, sizeof (buf))) {
-		return false;
-	}
-	return (lock == 2)? sdb_lock_wait (buf): sdb_lock (buf);
-}
-
-static void unlock_dir(Sdb *s) {
-	char buf[SDB_MAX_PATH];
-	if (s->lock && sdb_lock_file (s->dir, buf, sizeof (buf))) {
-		sdb_unlock (buf);
-	}
-	s->lock = 0;
-}
-
 SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	Sdb* s = (Sdb*)sdb_gh_calloc (1, sizeof (Sdb));
 	if (!s) {
@@ -79,11 +62,8 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 		} else {
 			s->dir = sdb_strdup (name);
 		}
-		if (lock) {
-			if (!lock_dir (s->dir, lock)) {
-				goto fail;
-			}
-			s->lock = lock;
+		if (lock && !sdb_lock_db (s, lock)) {
+			goto fail;
 		}
 		if (sdb_open (s, s->dir) == -1) {
 			s->last = s->timestamped? sdb_now (): 0LL;
@@ -106,7 +86,7 @@ SDB_API Sdb* sdb_new(const char *path, const char *name, int lock) {
 	cdb_init (&s->db, s->fd);
 	return s;
 fail:
-	unlock_dir (s);
+	sdb_unlock_db (s);
 	if (s->fd != -1) {
 		close (s->fd);
 		s->fd = -1;
@@ -121,12 +101,10 @@ fail:
 // XXX: this is wrong. stuff not stored in memory is lost
 SDB_API void sdb_file(Sdb* s, const char *dir) {
 	const int lock = s->lock;
-	unlock_dir (s);
+	sdb_unlock_db (s);
 	sdb_gh_free (s->dir);
 	s->dir = (dir && *dir)? sdb_strdup (dir): NULL;
-	if (lock_dir (s->dir, lock)) {
-		s->lock = lock;
-	}
+	sdb_lock_db (s, lock);
 }
 
 static bool sdb_merge_cb(void *user, const char *k, const char *v) {
@@ -175,7 +153,7 @@ static void sdb_fini(Sdb* s, bool donull) {
 	}
 	sdb_hook_free (s);
 	cdb_fini (&s->db);
-	unlock_dir (s);
+	sdb_unlock_db (s);
 	sdb_ns_free (s);
 	s->refs = 0;
 	sdb_journal_close (s);
@@ -546,25 +524,6 @@ static int sdb_open_text(Sdb *s, const char *file) {
 	return s->fd;
 }
 
-#if __SDB_WINDOWS__
-// share delete access so other processes can replace the database while it is open
-static int open_rdonly(const char *file) {
-	HANDLE h = CreateFileA (file, GENERIC_READ,
-		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-		NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (h == INVALID_HANDLE_VALUE) {
-		return -1;
-	}
-	int fd = _open_osfhandle ((intptr_t)h, O_RDONLY | O_BINARY);
-	if (fd == -1) {
-		CloseHandle (h);
-	}
-	return fd;
-}
-#else
-#define open_rdonly(file) open (file, O_RDONLY | O_BINARY)
-#endif
-
 SDB_API int sdb_open(Sdb *s, const char *file) {
         struct stat st;
 	if (!s) {
@@ -579,7 +538,7 @@ SDB_API int sdb_open(Sdb *s, const char *file) {
 			s->fd = -1;
 		}
 		s->db.fd = -1; // aliases s->fd, cdb_init must not close it again
-		s->fd = open_rdonly (file);
+		s->fd = sdb_file_open (file, O_RDONLY, 0);
 		if (file != s->dir) {
 			sdb_gh_free (s->dir);
 			s->dir = sdb_strdup (file);

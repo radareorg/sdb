@@ -37,6 +37,7 @@ libsdb_sources = [
   'src/journal.c',
   'src/json.c',
   'src/lock.c',
+  'src/file.c',
   'src/ls.c',
   'src/match.c',
   'src/ns.c',

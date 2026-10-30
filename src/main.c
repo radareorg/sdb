@@ -5,7 +5,7 @@
 #ifndef HAVE_SYSTEM
 #define HAVE_SYSTEM 1
 #endif
-#include <sdb/sdb.h>
+#include "sdb_private.h"
 #if USE_DLSYSTEM
 #include <dlfcn.h>
 #endif
@@ -52,13 +52,6 @@ static bool save = false;
 static Sdb *s = NULL;
 static ut32 options = SDB_OPTION_FS | SDB_OPTION_NOSTAMP;
 
-static void unlock_db(Sdb *db) {
-	char buf[SDB_MAX_PATH];
-	if (db->lock && sdb_lock_file (db->dir, buf, sizeof (buf))) {
-		sdb_unlock (buf);
-	}
-}
-
 static void terminate(int sig UNUSED) {
 	if (!s) {
 		return;
@@ -68,7 +61,7 @@ static void terminate(int sig UNUSED) {
 		s = NULL;
 		exit (1);
 	}
-	unlock_db (s);
+	sdb_unlock_db (s);
 	sdb_gh_fini ();
 	// sdb_free (s);
 	exit (sig < 2? sig: 0);
@@ -212,11 +205,11 @@ static void synchronize(int sig UNUSED) {
 		return;
 	}
 	// release our lock before reopening or sdb_new waits on itself
-	unlock_db (s);
-	Sdb *n = sdb_new (s->path, s->name, s->lock);
+	const int lock = s->lock;
+	sdb_unlock_db (s);
+	Sdb *n = sdb_new (s->path, s->name, lock);
 	if (n) {
 		sdb_config (n, options);
-		s->lock = 0;
 		sdb_free (s);
 		s = n;
 	}
@@ -487,21 +480,18 @@ static int insertkeys(Sdb *db, const char **args, int nargs, int mode) {
 }
 
 static int createdb(const char *f, const char **args, int nargs) {
-	// wait for other processes updating the same database
-	char lockfile[SDB_MAX_PATH];
-	if (!sdb_lock_file (f, lockfile, sizeof (lockfile)) || !sdb_lock_wait (lockfile)) {
-		eprintf ("Cannot lock database\n");
-		return 1;
-	}
 	// start from an empty database, the old keys must not be kept
 	s = sdb_new0 ();
 	if (!s) {
-		sdb_unlock (lockfile);
 		eprintf ("Cannot create database\n");
 		return 1;
 	}
 	sdb_file (s, f);
-	s->lock = 2; // released by unlock_db and sdb_free
+	// wait for other processes updating the same database
+	if (!sdb_lock_db (s, 2)) {
+		eprintf ("Cannot lock database\n");
+		return 1;
+	}
 	sdb_config (s, options);
 	int ret = 0;
 	if (args) {
