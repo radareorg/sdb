@@ -487,11 +487,21 @@ static int insertkeys(Sdb *db, const char **args, int nargs, int mode) {
 }
 
 static int createdb(const char *f, const char **args, int nargs) {
-	s = sdb_new (NULL, f, 0);
+	// wait for other processes updating the same database
+	char lockfile[SDB_MAX_PATH];
+	if (!sdb_lock_file (f, lockfile, sizeof (lockfile)) || !sdb_lock_wait (lockfile)) {
+		eprintf ("Cannot lock database\n");
+		return 1;
+	}
+	// start from an empty database, the old keys must not be kept
+	s = sdb_new0 ();
 	if (!s) {
+		sdb_unlock (lockfile);
 		eprintf ("Cannot create database\n");
 		return 1;
 	}
+	sdb_file (s, f);
+	s->lock = 2; // released by unlock_db and sdb_free
 	sdb_config (s, options);
 	int ret = 0;
 	if (args) {

@@ -325,11 +325,19 @@ static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mod
 		#endif
 	}
 	// wait for other sdb-tool instances generating the same file
-	Sdb *db = sdb_new (NULL, file_sdb, 2);
-	if (!db) {
+	char lockfile[SDB_MAX_PATH];
+	if (!sdb_lock_file (file_sdb, lockfile, sizeof (lockfile)) || !sdb_lock_wait (lockfile)) {
 		fprintf (stderr, "Cannot lock %s\n", file_sdb);
 		return false;
 	}
+	// start from an empty database, keys removed from the txt must go away
+	Sdb *db = sdb_new0 ();
+	if (!db) {
+		sdb_unlock (lockfile);
+		return false;
+	}
+	sdb_file (db, file_sdb);
+	db->lock = 2; // sdb_free releases the lock
 	if (!sdb_text_load (db, file_txt)) {
 		fprintf (stderr, "Failed to parse %s\n", file_txt);
 		sdb_free (db);
@@ -399,19 +407,20 @@ static bool dothething(const char *basedir, const char *file_txt, bool mirror_mo
 		sdb_gh_free(file_sdb);
 		return false;
 	}
+	bool ret = true;
 	const char *file_ref = compile_gperf? file_c: file_gperf;
 	if (!file_exists(file_ref) || is_newer(file_txt, file_ref)) {
 		D fprintf (stdout, "newer %s\n", file_c);
-		dothec (file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
+		ret &= dothec (file_txt, file_gperf, file_c, compile_gperf, mirror_mode, output_dir);
 	}
 	if (!file_exists(file_sdb) || is_newer(file_txt, file_sdb)) {
 		D fprintf (stdout, "newer %s\n", file_sdb);
-		dothesdb (file_txt, file_sdb, mirror_mode, output_dir);
+		ret &= dothesdb (file_txt, file_sdb, mirror_mode, output_dir);
 	}
 	sdb_gh_free(file_c);
 	sdb_gh_free(file_gperf);
 	sdb_gh_free(file_sdb);
-	return true;
+	return ret;
 }
 
 SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
@@ -422,8 +431,7 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	// Check for output directory environment variable
 	const char *output_dir = getenv("SDB_OUTPUT_DIR");
 	fprintf (stderr, "SDBTOOL (mirror=%d) from=%s to=%s\n", mirror_mode, path, output_dir? output_dir: path);
-	bool success = false;
-	bool nothing = true;
+	bool success = true;
 
 #if defined(_WIN32)
 	/* Windows implementation using FindFirstFile */
@@ -451,9 +459,8 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 			size_t len = strlen (file);
 			if (len > 8 && strcmp (file + len - 8, ".sdb.txt") == 0) {
 				// If in mirror mode, process the file contents with the mirror transformation
-				success |= dothething(path, file, mirror_mode, output_dir);
+				success &= dothething(path, file, mirror_mode, output_dir);
 			}
-			nothing = false;
 		} while (FindNextFileA (hFind, &findData));
 		FindClose (hFind);
 	}
@@ -485,11 +492,10 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 	while ((entry = readdir (dir)) != NULL) {
 		const char *file = entry->d_name;
 		size_t file_len = strlen (file);
-		nothing = false;
 
 		// Check if file ends with ".sdb.txt"
 		if (file_len > 8 && strcmp (file + file_len - 8, ".sdb.txt") == 0) {
-			success |= dothething (path, file, mirror_mode, output_dir);
+			success &= dothething (path, file, mirror_mode, output_dir);
 		}
 	}
 
@@ -500,9 +506,8 @@ SDB_API bool sdb_tool(const char *path, bool mirror_mode) {
 
 	closedir (dir);
 #endif
-	const bool res = success || nothing;
-	if (!res) {
+	if (!success) {
 		fprintf (stderr, "error: sdbtool failed\n");
 	}
-	return res;
+	return success;
 }

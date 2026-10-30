@@ -64,5 +64,8 @@ done
 mkdir -p "$tmp/failin" "$tmp/failout/failure.c"
 touch -t 200001010000 "$tmp/failout/failure.c"
 printf 'key=value\n' > "$tmp/failin/failure.sdb.txt"
-SDB_OUTPUT_DIR="$tmp/failout" "$SDB" -r "$tmp/failin" 2> "$tmp/failure.log"
+if SDB_OUTPUT_DIR="$tmp/failout" "$SDB" -r "$tmp/failin" 2> "$tmp/failure.log"; then
+	echo "FAIL: sdb -r must fail when the output cannot be written" >&2
+	exit 1
+fi
 grep -q 'Failed to open file' "$tmp/failure.log"
