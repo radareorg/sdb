@@ -52,6 +52,13 @@ static bool save = false;
 static Sdb *s = NULL;
 static ut32 options = SDB_OPTION_FS | SDB_OPTION_NOSTAMP;
 
+static void unlock_db(Sdb *db) {
+	char buf[SDB_MAX_PATH];
+	if (db->lock && sdb_lock_file (db->dir, buf, sizeof (buf))) {
+		sdb_unlock (buf);
+	}
+}
+
 static void terminate(int sig UNUSED) {
 	if (!s) {
 		return;
@@ -61,6 +68,7 @@ static void terminate(int sig UNUSED) {
 		s = NULL;
 		exit (1);
 	}
+	unlock_db (s);
 	sdb_gh_fini ();
 	// sdb_free (s);
 	exit (sig < 2? sig: 0);
@@ -199,9 +207,12 @@ static char *slurp(FILE *f, size_t *sz) {
 static void synchronize(int sig UNUSED) {
 	// TODO: must be in sdb_sync() or wat?
 	sdb_sync (s);
+	// release our lock before reopening or sdb_new waits on itself
+	unlock_db (s);
 	Sdb *n = sdb_new (s->path, s->name, s->lock);
 	if (n) {
 		sdb_config (n, options);
+		s->lock = 0;
 		sdb_free (s);
 		s = n;
 	}
@@ -934,7 +945,7 @@ SDB_API int sdb_main(int argc, const char **argv) {
 	ret = 0;
 	switch (mo->create) {
 	case dash: // "-"
-		if ((s = sdb_new (NULL, mo->db, 0))) {
+		if ((s = sdb_new (NULL, mo->db, 2))) {
 			sdb_config (s, options);
 			int kvs = mo->db0 + 2;
 			if (mo->argi + 2 < mo->argc) {
@@ -977,23 +988,23 @@ SDB_API int sdb_main(int argc, const char **argv) {
 		break;
 	default:
 		// "sdb test.db"
-		s = sdb_new (NULL, mo->db, 0);
+		if (mo->argi + 1 >= mo->argc) {
+			return sdb_dump (mo);
+		}
+		// wait for other processes updating the same database
+		s = sdb_new (NULL, mo->db, 2);
 		if (!s) {
 			return 1;
 		}
 		sdb_config (s, options);
-		if (mo->argi + 1 < mo->argc) {
-			for (i = mo->db0 + 1; i < argc; i++) {
-				if (sdb_query (s, mo->argv[i])) {
-					save = true;
-				}
-				if (mo->format) {
-					fflush (stdout);
-					ret = write_null ();
-				}
+		for (i = mo->db0 + 1; i < argc; i++) {
+			if (sdb_query (s, mo->argv[i])) {
+				save = true;
 			}
-		} else {
-			return sdb_dump (mo);
+			if (mo->format) {
+				fflush (stdout);
+				ret = write_null ();
+			}
 		}
 		break;
 	}
