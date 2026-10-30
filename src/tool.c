@@ -324,19 +324,27 @@ static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mod
 		}
 		#endif
 	}
-	Sdb *db = sdb_new (NULL, file_sdb, 0);
-	if (sdb_text_load (db, file_txt)) {
-		D fprintf (stderr, "maked %s\n", file_sdb);
-		if (mirror_mode) {
-			mirror_sdb (db);
-		}
-		sdb_sync (db);
-		sdb_free (db);
-		return true;
+	// wait for other sdb-tool instances generating the same file
+	Sdb *db = sdb_new (NULL, file_sdb, 2);
+	if (!db) {
+		fprintf (stderr, "Cannot lock %s\n", file_sdb);
+		return false;
 	}
-	fprintf (stderr, "Failed to parse %s\n", file_txt);
+	if (!sdb_text_load (db, file_txt)) {
+		fprintf (stderr, "Failed to parse %s\n", file_txt);
+		sdb_free (db);
+		return false;
+	}
+	D fprintf (stderr, "maked %s\n", file_sdb);
+	if (mirror_mode) {
+		mirror_sdb (db);
+	}
+	bool ret = sdb_sync (db);
+	if (!ret) {
+		fprintf (stderr, "Failed to write %s\n", file_sdb);
+	}
 	sdb_free (db);
-	return false;
+	return ret;
 }
 
 static bool file_exists(const char *path) {

@@ -11,6 +11,52 @@ SDB_API bool sdb_lock_file(const char *f, char *buf, size_t buf_size) {
 	return true;
 }
 
+#if __SDB_WINDOWS__
+// The lock is an exclusive handle that deletes the file on close,
+// so the OS releases it even if the process crashes or gets killed.
+typedef struct sdb_lock_t {
+	char *path;
+	HANDLE h;
+	struct sdb_lock_t *next;
+} SdbLock;
+
+static SdbLock *locks = NULL;
+
+SDB_API bool sdb_lock(const char *s) {
+	if (!s) {
+		return false;
+	}
+	HANDLE h = CreateFileA (s, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS,
+		FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
+	if (h == INVALID_HANDLE_VALUE) {
+		return false;
+	}
+	SdbLock *l = (SdbLock *)sdb_gh_calloc (1, sizeof (SdbLock));
+	if (!l || !(l->path = sdb_strdup (s))) {
+		sdb_gh_free (l);
+		CloseHandle (h);
+		return false;
+	}
+	l->h = h;
+	l->next = locks;
+	locks = l;
+	return true;
+}
+
+SDB_API void sdb_unlock(const char *s) {
+	SdbLock **pl;
+	for (pl = &locks; s && *pl; pl = &(*pl)->next) {
+		SdbLock *l = *pl;
+		if (!strcmp (l->path, s)) {
+			*pl = l->next;
+			CloseHandle (l->h);
+			sdb_gh_free (l->path);
+			sdb_gh_free (l);
+			return;
+		}
+	}
+}
+#else
 SDB_API bool sdb_lock(const char *s) {
 	char pidstr[64];
 	if (!s) {
@@ -36,6 +82,12 @@ SDB_API bool sdb_lock(const char *s) {
 	return true;
 }
 
+SDB_API void sdb_unlock(const char *s) {
+	//flock (fd, LOCK_UN);
+	unlink (s);
+}
+#endif
+
 SDB_API bool sdb_lock_wait(const char *s) {
 	// TODO use flock() here
 	// wait forever here?
@@ -49,11 +101,6 @@ SDB_API bool sdb_lock_wait(const char *s) {
 #endif
  	}
 	return true;
-}
-
-SDB_API void sdb_unlock(const char *s) {
-	//flock (fd, LOCK_UN);
-	unlink (s);
 }
 
 #if TEST
