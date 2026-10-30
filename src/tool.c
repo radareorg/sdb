@@ -219,6 +219,7 @@ static bool dothec(const char *file_txt, const char *file_gperf, const char *fil
 
 	// Get the complete file content and write it to the file
 	content = strbuf_drain (sb);
+	sb = NULL;
 	if (!content) {
 		fprintf (stderr, "Failed to create file content\n");
 		goto fail;
