@@ -2,7 +2,7 @@ name: Windows tool reproduction
 on:
   pull_request:
 jobs:
-  ninja-python310:
+  ninja-python310-asan:
     runs-on: windows-2022
     timeout-minutes: 20
     steps:
@@ -28,7 +28,7 @@ jobs:
           New-Item -Path $key -Force
           New-ItemProperty -Path $key -Name DumpFolder -Value "$PWD\dumps" -PropertyType ExpandString -Force
           New-ItemProperty -Path $key -Name DumpType -Value 2 -PropertyType DWord -Force
-      - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
+      - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG -Db_sanitize=address
       - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
       - name: Stress the original Ninja and Python 3.10 command chain
         shell: python
@@ -65,3 +65,5 @@ jobs:
           path: |
             dumps/
             D:/a/radare2/radare2/build/subprojects/sdb/*.pdb
+            D:/a/radare2/radare2/build/subprojects/sdb/*.exe
+            D:/a/radare2/radare2/build/subprojects/sdb/*.dll
