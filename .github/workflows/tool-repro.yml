@@ -20,23 +20,11 @@ jobs:
         run: |
           import shutil
           shutil.copytree('.', 'D:/a/radare2/radare2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
-      - name: Attach cdb as the postmortem debugger
+          # ninja children inherit SEM_NOGPFAULTERRORBOX, so WER and AeDebug never see the crash
+          with open('D:/a/radare2/radare2/subprojects/sdb/src/entry.c', 'a') as entry:
+              entry.write(open('.github/repro/crashtrace.c').read())
+      - run: New-Item -ItemType Directory -Force D:\dumps
         shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force D:\dumps
-          $cdb = 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe'
-          if (-not (Test-Path $cdb)) { throw "cdb.exe not found at $cdb" }
-          $cmds = '.ecxr; r; kP 40; ub @rip L8; u @rip L4; lmv m sdb; lmv m libsdb*; .dump /ma /u D:\dumps\sdb.dmp; q'
-          $dbg = "`"$cdb`" -p %ld -e %ld -g -loga D:\dumps\cdb.log -y D:\a\radare2\radare2\build\subprojects\sdb -c `"$cmds`""
-          foreach ($key in 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows NT\CurrentVersion\AeDebug') {
-            New-Item -Path $key -Force | Out-Null
-            Set-ItemProperty -Path $key -Name Debugger -Value $dbg
-            Set-ItemProperty -Path $key -Name Auto -Value '1'
-          }
-          $wer = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps'
-          New-Item -Path $wer -Force | Out-Null
-          New-ItemProperty -Path $wer -Name DumpFolder -Value 'D:\dumps' -PropertyType ExpandString -Force | Out-Null
-          New-ItemProperty -Path $wer -Name DumpType -Value 2 -PropertyType DWord -Force | Out-Null
       - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
       - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
       - name: Stress the original Ninja and Python 3.10 command chain
@@ -61,20 +49,16 @@ jobs:
               if i % 20 == 0:
                   print(f'{i + 1} Ninja builds passed', flush=True)
           print('200 Python 3.10/Ninja target builds passed')
-      - name: Postmortem debugger output
+      - name: Collect diagnostics
         if: always()
         shell: pwsh
         run: |
-          Start-Sleep -Seconds 30 # let cdb finish writing the dump
-          if (Test-Path D:\dumps\cdb.log) { Get-Content D:\dumps\cdb.log } else { 'no cdb.log' }
-          Get-WinEvent -FilterHashtable @{LogName='Application'; Id=1000,1001; StartTime=(Get-Date).AddHours(-1)} -ErrorAction SilentlyContinue | Format-List TimeCreated,Message
-          exit 0
+          New-Item -ItemType Directory -Force diagnostics | Out-Null
+          Copy-Item D:\dumps\* diagnostics -ErrorAction SilentlyContinue
+          Copy-Item D:\a\radare2\radare2\build\subprojects\sdb\*.exe, D:\a\radare2\radare2\build\subprojects\sdb\*.dll, D:\a\radare2\radare2\build\subprojects\sdb\*.pdb diagnostics -ErrorAction SilentlyContinue
+          Get-ChildItem diagnostics
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: windows-ninja-diagnostics
-          path: |
-            D:/dumps/
-            D:/a/radare2/radare2/build/subprojects/sdb/*.pdb
-            D:/a/radare2/radare2/build/subprojects/sdb/*.exe
-            D:/a/radare2/radare2/build/subprojects/sdb/*.dll
+          path: diagnostics/
