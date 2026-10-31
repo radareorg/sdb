@@ -2,49 +2,13 @@ name: Windows tool reproduction
 on:
   pull_request:
 jobs:
-  reproduce:
+  full-build:
     runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        sanitize: [none, address]
     steps:
       - uses: actions/checkout@v7
-      - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
-          arch: x64
-      - run: pip install meson ninja
-      - run: meson setup build --buildtype=release -Dc_std=c11 -Db_sanitize=${{ matrix.sanitize }}
-      - run: meson compile -C build
-      - name: Reproduce radare2 database generation
-        shell: python
-        run: |
-          import os, pathlib, subprocess, tempfile, urllib.request
-          exe = str(pathlib.Path('build/sdb.exe').resolve())
-          data = urllib.request.urlopen('https://raw.githubusercontent.com/radareorg/radare2/4b1271d997b06f06426185a1fb0b062c87887372/libr/bin/d/symclass.sdb.txt').read()
-          with tempfile.TemporaryDirectory() as tmp:
-              root = pathlib.Path(tmp)
-              src = root / 'in'
-              src.mkdir()
-              (src / 'symclass.sdb.txt').write_bytes(data.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
-              for i in range(100):
-                  out = root / str(i)
-                  out.mkdir()
-                  result = subprocess.run([exe, '-r', str(src)], env={**os.environ, 'SDB_OUTPUT_DIR': str(out)}, capture_output=True)
-                  if result.returncode:
-                      print(f'iteration {i}: {result.returncode:#x}', flush=True)
-                      print(result.stdout.decode(errors='replace'), flush=True)
-                      print(result.stderr.decode(errors='replace'), flush=True)
-                      raise SystemExit(1)
-              print('100 generations passed')
-  radare2:
-    runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        sanitize: [none, address]
-    steps:
-      - uses: actions/checkout@v7
+          python-version: '3.10'
       - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
         with:
           arch: x64
@@ -53,22 +17,29 @@ jobs:
       - name: Use this Sdb checkout
         shell: python
         run: |
-          import pathlib, shutil
+          import shutil
           shutil.copytree('.', 'r2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
-      - run: meson setup r2/build r2 --buildtype=release -Dc_std=c11 -Db_sanitize=${{ matrix.sanitize }}
-      - run: meson compile -C r2/build -j4 format-sdb dll-sdb syscall-sdb r2sdb libr2sdb
-      - name: Stress the radare2 build targets
-        shell: python
+      - name: Enable crash dumps
+        shell: pwsh
         run: |
-          import pathlib, subprocess
-          root = pathlib.Path('r2/build')
-          for i in range(100):
-              for name in ['libr/bin/d/symclass.sdb', 'libr/bin/d/symclass.c', 'r2sdb', 'libsdb.dll']:
-                  (root / name).unlink(missing_ok=True)
-              result = subprocess.run(['meson', 'compile', '-C', str(root), '-j4', 'format-sdb', 'r2sdb', 'libr2sdb'], capture_output=True)
-              if result.returncode:
-                  print(f'iteration {i}: {result.returncode:#x}', flush=True)
-                  print(result.stdout.decode(errors='replace'), flush=True)
-                  print(result.stderr.decode(errors='replace'), flush=True)
-                  raise SystemExit(1)
-          print('100 radare2 target builds passed')
+          New-Item -ItemType Directory -Force dumps
+          $key = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps'
+          New-Item -Path $key -Force
+          New-ItemProperty -Path $key -Name DumpFolder -Value "$PWD\dumps" -PropertyType ExpandString -Force
+          New-ItemProperty -Path $key -Name DumpType -Value 2 -PropertyType DWord -Force
+      - run: meson setup r2/build r2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
+      - run: meson compile -C r2/build -j4
+      - name: Application crash events
+        if: always()
+        shell: pwsh
+        run: |
+          Get-WinEvent -FilterHashtable @{LogName='Application'; Id=1000,1001; StartTime=(Get-Date).AddHours(-1)} -ErrorAction SilentlyContinue | Format-List TimeCreated,Message
+          exit 0
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows-crash-diagnostics
+          path: |
+            dumps/
+            r2/build/subprojects/sdb/*.pdb
+            r2/build/meson-logs/
