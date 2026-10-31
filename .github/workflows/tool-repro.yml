@@ -1,0 +1,70 @@
+name: Windows tool reproduction
+on:
+  pull_request:
+jobs:
+  ninja-python:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
+        with:
+          arch: x64
+      - run: pip install meson ninja r2pipe wget
+      - run: git clone --depth 1 https://github.com/radareorg/radare2.git D:/a/radare2/radare2
+      - name: Use this Sdb checkout
+        shell: python
+        run: |
+          import shutil
+          shutil.copytree('.', 'D:/a/radare2/radare2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
+          # ninja children inherit SEM_NOGPFAULTERRORBOX, so WER and AeDebug never see the crash
+          with open('D:/a/radare2/radare2/subprojects/sdb/src/entry.c', 'a') as entry:
+              entry.write(open('.github/repro/crashtrace.c').read())
+      - run: New-Item -ItemType Directory -Force D:\dumps
+        shell: pwsh
+      - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
+      - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
+      - name: Stress the original Ninja and Python command chain
+        shell: python
+        env:
+          PYTHONFAULTHANDLER: 1
+        run: |
+          import pathlib, subprocess
+          root = pathlib.Path('D:/a/radare2/radare2/build')
+          targets = ['libr/bin/d/symclass.sdb', 'libr/syscall/d/darwin-arm-32.sdb', 'libr/bin/d/dll/aclui.sdb', 'r2sdb', 'libsdb.dll']
+          for i in range(200):
+              for directory in ['libr/bin/d', 'libr/bin/d/dll', 'libr/syscall/d']:
+                  for pattern in ['*.sdb', '*.c']:
+                      for f in (root / directory).glob(pattern):
+                          f.unlink()
+              for name in ['r2sdb', 'libsdb.dll']:
+                  (root / name).unlink(missing_ok=True)
+              result = subprocess.run(['ninja', '-C', str(root), '-j4', *targets], capture_output=True, timeout=60)
+              if result.returncode:
+                  print(f'iteration {i}: {result.returncode:#x}', flush=True)
+                  print(result.stdout.decode(errors='replace'), flush=True)
+                  print(result.stderr.decode(errors='replace'), flush=True)
+                  raise SystemExit(1)
+              if i % 20 == 0:
+                  print(f'{i + 1} Ninja builds passed', flush=True)
+          print('200 Ninja target builds passed')
+      - name: Collect diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force diagnostics | Out-Null
+          Copy-Item D:\dumps\* diagnostics -ErrorAction SilentlyContinue
+          Copy-Item D:\a\radare2\radare2\build\subprojects\sdb\*.exe, D:\a\radare2\radare2\build\subprojects\sdb\*.dll, D:\a\radare2\radare2\build\subprojects\sdb\*.pdb diagnostics -ErrorAction SilentlyContinue
+          Get-ChildItem diagnostics
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows-ninja-diagnostics-${{ matrix.python }}
+          path: diagnostics/
