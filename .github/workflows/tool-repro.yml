@@ -37,3 +37,38 @@ jobs:
                       print(result.stderr.decode(errors='replace'), flush=True)
                       raise SystemExit(1)
               print('100 generations passed')
+  radare2:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitize: [none, address]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
+        with:
+          arch: x64
+      - run: pip install meson ninja
+      - run: git clone --depth 1 https://github.com/radareorg/radare2.git r2
+      - name: Use this Sdb checkout
+        shell: python
+        run: |
+          import pathlib, shutil
+          shutil.copytree('.', 'r2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
+      - run: meson setup r2/build r2 --buildtype=release -Dc_std=c11 -Db_sanitize=${{ matrix.sanitize }}
+      - run: meson compile -C r2/build -j4 format-sdb dll-sdb syscall-sdb r2sdb libr2sdb
+      - name: Stress the radare2 build targets
+        shell: python
+        run: |
+          import pathlib, subprocess
+          root = pathlib.Path('r2/build')
+          for i in range(100):
+              for name in ['libr/bin/d/symclass.sdb', 'libr/bin/d/symclass.c', 'r2sdb', 'libsdb.dll']:
+                  (root / name).unlink(missing_ok=True)
+              result = subprocess.run(['meson', 'compile', '-C', str(root), '-j4', 'format-sdb', 'r2sdb', 'libr2sdb'], capture_output=True)
+              if result.returncode:
+                  print(f'iteration {i}: {result.returncode:#x}', flush=True)
+                  print(result.stdout.decode(errors='replace'), flush=True)
+                  print(result.stderr.decode(errors='replace'), flush=True)
+                  raise SystemExit(1)
+          print('100 radare2 target builds passed')
