@@ -2,9 +2,9 @@ name: Windows tool reproduction
 on:
   pull_request:
 jobs:
-  ninja-python310-asan:
+  ninja-python310:
     runs-on: windows-2022
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
@@ -20,15 +20,24 @@ jobs:
         run: |
           import shutil
           shutil.copytree('.', 'D:/a/radare2/radare2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
-      - name: Enable crash dumps
+      - name: Attach cdb as the postmortem debugger
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force dumps
-          $key = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps'
-          New-Item -Path $key -Force
-          New-ItemProperty -Path $key -Name DumpFolder -Value "$PWD\dumps" -PropertyType ExpandString -Force
-          New-ItemProperty -Path $key -Name DumpType -Value 2 -PropertyType DWord -Force
-      - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG -Db_sanitize=address
+          New-Item -ItemType Directory -Force D:\dumps
+          $cdb = 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe'
+          if (-not (Test-Path $cdb)) { throw "cdb.exe not found at $cdb" }
+          $cmds = '.ecxr; r; kP 40; ub @rip L8; u @rip L4; lmv m sdb; lmv m libsdb*; .dump /ma /u D:\dumps\sdb.dmp; q'
+          $dbg = "`"$cdb`" -p %ld -e %ld -g -loga D:\dumps\cdb.log -y D:\a\radare2\radare2\build\subprojects\sdb -c `"$cmds`""
+          foreach ($key in 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows NT\CurrentVersion\AeDebug') {
+            New-Item -Path $key -Force | Out-Null
+            Set-ItemProperty -Path $key -Name Debugger -Value $dbg
+            Set-ItemProperty -Path $key -Name Auto -Value '1'
+          }
+          $wer = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps'
+          New-Item -Path $wer -Force | Out-Null
+          New-ItemProperty -Path $wer -Name DumpFolder -Value 'D:\dumps' -PropertyType ExpandString -Force | Out-Null
+          New-ItemProperty -Path $wer -Name DumpType -Value 2 -PropertyType DWord -Force | Out-Null
+      - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
       - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
       - name: Stress the original Ninja and Python 3.10 command chain
         shell: python
@@ -52,10 +61,12 @@ jobs:
               if i % 20 == 0:
                   print(f'{i + 1} Ninja builds passed', flush=True)
           print('200 Python 3.10/Ninja target builds passed')
-      - name: Application crash events
+      - name: Postmortem debugger output
         if: always()
         shell: pwsh
         run: |
+          Start-Sleep -Seconds 30 # let cdb finish writing the dump
+          if (Test-Path D:\dumps\cdb.log) { Get-Content D:\dumps\cdb.log } else { 'no cdb.log' }
           Get-WinEvent -FilterHashtable @{LogName='Application'; Id=1000,1001; StartTime=(Get-Date).AddHours(-1)} -ErrorAction SilentlyContinue | Format-List TimeCreated,Message
           exit 0
       - uses: actions/upload-artifact@v7
@@ -63,7 +74,7 @@ jobs:
         with:
           name: windows-ninja-diagnostics
           path: |
-            dumps/
+            D:/dumps/
             D:/a/radare2/radare2/build/subprojects/sdb/*.pdb
             D:/a/radare2/radare2/build/subprojects/sdb/*.exe
             D:/a/radare2/radare2/build/subprojects/sdb/*.dll
