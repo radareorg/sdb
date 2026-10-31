@@ -2,14 +2,18 @@ name: Windows tool reproduction
 on:
   pull_request:
 jobs:
-  ninja-python310:
+  ninja-python:
     runs-on: windows-2022
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python }}
       - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
         with:
           arch: x64
@@ -27,7 +31,7 @@ jobs:
         shell: pwsh
       - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
       - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
-      - name: Stress the original Ninja and Python 3.10 command chain
+      - name: Stress the original Ninja and Python command chain
         shell: python
         env:
           PYTHONFAULTHANDLER: 1
@@ -50,7 +54,7 @@ jobs:
                   raise SystemExit(1)
               if i % 20 == 0:
                   print(f'{i + 1} Ninja builds passed', flush=True)
-          print('200 Python 3.10/Ninja target builds passed')
+          print('200 Ninja target builds passed')
       - name: Collect diagnostics
         if: always()
         shell: pwsh
@@ -62,5 +66,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: windows-ninja-diagnostics
+          name: windows-ninja-diagnostics-${{ matrix.python }}
           path: diagnostics/
