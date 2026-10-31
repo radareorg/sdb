@@ -2,9 +2,9 @@ name: Windows tool reproduction
 on:
   pull_request:
 jobs:
-  page-heap:
+  ninja-python310:
     runs-on: windows-2022
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
@@ -13,10 +13,14 @@ jobs:
       - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
         with:
           arch: x64
-      - run: pip install meson ninja
-      - run: meson setup build --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
-      - run: meson compile -C build
-      - name: Enable full page heap and crash dumps
+      - run: pip install meson ninja r2pipe wget
+      - run: git clone --depth 1 https://github.com/radareorg/radare2.git D:/a/radare2/radare2
+      - name: Use this Sdb checkout
+        shell: python
+        run: |
+          import shutil
+          shutil.copytree('.', 'D:/a/radare2/radare2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
+      - name: Enable crash dumps
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dumps
@@ -24,40 +28,30 @@ jobs:
           New-Item -Path $key -Force
           New-ItemProperty -Path $key -Name DumpFolder -Value "$PWD\dumps" -PropertyType ExpandString -Force
           New-ItemProperty -Path $key -Name DumpType -Value 2 -PropertyType DWord -Force
-          $image = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sdb.exe'
-          New-Item -Path $image -Force
-          New-ItemProperty -Path $image -Name GlobalFlag -Value '0x02000000' -PropertyType String -Force
-          New-ItemProperty -Path $image -Name PageHeapFlags -Value '0x3' -PropertyType String -Force
-      - name: Stress the original radare2 paths under full page heap
+      - run: meson setup D:/a/radare2/radare2/build D:/a/radare2/radare2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
+      - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
+      - name: Stress the original Ninja and Python 3.10 command chain
         shell: python
         run: |
-          import os, pathlib, shutil, subprocess, urllib.request
-          root = pathlib.Path('D:/a/radare2/radare2')
-          src = root / 'libr/bin/d'
-          out = root / 'build/libr/bin/d'
-          bindir = root / 'build/subprojects/sdb'
-          for d in [src, out, bindir]:
-              d.mkdir(parents=True, exist_ok=True)
-          for pattern in ['sdb.exe', 'libsdb.dll', '*.pdb']:
-              for f in pathlib.Path('build').glob(pattern):
-                  shutil.copy2(f, bindir / f.name)
-          data = urllib.request.urlopen('https://raw.githubusercontent.com/radareorg/radare2/4b1271d997b06f06426185a1fb0b062c87887372/libr/bin/d/symclass.sdb.txt').read()
-          (src / 'symclass.sdb.txt').write_bytes(data.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
-          exe = str(bindir / 'sdb.exe')
-          for i in range(1000):
-              for f in out.iterdir():
-                  f.unlink()
-              env = {**os.environ, 'SDB_OUTPUT_DIR': str(out).replace('libr\\bin', 'libr/bin')}
-              env['SDB_TEST_PADDING'] = 'x' * (i % 256)
-              r = subprocess.run([exe, '-r', src.as_posix()], cwd=root / 'build', env=env, capture_output=True, timeout=30)
-              if r.returncode:
-                  print(f'iteration {i}: {r.returncode:#x}', flush=True)
-                  print(r.stdout.decode(errors='replace'), flush=True)
-                  print(r.stderr.decode(errors='replace'), flush=True)
+          import pathlib, subprocess
+          root = pathlib.Path('D:/a/radare2/radare2/build')
+          targets = ['libr/bin/d/symclass.sdb', 'libr/syscall/d/darwin-arm-32.sdb', 'libr/bin/d/dll/aclui.sdb', 'r2sdb', 'libsdb.dll']
+          for i in range(200):
+              for directory in ['libr/bin/d', 'libr/bin/d/dll', 'libr/syscall/d']:
+                  for pattern in ['*.sdb', '*.c']:
+                      for f in (root / directory).glob(pattern):
+                          f.unlink()
+              for name in ['r2sdb', 'libsdb.dll']:
+                  (root / name).unlink(missing_ok=True)
+              result = subprocess.run(['ninja', '-C', str(root), '-j4', *targets], capture_output=True, timeout=60)
+              if result.returncode:
+                  print(f'iteration {i}: {result.returncode:#x}', flush=True)
+                  print(result.stdout.decode(errors='replace'), flush=True)
+                  print(result.stderr.decode(errors='replace'), flush=True)
                   raise SystemExit(1)
-              if i % 100 == 0:
-                  print(f'{i + 1} generations passed', flush=True)
-          print('1000 full-page-heap generations passed')
+              if i % 20 == 0:
+                  print(f'{i + 1} Ninja builds passed', flush=True)
+          print('200 Python 3.10/Ninja target builds passed')
       - name: Application crash events
         if: always()
         shell: pwsh
@@ -67,7 +61,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: windows-page-heap-diagnostics
+          name: windows-ninja-diagnostics
           path: |
             dumps/
-            build/*.pdb
+            D:/a/radare2/radare2/build/subprojects/sdb/*.pdb
