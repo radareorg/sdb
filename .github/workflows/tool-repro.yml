@@ -1,0 +1,39 @@
+name: Windows tool reproduction
+on:
+  pull_request:
+jobs:
+  reproduce:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitize: [none, address]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9
+        with:
+          arch: x64
+      - run: pip install meson ninja
+      - run: meson setup build --buildtype=release -Dc_std=c11 -Db_sanitize=${{ matrix.sanitize }}
+      - run: meson compile -C build
+      - name: Reproduce radare2 database generation
+        shell: python
+        run: |
+          import os, pathlib, subprocess, tempfile, urllib.request
+          exe = str(pathlib.Path('build/sdb.exe').resolve())
+          data = urllib.request.urlopen('https://raw.githubusercontent.com/radareorg/radare2/4b1271d997b06f06426185a1fb0b062c87887372/libr/bin/d/symclass.sdb.txt').read()
+          with tempfile.TemporaryDirectory() as tmp:
+              root = pathlib.Path(tmp)
+              src = root / 'in'
+              src.mkdir()
+              (src / 'symclass.sdb.txt').write_bytes(data.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
+              for i in range(100):
+                  out = root / str(i)
+                  out.mkdir()
+                  result = subprocess.run([exe, '-r', str(src)], env={**os.environ, 'SDB_OUTPUT_DIR': str(out)}, capture_output=True)
+                  if result.returncode:
+                      print(f'iteration {i}: {result.returncode:#x}', flush=True)
+                      print(result.stdout.decode(errors='replace'), flush=True)
+                      print(result.stderr.decode(errors='replace'), flush=True)
+                      raise SystemExit(1)
+              print('100 generations passed')
