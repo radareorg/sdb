@@ -29,6 +29,8 @@ jobs:
       - run: ninja -C D:/a/radare2/radare2/build -j4 libr/bin/d/symclass.sdb libr/syscall/d/darwin-arm-32.sdb libr/bin/d/dll/aclui.sdb r2sdb libsdb.dll
       - name: Stress the original Ninja and Python 3.10 command chain
         shell: python
+        env:
+          PYTHONFAULTHANDLER: 1
         run: |
           import pathlib, subprocess
           root = pathlib.Path('D:/a/radare2/radare2/build')

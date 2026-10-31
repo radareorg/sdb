@@ -56,8 +56,14 @@ static LONG CALLBACK sdb_crashtrace(EXCEPTION_POINTERS *ep) {
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
+static void __cdecl sdb_crashtrace_exit(void) {
+	fprintf (stderr, "CRASHTRACE sdb pid=%lu exiting normally\n", GetCurrentProcessId ());
+	fflush (stderr);
+}
+
 static void __cdecl sdb_crashtrace_init(void) {
 	AddVectoredExceptionHandler (1, sdb_crashtrace);
+	atexit (sdb_crashtrace_exit);
 }
 #pragma section(".CRT$XCU", read)
 __declspec(allocate(".CRT$XCU")) static void (__cdecl *sdb_crashtrace_ptr)(void) = sdb_crashtrace_init;
