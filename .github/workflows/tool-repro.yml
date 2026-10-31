@@ -2,8 +2,9 @@ name: Windows tool reproduction
 on:
   pull_request:
 jobs:
-  full-build:
+  page-heap:
     runs-on: windows-2022
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
@@ -13,13 +14,9 @@ jobs:
         with:
           arch: x64
       - run: pip install meson ninja
-      - run: git clone --depth 1 https://github.com/radareorg/radare2.git r2
-      - name: Use this Sdb checkout
-        shell: python
-        run: |
-          import shutil
-          shutil.copytree('.', 'r2/subprojects/sdb', ignore=shutil.ignore_patterns('.git', 'r2', 'build'))
-      - name: Enable crash dumps
+      - run: meson setup build --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
+      - run: meson compile -C build
+      - name: Enable full page heap and crash dumps
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dumps
@@ -27,8 +24,40 @@ jobs:
           New-Item -Path $key -Force
           New-ItemProperty -Path $key -Name DumpFolder -Value "$PWD\dumps" -PropertyType ExpandString -Force
           New-ItemProperty -Path $key -Name DumpType -Value 2 -PropertyType DWord -Force
-      - run: meson setup r2/build r2 --buildtype=release -Dc_std=c11 -Dc_args=/Zi -Dc_link_args=/DEBUG
-      - run: meson compile -C r2/build -j4
+          $image = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sdb.exe'
+          New-Item -Path $image -Force
+          New-ItemProperty -Path $image -Name GlobalFlag -Value '0x02000000' -PropertyType String -Force
+          New-ItemProperty -Path $image -Name PageHeapFlags -Value '0x3' -PropertyType String -Force
+      - name: Stress the original radare2 paths under full page heap
+        shell: python
+        run: |
+          import os, pathlib, shutil, subprocess, urllib.request
+          root = pathlib.Path('D:/a/radare2/radare2')
+          src = root / 'libr/bin/d'
+          out = root / 'build/libr/bin/d'
+          bindir = root / 'build/subprojects/sdb'
+          for d in [src, out, bindir]:
+              d.mkdir(parents=True, exist_ok=True)
+          for pattern in ['sdb.exe', 'libsdb.dll', '*.pdb']:
+              for f in pathlib.Path('build').glob(pattern):
+                  shutil.copy2(f, bindir / f.name)
+          data = urllib.request.urlopen('https://raw.githubusercontent.com/radareorg/radare2/4b1271d997b06f06426185a1fb0b062c87887372/libr/bin/d/symclass.sdb.txt').read()
+          (src / 'symclass.sdb.txt').write_bytes(data.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
+          exe = str(bindir / 'sdb.exe')
+          for i in range(1000):
+              for f in out.iterdir():
+                  f.unlink()
+              env = {**os.environ, 'SDB_OUTPUT_DIR': str(out).replace('libr\\bin', 'libr/bin')}
+              env['SDB_TEST_PADDING'] = 'x' * (i % 256)
+              r = subprocess.run([exe, '-r', src.as_posix()], cwd=root / 'build', env=env, capture_output=True, timeout=30)
+              if r.returncode:
+                  print(f'iteration {i}: {r.returncode:#x}', flush=True)
+                  print(r.stdout.decode(errors='replace'), flush=True)
+                  print(r.stderr.decode(errors='replace'), flush=True)
+                  raise SystemExit(1)
+              if i % 100 == 0:
+                  print(f'{i + 1} generations passed', flush=True)
+          print('1000 full-page-heap generations passed')
       - name: Application crash events
         if: always()
         shell: pwsh
@@ -38,8 +67,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: windows-crash-diagnostics
+          name: windows-page-heap-diagnostics
           path: |
             dumps/
-            r2/build/subprojects/sdb/*.pdb
-            r2/build/meson-logs/
+            build/*.pdb
