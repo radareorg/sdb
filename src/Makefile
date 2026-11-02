@@ -47,7 +47,7 @@ ifneq ($(SILENT),)
 	@echo AR libsdb$(EXT_AR)
 endif
 	rm -f libsdb$(EXT_AR)
-	${AR} q libsdb$(EXT_AR) ${OBJ}
+	${AR} qc libsdb$(EXT_AR) ${OBJ}
 	${RANLIB} libsdb$(EXT_AR)
 
 ifeq ($(CC),tcc)
