@@ -290,6 +290,7 @@ static void mirror_sdb(Sdb *db) {
 		sdb_gh_free (ek);
 		sdb_gh_free (ev);
 	}
+	ls_free (l);
 }
 
 static bool dothesdb(const char *file_txt, const char *file_sdb, bool mirror_mode) {
