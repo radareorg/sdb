@@ -54,6 +54,86 @@ static bool test_sync_reopen(void) {
 	mu_end;
 }
 
+static bool test_memory_sync_reopen(void) {
+	const char *path = ".test-memory-sync.sdb";
+	cleanup_sync_files (path);
+	Sdb *db = sdb_new0 ();
+	bool populated = db
+		&& sdb_set (db, "first", "one", 0)
+		&& sdb_set (db, "second", "two", 0);
+	if (populated) {
+		sdb_file (db, path);
+	}
+	bool synced = populated && sdb_sync (db);
+	sdb_close (db);
+	sdb_free (db);
+	bool first = database_value_is (path, "first", "one");
+	bool second = database_value_is (path, "second", "two");
+	cleanup_sync_files (path);
+	mu_assert_true (populated, "memory database populated");
+	mu_assert_true (synced, "memory database synchronized");
+	mu_assert_true (first, "first value survives reopening");
+	mu_assert_true (second, "second value survives reopening");
+	mu_end;
+}
+
+static bool test_merge_sync_reopen_new(void) {
+	const char *path = ".test-merge-sync-new.sdb";
+	cleanup_sync_files (path);
+	Sdb *src = sdb_new0 ();
+	Sdb *dst = sdb_new (NULL, path, 0);
+	bool merged = src && dst
+		&& sdb_set (src, "first", "one", 0)
+		&& sdb_set (src, "second", "two", 0)
+		&& sdb_merge (dst, src);
+	sdb_free (src);
+	bool synced = merged && sdb_sync (dst);
+	sdb_close (dst);
+	sdb_free (dst);
+	bool first = database_value_is (path, "first", "one");
+	bool second = database_value_is (path, "second", "two");
+	cleanup_sync_files (path);
+	mu_assert_true (merged, "memory database merged");
+	mu_assert_true (synced, "new database synchronized");
+	mu_assert_true (first, "first merged value survives reopening");
+	mu_assert_true (second, "second merged value survives reopening");
+	mu_end;
+}
+
+static bool test_merge_sync_reopen_existing(void) {
+	const char *path = ".test-merge-sync-existing.sdb";
+	cleanup_sync_files (path);
+	Sdb *dst = sdb_new (NULL, path, 0);
+	bool seeded = dst
+		&& sdb_set (dst, "unchanged", "on disk", 0)
+		&& sdb_set (dst, "updated", "old", 0)
+		&& sdb_sync (dst);
+	sdb_close (dst);
+	sdb_free (dst);
+
+	Sdb *src = sdb_new0 ();
+	dst = sdb_new (NULL, path, 0);
+	bool merged = seeded && src && dst
+		&& sdb_set (src, "updated", "new", 0)
+		&& sdb_set (src, "added", "from memory", 0)
+		&& sdb_merge (dst, src);
+	sdb_free (src);
+	bool synced = merged && sdb_sync (dst);
+	sdb_close (dst);
+	sdb_free (dst);
+	bool unchanged = database_value_is (path, "unchanged", "on disk");
+	bool updated = database_value_is (path, "updated", "new");
+	bool added = database_value_is (path, "added", "from memory");
+	cleanup_sync_files (path);
+	mu_assert_true (seeded, "existing database created");
+	mu_assert_true (merged, "memory database merged");
+	mu_assert_true (synced, "existing database synchronized");
+	mu_assert_true (unchanged, "existing value survives reopening");
+	mu_assert_true (updated, "overwritten value survives reopening");
+	mu_assert_true (added, "new value survives reopening");
+	mu_end;
+}
+
 static bool test_cdb_init_rewind(void) {
 	const char *path = ".test-cdb-rewind.sdb";
 	const char data[] = "database contents";
@@ -213,6 +293,9 @@ static bool test_unlink_removes_database(void) {
 
 static int all_tests(void) {
 	mu_run_test (test_sync_reopen);
+	mu_run_test (test_memory_sync_reopen);
+	mu_run_test (test_merge_sync_reopen_new);
+	mu_run_test (test_merge_sync_reopen_existing);
 	mu_run_test (test_cdb_init_rewind);
 	mu_run_test (test_cdb_init_read_failure);
 	mu_run_test (test_sync_failure_preserves_database);
